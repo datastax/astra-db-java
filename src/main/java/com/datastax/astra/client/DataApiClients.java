@@ -1,21 +1,15 @@
 package com.datastax.astra.client;
 
+import com.datastax.astra.internal.DataAPIDatabaseAdmin;
+import com.datastax.astra.internal.auth.FixedTokenAuthenticationService;
+import com.datastax.astra.internal.auth.StargateAuthenticationService;
+import com.datastax.astra.internal.auth.TokenProvider;
+import com.datastax.astra.internal.http.HttpClientOptions;
 
-import io.stargate.sdk.ServiceDatacenter;
-import io.stargate.sdk.ServiceDeployment;
-import io.stargate.sdk.auth.FixedTokenAuthenticationService;
-import io.stargate.sdk.auth.StargateAuthenticationService;
-import io.stargate.sdk.auth.TokenProvider;
-import io.stargate.sdk.data.internal.DataAPIDatabaseAdmin;
-import io.stargate.sdk.http.HttpClientOptions;
-import io.stargate.sdk.http.ServiceHttp;
-import io.stargate.sdk.utils.Assert;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.NonNull;
 
 import java.util.Collections;
-
-import static io.stargate.sdk.utils.Assert.hasLength;
-import static io.stargate.sdk.utils.Assert.notNull;
 
 /**
  * Initialization of the client in a Static way.
@@ -42,69 +36,25 @@ public class DataApiClients {
     /**
      * Create from an Endpoint only
      */
-    public static io.stargate.sdk.data.client.DatabaseAdmin create() {
-        return create(
-                buildServiceDeployment(DEFAULT_ENDPOINT, new StargateAuthenticationService()),
-                HttpClientOptions.builder().build());
+    public static DataAPIClient localStargate() {
+        return new DataAPIClient(
+                new StargateAuthenticationService().getToken(),
+                DataAPIClientOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
     }
 
-    /**
-     * Create from an Endpoint only
-     *
-     * @param endpoint
-     *      service endpoint
-     * @param token
-     *      token
-     */
-    public static io.stargate.sdk.data.client.DatabaseAdmin create(@NonNull String endpoint, @NonNull String token) {
-        return create(endpoint, token, HttpClientOptions.builder().build());
+    public static DataAPIClient astra(String token) {
+        return new DataAPIClient(token, DataAPIClientOptions
+                .builder()
+                .withDestination(DataAPIDestination.ASTRA)
+                .build());
     }
 
-    /**
-     * Create from an Endpoint only
-     *
-     * @param endpoint
-     *      service endpoint
-     * @param token
-     *      token
-     */
-    public static io.stargate.sdk.data.client.DatabaseAdmin create(@NonNull String endpoint, @NonNull String token, HttpClientOptions httpClientOptions) {
-        Assert.notNull(endpoint, "endpoint");
-        Assert.notNull(token, "token");
-        Assert.notNull(httpClientOptions, "httpClientOptions");
-        return new DataAPIDatabaseAdmin(buildServiceDeployment(endpoint, new FixedTokenAuthenticationService(token)),  httpClientOptions);
+    public static DataAPIClient astraDev(String token) {
+        return new DataAPIClient(token, DataAPIClientOptions
+                .builder()
+                .withDestination(DataAPIDestination.ASTRA_DEV)
+                .build());
     }
 
-    /**
-     * Build the Stargate Service Deployment (DC / Services).
-     * @param endpoint
-     *      http endpoint
-     * @param tokenProvider
-     *      token provider (fixed or stargate)
-     * @return
-     *      service deployment
-     */
-    private static ServiceDeployment<ServiceHttp> buildServiceDeployment(String endpoint, TokenProvider tokenProvider) {
-        hasLength(endpoint, "stargate endpoint");
-        notNull(tokenProvider, "tokenProvider");
-        // Single instance running
-        ServiceHttp rest =
-                new ServiceHttp(DEFAULT_SERVICE_ID, endpoint, endpoint + PATH_HEALTH_CHECK);
-        // DC with default auth and single node
-        ServiceDatacenter<ServiceHttp> sDc =
-                new ServiceDatacenter<>(DEFAULT_DATACENTER, tokenProvider, Collections.singletonList(rest));
-        // Deployment with a single dc
-        return new ServiceDeployment<ServiceHttp>().addDatacenter(sDc);
-    }
-
-    /**
-     * Initialized document API with a URL and a token.
-     *
-     * @param serviceDeployment
-     *      http client topology aware
-     */
-    public static io.stargate.sdk.data.client.DatabaseAdmin create(ServiceDeployment<ServiceHttp> serviceDeployment, HttpClientOptions clientOptions) {
-        return new DataAPIDatabaseAdmin(serviceDeployment, clientOptions);
-    }
 
 }

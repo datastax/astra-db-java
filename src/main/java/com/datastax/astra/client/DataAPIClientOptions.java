@@ -1,14 +1,15 @@
 package com.datastax.astra.client;
 
-
-import io.stargate.sdk.http.HttpClientOptions;
-import io.stargate.sdk.utils.Assert;
+import com.datastax.astra.internal.http.HttpClientOptions;
+import com.datastax.astra.internal.utils.Assert;
+import lombok.Getter;
 
 import java.net.http.HttpClient;
 
 /**
- * Options to setup the client for DataApiClient.
+ * Options to set up the client for DataApiClient.
  */
+@Getter
 public class DataAPIClientOptions {
 
     /** Number of documents for a count. */
@@ -21,12 +22,12 @@ public class DataAPIClientOptions {
     static final int MAX_DOCUMENTS_IN_INSERT = 20;
 
     /** Default user agent. */
-    public static final String DEFAULT_CALLER_NAME = "data-api-client-java";
+    public static final String DEFAULT_CALLER_NAME = "astra-db-java";
 
     /** Default user agent. */
     public static final String DEFAULT_CALLER_VERSION =
             DataAPIClientOptions.class.getPackage().getImplementationVersion() != null ?
-                    DataAPIClientOptions.class.getPackage().getImplementationVersion() : "dev";
+            DataAPIClientOptions.class.getPackage().getImplementationVersion() : "dev";
 
     /** Default timeout for initiating connection. */
     public static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 20;
@@ -45,21 +46,22 @@ public class DataAPIClientOptions {
 
     final HttpClientOptions httpClientOptions;
 
-    final boolean isAstra = true;
+    final DataAPIDestination destination;
 
-
+    final String apiVersion;
 
     public static DataAPIClientOptionsBuilder builder() {
         return new DataAPIClientOptionsBuilder();
     }
 
     private DataAPIClientOptions(DataAPIClientOptionsBuilder builder) {
+        this.apiVersion  = builder.apiVersion;
+        this.destination = builder.destination;
         this.httpClientOptions = HttpClientOptions.builder()
-                    .apiVersion(builder.apiVersion)
                     .userAgentCallerName(builder.userAgentCallerName)
                     .userAgentCallerVersion(builder.userAgentCallerVersion)
-                    .connectionRequestTimeoutInSeconds(builder.connectionRequestTimeoutInSeconds)
-                    .responseTimeoutInSeconds(builder.responseTimeoutInSeconds)
+                    .connectionRequestTimeoutInSeconds(builder.httpRequestTimeout)
+                    .responseTimeoutInSeconds(builder.httpConnectTimeout)
                     .retryCount(builder.retryCount)
                     .retryDelay(builder.retryDelay)
                     .proxy(builder.httpProxy)
@@ -71,34 +73,37 @@ public class DataAPIClientOptions {
     public static class DataAPIClientOptionsBuilder {
 
         /** Caller name in User agent. */
-        String apiVersion = DEFAULT_VERSION;
+        private String apiVersion = DEFAULT_VERSION;
 
         /** Caller name in User agent. */
-        String userAgentCallerName = DEFAULT_CALLER_NAME;
+        private String userAgentCallerName = DEFAULT_CALLER_NAME;
 
         /** Caller version in User agent. */
-        String userAgentCallerVersion = DEFAULT_CALLER_VERSION;
+        private String userAgentCallerVersion = DEFAULT_CALLER_VERSION;
 
         /** Http Connection timeout. */
-        long connectionRequestTimeoutInSeconds = DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        private long httpRequestTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
 
         /** Http Connection timeout. */
-        long responseTimeoutInSeconds = DEFAULT_REQUEST_TIMEOUT_SECONDS;
+        private long httpConnectTimeout = DEFAULT_REQUEST_TIMEOUT_SECONDS;
 
         /** Enable retry count. */
-        int retryCount = DEFAULT_RETRY_COUNT;
+        private int retryCount = DEFAULT_RETRY_COUNT;
 
         /** How much to wait in between 2 calls. */
-        int retryDelay = DEFAULT_RETRY_DELAY_MILLIS;
+        private int retryDelay = DEFAULT_RETRY_DELAY_MILLIS;
 
         /** The http client could work through a proxy. */
-        HttpClientOptions.HttpProxy httpProxy;
+        private HttpClientOptions.HttpProxy httpProxy;
 
         /** Moving to HTTP/2. */
-        HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
+        private  HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
 
         /** Redirect  */
-        HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
+        private  HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
+
+        /** Default is to use Astra in Production. */
+        private DataAPIDestination destination = DataAPIDestination.ASTRA;
 
         public DataAPIClientOptionsBuilder withCaller(String callerName, String callerVersion) {
             Assert.hasLength(callerName, callerVersion);
@@ -129,6 +134,21 @@ public class DataAPIClientOptions {
 
         public DataAPIClientOptionsBuilder withHttpRetryCount(int retryCount) {
             this.retryCount = retryCount;
+            return this;
+        }
+
+        public DataAPIClientOptionsBuilder withHttpConnectTimeout(int connecTimeout) {
+            this.httpRequestTimeout = connecTimeout;
+            return this;
+        }
+
+        public DataAPIClientOptionsBuilder withHttpRequestTimeout(int connecTimeout) {
+            this.httpConnectTimeout = connecTimeout;
+            return this;
+        }
+
+        public DataAPIClientOptionsBuilder withDestination(DataAPIDestination destination) {
+            this.destination = destination;
             return this;
         }
 
@@ -168,7 +188,9 @@ public class DataAPIClientOptions {
             return this;
         }
 
-
+        public DataAPIClientOptions build() {
+            return new DataAPIClientOptions(this);
+        }
 
 
     }
@@ -194,7 +216,7 @@ public class DataAPIClientOptions {
     }
 
     /**
-     * Retrieve the maximum number of documents allows for a inserMany() below this point the list is split and chunked are processed in parallel.
+     * Retrieve the maximum number of documents allows for a insertMany() below this point the list is split and chunked are processed in parallel.
      *
      * @return
      *      maximum page size.

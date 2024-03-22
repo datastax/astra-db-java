@@ -1,34 +1,15 @@
 package com.datastax.astra.client;
 
-import io.stargate.sdk.data.client.exception.DataApiResponseException;
-import io.stargate.sdk.data.client.model.ApiResponse;
-import io.stargate.sdk.data.client.model.Command;
-import io.stargate.sdk.data.client.observer.DataApiCommandObserver;
-import io.stargate.sdk.http.LoadBalancedHttpClient;
-import io.stargate.sdk.http.ServiceHttp;
-
-import java.util.function.Function;
+import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.observer.CommandObserver;
+import com.datastax.astra.internal.http.RetryHttpClient;
 
 /**
  * Use to initialize the HTTPClient.
  */
 public interface CommandRunner {
-
-    /**
-     * Lookup for an endpoint (Load balancing)
-     *
-     * @return
-     *      endpoint in a distributed
-     */
-    Function<ServiceHttp, String> lookup();
-
-    /**
-     * Access the HTTP client singleton.
-     *
-     * @return
-     *      endpoint in a distributed
-     */
-    LoadBalancedHttpClient getHttpClient();
 
     // ------------------------------------------
     // ----           Command                ----
@@ -71,7 +52,7 @@ public interface CommandRunner {
      * @param observer
      *      observer
      */
-    void registerListener(String name, DataApiCommandObserver observer);
+    void registerListener(String name, CommandObserver observer);
 
     /**
      * Delete a listener of it exists.

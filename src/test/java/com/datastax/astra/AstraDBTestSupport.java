@@ -3,6 +3,8 @@ package com.datastax.astra;
 import com.datastax.astra.devops.db.domain.CloudProviderType;
 import com.datastax.astra.devops.utils.ApiLocator;
 import com.datastax.astra.devops.utils.AstraEnvironment;
+import com.datastax.astra.client.AstraDBAdmin;
+import com.datastax.astra.internal.astra.AstraDatabase;
 import io.stargate.sdk.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 

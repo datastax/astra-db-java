@@ -1,14 +1,16 @@
 package com.datastax.astra.internal;
 
-import io.stargate.sdk.data.client.CommandRunner;
-import io.stargate.sdk.data.client.exception.DataApiResponseException;
-import io.stargate.sdk.data.client.model.ApiResponse;
-import io.stargate.sdk.data.client.model.Command;
-import io.stargate.sdk.data.client.model.ExecutionInfos;
-import io.stargate.sdk.data.client.observer.DataApiCommandObserver;
-import io.stargate.sdk.http.domain.ApiResponseHttp;
-import io.stargate.sdk.utils.CompletableFutures;
-import io.stargate.sdk.utils.JsonUtils;
+import com.datastax.astra.client.CommandRunner;
+import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.observer.ExecutionInfos;
+import com.datastax.astra.client.observer.CommandObserver;
+import com.datastax.astra.internal.http.ApiResponseHttp;
+import com.datastax.astra.internal.http.HttpClientOptions;
+import com.datastax.astra.internal.http.RetryHttpClient;
+import com.datastax.astra.internal.utils.CompletableFutures;
+import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
@@ -25,12 +27,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public abstract class AbstractCommandRunner implements CommandRunner {
 
+    /** Static Http Client for the Client. */
+    protected static RetryHttpClient httpClient;
+
     /** Could be usefult to capture the interactions at client side. */
-    protected Map<String, DataApiCommandObserver> observers = new ConcurrentHashMap<>();
+    protected Map<String, CommandObserver> observers = new ConcurrentHashMap<>();
 
     /** {@inheritDoc} */
     @Override
-    public void registerListener(String name, DataApiCommandObserver observer) {
+    public void registerListener(String name, CommandObserver observer) {
         observers.put(name, observer);
     }
 
@@ -38,6 +43,13 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     @Override
     public void deleteListener(String name) {
         observers.remove(name);
+    }
+
+    protected synchronized RetryHttpClient getHttpClient() {
+        if (httpClient != null) {
+            httpClient = new RetryHttpClient(getHttpClientOptions());
+        }
+        return httpClient;
     }
 
     /** {@inheritDoc} */
@@ -52,7 +64,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             // (Custom) Serialization
             String jsonCommand = JsonUtils.marshallForDataApi(command);
 
-            ApiResponseHttp httpRes = getHttpClient().POST(lookup(), jsonCommand);
+            ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), jsonCommand);
             executionInfo.withHttpResponse(httpRes);
 
             ApiResponse jsonRes = JsonUtils.unmarshallBeanForDataApi(httpRes.getBody(), ApiResponse.class);
@@ -78,7 +90,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      * @return
      *      void
      */
-    private CompletionStage<Void> notifyASync(Consumer<DataApiCommandObserver> lambda) {
+    private CompletionStage<Void> notifyASync(Consumer<CommandObserver> lambda) {
         return CompletableFutures.allDone(observers.values().stream()
                 .map(l -> CompletableFuture.runAsync(() -> lambda.accept(l)))
                 .collect(Collectors.toList()));
@@ -117,5 +129,9 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         }
         return JsonUtils.unmarshallBeanForDataApi(payload, documentClass);
     }
+
+    protected abstract String getApiEndpoint();
+
+    protected abstract HttpClientOptions getHttpClientOptions();
 
 }

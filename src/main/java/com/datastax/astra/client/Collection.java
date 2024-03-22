@@ -1,12 +1,61 @@
 package com.datastax.astra.client;
 
+import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataApiFaultyResponseException;
+import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.api.ApiResponse;
 import com.datastax.astra.client.model.collections.CollectionDefinition;
 import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.delete.DeleteOneOptions;
+import com.datastax.astra.client.model.delete.DeleteResult;
+import com.datastax.astra.client.model.filter.Filter;
+import com.datastax.astra.client.model.filter.Filters;
+import com.datastax.astra.client.model.find.FindOneAndDeleteOptions;
+import com.datastax.astra.client.model.find.FindOneAndReplaceOptions;
+import com.datastax.astra.client.model.find.FindOneAndReplaceResult;
+import com.datastax.astra.client.model.find.FindOneAndUpdateOptions;
+import com.datastax.astra.client.model.find.FindOneOptions;
+import com.datastax.astra.client.model.find.FindOptions;
+import com.datastax.astra.client.model.insert.InsertManyOptions;
+import com.datastax.astra.client.model.insert.InsertManyResult;
+import com.datastax.astra.client.model.insert.InsertOneResult;
+import com.datastax.astra.client.model.iterable.DistinctIterable;
+import com.datastax.astra.client.model.iterable.FindIterable;
+import com.datastax.astra.client.model.iterable.Page;
+import com.datastax.astra.client.model.misc.BulkWriteOptions;
+import com.datastax.astra.client.model.misc.BulkWriteResult;
+import com.datastax.astra.client.model.update.ReplaceOneOptions;
+import com.datastax.astra.client.model.update.Update;
+import com.datastax.astra.client.model.update.UpdateOneOptions;
+import com.datastax.astra.client.model.update.UpdateResult;
+import com.datastax.astra.internal.AbstractCommandRunner;
+import com.datastax.astra.internal.http.HttpClientOptions;
+import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.JsonUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
+import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
+import static com.datastax.astra.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
+import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
+import static com.datastax.astra.internal.utils.Assert.hasLength;
+import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
  * A Data API collection, the main object to interact with the Data API, especially for DDL operations.
@@ -18,7 +67,7 @@ import java.util.concurrent.CompletableFuture;
  * </p>
  *
  * <p>
- * A Collection is typed object designed to work both with default @{@link io.stargate.sdk.data.client.model.Document} (wrapper for a Map) and application
+ * A Collection is typed object designed to work both with default @{@link com.datastax.astra.client.model.Document} (wrapper for a Map) and application
  * plain old java objects (pojo). The serialization is performed with Jackson and application beans can be annotated.
  * </p>
  *
@@ -39,7 +88,39 @@ import java.util.concurrent.CompletableFuture;
  * @param <DOC>
  *     Java bean to unmarshall documents for collection.
  */
-public interface Collection<DOC> extends CommandRunner {
+@Slf4j
+public class Collection<DOC> extends AbstractCommandRunner {
+
+    /** Collection identifier. */
+    @Getter
+    private final String collectionName;
+
+    /** Keep ref to the generic. */
+    protected final Class<DOC> documentClass;
+
+    /** keep reference to namespace client. */
+    private final Database database;
+
+    /** Api Endpoint for the Database. */
+    private final String apiEndpoint;
+
+    /**
+     * Full constructor.
+     *
+     * @param db
+     *      client namespace http
+     * @param collectionName
+     *      collection identifier
+     */
+    protected Collection(Database db, String collectionName, Class<DOC> clazz) {
+        notNull(db, "database");
+        notNull(clazz, "working classe");
+        hasLength(collectionName, "collectionName");
+        this.collectionName        = collectionName;
+        this.database              = db;
+        this.documentClass         = clazz;
+        this.apiEndpoint           = db.getApiEndpointDatabase()  + "/" + collectionName;
+    }
 
     // ----------------------------
     // --- Global Informations ----
@@ -60,7 +141,40 @@ public interface Collection<DOC> extends CommandRunner {
      *
      * @return parent namespace client.
      */
-    Database getNamespace();
+    public Database getDatabase() {
+        return database;
+    }
+
+    /**
+     * Retrieves the full definition of the collection with its name and options.
+     * <p></p>
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Given a collection
+     * DataApiCollection<Document> collection;
+     * // Access its Definition
+     * CollectionDefinition definition = collection.getDefinition();
+     * System.out.println("Name=" + definition.getName());
+     * CreateCollectionOptions options = definition.getOptions();
+     * i f (options != null) {
+     *   // omitte
+     * }
+     * }
+     * </pre>
+     *
+     * @return the full collection definition.
+     *
+     * @see CollectionDefinition##getOptions()
+     */
+    public CollectionDefinition getDefinition() {
+        return database
+                .listCollections()
+                .filter(col -> col.getName().equals(collectionName))
+                .findFirst()
+                .orElseThrow(() -> new DataApiException("[COLLECTION_NOT_EXIST] - Collection does not exist, " +
+                        "collection name: '" + collectionName + "'", "COLLECTION_NOT_EXIST", null));
+    }
 
     /**
      * Retrieves the configuration options for the collection, including vector and indexing settings.
@@ -88,37 +202,18 @@ public interface Collection<DOC> extends CommandRunner {
      * @return An instance of {@link CollectionOptions} containing the collection's configuration settings,
      *         such as vector and indexing options. Returns {@code null} if no options are set or applicable.
      */
-    CollectionOptions getOptions();
-
-    /**
-     * Retrieves the full definition of the collection with its name and options.
-     * <p></p>
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Given a collection
-     * DataApiCollection<Document> collection;
-     * // Access its Definition
-     * CollectionDefinition definition = collection.getDefinition();
-     * System.out.println("Name=" + definition.getName());
-     * CreateCollectionOptions options = definition.getOptions();
-     * i f (options != null) {
-     *   // omitte
-     * }
-     * }
-     * </pre>
-     *
-     * @return the full collection definition.
-     *
-     * @see CollectionDefinition##getOptions()
-     */
-    CollectionDefinition getDefinition();
+    public CollectionOptions getOptions() {
+        return Optional
+                .ofNullable(getDefinition()
+                        .getOptions())
+                .orElse(new CollectionOptions());
+    }
 
     /**
      * Retrieves the class type of the POJO (Plain Old Java Object) used for unmarshalling documents
      * within the collection. This class type is crucial for converting the raw data from the collection
      * into more manageable, object-oriented representations. By default, this method returns the
-     * {@link io.stargate.sdk.data.client.model.Document} class, which serves as the standard container
+     * {@link com.datastax.astra.client.model.Document} class, which serves as the standard container
      * for document data. Custom implementations can override this default to utilize a different POJO
      * that better suits their data structure and requirements.
      *
@@ -127,38 +222,213 @@ public interface Collection<DOC> extends CommandRunner {
      *         to Java object instances, allowing for more intuitive data manipulation and access within
      *         the application.
      */
-    Class<DOC> getDocumentClass();
+    public Class<DOC> getDocumentClass() {
+        return documentClass;
+    }
 
     /**
      * Retrieves the name of the collection.
      *
      * @return The name of the collection
      */
-    String getName();
-
-    /**
-     * Delete the collection from its namespace.
-     */
-    void drop();
-
-    /**
-     * Checks if the specified collection exists within the current namespace.
-     *
-     * <p>
-     * This method delegates the existence check to the {@code existCollection} method of the associated
-     * namespace, determined by {@link #getNamespace()}, and evaluates the existence based on the
-     * collection's name, as retrieved by {@link #getName()}.
-     * </p>
-     *
-     * @return {@code true} if the collection exists within the namespace, {@code false} otherwise.
-     */
-    default boolean exists() {
-        return getNamespace().collectionExists(getName());
+    public String getName() {
+        return collectionName;
     }
 
     // --------------------------
-    // ---      Find         ----
+    // ---   Insert*         ----
     // --------------------------
+
+    /**
+     * Insert a single document in the collection in an atomic operation.
+     *
+     * <p>
+     * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
+     * that exists already in the collection, an error is raised and the insertion fails.
+     * Inserts the provided document. If the document is missing an identifier, the server will generate one.
+     * </blockquote>
+     * </p>
+     *
+     * @param document
+     *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
+     * @return
+     *       an InsertOneResult object.
+     */
+    public final InsertOneResult insertOne(DOC document) {
+        Assert.notNull(document, "document");
+        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class));
+    }
+
+    /**
+     * Insert a single document in the collection in an atomic operation.
+     *
+     * <p>
+     * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
+     * that exists already in the collection, an error is raised and the insertion fails.
+     * Inserts the provided document. If the document is missing an identifier, the server will generate one.
+     * </blockquote>
+     * </p>
+     *
+     * @param document
+     *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
+     * @param embeddings
+     *      the vector corresponding to the embeddings.
+     * @return
+     *       an InsertOneResult object.
+     */
+    public final InsertOneResult insertOne(DOC document, float[] embeddings) {
+        Assert.notNull(document, "document");
+        Assert.notNull(embeddings, "vectorize");
+        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vector(embeddings));
+    }
+
+    /**
+     * Insert a single document in the collection in an atomic operation.
+     *
+     * <p>
+     * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
+     * that exists already in the collection, an error is raised and the insertion fails.
+     * Inserts the provided document. If the document is missing an identifier, the server will generate one.
+     * </blockquote>
+     * </p>
+     *
+     * @param document
+     *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
+     * @param vectorize
+     *      the expression that will be translated as a vector of embeddings
+     * @return
+     *       an InsertOneResult object.
+     */
+    public final InsertOneResult insertOne(DOC document, String vectorize) {
+        Assert.notNull(document, "document");
+        Assert.hasLength(vectorize, "vectorize");
+        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vectorize(vectorize));
+    }
+
+    /**
+     * Insert a single document in the collection in an atomic operation.
+     *
+     * @param document
+     *      the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
+     * @return
+     *      an InsertOneResult object.
+     */
+    private InsertOneResult _insertOne(Document document) {
+        Assert.notNull(document, "document");
+        Command insertOne = Command
+                .create("insertOne")
+                .withDocument(document);
+        ApiResponse res = runCommand(insertOne);
+        return new InsertOneResult(res
+                .getStatusKeyAsList("insertedIds", Object.class)
+                .get(0));
+    }
+
+    /**
+     * Inserts one or more documents.
+     *
+     * @param documents
+     *      the documents to insert
+     * @return
+     *      the insert many result
+     * @throws IllegalArgumentException
+     *      if the documents list is null or empty, or any of the documents in the list are null
+     */
+    public InsertManyResult insertMany(List<? extends DOC> documents) {
+        return insertMany(documents, InsertManyOptions.builder().build());
+    }
+
+    /**
+     * Inserts one or more documents.
+     *
+     * @param documents
+     *      the documents to insert
+     * @param options
+     *      detailed options for the insert many
+     * @return
+     *      the insert many result
+     * @throws IllegalArgumentException
+     *      if the documents list is null or empty, or any of the documents in the list are null
+     */
+    public InsertManyResult insertMany(List<? extends DOC> documents, InsertManyOptions options) {
+        if (options.getConcurrency() > 1 && options.isOrdered()) {
+            throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
+        }
+        if (options.getChunkSize() > DataAPIClientOptions.getMaxDocumentsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + DataAPIClientOptions.getMaxDocumentsInInsert() + " at a time.");
+        }
+        long start = System.currentTimeMillis();
+        ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+        List<Future<InsertManyResult>> futures = new ArrayList<>();
+        for (int i = 0; i < documents.size(); i += options.getChunkSize()) {
+            futures.add(executor.submit(getInsertManyResultCallable(documents, options, i)));
+        }
+        executor.shutdown();
+
+        // Grouping All Insert ids in the same list.
+        InsertManyResult finalResult = new InsertManyResult();
+        try {
+            for (Future<InsertManyResult> future : futures) {
+                finalResult.getInsertedIds().addAll(future.get().getInsertedIds());
+            }
+
+            if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
+                log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
+                        System.currentTimeMillis() - start);
+            } else {
+                throw new TimeoutException("Request did not complete withing ");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot merge call results into a InsertManyResult", e);
+        }
+        return finalResult;
+    }
+
+    /**
+     * Execute a 1 for 1 call to the Data API.
+     *
+     * @param documents
+     *      list of documents to be inserted
+     * @param options
+     *      options for insert many (chunk size and insertion order).
+     * @param start
+     *      offset in global list
+     * @return
+     *      insert many result for a paged call
+     */
+    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends DOC> documents, InsertManyOptions options, int start) {
+        int end = Math.min(start + options.getChunkSize(), documents.size());
+        return () -> {
+            log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
+            Command insertMany = new Command("insertMany")
+                    .withDocuments(documents.subList(start, end))
+                    .withOptions(new Document().append("ordered", options.isOrdered()));
+            return new InsertManyResult(runCommand(insertMany).getStatusKeyAsList("insertedIds", Object.class));
+        };
+    }
+
+    // --------------------------
+    // ---   Find*           ----
+    // --------------------------
+
+    /**
+     * Attempts to find a single document within the collection that matches the given filter criteria.
+     * This method is designed to return the first document that satisfies the filter conditions,
+     * making it particularly useful for retrieving specific documents when unique identifiers or
+     * specific criteria are known. If no document matches the filter, the method will return an empty
+     * {@link java.util.Optional}, indicating the absence of a matching document. This approach
+     * avoids throwing exceptions for non-existent documents, thereby facilitating cleaner and more
+     * robust error handling in client code.
+     *
+     * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
+     *               It specifies the conditions that a document must meet to be considered a match.
+     * @return An {@link java.util.Optional<DOC>} that contains the found document if one exists that matches
+     *         the filter criteria. Returns an empty {@link java.util.Optional} if no matching document is found,
+     *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
+     */
+    public Optional<DOC> findOne(Filter filter) {
+        return findOne(filter, new FindOneOptions());
+    }
 
     /**
      * Attempts to find a single document within the collection that matches the given filter criteria.
@@ -175,13 +445,38 @@ public interface Collection<DOC> extends CommandRunner {
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
-    default Optional<DOC> findOne(Filter filter) {
-        return findOne(filter, new FindOneOptions());
+    public Optional<DOC> findOne(Filter filter, FindOneOptions options) {
+        notNull(options, "options");
+        Command findOne = Command
+                .create("findOne")
+                .withFilter(filter)
+                .withSort(options.getSort())
+                .withProjection(options.getProjection())
+                .withOptions(new Document()
+                        .appendIfNotNull("includeSimilarity", options.getIncludeSimilarity()));
+        return Optional.ofNullable(
+                runCommand(findOne)
+                        .getData().getDocument()
+                        .map(getDocumentClass()));
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public FindIterable<DOC> find(Filter filter, FindOptions options) {
+        return new FindIterable<>(this, filter, options);
     }
 
     /**
      * Initiates an asynchronous search to find a single document that matches the given filter criteria.
-     * This method leverages the functionality of {@link Collection#findOne(Filter)} to perform the
+     * This method leverages the functionality of  to perform the
      * search, but it does so asynchronously, returning a {@link CompletableFuture}. This approach allows
      * the calling thread to remain responsive and perform other tasks while the search operation completes.
      * The result of the operation is wrapped in a {@link CompletableFuture} that, upon completion, will
@@ -196,7 +491,7 @@ public interface Collection<DOC> extends CommandRunner {
      *         otherwise, it is empty to indicate the absence of a matching document. This future allows for
      *         non-blocking operations and facilitates the integration of asynchronous programming patterns.
      */
-    default CompletableFuture<Optional<DOC>> findOneASync(Filter filter) {
+    public CompletableFuture<Optional<DOC>> findOneASync(Filter filter) {
         return CompletableFuture.supplyAsync(() -> findOne(filter));
     }
 
@@ -208,21 +503,9 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      document if it exists
      */
-    default Optional<DOC> findById(Object id) {
-        return findOne(eq(id));
+    public Optional<DOC> findById(Object id) {
+        return findOne(Filters.eq(id));
     }
-
-    /**
-     * Find one document from a filter.
-     *
-     * @param filter
-     *      filter
-     * @param options
-     *      no options
-     * @return
-     *      document
-     */
-    Optional<DOC> findOne(Filter filter, FindOneOptions options);
 
     /**
      * Finds all documents in the collection.
@@ -230,7 +513,7 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the find iterable interface
      */
-    default FindIterable<DOC> find() {
+    public FindIterable<DOC> find() {
         return find(null, new FindOptions());
     }
 
@@ -242,7 +525,7 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the find iterable interface
      */
-    default FindIterable<DOC> find(Filter filter) {
+    public FindIterable<DOC> find(Filter filter) {
         return find(filter, new FindOptions());
     }
 
@@ -254,54 +537,36 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the find iterable interface
      */
-    default FindIterable<DOC> find(FindOptions options) {
+    public FindIterable<DOC> find(FindOptions options) {
         return find(null, options);
     }
 
-    /**
-     * Finds all documents in the collection.
-     *
-     * @param filter
-     *      the query filter
-     * @param options
-     *      options of find one
-     * @return
-     *      the find iterable interface
-     */
-    FindIterable<DOC> find(Filter filter, FindOptions options);
+    /** {@inheritDoc} */
+    public Page<DOC> findPage(Filter filter, FindOptions options) {
+        Command findCommand = Command
+                .create("find")
+                .withFilter(filter)
+                .withSort(options.getSort())
+                .withProjection(options.getProjection())
+                .withOptions(new Document()
+                        .appendIfNotNull("skip", options.getSkip())
+                        .appendIfNotNull("limit", options.getLimit())
+                        .appendIfNotNull("pageState", options.getPageState())
+                        .appendIfNotNull("includeSimilarity", options.getIncludeSimilarity()));
 
-    /**
-     * Mapping the 'find' operation of the Rest Endpoint this function returns up to MAX_PAGE_SIZE
-     * document as a page with the eventual {@code pageState}.
-     * <p>
-     * This method utilizes the {@link io.stargate.sdk.data.client.model.Filters} class to build filter
-     * predicates for querying the database. It is designed to filter results based on the provided
-     * {@code filter}.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assuming a document structure where 'age' and 'country' are fields within the document.
-     * Filters filters = Filters.and(
-     *      Filters.eq("age", 25),
-     *      Filters.eq("country", "US")
-     * );
-     *
-     * // Now, use the filters with the 'find' operation.
-     * List<Document> results = find(filters);
-     * }
-     * </pre>
-     *
-     * @param filter
-     *      a predicate to filter the results, use class {@link io.stargate.sdk.data.client.model.Filters} to help build those.
-     *
-     * @param options
-     *      options to retrieve page including a pagedState
-     * @return
-     *      a list of page
-     */
-    Page<DOC> findPage(Filter filter, FindOptions options);
+        ApiResponse apiResponse = runCommand(findCommand);
+
+        return new Page<>(DataAPIClientOptions.getMaxPageSize(),
+                apiResponse.getData().getNextPageState(),
+                apiResponse.getData().getDocuments()
+                        .stream()
+                        .map(d -> d.map(getDocumentClass()))
+                        .collect(Collectors.toList()));
+    }
+
+    // --------------------------
+    // ---   Distinct        ----
+    // --------------------------
 
     /**
      * Gets the distinct values of the specified field name.
@@ -316,7 +581,7 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      an iterable of distinct values
      */
-    default <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Class<FIELD> resultClass) {
+    public <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Class<FIELD> resultClass) {
         return distinct(fieldName, null, resultClass);
     }
 
@@ -334,19 +599,21 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      an iterable of distinct values
      */
-    <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Filter filter, Class<FIELD> resultClass);
+    public <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Filter filter, Class<FIELD> resultClass) {
+        return new DistinctIterable<>(this, fieldName, filter, resultClass);
+    }
 
-    // --------------------------
-    // ---   Count           ----
-    // --------------------------
+    // ----------------------------
+    // ---   Count Document    ----
+    // ----------------------------
 
     /**
      * Counts the number of documents in the collection.
      *
      * <p>
      * Takes in a `upperBound` option which dictates the maximum number of documents that may be present before a
-     * {@link TooManyDocumentsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
-     * Data API, a {@link TooManyDocumentsToCountException} will be thrown anyway (i.e. `1000`).
+     * {@link com.datastax.astra.client.exception.TooManyDocumentsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
+     * Data API, a {@link com.datastax.astra.client.exception.TooManyDocumentsToCountException} will be thrown anyway (i.e. `1000`).
      * </p>
      * <p>
      * Count operations are expensive: for this reason, the best practice is to provide a reasonable `upperBound`
@@ -360,10 +627,12 @@ public interface Collection<DOC> extends CommandRunner {
      *      The maximum number of documents to count.
      * @return
      *      The number of documents in the collection.
-     * @throws TooManyDocumentsToCountException
+     * @throws com.datastax.astra.client.exception.TooManyDocumentsToCountException
      *      If the number of documents counted exceeds the provided limit.
      */
-    int countDocuments(int upperBound) throws TooManyDocumentsToCountException;
+    public int countDocuments(int upperBound) throws TooManyDocumentsToCountException {
+        return countDocuments(null, upperBound);
+    }
 
     /**
      * Counts the number of documents in the collection with a filter.
@@ -390,86 +659,35 @@ public interface Collection<DOC> extends CommandRunner {
      * @throws TooManyDocumentsToCountException
      *      If the number of documents counted exceeds the provided limit.
      */
-    int countDocuments(Filter filter, int upperBound)  throws TooManyDocumentsToCountException;
-
-    // --------------------------
-    // ---   Insert          ----
-    // --------------------------
-
-    /**
-     * Insert a single document in the collection in an atomic operation.
-     *
-     * <p>
-     * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
-     * that exists already in the collection, an error is raised and the insertion fails.
-     * Inserts the provided document. If the document is missing an identifier, the server will generate one.
-     * </blockquote>
-     * </p>
-     *
-     * @param document
-     *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
-     * @return
-     *       an InsertOneResult object.
-     */
-    InsertOneResult insertOne(DOC document);
-
-    InsertOneResult insertOne(DOC document, float[] embeddings);
-
-    InsertOneResult insertOne(DOC document, String vectorize);
-
-    /**
-     * Inserts one or more documents.
-
-     * @param documents
-     *      the documents to insert
-     * @return
-     *      the insert many result
-     * @throws IllegalArgumentException
-     *      if the documents list is null or empty, or any of the documents in the list are null
-     */
-    InsertManyResult insertMany(List<? extends DOC> documents);
-
-    /**
-     * Inserts one or more documents.
-     *
-     * @param documents
-     *      the documents to insert
-     * @param options
-     *      options to insert many documents
-     * @return
-     *      the insert many result
-     * @throws IllegalArgumentException
-     *      if the documents list is null or empty, or any of the documents in the list are null
-     */
-   InsertManyResult insertMany(List<? extends DOC> documents, InsertManyOptions options);
-
-    /**
-     * Executes a mix of inserts, updates, replaces, and deletes.
-     *
-     * @param commands
-     *      list of commands to run
-     * @return
-     *      the result of the bulk write
-     */
-    default BulkWriteResult bulkWrite(List<Command> commands) {
-        return bulkWrite(commands, new BulkWriteOptions());
+    public int countDocuments(Filter filter, int upperBound) throws TooManyDocumentsToCountException {
+        // Argument Validation
+        if (upperBound<1 || upperBound> DataAPIClientOptions.getMaxDocumentCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + DataAPIClientOptions.getMaxDocumentCount());
+        }
+        // Build command
+        Command command = new Command("countDocuments").withFilter(filter);
+        // Run command
+        ApiResponse response = runCommand(command);
+        // Build Result
+        Boolean moreData = response.getStatus().getBoolean("moreData");
+        Integer count    = response.getStatus().getInteger("count");
+        if (moreData != null && moreData) {
+            throw new TooManyDocumentsToCountException();
+        } else if (count > upperBound) {
+            throw new TooManyDocumentsToCountException(upperBound);
+        }
+        return count;
     }
 
-    /**
-     * Executes a mix of inserts, updates, replaces, and deletes.
-     *
-     * @param options
-     *      if requests must be ordered or not
-     * @param commands
-     *      list of commands to run
-     * @return
-     *      the result of the bulk write
-     */
-    BulkWriteResult bulkWrite(List<Command> commands, BulkWriteOptions options);
+    // ----------------------------
+    // ---   Delete            ----
+    // ----------------------------
 
-    // --------------------------
-    // ---   Delete          ----
-    // --------------------------
+    public static final String DELETED_COUNT = "deletedCount";
+    public static final String MATCHED_COUNT = "matchedCount";
+    public static final String MODIFIED_COUNT = "modifiedCount";
+    public static final String UPSERTED_ID = "upsertedId";
+    public static final String MORE_DATA = "moreData";
 
     /**
      * Removes at most one document from the collection that matches the given filter.
@@ -481,7 +699,7 @@ public interface Collection<DOC> extends CommandRunner {
      *      the result of the remove one operation
      *
      */
-    default DeleteResult deleteOne(Filter filter) {
+    public DeleteResult deleteOne(Filter filter) {
         return deleteOne(filter, new DeleteOneOptions());
     }
 
@@ -491,13 +709,22 @@ public interface Collection<DOC> extends CommandRunner {
      *
      * @param filter
      *      the query filter to apply the delete operation
-     * @param options
+     * @param deleteOneOptions
      *      the option to driver the deletes (here sort)
      * @return
      *      the result of the remove one operation
      *
      */
-    DeleteResult deleteOne(Filter filter, DeleteOneOptions options);
+    public DeleteResult deleteOne(Filter filter, DeleteOneOptions deleteOneOptions) {
+        Command deleteOne = Command
+                .create("deleteOne")
+                .withFilter(filter)
+                .withSort(deleteOneOptions.getSort());
+
+        ApiResponse apiResponse = runCommand(deleteOne);
+        int deletedCount = apiResponse.getStatus().getInteger(DELETED_COUNT);
+        return new DeleteResult(deletedCount);
+    }
 
     /**
      * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
@@ -507,7 +734,28 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the result of the remove many operation
      */
-    DeleteResult deleteMany(Filter filter);
+    public DeleteResult deleteMany(Filter filter) {
+        Assert.notNull(filter, "filter");
+        AtomicInteger totalCount = new AtomicInteger(0);
+        boolean moreData = false;
+        do {
+            Command deleteMany = Command
+                    .create("deleteMany")
+                    .withFilter(filter);
+
+            ApiResponse apiResponse = runCommand(deleteMany);
+            Document status = apiResponse.getStatus();
+            if (status != null) {
+                if (status.containsKey(DELETED_COUNT)) {
+                    totalCount.addAndGet(status.getInteger(DELETED_COUNT));
+                }
+                if (status.containsKey(MORE_DATA)) {
+                    moreData = status.getBoolean(MORE_DATA);
+                }
+            }
+        } while(moreData);
+        return new DeleteResult(totalCount.get());
+    }
 
     /**
      * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
@@ -515,64 +763,35 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the result of the remove many operation
      */
-    DeleteResult deleteAll();
-
-    /**
-     * Atomically find a document and remove it.
-     *
-     * @param filter
-     *      the query filter to find the document with
-     * @return
-     *      the document that was removed.  If no documents matched the query filter, then null will be returned
-     */
-    default Optional<DOC> findOneAndDelete(Filter filter) {
-        return findOneAndDelete(filter, new FindOneAndDeleteOptions());
+    public DeleteResult deleteAll() {
+        return deleteMany(new Filter());
     }
 
     /**
-     * Atomically find a document and remove it.
+     * Checks if the specified collection exists within the current namespace.
      *
-     * @param filter
-     *      the query filter to find the document with
-     * @param options
-     *      the options to apply to the operation
-     * @return
-     *      the document that was removed.  If no documents matched the query filter, then null will be returned
-     */
-    Optional<DOC> findOneAndDelete(Filter filter, FindOneAndDeleteOptions options);
-
-    // --------------------------
-    // ---   Update/Replace  ----
-    // --------------------------
-
-    /**
-     * Replace a single document on the collection with a new one,
-     * optionally inserting a new document if no match is found.
+     * <p>
+     * This method delegates the existence check to the {@code existCollection} method of the associated
+     * namespace, determined by {@link #getDatabase()}, and evaluates the existence based on the
+     * collection's name, as retrieved by {@link #getName()}.
+     * </p>
      *
-     * @param filter
-     *      the query filter to apply the replace operation
-     * @param replacement
-     *      the replacement document
-     * @return
-     *      result of the replace one operation
+     * @return {@code true} if the collection exists within the namespace, {@code false} otherwise.
      */
-    default UpdateResult replaceOne(Filter filter, DOC replacement) {
-        return replaceOne(filter, replacement, new ReplaceOneOptions());
+    public boolean exists() {
+        return getDatabase().collectionExists(getName());
     }
 
     /**
-     * Replace a document in the collection according to the specified arguments.
-     *
-     * @param filter
-     *      the query filter to apply the replace operation
-     * @param replacement
-     *      the replacement document
-     * @param replaceOneOptions
-     *      the options to apply to the replace operation
-     * @return
-     *      the result of the replace one operation
+     * Delete the current collection and all documents that its contains.
      */
-    UpdateResult replaceOne(Filter filter, DOC replacement, ReplaceOneOptions replaceOneOptions);
+    public void drop() {
+        getDatabase().dropCollection(collectionName);
+    }
+
+    // ----------------------------
+    // ---  Update             ----
+    // ----------------------------
 
     /**
      * Atomically find a document and replace it.
@@ -584,7 +803,7 @@ public interface Collection<DOC> extends CommandRunner {
      * @return
      *      the document that was replaced.  Depending on the value of the {@code returnOriginal} property, this will either be the document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be returned
      */
-    default Optional<DOC> findOneAndReplace(Filter filter, DOC replacement) {
+    public Optional<DOC> findOneAndReplace(Filter filter, DOC replacement) {
         return findOneAndReplace(filter, replacement, new FindOneAndReplaceOptions());
     }
 
@@ -603,63 +822,116 @@ public interface Collection<DOC> extends CommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    Optional<DOC> findOneAndReplace(Filter filter, DOC replacement, FindOneAndReplaceOptions options);
+    public Optional<DOC> findOneAndReplace(Filter filter, DOC replacement, FindOneAndReplaceOptions options) {
 
-    /**
-     * Update a single document in the collection according to the specified arguments.
-     *
-     * @param filter
-     *      a document describing the query filter, which may not be null.
-     * @param update
-     *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
-     * @return
-     *      the result of the update one operation
-     */
-    default UpdateResult updateOne(Filter filter, Update update) {
-        return updateOne(filter, update, new UpdateOneOptions());
+        Command findOneAndReplace = Command
+                .create("findOneAndReplace")
+                .withFilter(filter)
+                .withReplacement(replacement)
+                .withSort(options.getSort())
+                .withProjection(options.getProjection())
+                .withOptions(new Document()
+                        .appendIfNotNull("upsert", options.getUpsert())
+                        .appendIfNotNull("returnDocument", options.getReturnDocument().name())
+                );
+
+        ApiResponse res = runCommand(findOneAndReplace);
+        if (res.getData()!= null && res.getData().getDocument() != null) {
+            return Optional.ofNullable(res
+                    .getData()
+                    .getDocument()
+                    .map(getDocumentClass()));
+        }
+        return Optional.empty();
     }
 
     /**
-     * Update a single document in the collection according to the specified arguments.
+     * Replace a single document on the collection with a new one,
+     * optionally inserting a new document if no match is found.
      *
      * @param filter
-     *      a document describing the query filter, which may not be null.
-     * @param update
-     *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
-     * @param updateOptions
-     *      the options to apply to the update operation
+     *      the query filter to apply the replace operation
+     * @param replacement
+     *      the replacement document
      * @return
-     *      the result of the update one operation
+     *      result of the replace one operation
      */
-    UpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions);
-
-    /**
-     * Update all documents in the collection according to the specified arguments.
-     *
-     * @param filter
-     *      a document describing the query filter, which may not be null.
-     * @param update
-     *      a document describing the update, which may not be null. The update to apply must include only update operators.
-     * @return
-     *      the result of the update many operation
-     */
-    default UpdateResult updateMany(Filter filter, Update update) {
-        return updateMany(filter, update, new UpdateOneOptions());
+    public UpdateResult replaceOne(Filter filter, DOC replacement) {
+        return replaceOne(filter, replacement, new ReplaceOneOptions());
     }
 
     /**
-     * Update all documents in the collection according to the specified arguments.
+     * Replace a document in the collection according to the specified arguments.
      *
      * @param filter
-     *      a document describing the query filter, which may not be null.
-     * @param update
-     *      a document describing the update, which may not be null. The update to apply must include only update operators.
-     * @param updateOptions
-     *      the options to apply to the update operation
+     *      the query filter to apply the replace operation
+     * @param replacement
+     *      the replacement document
+     * @param replaceOneOptions
+     *      the options to apply to the replace operation
      * @return
-     *      the result of the update many operation
+     *      the result of the replace one operation
      */
-    UpdateResult updateMany(Filter filter, Update update, UpdateOneOptions updateOptions);
+    public UpdateResult replaceOne(Filter filter, DOC replacement, ReplaceOneOptions replaceOneOptions) {
+
+        Command findOneAndReplace = Command
+                .create("findOneAndReplace")
+                .withFilter(filter)
+                .withReplacement(replacement)
+                .withOptions(new Document()
+                        .appendIfNotNull("upsert", replaceOneOptions.getUpsert())
+                        .append("returnDocument", FindOneAndReplaceOptions.ReturnDocument.before.name())
+                );
+
+        // Execute the `findOneAndReplace`
+        FindOneAndReplaceResult<DOC> res = executeFindOneAndReplace(findOneAndReplace);
+
+        // Parse the result for a replace one
+        UpdateResult result = new UpdateResult();
+        result.setMatchedCount(res.getMatchedCount());
+        result.setModifiedCount(res.getModifiedCount());
+        if (res.getDocument() != null) {
+            Document doc = JsonUtils.convertValueForDataApi(res.getDocument(), Document.class);
+            if (doc.getId(Object.class) != null) {
+                result.setUpsertedId(doc.getId(Object.class));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Mutualisation of the code for replaceOne() and findOneAndReplaceOne().
+     *
+     * @param cmd
+     *      command
+     * @return
+     *      command result
+     */
+    private FindOneAndReplaceResult<DOC> executeFindOneAndReplace(Command cmd) {
+        // Run Command
+        ApiResponse apiResponse = runCommand(cmd);
+        // Parse Command Result
+        FindOneAndReplaceResult<DOC> result = new FindOneAndReplaceResult<>();
+        if (apiResponse.getData() == null) {
+            throw new DataApiFaultyResponseException(cmd, apiResponse,"Faulty response from find_one_and_replace API command.");
+        }
+        if (apiResponse.getData().getDocument() != null) {
+            result.setDocument(apiResponse
+                    .getData()
+                    .getDocument()
+                    .map(getDocumentClass()));
+        }
+        Document status = apiResponse.getStatus();
+        if (status != null) {
+            if (status.containsKey(MATCHED_COUNT)) {
+                result.setMatchedCount(status.getInteger(MATCHED_COUNT));
+            }
+            if (status.containsKey(MODIFIED_COUNT)) {
+                result.setModifiedCount(status.getInteger(MODIFIED_COUNT));
+            }
+        }
+        return result;
+    }
 
     /**
      * Atomically find a document and update it.
@@ -672,7 +944,7 @@ public interface Collection<DOC> extends CommandRunner {
      * @return the document that was updated before the update was applied.  If no documents matched the query filter, then null will be
      * returned
      */
-    default Optional<DOC> findOneAndUpdate(Filter filter, Update update) {
+    public Optional<DOC> findOneAndUpdate(Filter filter, Update update) {
         return findOneAndUpdate(filter, update, new FindOneAndUpdateOptions());
     }
 
@@ -691,6 +963,250 @@ public interface Collection<DOC> extends CommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    Optional<DOC> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options);
+    public Optional<DOC> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options) {
+        notNull(update, "update");
+        notNull(options, "options");
+        Command cmd = Command
+                .create("findOneAndUpdate")
+                .withFilter(filter)
+                .withUpdate(update)
+                .withSort(options.getSort())
+                .withProjection(options.getProjection())
+                .withOptions(new Document()
+                        .appendIfNotNull("upsert", options.getUpsert())
+                        .append("returnDocument", options.getReturnDocument().name())
+                );
+
+        ApiResponse res = runCommand(cmd);
+        if (res.getData()!= null && res.getData().getDocument() != null) {
+            return Optional.ofNullable(res
+                    .getData()
+                    .getDocument()
+                    .map(getDocumentClass()));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Update a single document in the collection according to the specified arguments.
+     *
+     * @param filter
+     *      a document describing the query filter, which may not be null.
+     * @param update
+     *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
+     * @return
+     *      the result of the update one operation
+     */
+    public UpdateResult updateOne(Filter filter, Update update) {
+        return updateOne(filter, update, new UpdateOneOptions());
+    }
+
+    /**
+     * Update a single document in the collection according to the specified arguments.
+     *
+     * @param filter
+     *      a document describing the query filter, which may not be null.
+     * @param update
+     *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
+     * @param updateOptions
+     *      the options to apply to the update operation
+     * @return
+     *      the result of the update one operation
+     */
+    public UpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
+        notNull(update, "update");
+        notNull(updateOptions, "options");
+        Command cmd = Command
+                .create("updateOne")
+                .withFilter(filter)
+                .withUpdate(update)
+                .withSort(updateOptions.getSort())
+                .withOptions(new Document()
+                        .appendIfNotNull("upsert", updateOptions.getUpsert())
+                );
+        return getUpdateResult(runCommand(cmd));
+    }
+
+    private static UpdateResult getUpdateResult(ApiResponse apiResponse) {
+        UpdateResult result = new UpdateResult();
+        Document status = apiResponse.getStatus();
+        if (status != null) {
+            if (status.containsKey(MATCHED_COUNT)) {
+                result.setMatchedCount(status.getInteger(MATCHED_COUNT));
+            }
+            if (status.containsKey(MODIFIED_COUNT)) {
+                result.setModifiedCount(status.getInteger(MODIFIED_COUNT));
+            }
+            if (status.containsKey(UPSERTED_ID)) {
+                result.setMatchedCount(status.getInteger(UPSERTED_ID));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Update all documents in the collection according to the specified arguments.
+     *
+     * @param filter
+     *      a document describing the query filter, which may not be null.
+     * @param update
+     *      a document describing the update, which may not be null. The update to apply must include only update operators.
+     * @return
+     *      the result of the update many operation
+     */
+    public UpdateResult updateMany(Filter filter, Update update) {
+        return updateMany(filter, update, new UpdateOneOptions());
+    }
+
+    /**
+     * Update all documents in the collection according to the specified arguments.
+     *
+     * @param filter
+     *      a document describing the query filter, which may not be null.
+     * @param update
+     *      a document describing the update, which may not be null. The update to apply must include only update operators.
+     * @param options
+     *      the options to apply to the update operation
+     * @return
+     *      the result of the update many operation
+     */
+    public UpdateResult updateMany(Filter filter, Update update, UpdateOneOptions options) {
+        notNull(update, "update");
+        notNull(options, "options");
+        boolean moreData = true;
+        String nextPageState = null;
+        UpdateResult result = new UpdateResult();
+        result.setMatchedCount(0);
+        result.setModifiedCount(0);
+        do {
+            Command cmd = Command
+                    .create("updateMany")
+                    .withFilter(filter)
+                    .withUpdate(update)
+                    .withOptions(new Document()
+                            .appendIfNotNull("upsert", options.getUpsert())
+                            .appendIfNotNull("pageState", nextPageState));
+            ApiResponse res = runCommand(cmd);
+            // Data
+            if (res.getData() != null) {
+                nextPageState = res.getData().getNextPageState();
+            }
+            // Status
+            Document status = res.getStatus();
+            if (status.containsKey(MATCHED_COUNT)) {
+                result.setMatchedCount(result.getMatchedCount() + status.getInteger(MATCHED_COUNT));
+            }
+            if (status.containsKey(MODIFIED_COUNT)) {
+                result.setModifiedCount(result.getModifiedCount() + status.getInteger(MODIFIED_COUNT));
+            }
+            if (status.containsKey(UPSERTED_ID)) {
+                result.setUpsertedId(status.getInteger(UPSERTED_ID));
+            }
+        } while(nextPageState != null);
+        return result;
+    }
+
+    /**
+     * Atomically find a document and remove it.
+     *
+     * @param filter
+     *      the query filter to find the document with
+     * @return
+     *      the document that was removed.  If no documents matched the query filter, then null will be returned
+     */
+    public Optional<DOC> findOneAndDelete(Filter filter) {
+        return findOneAndDelete(filter, new FindOneAndDeleteOptions());
+    }
+
+    /**
+     * Atomically find a document and remove it.
+     *
+     * @param filter
+     *      the query filter to find the document with
+     * @param options
+     *      the options to apply to the operation
+     * @return
+     *      the document that was removed.  If no documents matched the query filter, then null will be returned
+     */
+    public Optional<DOC> findOneAndDelete(Filter filter, FindOneAndDeleteOptions options) {
+        Command findOneAndReplace = Command
+                .create("findOneAndDelete")
+                .withFilter(filter)
+                .withSort(options.getSort())
+                .withProjection(options.getProjection());
+
+        ApiResponse res = runCommand(findOneAndReplace);
+        if (res.getData()!= null && res.getData().getDocument() != null) {
+            return Optional.ofNullable(res
+                    .getData()
+                    .getDocument()
+                    .map(getDocumentClass()));
+        }
+        return Optional.empty();
+    }
+
+    // ----------------------------
+    // ---   Bulk Write        ----
+    // ----------------------------
+
+    /**
+     * Executes a mix of inserts, updates, replaces, and deletes.
+     *
+     * @param commands
+     *      list of commands to run
+     * @return
+     *      the result of the bulk write
+     */
+    public BulkWriteResult bulkWrite(List<Command> commands) {
+        return bulkWrite(commands, new BulkWriteOptions());
+    }
+
+    /**
+     * Executes a mix of inserts, updates, replaces, and deletes.
+     *
+     * @param options
+     *      if requests must be ordered or not
+     * @param commands
+     *      list of commands to run
+     * @return
+     *      the result of the bulk write
+     */
+    public BulkWriteResult bulkWrite(List<Command> commands, BulkWriteOptions options) {
+        notNull(commands, "commands");
+        notNull(options, "options");
+        if (options.getConcurrency() > 1 && options.isOrdered()) {
+            throw new IllegalArgumentException("Cannot run ordered bulk_write concurrently.");
+        }
+        BulkWriteResult result = new BulkWriteResult(0);
+        result = new BulkWriteResult(commands.size());
+        if (options.isOrdered()) {
+            result.setResponses(commands.stream().map(this::runCommand).collect(Collectors.toList()));
+        } else {
+            ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+            List<Future<ApiResponse>> futures = new ArrayList<>();
+            commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req))));
+            executor.shutdown();
+            try {
+                for (Future<ApiResponse> future : futures) {
+                    result.getResponses().add(future.get());
+                }
+            } catch(Exception ex) {
+                throw new IllegalStateException("Cannot access command results", ex);
+            }
+        }
+        return result;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected String getApiEndpoint() {
+        return apiEndpoint;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected HttpClientOptions getHttpClientOptions() {
+        return database.getOptions().getHttpClientOptions();
+    }
 
 }

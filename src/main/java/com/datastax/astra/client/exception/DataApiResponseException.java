@@ -1,9 +1,9 @@
 package com.datastax.astra.client.exception;
 
-import io.stargate.sdk.data.client.model.ApiError;
-import io.stargate.sdk.data.client.model.ApiResponse;
-import io.stargate.sdk.data.client.model.ExecutionInfos;
-import io.stargate.sdk.utils.Assert;
+import com.datastax.astra.client.model.api.ApiError;
+import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.observer.ExecutionInfos;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
 import java.util.ArrayList;

@@ -1,11 +1,11 @@
 package com.datastax.astra.client;
 
-
-import io.stargate.sdk.data.client.model.namespaces.CreateNamespaceOptions;
-import io.stargate.sdk.data.client.model.namespaces.NamespaceInformation;
+import com.datastax.astra.client.model.namespaces.CreateNamespaceOptions;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
+
+import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * Defines the core client interface for interacting with the Data API, focusing on CRUD (Create, Read, Update, Delete)
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * }
  * </pre>
  */
-public interface DatabaseAdmin extends CommandRunner {
+public interface DatabaseAdmin {
 
     /**
      * Retrieves a stream of namespace names available in the current database. This method is essential for
@@ -90,69 +90,6 @@ public interface DatabaseAdmin extends CommandRunner {
     }
 
     /**
-     * Retrieves a stream of {@link NamespaceInformation} representing each namespace along with its replication details.
-     * This method provides a convenient way to access metadata about each namespace, including its name and replication
-     * strategy, facilitating the management and overview of the database schema.
-     *
-     * @return A {@link Stream<NamespaceInformation>} containing metadata about each namespace,
-     *         including names and replication information.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * client.listNamespaces().forEach(namespaceInfo -> {
-     *   System.out.println("Namespace Name: " + namespaceInfo.getName());
-     *   System.out.println("Replication Details: " + namespaceInfo.getOptions().getReplication());
-     * });
-     * }
-     * </pre>
-     *
-     * This example demonstrates how to iterate over the stream of namespaces, printing out the name and replication
-     * information of each. It showcases the ease with which information about the available keyspaces can be accessed
-     * and used for informational or administrative purposes.
-     */
-    Stream<NamespaceInformation> listNamespaces();
-
-    /**
-     * Asynchronously retrieves a stream of {@link NamespaceInformation} representing each namespace along with its
-     * replication details. This method extends the functionality of {@link #listNamespaces()} by performing the
-     * operation in an asynchronous fashion, thereby not blocking the calling thread. The returned
-     * {@link CompletableFuture} encapsulates the operation, allowing the result to be processed once the operation
-     * is complete. This approach is particularly useful for applications that require non-blocking I/O operations,
-     * ensuring that the system remains responsive while handling potentially long-running database operations.
-     *
-     * @return A {@link CompletableFuture} that, when completed, will contain a {@link Stream<NamespaceInformation>}
-     *         with metadata about each keyspace, including names and replication information. The stream supports
-     *         further operations such as filtering, sorting, or collecting to a specific data structure, facilitating
-     *         flexible and efficient data processing in an asynchronous context.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * client.listNamespacesAsync().thenAccept(stream -> {
-     *     stream.forEach(namespaceInfo -> {
-     *         System.out.println("Keyspace Name: " + namespaceInfo.getName());
-     *         System.out.println("Replication Details: " + namespaceInfo.getOptions().getReplication());
-     *     });
-     * }).exceptionally(e -> {
-     *     e.printStackTrace();
-     *     return null;
-     * });
-     * }
-     * </pre>
-     *
-     * In this example, the asynchronous operation to retrieve namespace information is initiated, and upon completion,
-     * the resulting stream is processed to print out the name and replication information of each keyspace. The use of
-     * `exceptionally` provides a mechanism to handle any exceptions that may occur during the operation, ensuring that
-     * the application can gracefully deal with errors.
-     */
-    default CompletableFuture<Stream<NamespaceInformation>> listNamespacesAsync() {
-        return CompletableFuture.supplyAsync(this::listNamespaces);
-    }
-
-    /**
      * Retrieves a {@link Database} instance that represents a specific database (or namespace) based on the
      * provided namespace name.
      *
@@ -178,7 +115,11 @@ public interface DatabaseAdmin extends CommandRunner {
      * which then enables the execution of various database operations within that namespace. It highlights the
      * method's role in facilitating direct interaction with different parts of the database.
      */
-    Database getNamespace(String namespaceName);
+    Database getDatabase(String namespaceName);
+    Database getDatabase(String namespaceName, String userToken);
+    default Database getDatabase() {
+        return getDatabase(DEFAULT_NAMESPACE);
+    }
 
     /**
      * Drops (deletes) the specified namespace from the database. This operation is idempotent; it will not
@@ -244,55 +185,14 @@ public interface DatabaseAdmin extends CommandRunner {
     }
 
     /**
-     * Creates a new namespace (or keyspace) in the database with the provided options. This method allows for
-     * detailed configuration of the namespace properties, such as replication factors, datacenter specifics,
-     * and other relevant settings encapsulated within {@link CreateNamespaceOptions}. It is designed for flexible
-     * namespace creation, accommodating various database schemas and replication strategies to suit different
-     * application requirements and environments. Upon successful creation, this method returns a {@link Database}
-     * client instance, which can be used to interact with the newly created namespace, performing operations such
-     * as data manipulation, schema modifications, and namespace management.
-     *
-     * @param namespace The name of the namespace to be created. This identifier must be unique within the database
-     *                  and adhere to any naming conventions or restrictions imposed by the database system.
-     * @param options   An instance of {@link CreateNamespaceOptions} containing the configuration settings for the
-     *                  new namespace. These options dictate how the namespace is set up, including its replication
-     *                  strategy and other properties.
-     * @return A {@code DataApiNamespace} instance representing the client for interacting with the newly created
-     *         namespace. This client provides access to further operations and management functionalities for the namespace.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * String namespaceName = "newNamespace";
-     * CreateNamespaceOptions options = CreateNamespaceOptions
-     *
-     * // Create the namespace with the specified options
-     * DataApiNamespace newNamespace = client.createNamespace(namespaceName, options);
-     *
-     * // 'newNamespace' can now be used for further operations within 'newNamespace'
-     * }
-     * </pre>
-     *
-     * This example demonstrates how to create a new namespace with specific configuration options, showing the
-     * flexibility and control offered by the method. It highlights the method's utility in preparing the database
-     * environment to suit particular application needs or data distribution requirements.
-     */
-    Database createNamespace(String namespace, CreateNamespaceOptions options);
-
-    /**
-     * Create a Namespace asynchronously
+     * Create a Namespace providing a name.
      *
      * @param namespace
-     *      current namespace
-     * @param options
-     *      all namespace options
+     *      current namespace.
      * @return
      *      client for namespace
      */
-    default CompletableFuture<Database> createNamespaceAsync(String namespace, CreateNamespaceOptions options) {
-        return CompletableFuture.supplyAsync(() -> createNamespace(namespace, options));
-    }
+     void createNamespace(String namespace);
 
     /**
      * Create a Namespace providing a name.
@@ -302,20 +202,8 @@ public interface DatabaseAdmin extends CommandRunner {
      * @return
      *      client for namespace
      */
-    default Database createNamespace(String namespace) {
-        return createNamespace(namespace, CreateNamespaceOptions.simpleStrategy(1));
-    }
-
-    /**
-     * Create a Namespace providing a name.
-     *
-     * @param namespace
-     *      current namespace.
-     * @return
-     *      client for namespace
-     */
-    default CompletableFuture<Database> createNamespaceAsync(String namespace) {
-        return CompletableFuture.supplyAsync(() -> createNamespace(namespace, CreateNamespaceOptions.simpleStrategy(1)));
+    default CompletableFuture<Void> createNamespaceAsync(String namespace) {
+        return CompletableFuture.runAsync(() -> createNamespace(namespace));
     }
 
     /**
@@ -326,10 +214,8 @@ public interface DatabaseAdmin extends CommandRunner {
      * @return
      *      if namespace exists
      */
-    default boolean isNamespaceExists(String namespace) {
+    default boolean namespaceExists(String namespace) {
         return listNamespaceNames().anyMatch(namespace::equals);
     }
-
-
 
 }

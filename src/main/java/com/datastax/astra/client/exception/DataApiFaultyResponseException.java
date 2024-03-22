@@ -1,7 +1,7 @@
 package com.datastax.astra.client.exception;
 
-import io.stargate.sdk.data.client.model.ApiResponse;
-import io.stargate.sdk.data.client.model.Command;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.api.ApiResponse;
 
 /**
  * Error when API reply unexpected results

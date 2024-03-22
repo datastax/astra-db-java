@@ -1,7 +1,7 @@
 package com.datastax.astra.client.model.find;
 
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.utils.Assert;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
 import java.util.LinkedHashMap;

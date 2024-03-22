@@ -1,7 +1,7 @@
 package com.datastax.astra.client.model.update;
 
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.utils.JsonUtils;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.utils.JsonUtils;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -27,7 +27,7 @@ public class Update extends Document {
     public Update(String json) {
         super();
         //this.filter = JsonUtils.unmarshallBean(json, Map.class);
-        this.documentMap.putAll(JsonUtils.unmarshallBean(json, Map.class));
+        this.documentMap.putAll(JsonUtils.unmarshallBeanForDataApi(json, Map.class));
     }
 
     /**

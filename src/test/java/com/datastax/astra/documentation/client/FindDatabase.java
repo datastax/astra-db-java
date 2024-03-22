@@ -1,6 +1,6 @@
 package com.datastax.astra.documentation.client;
 
-import com.datastax.astra.AstraDBAdmin;
+import com.datastax.astra.client.AstraDBAdmin;
 import com.datastax.astra.devops.db.domain.Database;
 
 import java.util.Optional;

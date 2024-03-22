@@ -14,11 +14,13 @@
         <!-- Third Party Libraries -->
         <slf4j.version>2.0.9</slf4j.version>
         <logback.version>1.5.0</logback.version>
-        <jackson.version>2.16.1</jackson.version>
+        <jackson.version>2.16.2</jackson.version>
         <lombok.version>1.18.32</lombok.version>
         <assertj.version>3.25.3</assertj.version>
         <devops-sdk.version>1.2.7</devops-sdk.version>
+        <retry4j.version>0.15.0</retry4j.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
+        <uuid-generator.version>5.0.0</uuid-generator.version>
 
         <!-- Maven -->
         <maven.plugin.compiler.source>11</maven.plugin.compiler.source>
@@ -47,6 +49,13 @@
             <version>${devops-sdk.version}</version>
         </dependency>
 
+        <!-- UUID Generation -->
+        <dependency>
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>${uuid-generator.version}</version>
+        </dependency>
+
         <!-- Core -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -54,9 +63,43 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.evanlennick</groupId>
+            <artifactId>retry4j</artifactId>
+            <version>${retry4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
+        </dependency>
+
+        <!-- Working with JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson</groupId>
+            <artifactId>jackson-bom</artifactId>
+            <version>${jackson.version}</version>
+            <scope>import</scope>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
 
         <!-- TEST -->

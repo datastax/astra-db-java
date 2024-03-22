@@ -1,10 +1,8 @@
 package com.datastax.astra.client.observer;
 
-import io.stargate.sdk.data.client.model.ApiData;
-import io.stargate.sdk.data.client.model.ApiError;
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.data.client.model.ExecutionInfos;
-import io.stargate.sdk.utils.JsonUtils;
+import com.datastax.astra.client.model.api.ApiData;
+import com.datastax.astra.client.model.api.ApiError;
+import com.datastax.astra.internal.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -12,14 +10,14 @@ import org.slf4j.event.Level;
 import java.util.List;
 import java.util.UUID;
 
-import static io.stargate.sdk.utils.AnsiUtils.cyan;
-import static io.stargate.sdk.utils.AnsiUtils.magenta;
-import static io.stargate.sdk.utils.AnsiUtils.yellow;
+import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
+import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
+import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
 
 /**
  * Logging of the command.
  */
-public class LoggerCommandObserver implements DataApiCommandObserver {
+public class LoggerCommandObserver implements CommandObserver {
 
     private final Logger logger;
     /**
@@ -89,7 +87,7 @@ public class LoggerCommandObserver implements DataApiCommandObserver {
             // Log Data
             ApiData data = executionInfo.getResponse().getData();
             if (data != null && data.getDocument() != null) {
-                log(magenta("[" + req + "][apiData/document]") + "=" + yellow("1 document retrieved, id='{}'"), data.getDocument().get(Document.ID));
+                log(magenta("[" + req + "][apiData/document]") + "=" + yellow("1 document retrieved, id='{}'"), data.getDocument().getId(Object.class));
             }
             if (data != null && data.getDocuments() != null) {
                 log(magenta("[" + req + "][apiData/documents]") + "=" + yellow("{} document(s)."), data.getDocuments().size());

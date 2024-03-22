@@ -16,8 +16,8 @@
 
 package com.datastax.astra.client.model;
 
+import com.datastax.astra.internal.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import io.stargate.sdk.utils.JsonUtils;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -63,7 +63,7 @@ public class Document implements Map<String, Object>, Serializable {
      * Data to be used in the document.
      */
     @JsonUnwrapped
-    protected LinkedHashMap<String, Object> documentMap;
+    public LinkedHashMap<String, Object> documentMap;
 
     /**
      * Default Constructor.

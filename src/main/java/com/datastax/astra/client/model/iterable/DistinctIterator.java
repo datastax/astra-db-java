@@ -1,7 +1,7 @@
 package com.datastax.astra.client.model.iterable;
 
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.utils.JsonUtils;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;

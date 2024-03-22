@@ -1,6 +1,6 @@
 package com.datastax.astra.client.model.misc;
 
-import io.stargate.sdk.data.client.model.ApiResponse;
+import com.datastax.astra.client.model.api.ApiResponse;
 import lombok.Data;
 
 import java.util.ArrayList;

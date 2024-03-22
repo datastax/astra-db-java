@@ -1,7 +1,7 @@
 package com.datastax.astra.documentation.db;
 
 import com.datastax.astra.db.AstraCollection;
-import com.datastax.astra.AstraDatabase;
+import com.datastax.astra.internal.astra.AstraDatabase;
 import io.stargate.sdk.data.client.exception.DataApiException;
 import io.stargate.sdk.data.client.model.Document;
 import io.stargate.sdk.data.client.model.SimilarityMetric;

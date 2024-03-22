@@ -1,10 +1,8 @@
 package com.datastax.astra.client.model.insert;
 
-import io.stargate.sdk.data.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIClientOptions;
 import lombok.Builder;
 import lombok.Data;
-
-import static io.stargate.sdk.http.HttpClientOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS;
 
 /**
  * Options for InsertMany
@@ -34,7 +32,7 @@ public class InsertManyOptions {
      * If the flag is set to true the command is failing on first error
      */
     @Builder.Default
-    private int timeout = DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
+    private int timeout = DataAPIClientOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
 
 
 

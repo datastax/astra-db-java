@@ -1,7 +1,7 @@
 package com.datastax.astra.client.model.collections;
 
+import com.datastax.astra.client.model.find.SimilarityMetric;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.stargate.sdk.data.client.model.SimilarityMetric;
 import lombok.Data;
 import lombok.NonNull;
 

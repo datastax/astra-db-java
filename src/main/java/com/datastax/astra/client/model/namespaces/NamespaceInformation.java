@@ -1,6 +1,6 @@
 package com.datastax.astra.client.model.namespaces;
 
-import io.stargate.sdk.utils.JsonUtils;
+import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Data;
 
 /**

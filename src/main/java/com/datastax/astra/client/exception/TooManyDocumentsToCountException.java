@@ -1,6 +1,6 @@
 package com.datastax.astra.client.exception;
 
-import io.stargate.sdk.data.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIClientOptions;
 
 /**
  * Error when too many documents in the collection

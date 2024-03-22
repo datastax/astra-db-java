@@ -1,34 +1,137 @@
 package com.datastax.astra.client;
 
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.data.client.model.SimilarityMetric;
-import io.stargate.sdk.data.client.model.collections.CollectionDefinition;
-import io.stargate.sdk.data.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.CollectionDefinition;
+import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.find.SimilarityMetric;
+import com.datastax.astra.internal.AbstractCommandRunner;
+import com.datastax.astra.internal.DataAPIDatabaseAdmin;
+import com.datastax.astra.internal.astra.AstraApiEndpoint;
+import com.datastax.astra.internal.astra.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.http.HttpClientOptions;
+import com.datastax.astra.internal.utils.JsonUtils;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
 import java.util.stream.Stream;
+
+import static com.datastax.astra.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.internal.utils.Assert.hasLength;
+import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
  * Class to interact with a Namespace.
  */
-public interface Database extends CommandRunner {
+@Slf4j
+public class Database extends AbstractCommandRunner {
+
+    /** Current Namespace information.
+     * -- GETTER --
+     *  Gets the name of the database.
+     *
+     * @return the database name
+     */
+    @Getter
+    private final String namespaceName;
+
+    /** Token to be use with the Database. */
+    private final String token;
+
+    /** Api Endpoint for the API. */
+    private final String apiEndpoint;
+
+    /** Api Endpoint for the Database. */
+    @Getter
+    private final String apiEndpointDatabase;
+
+    /** Options to setup the client. */
+    @Getter
+    private final DataAPIClientOptions options;
+
+    /**
+     * Initialization with endpoint and apikey.
+     *
+     * @param token
+     *      api token
+     * @param apiEndpoint
+     *      api endpoint
+     */
+    public Database(String apiEndpoint, String token) {
+        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_NAMESPACE, DataAPIClientOptions.builder().build());
+    }
+
+    /**
+     * Initialization with endpoint and apikey.
+     *
+     * @param token
+     *      api token
+     * @param apiEndpoint
+     *      api endpoint
+     * @param namespace
+     *      namespace
+     */
+    public Database(String apiEndpoint, String token, String namespace) {
+        this(apiEndpoint, token, namespace,  DataAPIClientOptions.builder().build());
+    }
+
+    /**
+     * Initialization with endpoint and apikey.
+     *
+     * @param apiEndpoint
+     *      api endpoint
+     *  @param token
+     *      api token
+     * @param namespace
+     *      namespace
+     * @param options
+     *      setup of the clients with options
+     */
+    public Database(String apiEndpoint, String token, String namespace, DataAPIClientOptions options) {
+        hasLength(apiEndpoint, "endpoint");
+        hasLength(token,     "token");
+        hasLength(namespace, "namespace");
+        notNull(options, "options");
+        this.namespaceName = namespace;
+        this.token         = token;
+        this.apiEndpoint   = apiEndpoint;
+        this.options       = options;
+        StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
+        switch(options.destination) {
+            case ASTRA:
+            case ASTRA_TEST:
+            case ASTRA_DEV:
+                if (apiEndpoint.endsWith(".com")) {
+                    dbApiEndPointBuilder.append("/api/json");
+                }
+            break;
+        }
+        dbApiEndPointBuilder.append("/").append(options.getApiVersion()).append("/").append(namespaceName);
+        this.apiEndpointDatabase = dbApiEndPointBuilder.toString();
+    }
 
     // ------------------------------------------
-    // ----   General Informations           ----
+    // ----   Access Database Admin          ----
     // ------------------------------------------
+
+    public DatabaseAdmin getDatabaseAdmin() {
+        return getDatabaseAdmin(this.token);
+    }
 
     /**
      * Gets the name of the database.
      *
      * @return the database name
      */
-    String getNamespaceName();
-
-    /**
-     * Gets the name of the database.
-     *
-     * @return the database name
-     */
-    DatabaseAdmin getClient();
+    public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
+        if (Objects.requireNonNull(options.getDestination()) == DataAPIDestination.ASTRA) {
+            AstraApiEndpoint endpoint = AstraApiEndpoint.parse(apiEndpoint);
+            return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
+        }
+        return new DataAPIDatabaseAdmin(apiEndpoint, token, options);
+    }
 
     // ------------------------------------------
     // ----     Collection CRUD              ----
@@ -40,7 +143,15 @@ public interface Database extends CommandRunner {
      * @return
      *      a stream containing all the names of all the collections in this database
      */
-    Stream<String> listCollectionNames();
+    public Stream<String> listCollectionNames() {
+
+        Command findCollections = Command
+                .create("findCollections");
+
+        return runCommand(findCollections)
+                .getStatusKeyAsList("collections", String.class)
+                .stream();
+    }
 
     /**
      * Finds all the collections in this database.
@@ -48,7 +159,15 @@ public interface Database extends CommandRunner {
      * @return
      *  list of collection definitions
      */
-    Stream<CollectionDefinition> listCollections();
+    public Stream<CollectionDefinition> listCollections() {
+        Command findCollections = Command
+                .create("findCollections")
+                .withOptions(new Document().append("explain", true));
+
+        return runCommand(findCollections)
+                .getStatusKeyAsList("collections", CollectionDefinition.class)
+                .stream();
+    }
 
     /**
      * Evaluate if a collection exists.
@@ -58,7 +177,7 @@ public interface Database extends CommandRunner {
      * @return
      *      if namespace exists
      */
-    default boolean collectionExists(String collection) {
+    boolean collectionExists(String collection) {
         return listCollectionNames().anyMatch(collection::equals);
     }
 
@@ -72,7 +191,7 @@ public interface Database extends CommandRunner {
      * @throws IllegalArgumentException
      *      if collectionName is invalid
      */
-    default Collection<Document> getCollection(String collectionName) {
+    public Collection<Document> getCollection(String collectionName) {
         return getCollection(collectionName, Document.class);
     }
 
@@ -88,12 +207,18 @@ public interface Database extends CommandRunner {
      * @return
      *      the collection
      */
-    <DOC> Collection<DOC> getCollection(String collectionName, Class<DOC> documentClass);
+    public <DOC> Collection<DOC> getCollection(String collectionName, @NonNull Class<DOC> documentClass) {
+        hasLength(collectionName, "collectionName");
+        notNull(documentClass, "documentClass");
+        return new Collection<DOC>(this, collectionName, documentClass);
+    }
 
     /**
      * Drops this namespace
      */
-    void drop();
+    public void drop() {
+        getDatabaseAdmin().dropNamespace(getNamespaceName());
+    }
 
     /**
      * Create a new collection with the given name.
@@ -101,7 +226,7 @@ public interface Database extends CommandRunner {
      * @param collectionName
      *      the name for the new collection to create
      */
-    default Collection<Document> createCollection(String collectionName) {
+    public Collection<Document> createCollection(String collectionName) {
         return createCollection(collectionName, null, Document.class);
     }
 
@@ -116,7 +241,7 @@ public interface Database extends CommandRunner {
      * @return
      *      the instance of collection
      */
-    default Collection<Document> createCollection(String collectionName, int dimension, SimilarityMetric metric) {
+    public Collection<Document> createCollection(String collectionName, int dimension, SimilarityMetric metric) {
         return createCollection(collectionName, dimension, metric, Document.class);
     }
 
@@ -133,7 +258,7 @@ public interface Database extends CommandRunner {
      * @return
      *      the instance of collection
      */
-    default <DOC> Collection<DOC> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<DOC> documentClass) {
+    public <DOC> Collection<DOC> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<DOC> documentClass) {
             return createCollection(collectionName, CollectionOptions.builder()
                     .withVectorDimension(dimension)
                     .withVectorSimilarityMetric(metric)
@@ -146,7 +271,7 @@ public interface Database extends CommandRunner {
      * @param collectionName
      *      the name for the new collection to create
      */
-    default <DOC> Collection<DOC> createCollection(String collectionName, Class<DOC> documentClass) {
+    public <DOC> Collection<DOC> createCollection(String collectionName, Class<DOC> documentClass) {
         return createCollection(collectionName, null, documentClass);
     }
 
@@ -158,7 +283,7 @@ public interface Database extends CommandRunner {
      * @param collectionOptions
      *      various options for creating the collection
      */
-    default Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
+    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
         return createCollection(collectionName, collectionOptions, Document.class);
     }
 
@@ -170,7 +295,17 @@ public interface Database extends CommandRunner {
      * @param collectionOptions
      *      various options for creating the collection
      */
-    <DOC> Collection<DOC> createCollection(String collectionName, CollectionOptions collectionOptions, Class<DOC> documentClass);
+    public <DOC> Collection<DOC> createCollection(String collectionName, CollectionOptions collectionOptions, Class<DOC> documentClass) {
+        hasLength(collectionName, "collectionName");
+        notNull(documentClass, "documentClass");
+        Command createCollection = Command
+                .create("createCollection")
+                .append("name", collectionName)
+                .withOptions(JsonUtils.convertValueForDataApi(collectionOptions, Document.class));
+        runCommand(createCollection);
+        log.info("Collection  '" + green("{}") + "' has been created", collectionName);
+        return getCollection(collectionName, documentClass);
+    }
 
     /**
      * Delete a collection.
@@ -178,6 +313,20 @@ public interface Database extends CommandRunner {
      * @param collectionName
      *      collection name
      */
-    void dropCollection(String collectionName);
+    public void dropCollection(String collectionName) {
+        runCommand(Command
+                .create("deleteCollection")
+                .append("name", collectionName));
+        log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
+    }
 
+    @Override
+    protected String getApiEndpoint() {
+        return apiEndpointDatabase;
+    }
+
+    @Override
+    protected HttpClientOptions getHttpClientOptions() {
+        return options.getHttpClientOptions();
+    }
 }

@@ -1,71 +1,58 @@
 package com.datastax.astra.internal;
 
-import io.stargate.sdk.ServiceDeployment;
-import io.stargate.sdk.data.client.Database;
-import io.stargate.sdk.data.client.model.Command;
-import io.stargate.sdk.data.client.model.namespaces.CreateNamespaceOptions;
-import io.stargate.sdk.data.client.model.namespaces.NamespaceInformation;
-import io.stargate.sdk.http.HttpClientOptions;
-import io.stargate.sdk.http.LoadBalancedHttpClient;
-import io.stargate.sdk.http.ServiceHttp;
+import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.Database;
+import com.datastax.astra.client.DatabaseAdmin;
+import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.namespaces.CreateNamespaceOptions;
+import com.datastax.astra.client.model.namespaces.NamespaceInformation;
+import com.datastax.astra.internal.http.HttpClientOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static io.stargate.sdk.utils.AnsiUtils.green;
-import static io.stargate.sdk.utils.Assert.hasLength;
-import static io.stargate.sdk.utils.Assert.notNull;
+import static com.datastax.astra.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.internal.utils.Assert.hasLength;
+import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
  * Implementation of Client.
  */
 @Slf4j
 @Getter
-public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements io.stargate.sdk.data.client.DatabaseAdmin {
-
-    /** Function to compute the root. */
-    public final Function<ServiceHttp, String> rootResource;
-
-    /** Get Topology of the nodes. */
-    protected final LoadBalancedHttpClient stargateHttpClient;
+public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements DatabaseAdmin {
 
     /** Version of the API. */
-    protected final HttpClientOptions options;
+    protected final DataAPIClientOptions options;
+
+    /** Version of the API. */
+    protected final String apiEndPoint;
+
+    /** Version of the API. */
+    protected final String token;
+
+    private final String apiEndpointDatabase;
 
     /**
-     * Initialized document API with a URL and a token.
+     * Initialize a database admin from token and database id.
      *
-     * @param serviceDeployment
-     *      http client topology aware
-     * @param httpClientOptions
-     *      option for the client
+     * @param token
+     *      token value
+     * @param apiEndpoint
+     *      api endpoint.
      */
-    public DataAPIDatabaseAdmin(ServiceDeployment<ServiceHttp> serviceDeployment, HttpClientOptions httpClientOptions) {
-        notNull(serviceDeployment, "service deployment topology");
-        this.stargateHttpClient = new LoadBalancedHttpClient(serviceDeployment, httpClientOptions);
-        this.options             = httpClientOptions;
-        this.rootResource        = (node) -> node.getEndpoint() +  "/" + httpClientOptions.getApiVersion();
+    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIClientOptions options) {
+        this.apiEndPoint = apiEndpoint;
+        this.token       = token;
+        this.options     = options;
+        StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
+        dbApiEndPointBuilder
+                .append("/")
+                .append(options.getApiVersion());
+        this.apiEndpointDatabase = dbApiEndPointBuilder.toString();
     }
-
-    // ------------------------------------------
-    // ----           Lookup                 ----
-    // ------------------------------------------
-
-    /** {@inheritDoc} */
-    @Override
-    public Function<ServiceHttp, String> lookup() {
-        return rootResource;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public LoadBalancedHttpClient getHttpClient() {
-        return stargateHttpClient;
-    }
-
-
 
     // ------------------------------------------
     // ----      Namespace operations        ----
@@ -78,21 +65,23 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements io.st
         return runCommand(cmd).getStatusKeyAsStringStream("namespaces");
     }
 
-    /** {@inheritDoc} */
     @Override
-    public Stream<NamespaceInformation> listNamespaces() {
-        return listNamespaceNames().map(NamespaceInformation::new);
+    public Database getDatabase(String namespaceName) {
+        return null;
+    }
+
+    @Override
+    public Database getDatabase(String namespaceName, String userToken) {
+        return null;
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Database getNamespace(String namespaceName) {
-        return new DatabaseImpl(this, namespaceName);
+    public void createNamespace(String namespace) {
+        createNamespace(namespace, CreateNamespaceOptions.simpleStrategy(1));
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Database createNamespace(String namespace, CreateNamespaceOptions options) {
+    public void createNamespace(String namespace, CreateNamespaceOptions options) {
         hasLength(namespace, "namespace");
         notNull(options, "options");
         Command createNamespace = Command
@@ -101,7 +90,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements io.st
                         .withOptions(options);
         runCommand(createNamespace);
         log.info("Namespace  '" + green("{}") + "' has been created", namespace);
-        return new DatabaseImpl(this, namespace);
     }
 
     /** {@inheritDoc} */
@@ -114,4 +102,13 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements io.st
         log.info("Namespace  '" + green("{}") + "' has been deleted", namespace);
     }
 
+    @Override
+    protected String getApiEndpoint() {
+        return apiEndPoint;
+    }
+
+    @Override
+    protected HttpClientOptions getHttpClientOptions() {
+        return null;
+    }
 }

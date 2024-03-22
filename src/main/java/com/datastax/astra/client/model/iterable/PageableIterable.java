@@ -1,9 +1,8 @@
 package com.datastax.astra.client.model.iterable;
 
-import io.stargate.sdk.core.domain.Page;
-import io.stargate.sdk.data.client.Collection;
-import io.stargate.sdk.data.client.model.Filter;
-import io.stargate.sdk.data.client.model.find.FindOptions;
+import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.model.filter.Filter;
+import com.datastax.astra.client.model.find.FindOptions;
 import lombok.Getter;
 
 import java.io.Closeable;
