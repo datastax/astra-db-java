@@ -64,16 +64,31 @@ public class DataAPIOptions {
     /** path for json api. */
     public static final String DEFAULT_VERSION = "v1";
 
+    /** Group options and parameters for http client. */
     final HttpClientOptions httpClientOptions;
 
+    /** Encode the destination like Astra or local installation. */
     final DataAPIDestination destination;
 
+    /** Set the API version like 'v1' */
     final String apiVersion;
 
+    /**
+     * Initializer for the builder.
+     *
+     * @return
+     *      a new instance of builder
+     */
     public static DataAPIClientOptionsBuilder builder() {
         return new DataAPIClientOptionsBuilder();
     }
 
+    /**
+     * Hidden constructor with the builder to build immutable class.
+     *
+     * @param builder
+     *      current builder
+     */
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
         this.apiVersion  = builder.apiVersion;
         this.destination = builder.destination;
@@ -91,6 +106,9 @@ public class DataAPIOptions {
         this.httpClientOptions = httpClientOptions;
     }
 
+    /**
+     * Builder for the DataAPIClientOptions.
+     */
     public static class DataAPIClientOptionsBuilder {
 
         /** Caller name in User agent. */
@@ -118,14 +136,24 @@ public class DataAPIOptions {
         private HttpClientOptions.HttpProxy httpProxy;
 
         /** Moving to HTTP/2. */
-        private  HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
+        private HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
 
         /** Redirect  */
-        private  HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
+        private HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
 
         /** Default is to use Astra in Production. */
         private DataAPIDestination destination = DataAPIDestination.ASTRA;
 
+        /**
+         * Builder pattern, update caller information.
+         *
+         * @param callerName
+         *      caller name in the user agent
+         * @param callerVersion
+         *      caller version in the user agent
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withCaller(String callerName, String callerVersion) {
             Assert.hasLength(callerName, callerVersion);
             this.userAgentCallerName    = callerName;
@@ -133,41 +161,105 @@ public class DataAPIOptions {
             return this;
         }
 
+        /**
+         * Builder pattern, update api version.
+         *
+         * @param apiVersion
+         *      api version
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withApiVersion(String apiVersion) {
             this.apiVersion = apiVersion;
             return this;
         }
 
+        /**
+         * Builder pattern, update http redirect
+         *
+         * @param redirect
+         *      http redirect
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withHttpRedirect(HttpClient.Redirect redirect) {
             httpRedirect = redirect;
             return this;
         }
 
+        /**
+         * Builder pattern, update http version
+         *
+         * @param version
+         *      http version
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withHtpVersion(HttpClient.Version version) {
             this.httpVersion = version;
             return this;
         }
 
+        /**
+         * Builder pattern, update http httpProxy
+         *
+         * @param httpProxy
+         *      http proxy
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withHttpProxy(HttpClientOptions.HttpProxy httpProxy) {
             this.httpProxy = httpProxy;
             return this;
         }
 
+        /**
+         * Builder pattern, update http retry count
+         *
+         * @param retryCount
+         *      http retry count
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withHttpRetryCount(int retryCount) {
             this.retryCount = retryCount;
             return this;
         }
 
-        public DataAPIClientOptionsBuilder withHttpConnectTimeout(int connecTimeout) {
-            this.httpRequestTimeout = connecTimeout;
+        /**
+         * Builder pattern, update http connection Timeout
+         *
+         * @param connectTimeout
+         *      http connection timeout
+         * @return
+         *      self reference
+         */
+        public DataAPIClientOptionsBuilder withHttpConnectTimeout(int connectTimeout) {
+            this.httpRequestTimeout = connectTimeout;
             return this;
         }
 
-        public DataAPIClientOptionsBuilder withHttpRequestTimeout(int connecTimeout) {
-            this.httpConnectTimeout = connecTimeout;
+        /**
+         * Builder pattern, update http connection Timeout
+         *
+         * @param requestTimeout
+         *      http request timeout
+         * @return
+         *      self reference
+         */
+        public DataAPIClientOptionsBuilder withHttpRequestTimeout(int requestTimeout) {
+            this.httpConnectTimeout = requestTimeout;
             return this;
         }
 
+        /**
+         * Builder pattern, update http connection Timeout
+         *
+         * @param destination
+         *      data api destination
+         * @return
+         *      self reference
+         */
         public DataAPIClientOptionsBuilder withDestination(DataAPIDestination destination) {
             this.destination = destination;
             return this;
@@ -191,7 +283,6 @@ public class DataAPIOptions {
          *                   Must be a non-negative number.
          * @return a reference to this builder, allowing for method chaining.
          * <p></p>
-         * <p>
          * Example usage:
          * <pre>
          * {@code
@@ -199,7 +290,6 @@ public class DataAPIOptions {
          *   .builder()
          *   .withHttpRetryDelayMillis(200); // Sets a 200ms delay between retries.
          * }</pre>
-         * </p>
          */
         public DataAPIClientOptionsBuilder withHttpRetryDelayMillis(int retryDelay) {
             if (retryDelay < 0) {
@@ -209,16 +299,22 @@ public class DataAPIOptions {
             return this;
         }
 
+        /**
+         * Build the options.
+         *
+         * @return
+         *      options
+         */
         public DataAPIOptions build() {
             return new DataAPIOptions(this);
         }
-
 
     }
 
 
     /**
      * Retrieve the maximum number of documents that the count function can return.
+     *
      * @return
      *      maximum number of document returned
      */

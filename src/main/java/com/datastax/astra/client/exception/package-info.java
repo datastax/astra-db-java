@@ -2,7 +2,6 @@
  * Provides the set of exceptions specifically related to interactions with the Data API.
  * This package encompasses a variety of exception classes designed to signal different
  * types of errors that can occur while using the Data API client provided by DataStax Astra.
- * <p>
  * Exceptions in this package are thrown to indicate issues such as:
  * <ul>
  *     <li>General Data API client errors ({@link com.datastax.astra.client.exception.DataApiException})</li>
@@ -15,7 +14,6 @@
  * These exceptions are crucial for robust error handling, allowing developers to catch and
  * manage specific issues gracefully. Each exception class is documented with details on when
  * and how it should be used, including example scenarios that illustrate typical use cases.
- * </p>
  * <p>
  * Utilizing these exceptions effectively enables developers to write more reliable and
  * maintainable applications by ensuring that errors are appropriately caught and handled,

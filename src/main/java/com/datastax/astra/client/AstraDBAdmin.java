@@ -53,7 +53,6 @@ import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 
 /**
  * Main Client for AstraDB, it implements administration and Data Api Operations.
-
  */
 @Slf4j
 public class AstraDBAdmin {
@@ -100,12 +99,14 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Initialization with an authentification token and target environment, Use this constructor for testing purpose.
+     * Initialization with an authentication token and target environment, Use this constructor for testing purpose.
      *
      * @param token
      *      authentication token
      * @param options
      *      options for client
+     * @param env
+     *      astra environment
      */
     AstraDBAdmin(String token, AstraEnvironment env, DataAPIOptions options) {
         Assert.hasLength(token, "token");
@@ -198,6 +199,8 @@ public class AstraDBAdmin {
      *      cloud provider
      * @param cloudRegion
      *      cloud region
+     * @param waitForDb
+     *      if set to true, the method is blocking
      * @return
      *      database identifier
      */
@@ -266,7 +269,7 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Delete a Database if exists from its name
+     * Delete a Database if exists from its identifier.
      *
      * @param databaseId
      *    database identifier
@@ -281,6 +284,14 @@ public class AstraDBAdmin {
         return exists;
     }
 
+    /**
+     * Delete a Database if exists from its name.
+     *
+     * @param databaseName
+     *    database name
+     * @return
+     *      if the database has been deleted
+     */
     public boolean dropDatabase(@NonNull String databaseName) {
         Assert.hasLength(databaseName, "database");
         com.datastax.astra.internal.utils.Assert.hasLength(databaseName, "Database ");
@@ -293,12 +304,12 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Find a database from its id.
+     * Find database information from its id.
      *
      * @param id
-     *          a database name
+     *        database identifier
      * @return
-     *          list of db matching the criteria
+     *        the bean representing an Astra database
      */
     public Database getDatabaseInformations(@NonNull UUID id) {
         Assert.notNull(id, "Database identifier should not be null");
@@ -315,6 +326,8 @@ public class AstraDBAdmin {
      *
      * @param databaseId
      *      database identifier
+     * @param namespace
+     *      target namespace name
      * @return
      *      database client
      */

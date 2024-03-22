@@ -30,12 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-
 /**
  * Iterator to get all distinct value for a particular field.
  *
  * @param <FIELD>
  *     type of the field we are looping on.
+ * @param <DOC>
+ *     type of the document used in the associated collection.
  */
 @Slf4j
 public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implements Iterable<FIELD> {
@@ -50,20 +51,30 @@ public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implemen
     protected DistinctIterator<DOC, FIELD> currentPageIterator;
 
     /**
-     * Constructor for a cursor over the elements of the find.
-     * @param collection
-     *      source collection client, use to fetch next pages
-     * @param filter
-     *      original filter used to renew the query
-     * @param fieldClass
-     *      type some the value
+     * Constructs an iterable that provides distinct elements from a specified collection, optionally filtered by
+     * a given criterion. This iterable allows for iterating over unique values of a specific field within the collection's documents,
+     * which can be particularly useful for data analysis, reporting, or implementing specific business logic that requires
+     * uniqueness in the dataset.
+     * <p>
+     * The distinct elements are determined based on the {@code fieldName} parameter, ensuring that each value provided during
+     * iteration is unique with respect to this field across all documents in the collection. The {@code filter} parameter allows
+     * for narrowing down the documents considered by this iterable, offering the capability to perform more targeted queries.
+     * </p>
+     *
+     * @param collection The source collection client, used to fetch documents and, if necessary, subsequent pages of results.
+     *                   This collection should be capable of executing queries and returning filtered results.
+     * @param fieldName The name of the field for which unique values are to be iterated over. This field's values are used
+     *                  to determine the distinctness of elements provided by this iterable.
+     * @param filter The original filter used to limit the documents considered for finding distinct values. This filter
+     *               allows for the specification of criteria that documents must meet to be included in the iteration.
+     * @param fieldClass The class of the field values being iterated over. This parameter is used to ensure type safety
+     *                   and proper casting of the field values extracted from the documents in the collection.
      */
     public DistinctIterable(Collection<DOC> collection, String fieldName, Filter filter, Class<FIELD> fieldClass) {
         this.collection  = collection;
         this.filter      = filter;
         this.fieldName   = fieldName;
         this.fieldClass  = fieldClass;
-        // Default and no extra filters.
         this.options     = new FindOptions();
     }
 

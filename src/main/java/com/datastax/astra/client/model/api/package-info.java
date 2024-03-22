@@ -14,7 +14,6 @@
  * business logic of the application. This distinction helps in maintaining a clean separation between the
  * presentation layer and the underlying database model, enhancing both security and flexibility in data handling.
  * </p>
- * <p>
  * Key components of this package include:
  * <ul>
  *     <li>{@link com.datastax.astra.client.model.api.ApiData} - Represents data segments in API responses, encapsulating returned data from operations.</li>
@@ -23,7 +22,6 @@
  * </ul>
  * These classes are integral to handling the communication between the client and the Data API, ensuring
  * that data can be easily processed and utilized within the application.
- * </p>
  */
 package com.datastax.astra.client.model.api;
 

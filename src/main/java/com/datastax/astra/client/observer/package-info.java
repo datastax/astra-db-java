@@ -11,7 +11,6 @@
  * without needing to know the specifics of what will be done when they complete. This design facilitates the addition of new types of observers
  * without modifying the existing command execution or observer logic.
  * </p>
- * <p>
  * Key components include:
  * <ul>
  *     <li>{@link com.datastax.astra.client.observer.CommandObserver} - The interface that all observers must implement.
@@ -20,7 +19,6 @@
  *     interface that logs command execution events. This observer serves as an example of how to implement custom behavior in response to command executions.</li>
  *     <!-- Add other implementations here as they are developed -->
  * </ul>
- * </p>
  * <p>
  * By facilitating an observable mechanism for command execution, this package provides a flexible and extensible approach to handling
  * command execution events in a decoupled manner. It enables the application to easily adapt to new requirements for monitoring,

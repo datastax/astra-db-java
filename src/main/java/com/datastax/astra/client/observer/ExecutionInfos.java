@@ -29,25 +29,47 @@ import java.time.Instant;
 import java.util.Map;
 
 /**
- * Wrapper for the Command execution.
+ * Encapsulates detailed information about the execution of a command, including the original request,
+ * the raw response, HTTP response details, and timing information. This class serves as a comprehensive
+ * record of a command's execution, facilitating analysis, logging, and monitoring of command operations.
  */
 @Getter
 public class ExecutionInfos {
 
-    /** Original request. */
+    /**
+     * The original command request that was executed. This field provides access to the details of the
+     * command that triggered the execution, allowing observers to understand what operation was performed.
+     */
     private final Command command;
 
-    /** Raw Response. */
+    /**
+     * The raw {@link ApiResponse} received in response to the command execution. This field contains the
+     * complete response from the server, including any data, errors, or status information returned.
+     */
     private final ApiResponse response;
 
+    /**
+     * The HTTP status code returned by the server in response to the command execution. This code provides
+     * a standard way to indicate the result of the HTTP request (e.g., success, error, not found).
+     */
     private final int responseHttpCode;
 
+    /**
+     * A map containing the HTTP headers from the response. These headers can provide additional context about
+     * the response, such as content type, caching policies, and other metadata.
+     */
     private final Map<String, String> responseHttpHeaders;
 
-    /** How much time for the response. */
+    /**
+     * The duration of time, in milliseconds, that the command execution took, from sending the request to
+     * receiving the response. This timing information can be used for performance monitoring and optimization.
+     */
     private final long executionTime;
 
-    /** When the call was issued. */
+    /**
+     * The timestamp marking when the command execution was initiated. This information is useful for logging
+     * and monitoring purposes, allowing for the temporal correlation of command executions within the system.
+     */
     private final Instant executionDate;
 
     /**
@@ -76,7 +98,7 @@ public class ExecutionInfos {
     }
 
     /**
-     * Builder class for execution informations
+     * Builder class for execution information
      */
     public static class DataApiExecutionInfoBuilder {
         private Command command;
@@ -84,7 +106,7 @@ public class ExecutionInfos {
         private long executionTime;
         private int responseHttpCode;
         private Map<String, String> responseHttpHeaders;
-        private Instant executionDate;
+        private final Instant executionDate;
 
         /**
          * Default constructor.
@@ -109,31 +131,23 @@ public class ExecutionInfos {
         /**
          * Populate after http call.
          *
-         * @param response
-         *      current response
-         * @return
-         *      current reference
+         * @param response current response
          */
-        public DataApiExecutionInfoBuilder withApiResponse(ApiResponse response) {
+        public void withApiResponse(ApiResponse response) {
             this.response = response;
-            return this;
         }
 
         /**
          * Populate after http call.
          *
-         * @param httpResponse
-         *      http response
-         * @return
-         *      current reference
+         * @param httpResponse http response
          */
-        public DataApiExecutionInfoBuilder withHttpResponse(ApiResponseHttp httpResponse) {
+        public void withHttpResponse(ApiResponseHttp httpResponse) {
             if (httpResponse != null) {
                 this.executionTime       = System.currentTimeMillis() - 1000 * executionDate.getEpochSecond();
                 this.responseHttpCode    = httpResponse.getCode();
                 this.responseHttpHeaders = httpResponse.getHeaders();
             }
-            return this;
         }
 
         /**

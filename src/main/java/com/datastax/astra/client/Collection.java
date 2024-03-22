@@ -85,12 +85,10 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * (endpoint, authentication). A Collection has a name, which is its unique identifier for a namespace and
  * options to specialize the usage as vector collections or advanced indexing parameters.
  * </p>
- *
  * <p>
  * A Collection is typed object designed to work both with default @{@link com.datastax.astra.client.model.Document} (wrapper for a Map) and application
  * plain old java objects (pojo). The serialization is performed with Jackson and application beans can be annotated.
  * </p>
- *
  * <p>Example usage:</p>
  * <pre>
  * {@code
@@ -119,6 +117,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
     protected final Class<DOC> documentClass;
 
     /** keep reference to namespace client. */
+    @Getter
     private final Database database;
 
     /** Api Endpoint for the Database. */
@@ -143,35 +142,20 @@ public class Collection<DOC> extends AbstractCommandRunner {
     }
 
     // ----------------------------
-    // --- Global Informations ----
+    // --- Global Information ----
     // ----------------------------
 
+    /**
+     * Access the parent namespace associated to the collection
+     * @return
+     *      the name of the parent namespace for current collection.
+     */
     public String getNamespaceName() {
         return getDatabase().getNamespaceName();
     }
 
     /**
-     * Retrieves the parent {@link Database} instance.
-     * This parent namespace is used for performing CRUD (Create, Read, Update, Delete) operations on collections.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Given a collection
-     * DataApiCollection<Document> collection;
-     *   // TODO
-     * }
-     * </pre>
-     *
-     * @return parent namespace client.
-     */
-    public Database getDatabase() {
-        return database;
-    }
-
-    /**
      * Retrieves the full definition of the collection with its name and options.
-     * <p></p>
      * <p>Example usage:</p>
      * <pre>
      * {@code
@@ -187,9 +171,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      *
-     * @return the full collection definition.
-     *
-     * @see CollectionDefinition##getOptions()
+     * @return the full collection definition
      */
     public CollectionDefinition getDefinition() {
         return database
@@ -266,12 +248,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
     /**
      * Insert a single document in the collection in an atomic operation.
      *
-     * <p>
      * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
      * that exists already in the collection, an error is raised and the insertion fails.
      * Inserts the provided document. If the document is missing an identifier, the server will generate one.
      * </blockquote>
-     * </p>
      *
      * @param document
      *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
@@ -510,7 +490,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param filter The {@link Filter} specifying the conditions that the document must meet to be considered
      *               a match. This parameter determines how the search is conducted and what criteria the
      *               document must satisfy to be retrieved.
-     * @return A {@link CompletableFuture<Optional<DOC>>} that, when completed, will contain the result of
+     * @return CompletableFuture that, when completed, will contain the result of
      *         the search operation. If a matching document is found, the {@link Optional} is non-empty;
      *         otherwise, it is empty to indicate the absence of a matching document. This future allows for
      *         non-blocking operations and facilitates the integration of asynchronous programming patterns.
@@ -518,66 +498,104 @@ public class Collection<DOC> extends AbstractCommandRunner {
     public CompletableFuture<Optional<DOC>> findOneASync(Filter filter) {
         return CompletableFuture.supplyAsync(() -> findOne(filter));
     }
-
     /**
-     * Create a filter by id.
+     * Retrieves a document by its identifier from the collection.
+     * <p>
+     * This method searches for a document with the specified {@code id}. If a matching document is found,
+     * it is returned wrapped in an {@link Optional}, otherwise, an empty {@link Optional} is returned.
+     * This approach provides a null-safe way to handle the presence or absence of a document.
+     * </p>
      *
-     * @param id
-     *      value for identifier
-     * @return
-     *      document if it exists
+     * @param id The identifier of the document to find.
+     * @return An {@link Optional} containing the found document, or an empty {@link Optional} if no document
+     *         matches the provided {@code id}.
      */
     public Optional<DOC> findById(Object id) {
         return findOne(Filters.eq(id));
     }
 
     /**
-     * Finds all documents in the collection.
+     * Retrieves all documents in the collection.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all documents in the collection,
+     * without applying any filters. It leverages the default {@link FindOptions} for query execution.
+     * </p>
      *
-     * @return
-     *      the find iterable interface
+     * @return A {@link FindIterable} for iterating over all documents in the collection.
      */
     public FindIterable<DOC> find() {
         return find(null, new FindOptions());
     }
 
     /**
-     * Finds all documents in the collection.
+     * Retrieves documents in the collection that match the specified filter.
+     * <p>
+     * This method returns an iterable interface for documents that meet the criteria defined by the {@code filter}.
+     * It uses default {@link FindOptions} for query execution, allowing for customization of the query if needed.
+     * </p>
      *
-     * @param filter
-     *      the query filter
-     * @return
-     *      the find iterable interface
+     * @param filter The query filter to apply when retrieving documents.
+     * @return A {@link FindIterable} for iterating over the documents that match the filter.
      */
     public FindIterable<DOC> find(Filter filter) {
         return find(filter, new FindOptions());
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
+     * to a provided vector, limiting the number of results returned.
+     * <p>
+     * This method is particularly useful for vector-based search operations where documents are ranked according
+     * to their distance from a reference vector. The {@code limit} parameter controls the maximum number of documents
+     * to return, allowing for efficient retrieval of the most relevant documents.
+     * </p>
      *
-     * @param filter
-     *      the query filter
-     * @return
-     *      the find iterable interface
+     * @param filter The query filter to apply when retrieving documents.
+     * @param vector A float array representing the vector used to sort the documents.
+     * @param limit The maximum number of documents to return.
+     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<DOC> find(Filter filter, float[] vector, int limit) {
         return find(filter, new FindOptions().sortingByVector(vector).limit(limit));
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds all documents in the collection, applying the specified find options.
+     * <p>
+     * This method allows for detailed control over the query execution through {@link FindOptions}, which can
+     * specify sorting, projection, limits, and other query parameters. If no filter is applied, all documents
+     * in the collection are considered.
+     * </p>
      *
-     * @param options
-     *      options of find one
-     * @return
-     *      the find iterable interface
+     * @param options The {@link FindOptions} to apply when executing the find operation.
+     * @return A {@link FindIterable} for iterating over the documents according to the specified options.
      */
     public FindIterable<DOC> find(FindOptions options) {
         return find(null, options);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Executes a paginated 'find' query on the collection using the specified filter and find options.
+     * <p>
+     * This method constructs and executes a command to fetch a specific page of documents from the collection that match
+     * the provided filter criteria. It allows for detailed control over the query through {@code FindOptions}, such as sorting,
+     * projection, pagination, and more. The result is wrapped in a {@link Page} object, which includes the documents found,
+     * the page size, and the state for fetching subsequent pages.
+     * </p>
+     * <p>
+     * Pagination is facilitated by the {@code skip}, {@code limit}, and {@code pageState} parameters within {@code FindOptions},
+     * enabling efficient data retrieval in scenarios where the total dataset is too large to be fetched in a single request.
+     * Optionally, similarity scoring can be included if {@code includeSimilarity} is set, which is useful for vector-based search queries.
+     * </p>
+     * <p>
+     * The method processes the command's response, mapping each document to the specified document class and collecting them into a list.
+     * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
+     * </p>
+     *
+     * @param filter The filter criteria used to select documents from the collection.
+     * @param options The {@link FindOptions} providing additional query parameters, such as sorting and pagination.
+     * @return A {@link Page} object containing the documents that match the query, along with pagination information.
+     */
     public Page<DOC> findPage(Filter filter, FindOptions options) {
         Command findCommand = Command
                 .create("find")
@@ -808,8 +826,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * <p>
      * This method delegates the existence check to the {@code existCollection} method of the associated
-     * namespace, determined by {@link #getDatabase()}, and evaluates the existence based on the
-     * collection's name, as retrieved by {@link #getName()}.
+     * namespace, evaluates the existence based on the collection's name, as retrieved by getName().
      * </p>
      *
      * @return {@code true} if the collection exists within the namespace, {@code false} otherwise.

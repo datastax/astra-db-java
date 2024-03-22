@@ -21,16 +21,40 @@ package com.datastax.astra.client.observer;
  */
 
 /**
- * By Registration a observer on a DataApiClient you can execute some treatment synchronously. It could be logging or pushing to a monitoring system.
+ * Defines the contract for observers that react to command executions within the DataApiClient.
+ * Implementing this interface allows for the execution of synchronous treatments in response to command execution events.
+ * These treatments can include logging, metrics collection, or any other form of monitoring or post-execution processing.
+ * <p>
+ * By registering a {@code CommandObserver} with a {@code DataApiClient}, clients can extend the client's functionality
+ * in a decoupled manner, enabling custom behaviors such as logging command details, pushing metrics to a monitoring system,
+ * or even triggering additional business logic based on the command's execution.
+ * </p>
+ * <p>
+ * This interface is particularly useful in scenarios where actions need to be taken immediately after a command's execution,
+ * and where those actions might depend on the outcome or metadata of the command. Implementers can receive detailed
+ * information about the command's execution through the {@link ExecutionInfos} parameter, allowing for rich and context-aware processing.
+ * </p>
+ * Example use cases include:
+ * <ul>
+ *     <li>Logging command execution details for audit or debugging purposes.</li>
+ *     <li>Collecting performance metrics of command executions to monitor the health and performance of the application.</li>
+ *     <li>Triggering additional processes or workflows based on the success or failure of a command.</li>
+ * </ul>
  */
 public interface CommandObserver {
 
     /**
-     * Command Execution could lead to third party treatment run asynchronous.
+     * Invoked when a command is executed, providing an opportunity for registered observers to perform
+     * synchronous post-execution treatments based on the command's execution information.
+     * <p>
+     * Implementers should define the logic within this method to handle the command execution event, utilizing
+     * the {@link ExecutionInfos} provided to access details about the command's execution context, results, and status.
+     * This method is called synchronously, ensuring that any processing here is completed before the command execution
+     * flow continues.
+     * </p>
      *
-     * @param executionInfo
-     *      command execution information
-     *
+     * @param executionInfo The {@link ExecutionInfos} containing detailed information about the executed command,
+     * including execution context, results, and any errors or warnings that occurred.
      */
     void onCommand(ExecutionInfos executionInfo);
 }

@@ -32,8 +32,24 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Represents the result of a 'find' command executed on a collection, providing an iterable interface to navigate
+ * through the result set. This class extends {@code PageableIterable} to offer efficient, page-by-page iteration
+ * over the results, which is particularly useful for handling large datasets.
+ * <p>
+ * Utilizing a lazy-loading approach, {@code FindIterable} allows for seamless navigation through the result set
+ * without the necessity of loading all documents into memory at once. This makes it an ideal choice for applications
+ * that need to process or display large amounts of data with minimal memory footprint. As users iterate over the
+ * collection, subsequent pages of results are fetched as needed, ensuring efficient use of resources.
+ * </p>
+ * <p>
+ * This approach is advantageous in scenarios where the full result set might be too large to store in memory
+ * comfortably or when only a portion of the results is needed by the application at any given time. By iterating
+ * over the results with {@code FindIterable}, applications can maintain lower memory usage while still having
+ * the flexibility to access the entire result set.
+ * </p>
  *
- * @param <DOC>
+ * @param <DOC> The type of documents contained in the collection. This generic type allows {@code FindIterable}
+ *              to be used with any type of document, making it a flexible solution for a wide variety of data models.
  */
 @Slf4j
 @Getter

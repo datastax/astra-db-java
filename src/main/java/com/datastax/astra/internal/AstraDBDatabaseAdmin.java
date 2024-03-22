@@ -31,6 +31,9 @@ import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+/**
+ * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.
+ */
 public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /**
@@ -43,6 +46,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      */
     final UUID databaseId;
 
+    /** Working environment. */
     final AstraEnvironment env;
 
     /** Options to personalized http client other client options. */
@@ -58,6 +62,10 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      token value
      * @param databaseId
      *      database identifier
+     * @param env
+     *      working environment
+     * @param options
+     *      options used to initialize the http client
      */
     public AstraDBDatabaseAdmin(String token, UUID databaseId, AstraEnvironment env, DataAPIOptions options) {
         this.env            = env;
@@ -83,44 +91,59 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     // ----  Crud on Namespaces (dataApi)    ----
     // ------------------------------------------
 
+    /**
+     * Get the API endpoint for the current database.
+     *
+     * @return
+     *      the endpoint as an url.
+     */
     private String getApiEndpoint() {
         return new AstraApiEndpoint(databaseId,
                 getDatabaseInformations().getInfo().getRegion(), env)
                 .getApiEndPoint();
     }
 
-    public com.datastax.astra.client.Database getDatabase(String nameSpaceName) {
-        return getDatabase(nameSpaceName, this.token);
+    /**
+     * Access teh database with the default token.
+     *
+     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     *                      exact name of the namespace as it exists in the database.
+     * @return
+     *      client to interact with database DML.
+     */
+    public com.datastax.astra.client.Database getDatabase(String namespaceName) {
+        return getDatabase(namespaceName, this.token);
     }
 
-    public com.datastax.astra.client.Database getDatabase(String namespace, String tokenUser) {
-        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespace);
+    /**
+     * Access teh database with the specialized token.
+     *
+     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     *                      exact name of the namespace as it exists in the database.
+     * @param tokenUser token with reduce privileges compared to admin token in order to do dml options (CRUD).
+     * @return
+     *      client to interact with database DML.
+     */
+    public com.datastax.astra.client.Database getDatabase(String namespaceName, String tokenUser) {
+        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName);
     }
 
     /** {@inheritDoc} */
+    @Override
     public Stream<String> listNamespaceNames() {
         return devopsDbClient
                 .database(databaseId.toString())
                 .keyspaces().findAll().stream();
     }
 
-
+    /** {@inheritDoc} */
+    @Override
     public void createNamespace(String namespace) {
         devopsDbClient.database(databaseId.toString()).keyspaces().create(namespace);
     }
 
-    /**
-     * Delete a namespace from current database. If the namespace does not exist not errors will be thrown.
-     *
-     * <pre>{@code
-     *  // Initialize a db
-     *  AstraDBDatabase db = new AstraDBDatabase("API_ENDPOINT", "TOKEN");
-     *  // Drop a Namespace
-     *  db.dropNamespace("<namespace_name>");
-     * }</pre>
-     * @param namespace
-     *      current namespace
-     */
+    /** {@inheritDoc} */
+    @Override
     public void dropNamespace(String namespace) {
         devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
     }

@@ -20,6 +20,20 @@ package com.datastax.astra.client.model.collections;
  * #L%
  */
 
+/**
+ * List of possible types for the collection 'defaultId'.
+ */
 public enum CollectionIdTypes {
-    objectId, uuidv6, uuidv7, uuid
+
+    /** represent a bson ObjectId. */
+    objectId,
+
+    /** uuid in version v6 allowing natural ordering. */
+    uuidv6,
+
+    /** uuid in version v7 random and time-based. */
+    uuidv7,
+
+    /** uuid v4, the default random uuid, */
+    uuid
 }

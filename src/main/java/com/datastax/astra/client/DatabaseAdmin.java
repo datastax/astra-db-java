@@ -36,7 +36,7 @@ import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
  * creation, retrieval, updating, and deletion of namespaces. By leveraging the extended command runner capabilities,
  * it facilitates a streamlined and efficient approach to data management within the specified context.
  * </p>
- * <p></p>
+ * <p>&nbsp;</p>
  * <p>Example usage:</p>
  * <pre>
  * {@code
@@ -82,9 +82,8 @@ public interface DatabaseAdmin {
     /**
      * Asynchronously retrieves a stream of namespace names available in the current database. This method facilitates
      * non-blocking operations by allowing the application to continue executing other tasks while the list of namespace
-     * names is being fetched. The method returns a {@link CompletableFuture} that, upon completion, provides a
-     * {@link Stream} of namespace names, enabling efficient and flexible processing through stream operations.
-     * <p></p>
+     * names is being fetched. The method returns a CompletableFuture that, upon completion, provides a
+     * Stream of namespace names, enabling efficient and flexible processing through stream operations.
      * <p>Example usage:</p>
      * <pre>
      * {@code
@@ -101,7 +100,7 @@ public interface DatabaseAdmin {
      * }
      * </pre>
      *
-     * @return A {@link CompletableFuture&tl;Stream&tl;String&gt;&gt;} that, when completed, provides a stream containing the names
+     * @return A CompletableFuture that, when completed, provides a stream containing the names
      *         of all namespaces within the current database. This allows for the asynchronous processing of namespace
      *         names with the flexibility and efficiency benefits of using a stream.
      */
@@ -112,11 +111,6 @@ public interface DatabaseAdmin {
     /**
      * Retrieves a {@link Database} instance that represents a specific database (or namespace) based on the
      * provided namespace name.
-     *
-     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
-     *                      exact name of the namespace as it exists in the database.
-     * @return A {@code DataApiNamespace} instance that encapsulates the operations and information specific to the
-     *         given namespace.
      *
      * <p>Example usage:</p>
      * <pre>
@@ -134,9 +128,33 @@ public interface DatabaseAdmin {
      * This example illustrates how to obtain a {@code DataApiNamespace} instance for a specified namespace name,
      * which then enables the execution of various database operations within that namespace. It highlights the
      * method's role in facilitating direct interaction with different parts of the database.
+     *
+     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     *                      exact name of the namespace as it exists in the database.
+     * @return A {@code DataApiNamespace} instance that encapsulates the operations and information specific to the
+     *         given namespace.
+     *
      */
     Database getDatabase(String namespaceName);
+
+    /**
+     * Access the Database associated with this admin class.
+     *
+     * @param namespaceName
+     *      the destination namespace for this database
+     * @param userToken
+     *      the user token with DML access if different from admin.
+     * @return
+     *      instance of the database
+     */
     Database getDatabase(String namespaceName, String userToken);
+
+    /**
+     * Access the Database asscociated with this admin class.
+     *
+     * @return
+     *      associated database
+     */
     default Database getDatabase() {
         return getDatabase(DEFAULT_NAMESPACE);
     }
@@ -147,10 +165,6 @@ public interface DatabaseAdmin {
      * entire keyspaces as part of database maintenance or restructuring. Caution should be exercised when using
      * this method, as dropping a namespace will remove all the data, collections, or tables contained within it,
      * and this action cannot be undone.
-     *
-     * @param namespace The name of the namespace to be dropped. This parameter specifies the target namespace
-     *                  that should be deleted. The operation will proceed silently and without error even if the
-     *                  namespace does not exist, ensuring consistent behavior.
      *
      * <p>Example usage:</p>
      * <pre>
@@ -168,6 +182,10 @@ public interface DatabaseAdmin {
      * This example demonstrates how to safely drop a namespace by name. The operation ensures that even if the
      * namespace does not exist, the method call will not interrupt the flow of the application, thereby allowing
      * for flexible and error-tolerant code design.
+     *
+     * @param namespace The name of the namespace to be dropped. This parameter specifies the target namespace
+     *                  that should be deleted. The operation will proceed silently and without error even if the
+     *                  namespace does not exist, ensuring consistent behavior.
      */
     void dropNamespace(String namespace);
 
@@ -178,11 +196,6 @@ public interface DatabaseAdmin {
      * availability and cannot afford to block on potentially long-running operations. Just like its synchronous counterpart,
      * this method should be used with caution as dropping a namespace will remove all associated data, collections,
      * or tables, and this action is irreversible.
-     *
-     * @param namespace The name of the namespace to be dropped. This is the target namespace that will be deleted.
-     *                  The asynchronous nature of this method means that it will execute without blocking the calling
-     *                  thread, regardless of whether the namespace exists or not, ensuring a consistent and responsive
-     *                  application behavior.
      *
      * <p>Example usage:</p>
      * <pre>
@@ -199,6 +212,11 @@ public interface DatabaseAdmin {
      *
      * This example illustrates the non-blocking nature of dropping a namespace. It demonstrates the method's utility in
      * maintaining application responsiveness, even when performing potentially long-running database operations.
+     *
+     * @param namespace The name of the namespace to be dropped. This is the target namespace that will be deleted.
+     *                  The asynchronous nature of this method means that it will execute without blocking the calling
+     *                  thread, regardless of whether the namespace exists or not, ensuring a consistent and responsive
+     *                  application behavior.
      */
     default void dropNamespaceAsync(String namespace) {
         CompletableFuture.runAsync(() -> dropNamespace(namespace));
@@ -209,8 +227,6 @@ public interface DatabaseAdmin {
      *
      * @param namespace
      *      current namespace.
-     * @return
-     *      client for namespace
      */
      void createNamespace(String namespace);
 

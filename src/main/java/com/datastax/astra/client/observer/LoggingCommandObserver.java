@@ -34,61 +34,53 @@ import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
 import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
- * Logging of the command.
+ * Implements a {@link CommandObserver} that logs command execution details. This observer uses SLF4J for logging,
+ * providing flexibility to integrate with various logging frameworks (e.g., Logback, Log4J). The logging level and
+ * the source class for logging can be customized, allowing for fine-grained control over the log output.
  */
 public class LoggingCommandObserver implements CommandObserver {
 
-    private final Logger logger;
     /**
-     * Log level.
+     * The logger instance used to log command execution details. This logger is configured based on the source class
+     * provided during initialization, allowing log messages to be correctly associated with the part of the application
+     * that initiated the command execution.
+     */
+    private final Logger logger;
+
+    /**
+     * The logging level at which command execution details should be logged. This level can be dynamically set to control
+     * the verbosity of the log output, making it easier to filter logs based on severity or importance.
      */
     private final Level logLevel;
 
     /**
-     * Initialize with the logLevel.
+     * Initializes a new {@code LoggingCommandObserver} instance with a default logging level of DEBUG. This constructor
+     * is convenient when a moderate level of logging detail is sufficient, and it associates the logging output with the
+     * specified source class.
      *
-     * @param sourceName
-     *      source name
-     */
-    public LoggingCommandObserver(String sourceName) {
-        this(Level.DEBUG, sourceName);
-    }
-
-    /**
-     * Initialize with the logLevel.
-     *
-     * @param sourceClass
-     *      list source class
+     * @param sourceClass The class from which the logging will be performed. This parameter is used to initialize the logger
+     *                    and associate log messages with the correct part of the application.
      */
     public LoggingCommandObserver(Class<?> sourceClass) {
         this(Level.DEBUG, sourceClass);
     }
 
     /**
-     * Initialize with the logLevel.
+     * Initializes a new {@code LoggingCommandObserver} instance with a specified logging level and source class. This constructor
+     * offers full control over the logging configuration, allowing for detailed customization of the logging behavior.
      *
-     * @param logLevel
-     *      current log level
-     * @param sourceClass
-     *      source class
+     * @param logLevel    The logging level to use for logging command execution details. This level determines the verbosity of the
+     *                    log output.
+     * @param sourceClass The class from which the logging will be performed. This parameter is used to initialize the logger
+     *                    and ensure that log messages are correctly categorized in the application's log output.
      */
     public LoggingCommandObserver(Level logLevel, Class<?> sourceClass) {
         this.logLevel = logLevel;
-        this.logger   = LoggerFactory.getLogger(sourceClass);
-    }
-
-    /**
-     * Initialize with the logLevel.
-     *
-     * @param logLevel
-     *      current log level
-     * @param sourceName
-     *      source name
-     */
-    public LoggingCommandObserver(Level logLevel, String sourceName) {
-        this.logLevel = logLevel;
-        this.logger   = LoggerFactory.getLogger(sourceName);
+        this.logger = LoggerFactory.getLogger(sourceClass);
     }
 
     /** {@inheritDoc} */

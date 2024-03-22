@@ -50,8 +50,14 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /** Static Http Client for the Client. */
     protected static RetryHttpClient httpClient;
 
-    /** Could be usefult to capture the interactions at client side. */
+    /** Could be useful to capture the interactions at client side. */
     protected Map<String, CommandObserver> observers = new ConcurrentHashMap<>();
+
+    /**
+     * Default constructor.
+     */
+    protected AbstractCommandRunner() {
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -65,6 +71,12 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         observers.remove(name);
     }
 
+    /**
+     * Access to the HttpClient.
+     *
+     * @return
+     *      instance of http client support of retries.
+     */
     protected synchronized RetryHttpClient getHttpClient() {
         if (httpClient == null) {
             httpClient = new RetryHttpClient(getHttpClientOptions());
@@ -104,7 +116,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      * @param lambda
      *      operations to execute
      * @return
-     *      void
+     *      the void object
      */
     private CompletionStage<Void> notifyASync(Consumer<CommandObserver> lambda) {
         return CompletableFutures.allDone(observers.values().stream()
@@ -146,10 +158,28 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         return JsonUtils.unmarshallBeanForDataApi(payload, documentClass);
     }
 
+    /**
+     * The subclass should provide the endpoint, url to post request.
+     *
+     * @return
+     *      url on which to post the request
+     */
     protected abstract String getApiEndpoint();
 
+    /**
+     * Authentication token provided by subclass.
+     *
+     * @return
+     *      authentication token
+     */
     protected abstract String getToken();
 
+    /**
+     * Options to initialize the HTTP client.
+     *
+     * @return
+     *      options for the http client.
+     */
     protected abstract HttpClientOptions getHttpClientOptions();
 
 }

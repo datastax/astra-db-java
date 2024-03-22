@@ -29,11 +29,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Set of options to define and initialize a collection.
+
+ */
 @Data
 public class CollectionOptions {
 
     /**
-     * Defaulting to Object I
+     * The 'defaultId' to allow working with different types of identifiers.
      */
     private Map<String, CollectionIdTypes> defaultId;
 
@@ -47,6 +51,9 @@ public class CollectionOptions {
      */
     private IndexingOptions indexing;
 
+    /**
+     * Subclass representing the indexing options.
+     */
     @Data
     public static class IndexingOptions {
 
@@ -66,6 +73,9 @@ public class CollectionOptions {
         public IndexingOptions() {}
     }
 
+    /**
+     * Subclass representing the vector options.
+     */
     @Data
     static public class VectorOptions {
 
@@ -83,29 +93,71 @@ public class CollectionOptions {
          * Service for vectorization
          */
         private Service service;
+
+        /** Default constructor. */
+        public VectorOptions() {}
     }
 
+    /**
+     * Subclass representing the services options.
+     */
     @Data
     public static class Service {
+
+        /** LLM provider. */
         private String provider;
+
+        /** LLM Model name. */
         private String modelName;
+
+        /** Authentication information like keys and secrets. */
         private Authentication authentication;
+
+        /** Free form parameters. */
         private Map<String, Parameters> parameters;
+
+        /** Default constructor. */
+        public Service() {}
     }
 
+
+    /**
+     * Subclass representing the Authentication options.
+     */
     @Data
     public static class Authentication {
+
+        /** Type of authentication: Oauth, API Key, etc. */
         private List<String> type;
+
+        /** Name of the secret if sstored in Astra. */
         private String secretName;
+
+        /** Default constructor. */
+        public Authentication() {}
     }
 
+    /**
+     * Subclass representing a parameters for LLM Services
+     */
     @Data
     public static class Parameters {
+
+        /** Type for the parameters. */
         private String type;
+
+        /** declare if mandatory or not. */
         private boolean required;
+
+        /** the default value for the parameter. */
         @JsonProperty("default")
         private Object defaultValue;
+
+        /** description of the parameter. */
         private String help;
+
+        /** Default constructor. */
+        public Parameters() {}
     }
 
     /**
@@ -123,14 +175,26 @@ public class CollectionOptions {
     public static class CreateCollectionOptionsBuilder {
 
         /**
-         * Options for the collection.
+         * Options for Vector
          */
         VectorOptions vector;
 
+        /**
+         * Options for Indexing
+         */
         IndexingOptions indexing;
 
+        /**
+         * Options for Default Id
+         */
         CollectionIdTypes defaultId;
 
+        /**
+         * Access the vector options.
+         *
+         * @return
+         *      vector options
+         */
         private VectorOptions getVector() {
             if (vector == null) {
                 vector = new VectorOptions();
@@ -138,6 +202,12 @@ public class CollectionOptions {
             return vector;
         }
 
+        /**
+         * Access the indexing options.
+         *
+         * @return
+         *      indexing options
+         */
         private IndexingOptions getIndexing() {
             if (indexing == null) {
                 indexing = new IndexingOptions();
@@ -148,8 +218,7 @@ public class CollectionOptions {
         /**
          * Default constructor.
          */
-        public CreateCollectionOptionsBuilder() {
-        }
+        public CreateCollectionOptionsBuilder() {}
 
         /**
          * Builder Pattern with the Identifiers.
@@ -179,7 +248,7 @@ public class CollectionOptions {
          * Builder pattern.
          *
          * @param function function
-         * @return bself reference
+         * @return self reference
          */
         public CreateCollectionOptionsBuilder withVectorSimilarityMetric(@NonNull SimilarityMetric function) {
             getVector().setMetric(function);
