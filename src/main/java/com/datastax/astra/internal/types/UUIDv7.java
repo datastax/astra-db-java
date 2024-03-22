@@ -30,8 +30,17 @@ import java.util.UUID;
  */
 public class UUIDv7 {
 
+    /**
+     * intenal uuid,.
+     */
     private final UUID uuid;
 
+    /**
+     * Constructor.
+     *
+     * @param uuid
+     *      unique identifier
+     */
     public UUIDv7(UUID uuid) {
         this.uuid = uuid;
     }
@@ -70,7 +79,5 @@ public class UUIDv7 {
     public static UUIDv7 generate() {
         return new UUIDv7(Generators.timeBasedEpochRandomGenerator(new Random()).generate());
     }
-
-
 
 }

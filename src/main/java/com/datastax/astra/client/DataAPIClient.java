@@ -29,6 +29,9 @@ import java.util.UUID;
 
 import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
 
+/**
+ * Entry point to access the Data API.
+ */
 public class DataAPIClient {
 
     /** Token in use with the solution. */
@@ -37,10 +40,24 @@ public class DataAPIClient {
     /** Options to setup the client. */
     private final DataAPIOptions options;
 
+    /**
+     * Constructor with a token
+     *
+     * @param token
+     *      authentication token.
+     */
     public DataAPIClient(String token) {
         this(token, DataAPIOptions.builder().build());
     }
 
+    /**
+     * Constructor with a token and options.
+     *
+     * @param token
+     *      authentication token
+     * @param options
+     *      set of options for the http client
+     */
     public DataAPIClient(String token, DataAPIOptions options) {
         Assert.hasLength(token, "token");
         Assert.notNull(options, "options");
@@ -52,14 +69,34 @@ public class DataAPIClient {
     // ---       Access AstraDBAdmin                  ---
     // --------------------------------------------------
 
+    /**
+     * Access the administration client (crud on databases).
+     *
+     * @return
+     *      administration client
+     */
     public AstraDBAdmin getAdmin() {
         return getAdmin(this.token);
     }
 
+    /**
+     * Access the administration client (crud on databases) by providing a stronger token.
+     *
+     * @param superUserToken
+     *      provide a token with enough privileges for admin operations
+     * @return
+     *      administration client
+     */
     public AstraDBAdmin getAdmin(String superUserToken) {
        return new AstraDBAdmin(superUserToken, getAstraEnvironment(), options);
     }
 
+    /**
+     * Allow to find the environment from the destination.
+     *
+     * @return
+     *      current astra environment
+     */
     private Optional<AstraEnvironment> findAstraEnvironment() {
         if (options.getDestination() != null) {
             switch (options.getDestination()) {
@@ -74,6 +111,12 @@ public class DataAPIClient {
         return Optional.empty();
     }
 
+    /**
+     * Get the current Astra Environment.
+     *
+     * @return
+     *      current astra environment
+     */
     private AstraEnvironment getAstraEnvironment() {
         return findAstraEnvironment()
                 .orElseThrow(() -> new IllegalArgumentException("'destination' should be ASTRA* to use the AstraDBAdmin"));
@@ -83,6 +126,16 @@ public class DataAPIClient {
     // ---       Access Database                      ---
     // --------------------------------------------------
 
+    /**
+     * Access a database client to interact with the Data API.
+     *
+     * @param databaseId
+     *      unique identifier of the database
+     * @param namespace
+     *      namespace to use
+     * @return
+     *      database client
+     */
     public Database getDatabase(UUID databaseId, String namespace) {
         Assert.notNull(databaseId, "databaseId");
         Assert.hasLength(namespace, "namespace");
@@ -92,14 +145,38 @@ public class DataAPIClient {
                 namespace);
     }
 
+    /**
+     * Access a database client to interact with the Data API.
+     * @param databaseId
+     *      unique identifier of the database
+     * @return
+     *      database client
+     */
     public Database getDatabase(UUID databaseId) {
         return getDatabase(databaseId, DEFAULT_NAMESPACE);
     }
 
+    /**
+     * Access a database client to interact with the Data API.
+     * @param apiEndpoint
+     *      url of the api in used
+     * @param namespace
+     *      namespace to use
+     * @return
+     *      database client
+     */
     public Database getDatabase(String apiEndpoint, String namespace) {
         return new Database(apiEndpoint, token, namespace, options);
     }
 
+    /**
+     * Access a database client to interact with the Data API.
+     *
+     * @param apiEndpoint
+     *      url of the api in used
+     * @return
+     *      database client
+     */
     public Database getDatabase(String apiEndpoint) {
         return getDatabase(apiEndpoint, DEFAULT_NAMESPACE);
     }

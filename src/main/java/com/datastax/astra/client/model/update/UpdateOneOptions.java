@@ -25,9 +25,16 @@ import com.datastax.astra.client.model.find.SortOrder;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
 
+/**
+ * Options for the updateOne operation
+
+ */
 @Data
 public class UpdateOneOptions {
 
+    /**
+     * if upsert is selected
+     */
     private Boolean upsert;
 
     /**
@@ -35,6 +42,19 @@ public class UpdateOneOptions {
      */
     private Document sort;
 
+    /**
+     * Default constructor.
+     */
+    public UpdateOneOptions() {}
+
+    /**
+     * Builder Pattern, update the upsert flag
+     *
+     * @param upsert
+     *     upsert flag
+     * @return
+     *      self reference
+     */
     public UpdateOneOptions upsert(Boolean upsert) {
         Assert.notNull(upsert, "upsert");
         this.upsert = upsert;
@@ -42,12 +62,12 @@ public class UpdateOneOptions {
     }
 
     /**
-     * Fluent api.
+     * Builder Pattern, update the sort clause
      *
      * @param pSort
-     *      add a filter
+     *      sort clause of the command
      * @return
-     *      current command.
+     *      self reference
      */
     public UpdateOneOptions sortingBy(Document pSort) {
         Assert.notNull(pSort, "sort");

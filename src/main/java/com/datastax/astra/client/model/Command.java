@@ -48,57 +48,147 @@ public class Command implements Serializable {
     /** Command payload.*/
     protected Document payload = new Document();
 
+    /**
+     * Create an empty command from its name.
+     *
+     * @param name
+     *      unique command name
+     *
+     */
     public static Command create(String name) {
         return new Command(name);
     }
 
+    /**
+     * Default constructor.
+     */
     public Command() {}
 
+    /**
+     * Constructor with a name.
+     *
+     * @param name
+     *      unique command name
+     */
     public Command(String name) {
         Assert.hasLength(name, "command name");
         this.name = name;
     }
 
+    /**
+     * Builder pattern, update filter.
+     *
+     * @param filter
+     *      filter for the command
+     * @return
+     *      self-reference
+     */
     public Command withFilter(Filter filter) {
         payload.appendIfNotNull("filter", filter);
         return this;
     }
 
+    /**
+     * Builder pattern, update replacement document.
+     *
+     * @param replacement
+     *      replacement for the command
+     * @return
+     *      self-reference
+     */
     public Command withReplacement(Object replacement) {
         payload.appendIfNotNull("replacement", replacement);
         return this;
     }
 
+    /**
+     * Builder pattern, update projection.
+     *
+     * @param projection
+     *      projection for the command
+     * @return
+     *      self-reference
+     */
     public Command withProjection(Map<String, Integer> projection) {
         payload.appendIfNotNull("projection", projection);
         return this;
     }
 
+    /**
+     * Builder pattern, update sort.
+     *
+     * @param sort
+     *      sort for the command
+     * @return
+     *      self-reference
+     */
     public Command withSort(Document sort) {
         payload.appendIfNotNull("sort", sort);
         return this;
     }
 
+    /**
+     * Builder pattern, update options.
+     *
+     * @param options
+     *      options for the command
+     * @return
+     *      self-reference
+     */
     public Command withOptions(Object options) {
         payload.appendIfNotNull("options", options);
         return this;
     }
 
+    /**
+     * Builder pattern, update document.
+     *
+     * @param document
+     *      document for the command
+     * @return
+     *      self-reference
+     */
     public Command withDocument(Object document) {
         payload.appendIfNotNull("document", document);
         return this;
     }
 
+    /**
+     * Builder pattern, update documents.
+     *
+     * @param documents
+     *      documents for the command
+     * @return
+     *      self-reference
+     */
     public <DOC> Command withDocuments(List<DOC> documents) {
         payload.appendIfNotNull("documents", documents);
         return this;
     }
 
+    /**
+     * Builder pattern, update documents.
+     *
+     * @param key
+     *      name of the attribute
+     * @param obj
+     *      value of the attribute
+     * @return
+     *      self-reference
+     */
     public Command append(String key, Object obj) {
         payload.appendIfNotNull(key, obj);
         return this;
     }
 
+    /**
+     * Builder pattern,  Update.
+     *
+     * @param update
+     *      update of the command
+     * @return
+     *      self-reference
+     */
     public Command withUpdate(Update update) {
         payload.appendIfNotNull("update", update);
         return this;
@@ -107,6 +197,8 @@ public class Command implements Serializable {
     /**
      * Specialization of the command.
      *
+     * @param name
+     *      command name
      * @param payload
      *      command payload
      */

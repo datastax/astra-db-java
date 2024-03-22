@@ -22,6 +22,9 @@ package com.datastax.astra.client.model.update;
 
 import lombok.Data;
 
+/**
+ * Options for the replaceOne operation.
+ */
 @Data
 public class ReplaceOneOptions {
 
@@ -29,4 +32,9 @@ public class ReplaceOneOptions {
      * if upsert is selected
      */
     Boolean upsert = false;
+
+    /**
+     * Default constructor.
+     */
+    public ReplaceOneOptions() {}
 }

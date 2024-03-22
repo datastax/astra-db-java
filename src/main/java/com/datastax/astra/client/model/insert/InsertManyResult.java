@@ -33,10 +33,14 @@ import java.util.List;
  */
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 public class InsertManyResult {
 
     /** Inserted Ids. */
     List<Object> insertedIds =  new ArrayList<>();
+
+    /**
+     * Default constructor.
+     */
+    public InsertManyResult() {}
 
 }

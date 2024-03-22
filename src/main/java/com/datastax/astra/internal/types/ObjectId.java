@@ -104,7 +104,6 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
      *
      * @param date the date
      * @return the ObjectId
-     * @since 4.1
      */
     public static ObjectId getSmallestWithDate(final Date date) {
         return new ObjectId(dateToTimestampSeconds(date), 0, (short) 0, 0, false);

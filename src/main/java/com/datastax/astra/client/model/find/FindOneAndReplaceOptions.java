@@ -27,34 +27,54 @@ import lombok.Getter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Options used in the `findAndReplace` command.
+ */
 @Getter
 public class FindOneAndReplaceOptions {
 
     /**
-     * Order by.
+     * Option to order the result.
      */
     private Document sort;
 
     /**
-     * Select.
+     * Options to project (select) the result.
      */
     private Map<String, Integer> projection;
 
+    /**
+     * Flag to enforce the replacement
+     */
     Boolean upsert;
 
+    /**
+     * Tell to return the document before or after the update.
+     */
     ReturnDocument returnDocument = ReturnDocument.after;
 
+    /**
+     * Options of the Return Document flag
+     */
     public  enum ReturnDocument {
-        before, after;
+        /**
+         * Return the document before the update.
+         */
+        before,
+
+        /**
+         * Return the document after the update.
+         */
+        after;
     }
 
     /**
-     * Fluent api.
+     * Builder Pattern, update the projection
      *
      * @param pProjection
      *      add a project field
      * @return
-     *      current command.
+     *      self reference
      */
     public FindOneAndReplaceOptions projection(Map<String, Integer> pProjection) {
         Assert.notNull(pProjection, "projection");
@@ -65,12 +85,28 @@ public class FindOneAndReplaceOptions {
         return this;
     }
 
+    /**
+     * Builder Pattern, update the returnDocument flag
+     *
+     * @param returnDocument
+     *      decide to return document before or after the update
+     * @return
+     *      self reference
+     */
     public FindOneAndReplaceOptions returnDocument(ReturnDocument returnDocument) {
         Assert.notNull(returnDocument, "returnDocument");
         this.returnDocument = returnDocument;
         return this;
     }
 
+    /**
+     * Builder Pattern, update the upsert flag.
+     *
+     * @param upsert
+     *      upsert flag
+     * @return
+     *      self reference
+     */
     public FindOneAndReplaceOptions upsert(Boolean upsert) {
         Assert.notNull(upsert, "upsert");
         this.upsert = upsert;
@@ -78,12 +114,12 @@ public class FindOneAndReplaceOptions {
     }
 
     /**
-     * Fluent api.
+     * Builder Pattern, update the sort clause
      *
      * @param pSort
-     *      add a filter
+     *      sort clause of the command
      * @return
-     *      current command.
+     *      self reference
      */
     public FindOneAndReplaceOptions sort(Document pSort) {
         Assert.notNull(pSort, "projection");
@@ -105,7 +141,5 @@ public class FindOneAndReplaceOptions {
     public FindOneAndReplaceOptions sortByVector(float[] vector) {
         return sort(new Document().append(Document.VECTOR, vector));
     }
-
-
 
 }

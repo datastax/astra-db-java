@@ -23,6 +23,10 @@ package com.datastax.astra.client.model.find;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Hold the result of a findOneAndUpdate command.
+ * @param <DOC>
+ */
 @Data
 @NoArgsConstructor
 public class FindOneAndUpdateResult<DOC> {
@@ -47,5 +51,9 @@ public class FindOneAndUpdateResult<DOC> {
      */
     private Integer upsertedId;
 
+    /**
+     * Default constructor.
+     */
+    public FindOneAndUpdateResult() {}
 
 }

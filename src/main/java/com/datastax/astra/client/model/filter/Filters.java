@@ -28,6 +28,13 @@ import java.util.Arrays;
 public class Filters {
 
     /**
+     * Private constructor.
+     */
+    private Filters() {
+        // utility class
+    }
+
+    /**
      * Creates a filter that matches all documents where the value of _id field equals the specified value. Note that this doesn't
      * actually generate a $eq operator, as the query language doesn't require it.
      *
@@ -170,6 +177,8 @@ public class Filters {
      *      the field name
      * @param values
      *      the list of values
+     * @param <VAL>
+     *       the type of the values
      * @return the filter
      */
     @SafeVarargs
@@ -185,6 +194,8 @@ public class Filters {
      *      the field name
      * @param values
      *      the list of values
+     * @param <VAL>
+     *       the type of the values
      * @return the filter
      */
     @SafeVarargs

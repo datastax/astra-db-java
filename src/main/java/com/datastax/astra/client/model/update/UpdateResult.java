@@ -43,4 +43,9 @@ public class UpdateResult {
      */
     private Object upsertedId;
 
+    /**
+     * Default constructor.
+     */
+    public UpdateResult() {}
+
 }

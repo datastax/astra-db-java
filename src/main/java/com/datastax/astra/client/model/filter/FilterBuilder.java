@@ -95,6 +95,8 @@ public class FilterBuilder {
      *
      * @param value
      *      value
+     * @param <VAL>
+     *       the type of the values
      * @return
      *      self reference
      */
@@ -108,6 +110,8 @@ public class FilterBuilder {
      *
      * @param value
      *      value
+     * @param <VAL>
+     *       the type of the values
      * @return
      *      self reference
      */
@@ -120,6 +124,8 @@ public class FilterBuilder {
      *
      * @param value
      *      value
+     * @param <VAL>
+     *       the type of the values
      * @return
      *      self reference
      */

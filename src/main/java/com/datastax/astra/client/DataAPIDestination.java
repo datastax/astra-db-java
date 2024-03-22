@@ -20,6 +20,38 @@ package com.datastax.astra.client;
  * #L%
  */
 
+/**
+ * Represent the destination of the data API.
+ */
 public enum DataAPIDestination {
-    ASTRA, ASTRA_DEV, ASTRA_TEST, DSE, CASSANDRA, OTHERS
+
+    /**
+     * Astra Production environment
+     */
+    ASTRA,
+
+    /**
+     * Astra Development environment
+     */
+    ASTRA_DEV,
+
+    /**
+     * Astra Test environment
+     */
+    ASTRA_TEST,
+
+    /**
+     * Local installation of Datastax Enterprise
+     */
+    DSE,
+
+    /**
+     * Local installation of Apache Cassandra
+     */
+    CASSANDRA,
+
+    /**
+     * Extra local installation .
+     */
+    OTHERS
 }

@@ -248,10 +248,24 @@ public class Document implements Map<String, Object>, Serializable {
         return appendIfNotNull(ID, id);
     }
 
-    public <T> Document vectorize(String text) {
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param text
+     *      value for the vctorize attribute
+     * @return
+     *      self reference
+     */
+    public Document vectorize(String text) {
         return appendIfNotNull(VECTORIZE, text);
     }
 
+    /**
+     * Access attribute with vectorize name if any.
+     *
+     * @return
+     *      value for vectorize
+     */
     public Optional<String> getVectorize() {
         return Optional.ofNullable(get(VECTORIZE, String.class));
     }

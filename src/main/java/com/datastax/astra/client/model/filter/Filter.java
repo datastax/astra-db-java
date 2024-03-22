@@ -151,7 +151,7 @@ public class Filter extends Document {
         return new Filter().where("_id").isEqualsTo(id);
     }
 
-    /* {@inheritDoc} */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
        return toJson();

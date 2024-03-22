@@ -27,6 +27,10 @@ import lombok.Getter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+
+/**
+ * List options for a findOneAndUpdate command.
+ */
 @Getter
 public class FindOneAndUpdateOptions {
 
@@ -40,9 +44,20 @@ public class FindOneAndUpdateOptions {
      */
     private Map<String, Integer> projection;
 
+    /**
+     * Upsert flag.
+     */
     private Boolean upsert;
 
+    /**
+     * Return document flag.
+     */
     private FindOneAndReplaceOptions.ReturnDocument returnDocument = FindOneAndReplaceOptions.ReturnDocument.after;
+
+    /**
+     * Default constructor.
+     */
+    public FindOneAndUpdateOptions() {}
 
     /**
      * Fluent api.
@@ -61,12 +76,28 @@ public class FindOneAndUpdateOptions {
         return this;
     }
 
+    /**
+     * Builder Pattern, update the returnDocument flag
+     *
+     * @param returnDocument
+     *      decide to return document before or after the update
+     * @return
+     *      self reference
+     */
     public FindOneAndUpdateOptions returnDocument(FindOneAndReplaceOptions.ReturnDocument returnDocument) {
         Assert.notNull(returnDocument, "returnDocument");
         this.returnDocument = returnDocument;
         return this;
     }
 
+    /**
+     * Builder Pattern, update the upsert flag.
+     *
+     * @param upsert
+     *      upsert flag
+     * @return
+     *      self reference
+     */
     public FindOneAndUpdateOptions upsert(Boolean upsert) {
         Assert.notNull(upsert, "upsert");
         this.upsert = upsert;

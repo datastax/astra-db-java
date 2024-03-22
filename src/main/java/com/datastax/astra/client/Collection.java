@@ -130,6 +130,8 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *      client namespace http
      * @param collectionName
      *      collection identifier
+     * @param clazz
+     *      working object for document in the collection
      */
     protected Collection(Database db, String collectionName, Class<DOC> clazz) {
         notNull(db, "database");

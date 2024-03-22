@@ -61,9 +61,9 @@ public interface DatabaseAdmin {
      * Retrieves a stream of namespace names available in the current database. This method is essential for
      * applications that need to enumerate all namespaces to perform operations such as displaying available
      * namespaces to users, managing namespaces programmatically, or executing specific tasks within each
-     * namespace. The returned {@link Stream} facilitates efficient processing of namespace names, enabling
+     * namespace. The returned Stream facilitates efficient processing of namespace names, enabling
      * operations like filtering, sorting, and mapping without the need for preloading all names into memory.
-     * <p></p>
+     *
      * <p>Example usage:</p>
      * <pre>
      * {@code

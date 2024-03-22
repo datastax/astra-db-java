@@ -23,6 +23,12 @@ package com.datastax.astra.client.model.find;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Store the result of a findOneAndReplace operation.
+ *
+ * @param <DOC>
+ *          working class document
+ */
 @Data
 @NoArgsConstructor
 public class FindOneAndReplaceResult<DOC> {
@@ -41,6 +47,11 @@ public class FindOneAndReplaceResult<DOC> {
      * Number of modified documents
      */
     private Integer modifiedCount;
+
+    /**
+     * Default constructor.
+     */
+    public FindOneAndReplaceResult() {}
 
 
 }

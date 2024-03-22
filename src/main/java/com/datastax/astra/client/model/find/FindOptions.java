@@ -44,14 +44,29 @@ public class FindOptions {
      */
     private Document sort;
 
+    /**
+     * Projection for return document (select)
+     */
     private Map<String, Integer> projection;
 
+    /**
+     * Skip a few result in the beginning
+     */
     private Integer skip;
 
+    /**
+     * Stop processing after a few results
+     */
     private Integer limit;
 
+    /**
+     * Flag to include similarity in the result when operating a semantic search.
+     */
     private Boolean includeSimilarity;
 
+    /**
+     * Page state.
+     */
     private String pageState;
 
     /**
@@ -70,6 +85,8 @@ public class FindOptions {
      *
      * @param pageState
      *      new value for page state
+     * @return
+     *      self reference
      */
     public FindOptions withPageState(String pageState) {
         this.pageState = pageState;

@@ -22,6 +22,9 @@ package com.datastax.astra.client.model.update;
 
 import lombok.Data;
 
+/**
+ * Represents the result returned by command 'updateMany()'
+ */
 @Data
 public class UpdateManyResult {
 
@@ -49,4 +52,9 @@ public class UpdateManyResult {
      * Next page state.
      */
     private String nextPageState;
+
+    /**
+     * Default constructor.
+     */
+    public UpdateManyResult() {}
 }

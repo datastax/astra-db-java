@@ -31,7 +31,6 @@ import java.util.Map;
 
 /**
  * Set of options to define and initialize a collection.
-
  */
 @Data
 public class CollectionOptions {

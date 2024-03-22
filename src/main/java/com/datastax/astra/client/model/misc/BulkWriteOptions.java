@@ -21,11 +21,26 @@ package com.datastax.astra.client.model.misc;
  */
 
 import lombok.Data;
-
+/**
+ *
+ * Options used in the `bulkWrite` command.
+ */
 @Data
 public final class BulkWriteOptions {
 
+    /**
+     * Flag to enforcer the ordering of the operations. If set to false the operations will be executed in parallel and put in an Execution Queue.
+     */
     private boolean ordered = true;
 
+    /**
+     * When executed in parallel (ordered = false) the number of operations that can be executed at the same time.
+     */
     private Integer concurrency = 5;
+
+    /**
+     * Default constructor.
+     */
+    public BulkWriteOptions() {}
+
 }

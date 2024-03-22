@@ -28,6 +28,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Encore the update document
+ */
 public class Update extends Document {
 
     /**
@@ -61,6 +64,12 @@ public class Update extends Document {
         this.documentMap.putAll(obj);
     }
 
+    /**
+     * Allow to creat a new instance.
+     *
+     * @return
+     *      a new instance
+     */
     public static Update create() {
         return new Update();
     }
@@ -131,6 +140,15 @@ public class Update extends Document {
         return update("$set", key, value);
     }
 
+
+    /**
+     * Builder pattern
+     *
+     * @param fields`
+     *     fields map
+     * @return
+     *      reference to self
+     */
     public Update set(Map<String, Integer> fields) {
         if (fields !=null) fields.forEach(this::set);
         return this;
@@ -150,6 +168,14 @@ public class Update extends Document {
         return update("$min", key, value);
     }
 
+    /**
+     * Builder pattern
+     *
+     * @param fields
+     *      map of fields
+     * @return
+     *      reference to self
+     */
     public Update min(Map<String, Integer> fields) {
         if (fields !=null) fields.forEach(this::min);
         return this;
@@ -169,6 +195,15 @@ public class Update extends Document {
         return update("$push", key, value);
     }
 
+
+    /**
+     * Builder pattern
+     *
+     * @param fields
+     *      map of fields
+     * @return
+     *      reference to self
+     */
     public Update push(Map<String, Integer> fields) {
         if (fields !=null) fields.forEach(this::push);
         return this;
@@ -188,6 +223,14 @@ public class Update extends Document {
         return update("$pop", key, value);
     }
 
+    /**
+     * Builder pattern
+     *
+     * @param fields
+     *      map of fields
+     * @return
+     *      reference to self
+     */
     public Update pop(Map<String, Integer> fields) {
         if (fields !=null) fields.forEach(this::pop);
         return this;
@@ -229,6 +272,16 @@ public class Update extends Document {
         return update("$addToSet", key, value);
     }
 
+    /**
+     * Builder pattern
+     *
+     * @param key
+     *      field name
+     * @param value
+     *      filed value
+     * @return
+     *      reference to self
+     */
     public Update rename(String key, Object value) {
         return update("$rename", key, value);
     }

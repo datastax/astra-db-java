@@ -23,9 +23,20 @@ package com.datastax.astra.client.model.delete;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * Hold the result of delete commands (deleteOne, deleteMany).
+ */
 @Data @AllArgsConstructor
 public class DeleteResult {
 
+    /**
+     * NUmber of documents deleted.
+     */
     int deletedCount;
+
+    /**
+     * Default constructor.
+     */
+    public DeleteResult() {}
 
 }

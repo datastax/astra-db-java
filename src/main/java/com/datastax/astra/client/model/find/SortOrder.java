@@ -20,16 +20,31 @@ package com.datastax.astra.client.model.find;
  * #L%
  */
 
-public enum SortOrder {
-    ASCENDING(1),
-    DESCENDING(-1);
-    private SortOrder(Integer order) {
-        this.order = order;
-    }
+import lombok.Getter;
 
-    private Integer order;
-    public Integer getOrder() {
-        return order;
+/**
+ * Encode the sort order in results.
+ */
+@Getter
+public enum SortOrder {
+
+    /** Value for ascending order. */
+    ASCENDING(1),
+
+    /** Value for descending order. */
+    DESCENDING(-1);
+
+    /** Order value. */
+    private final Integer order;
+
+    /**
+     * Constructor for the enum.
+     *
+     * @param order
+     *      value for the order
+     */
+    SortOrder(Integer order) {
+        this.order = order;
     }
 
 }

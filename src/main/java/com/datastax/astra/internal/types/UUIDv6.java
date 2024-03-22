@@ -29,8 +29,17 @@ import java.util.UUID;
  */
 public class UUIDv6 {
 
+    /**
+     * UUID.
+     */
     private final UUID uuid;
 
+    /**
+     * Constructor.
+     *
+     * @param uuid
+     *      uuid
+     */
     public UUIDv6(UUID uuid) {
         this.uuid = uuid;
     }

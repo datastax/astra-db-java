@@ -27,16 +27,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * List of responses
+ * Store the list of responses returned by the bulk write.
  */
 @Data
 public class BulkWriteResult {
 
+    /**
+     * List of responses returned by the bulk write.
+     */
     List<ApiResponse> responses;
 
+    /**
+     * Constructor with the number of operations.
+     *
+     * @param size
+     *      number of operations to process.
+     */
     public BulkWriteResult(int size) {
         this.responses = new ArrayList<>(size);
-
     }
 
 

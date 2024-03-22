@@ -27,6 +27,9 @@ import lombok.Data;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Options to find one and delete.
+ */
 @Data
 public class FindOneAndDeleteOptions {
 
@@ -39,6 +42,11 @@ public class FindOneAndDeleteOptions {
      * Select.
      */
     private Map<String, Integer> projection;
+
+    /**
+     * Default constructor.
+     */
+    public FindOneAndDeleteOptions() {}
 
     /**
      * Fluent api.

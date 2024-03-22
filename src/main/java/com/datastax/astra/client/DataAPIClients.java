@@ -34,22 +34,16 @@ public class DataAPIClients {
     /** Default endpoint. */
     public static final String DEFAULT_ENDPOINT = "http://localhost:8181";
 
-    /** Default endpoint. */
-    public static final String PATH_HEALTH_CHECK = "/stargate/health";
-
-    /** Default service id. */
-    public static final String DEFAULT_SERVICE_ID = "sgv2-json";
-
-    /** Default datacenter id. */
-    private static final String DEFAULT_DATACENTER = "dc1";
-
     /**
      * Utility class, should not be instanced.
      */
     private DataAPIClients() {}
 
     /**
-     * Create from an Endpoint only
+     * Create DataApiClient to interact with a local instance of Stargate.
+     * @return
+     *      DataApiClient for local instance
+     *
      */
     public static DataAPIClient localClient() {
         return new DataAPIClient(
@@ -57,6 +51,12 @@ public class DataAPIClients {
                 DataAPIOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
     }
 
+    /**
+     * Create DataApiClient and Database to interact with a local instance of Stargate.
+     *
+     * @return
+     *    Database client for local instance
+     */
     public static Database localDatabase() {
         Database db = localClient().getDatabase(DEFAULT_ENDPOINT, DEFAULT_NAMESPACE);
         db.registerListener("logger", new LoggingCommandObserver(Database.class));
@@ -66,6 +66,15 @@ public class DataAPIClients {
         return db;
     }
 
+
+    /**
+     * Create DataApiClient and Database to interact with Astra,
+     *
+     * @param token
+     *      authentication token
+     * @return
+     *      Database client to use Astra
+     */
     public static DataAPIClient astra(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
@@ -73,6 +82,14 @@ public class DataAPIClients {
                 .build());
     }
 
+    /**
+     * Create DataApiClient and Database to interact with Astra in development environment.
+     *
+     * @param token
+     *      authentication token
+     * @return
+     *      Database client to use Astra DEV
+     */
     public static DataAPIClient astraDev(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
@@ -80,12 +97,19 @@ public class DataAPIClients {
                 .build());
     }
 
+    /**
+     * Create DataApiClient and Database to interact with Astra in test  environment.
+     *
+     * @param token
+     *      authentication token
+     * @return
+     *      Database client to use Astra TEST
+     */
     public static DataAPIClient astraTest(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA_TEST)
                 .build());
     }
-
 
 }
