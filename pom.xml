@@ -8,19 +8,29 @@
     <name>+ astra-db-java</name>
     <version>1.0.0-SNAPSHOT</version>
     <description>Java Client for Data API JAVA </description>
+    <url>https://github.com/datastax/astra-db-java</url>
+    <inceptionYear>2024</inceptionYear>
 
     <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Sonar -->
+        <sonar.organization>clun-datastax</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
         <!-- Third Party Libraries -->
+        <devops-sdk.version>1.2.7</devops-sdk.version>
         <slf4j.version>2.0.9</slf4j.version>
         <logback.version>1.5.0</logback.version>
         <jackson.version>2.16.2</jackson.version>
         <lombok.version>1.18.32</lombok.version>
-        <assertj.version>3.25.3</assertj.version>
-        <devops-sdk.version>1.2.7</devops-sdk.version>
         <retry4j.version>0.15.0</retry4j.version>
-        <junit-jupiter.version>5.10.2</junit-jupiter.version>
         <uuid-generator.version>5.0.0</uuid-generator.version>
+
+        <!-- Test -->
+        <test.skipped>false</test.skipped>
+        <assertj.version>3.25.3</assertj.version>
+        <junit-jupiter.version>5.10.2</junit-jupiter.version>
 
         <!-- Maven -->
         <maven.plugin.compiler.source>11</maven.plugin.compiler.source>
@@ -32,6 +42,7 @@
         <version.maven.plugin.jacoco>0.8.11</version.maven.plugin.jacoco>
         <version.maven.plugin.javadoc>3.5.0</version.maven.plugin.javadoc>
         <version.maven.plugin.jar>3.3.0</version.maven.plugin.jar>
+        <version.maven.plugin.license>2.3.0</version.maven.plugin.license>
         <version.maven.plugin.nexus>1.6.13</version.maven.plugin.nexus>
         <version.maven.plugin.release>3.0.1</version.maven.plugin.release>
         <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
@@ -127,6 +138,7 @@
     <!-- Client is JDK11+ -->
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -139,11 +151,13 @@
                     <skipLocalStaging>true</skipLocalStaging>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${version.maven.plugin.gpg}</version>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -151,18 +165,13 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
-
                         <goals>
-
                             <goal>jar-no-fork</goal>
-
                         </goals>
-
                     </execution>
-
                 </executions>
-
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -175,6 +184,7 @@
                     <goals>deploy</goals>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -185,12 +195,13 @@
                     <showWarnings>false</showWarnings>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${version.maven.plugin.surefire}</version>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${test.skipped}</skipTests>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -200,6 +211,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -216,11 +228,13 @@
                     <source>${maven.plugin.compiler.source}</source>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>${version.maven.plugin.dependency}</version>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -234,6 +248,7 @@
                     </archive>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -243,35 +258,34 @@
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
-
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${version.maven.plugin.jacoco}</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${version.maven.plugin.license}</version>
+                <configuration>
+                    <verbose>false</verbose>
+                    <extraExtensions>
+                        <myProprietaryExtension>java</myProprietaryExtension>
+                    </extraExtensions>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>default-prepare-agent</id>
+                        <id>add-license</id>
                         <goals>
-                            <goal>prepare-agent</goal>
+                            <goal>update-file-header</goal>
                         </goals>
-                    </execution>
-                    <execution>
-                        <id>default-prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report-integration</id>
-                        <goals>
-                            <goal>report-integration</goal>
-                        </goals>
+                        <phase>process-sources</phase>
+                        <configuration>
+                            <projectName>Data API Java Client</projectName>
+                            <organizationName>DataStax</organizationName>
+                            <licenseName>apache2</licenseName>
+                            <licenseResolver>${project.baseUri}/src/license</licenseResolver>
+                            <addJavaLicenseAfterPackage>true</addJavaLicenseAfterPackage>
+                            <sectionDelimiter>--</sectionDelimiter>
+                            <roots>
+                                <root>src/main/java</root>
+                            </roots>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -332,6 +346,11 @@
         </profile>
     </profiles>
 
+    <!-- Organization -->
+    <organization>
+        <name>DataStax</name>
+        <url>https://www.datastax.com</url>
+    </organization>
 
     <!-- Release the client with Apache License -->
     <licenses>

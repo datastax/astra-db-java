@@ -1,5 +1,25 @@
 package com.datastax.astra.client.exception;
 
+/*-
+ * #%L
+ * Data API Java Client
+ * --
+ * Copyright (C) 2024 DataStax
+ * --
+ * Licensed under the Apache License, Version 2.0
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import com.datastax.astra.client.model.api.ApiError;
 import com.datastax.astra.client.model.api.ApiResponse;
 import com.datastax.astra.client.observer.ExecutionInfos;
@@ -13,7 +33,37 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Class to wrap error from the Data API.
+ * Extends {@link DataApiException} to specifically address errors encountered during the
+ * processing of responses from the Data API. This exception is particularly useful when
+ * a command issued to the API is internally divided into multiple sub-operations, each of
+ * which might succeed or fail independently. It aggregates detailed information about each
+ * sub-operation, including execution times and any errors encountered, facilitating comprehensive
+ * error tracking and debugging.
+ * <p>
+ * The {@code commandsList} attribute of this exception holds a collection of {@link ExecutionInfos}
+ * objects, each representing the outcome of a sub-operation. This detailed breakdown helps in
+ * identifying specific points of failure within a complex command execution sequence, making it
+ * easier for developers to diagnose issues and implement more robust error handling and recovery
+ * strategies.
+ * </p>
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * try {
+ *     List<Document> longListOfDocuments;
+ *     collection.insertMany(longListOfDocuments);
+ * } catch (DataApiResponseException e) {
+ *     e.getCommandsList().forEach(executionInfo -> {
+ *         if (executionInfo.hasErrors()) {
+ *             log.error("Error in sub-operation: " + executionInfo.getErrorDetails());
+ *         }
+ *     });
+ *     // Handle the exception or notify the user
+ * }
+ * }
+ * </pre>
+ *
+ * @see DataApiException
  */
 @Getter
 public class DataApiResponseException extends DataApiException {

@@ -1,8 +1,7 @@
 package com.datastax.astra.integration.astra;
 
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.client.observer.LoggingCommandObserver;
 import com.datastax.astra.integration.AbstractDatabaseITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -18,7 +17,7 @@ class AstraDevDatabaseITTest extends AbstractDatabaseITTest {
     @Override
     protected Database initDatabase() {
         Database db = initializeDb(AstraEnvironment.DEV, CloudProviderType.GCP, "europe-west4");
-        db.registerListener("logger", new LoggerCommandObserver(Database.class));
+        db.registerListener("logger", new LoggingCommandObserver(Database.class));
         return db;
     }
 

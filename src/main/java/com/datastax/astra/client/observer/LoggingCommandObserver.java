@@ -1,5 +1,25 @@
 package com.datastax.astra.client.observer;
 
+/*-
+ * #%L
+ * Data API Java Client
+ * --
+ * Copyright (C) 2024 DataStax
+ * --
+ * Licensed under the Apache License, Version 2.0
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
 import com.datastax.astra.client.model.api.ApiData;
 import com.datastax.astra.client.model.api.ApiError;
 import com.datastax.astra.internal.utils.JsonUtils;
@@ -17,7 +37,7 @@ import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
 /**
  * Logging of the command.
  */
-public class LoggerCommandObserver implements CommandObserver {
+public class LoggingCommandObserver implements CommandObserver {
 
     private final Logger logger;
     /**
@@ -31,7 +51,7 @@ public class LoggerCommandObserver implements CommandObserver {
      * @param sourceName
      *      source name
      */
-    public LoggerCommandObserver(String sourceName) {
+    public LoggingCommandObserver(String sourceName) {
         this(Level.DEBUG, sourceName);
     }
 
@@ -41,7 +61,7 @@ public class LoggerCommandObserver implements CommandObserver {
      * @param sourceClass
      *      list source class
      */
-    public LoggerCommandObserver(Class<?> sourceClass) {
+    public LoggingCommandObserver(Class<?> sourceClass) {
         this(Level.DEBUG, sourceClass);
     }
 
@@ -53,7 +73,7 @@ public class LoggerCommandObserver implements CommandObserver {
      * @param sourceClass
      *      source class
      */
-    public LoggerCommandObserver(Level logLevel, Class<?> sourceClass) {
+    public LoggingCommandObserver(Level logLevel, Class<?> sourceClass) {
         this.logLevel = logLevel;
         this.logger   = LoggerFactory.getLogger(sourceClass);
     }
@@ -66,7 +86,7 @@ public class LoggerCommandObserver implements CommandObserver {
      * @param sourceName
      *      source name
      */
-    public LoggerCommandObserver(Level logLevel, String sourceName) {
+    public LoggingCommandObserver(Level logLevel, String sourceName) {
         this.logLevel = logLevel;
         this.logger   = LoggerFactory.getLogger(sourceName);
     }

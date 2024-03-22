@@ -21,7 +21,7 @@ import com.datastax.astra.client.model.insert.InsertOneResult;
 import com.datastax.astra.client.model.iterable.DistinctIterable;
 import com.datastax.astra.client.model.iterable.FindIterable;
 import com.datastax.astra.client.model.update.UpdateResult;
-import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.client.observer.LoggingCommandObserver;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -90,7 +90,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
     protected Collection<Document> getCollectionSimple() {
         if (collectionSimple == null) {
             collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
-            collectionSimple.registerListener("logger", new LoggerCommandObserver(Collection.class));
+            collectionSimple.registerListener("logger", new LoggingCommandObserver(Collection.class));
         }
         return collectionSimple;
     }
@@ -103,7 +103,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
                             .withVectorDimension(14)
                             .withVectorSimilarityMetric(SimilarityMetric.cosine)
                             .build(), Product.class);
-            collectionVector.registerListener("logger", new LoggerCommandObserver(Collection.class));
+            collectionVector.registerListener("logger", new LoggingCommandObserver(Collection.class));
         }
 
         return collectionVector;

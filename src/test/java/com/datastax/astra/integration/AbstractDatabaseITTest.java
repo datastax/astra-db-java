@@ -10,7 +10,7 @@ import com.datastax.astra.client.model.api.ApiResponse;
 import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.find.SimilarityMetric;
 import com.datastax.astra.client.model.insert.InsertOneResult;
-import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.client.observer.LoggingCommandObserver;
 import com.datastax.astra.internal.types.IdUtils;
 import com.datastax.astra.internal.types.ObjectId;
 import com.datastax.astra.internal.types.UUIDv6;
@@ -60,7 +60,7 @@ public abstract class AbstractDatabaseITTest implements TestConstants {
             database.dropCollection("collection_uuid");
             database.dropCollection("collection_uuidv6");
             database.dropCollection("collection_uuidv7");
-            database.registerListener("logger", new LoggerCommandObserver(Database.class));
+            database.registerListener("logger", new LoggingCommandObserver(Database.class));
         }
         return database;
     }
@@ -223,7 +223,7 @@ public abstract class AbstractDatabaseITTest implements TestConstants {
                         .withVectorDimension(14)
                         .withVectorSimilarityMetric(cosine)
                         .build());
-        collectionObjectId.registerListener("logger", new LoggerCommandObserver(Database.class));
+        collectionObjectId.registerListener("logger", new LoggingCommandObserver(Database.class));
 
         ObjectId id = new ObjectId();
         Document doc1 = new Document().id(id);
@@ -244,7 +244,7 @@ public abstract class AbstractDatabaseITTest implements TestConstants {
                         .withVectorDimension(14)
                         .withVectorSimilarityMetric(cosine)
                         .build());
-        collectionObjectId.registerListener("logger", new LoggerCommandObserver(Database.class));
+        collectionObjectId.registerListener("logger", new LoggingCommandObserver(Database.class));
 
         UUID id = UUID.randomUUID();
         Document doc1 = new Document().id(id);
