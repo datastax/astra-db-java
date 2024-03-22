@@ -52,7 +52,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
     static DatabaseAdmin databaseAdmin;
 
     /** Tested Namespace. */
-    static Database namespace;
+    static Database database;
 
     /** Tested collection1. */
     protected static Collection<Document> collectionSimple;
@@ -89,7 +89,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
 
     protected Collection<Document> getCollectionSimple() {
         if (collectionSimple == null) {
-            collectionSimple = getDataApiNamespace().createCollection(COLLECTION_SIMPLE);
+            collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
             collectionSimple.registerListener("logger", new LoggerCommandObserver(Collection.class));
         }
         return collectionSimple;
@@ -97,7 +97,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
 
     protected Collection<Product> getCollectionVector() {
         if (collectionVector == null) {
-            collectionVector = getDataApiNamespace().createCollection(COLLECTION_VECTOR,
+            collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
                     CollectionOptions
                             .builder()
                             .withVectorDimension(14)
@@ -109,11 +109,11 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
         return collectionVector;
     }
 
-    protected synchronized Database getDataApiNamespace() {
-        if (namespace == null) {
-            AbstractCollectionITTest.namespace = initDatabase();
+    protected synchronized Database getDatabase() {
+        if (database == null) {
+            AbstractCollectionITTest.database = initDatabase();
         }
-        return namespace;
+        return database;
     }
 
     protected abstract Database initDatabase();

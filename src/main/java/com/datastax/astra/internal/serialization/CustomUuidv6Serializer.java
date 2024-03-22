@@ -32,7 +32,7 @@ public class CustomUuidv6Serializer extends StdSerializer<UUIDv6> {
     @Override
     public void serialize(UUIDv6 uuidv6, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("$uuidv6", uuidv6.toString());
+        gen.writeStringField("$uuid", uuidv6.toString());
         gen.writeEndObject();
     }
 }

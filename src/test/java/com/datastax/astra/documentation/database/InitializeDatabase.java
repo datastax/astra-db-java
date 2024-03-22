@@ -4,7 +4,7 @@ package com.datastax.astra.documentation.database;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 
-public class InitAstraDBDatabase {
+public class InitializeDatabase {
   public static void main(String[] args) {
     // Default initialization
     Database db = new Database("API_ENDPOINT", "TOKEN");

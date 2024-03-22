@@ -101,10 +101,10 @@ public class JsonUtils {
             module.addDeserializer(UUID.class, new CustomUuidDeserializer());
             // UUIDv6
             module.addSerializer(UUIDv6.class, new CustomUuidv6Serializer());
-            module.addDeserializer(UUIDv6.class, new CustomUuidv6Deserializer());
+            //module.addDeserializer(UUIDv6.class, new CustomUuidv6Deserializer());
             // UUIDv7
             module.addSerializer(UUIDv7.class, new CustomUuidv7Serializer());
-            module.addDeserializer(UUIDv7.class, new CustomUuidv7Deserializer());
+            //module.addDeserializer(UUIDv7.class, new CustomUuidv7Deserializer());
             // ObjectId
             module.addSerializer(ObjectId.class, new CustomObjectIdSerializer());
             module.addDeserializer(ObjectId.class, new CustomObjectIdDeserializer());

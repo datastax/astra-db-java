@@ -331,7 +331,7 @@ public class Database extends AbstractCommandRunner {
     /** {@inheritDoc} */
     @Override
     protected String getToken() {
-        return null;
+        return token;
     }
 
     /** {@inheritDoc} */

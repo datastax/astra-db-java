@@ -1,6 +1,10 @@
 package com.datastax.astra.client;
 
+import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.internal.DataAPIDatabaseAdmin;
 import com.datastax.astra.internal.auth.StargateAuthenticationService;
+
+import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * Initialization of the client in a Static way.
@@ -27,10 +31,19 @@ public class DataAPIClients {
     /**
      * Create from an Endpoint only
      */
-    public static DataAPIClient localStargate() {
+    public static DataAPIClient localClient() {
         return new DataAPIClient(
                 new StargateAuthenticationService().getToken(),
                 DataAPIOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
+    }
+
+    public static Database localDatabase() {
+        Database db = localClient().getDatabase(DEFAULT_ENDPOINT, DEFAULT_NAMESPACE);
+        db.registerListener("logger", new LoggerCommandObserver(Database.class));
+        DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
+        dbAdmin.registerListener("logger", new LoggerCommandObserver(Database.class));
+        dbAdmin.createNamespace(DEFAULT_NAMESPACE);
+        return db;
     }
 
     public static DataAPIClient astra(String token) {

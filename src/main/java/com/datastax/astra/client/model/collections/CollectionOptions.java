@@ -15,7 +15,7 @@ public class CollectionOptions {
     /**
      * Defaulting to Object I
      */
-    private CollectionIdTypes defaultId;
+    private Map<String, CollectionIdTypes> defaultId;
 
     /**
      * Vector options.
@@ -216,7 +216,9 @@ public class CollectionOptions {
             CollectionOptions req = new CollectionOptions();
             req.vector    = this.vector;
             req.indexing  = this.indexing;
-            req.defaultId = this.defaultId;
+            if (defaultId != null) {
+                req.defaultId = Map.of("type", this.defaultId);
+            }
             return req;
         }
     }

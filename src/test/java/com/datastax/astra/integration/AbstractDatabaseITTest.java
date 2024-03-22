@@ -9,13 +9,26 @@ import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.api.ApiResponse;
 import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.find.SimilarityMetric;
+import com.datastax.astra.client.model.insert.InsertOneResult;
+import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.internal.types.IdUtils;
+import com.datastax.astra.internal.types.ObjectId;
+import com.datastax.astra.internal.types.UUIDv6;
+import com.datastax.astra.internal.types.UUIDv7;
+import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.model.collections.CollectionIdTypes.objectId;
+import static com.datastax.astra.client.model.collections.CollectionIdTypes.uuid;
+import static com.datastax.astra.client.model.collections.CollectionIdTypes.uuidv6;
+import static com.datastax.astra.client.model.find.SimilarityMetric.cosine;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -39,6 +52,15 @@ public abstract class AbstractDatabaseITTest implements TestConstants {
     public Database getDatabase() {
         if (database == null) {
             AbstractDatabaseITTest.database = initDatabase();
+            database.dropCollection(COLLECTION_SIMPLE);
+            database.dropCollection(COLLECTION_VECTOR);
+            database.dropCollection(COLLECTION_ALLOW);
+            database.dropCollection(COLLECTION_DENY);
+            database.dropCollection("collection_objectid");
+            database.dropCollection("collection_uuid");
+            database.dropCollection("collection_uuidv6");
+            database.dropCollection("collection_uuidv7");
+            database.registerListener("logger", new LoggerCommandObserver(Database.class));
         }
         return database;
     }
@@ -185,5 +207,93 @@ public abstract class AbstractDatabaseITTest implements TestConstants {
                 .isInstanceOf(DataApiException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
     }
+
+    @Test
+    @Order(10)
+    public void testCollectionWithObjectId() {
+        getDatabase().dropCollection(COLLECTION_SIMPLE);
+        getDatabase().dropCollection(COLLECTION_VECTOR);
+        getDatabase().dropCollection(COLLECTION_ALLOW);
+        getDatabase().dropCollection(COLLECTION_DENY);
+
+        Collection<Document> collectionObjectId = getDatabase()
+                .createCollection("collection_objectid", CollectionOptions
+                        .builder()
+                        .withDefaultId(objectId)
+                        .withVectorDimension(14)
+                        .withVectorSimilarityMetric(cosine)
+                        .build());
+        collectionObjectId.registerListener("logger", new LoggerCommandObserver(Database.class));
+
+        ObjectId id = new ObjectId();
+        Document doc1 = new Document().id(id);
+        assertThat(JsonUtils.marshallForDataApi(doc1)).contains("objectId");
+        InsertOneResult res = collectionObjectId.insertOne(doc1);
+        assertThat(res.getInsertedId()).isEqualTo(id);
+
+        Optional<Document> doc = collectionObjectId.findById(id);
+        assertThat(doc.get().getId(ObjectId.class)).isEqualTo(id);
+    }
+
+    @Test
+    public void testCollectionWithUUID() {
+        Collection<Document> collectionObjectId = getDatabase()
+                .createCollection("collection_uuid", CollectionOptions
+                        .builder()
+                        .withDefaultId(uuid)
+                        .withVectorDimension(14)
+                        .withVectorSimilarityMetric(cosine)
+                        .build());
+        collectionObjectId.registerListener("logger", new LoggerCommandObserver(Database.class));
+
+        UUID id = UUID.randomUUID();
+        Document doc1 = new Document().id(id);
+        assertThat(JsonUtils.marshallForDataApi(doc1)).contains("uuid");
+        InsertOneResult res = collectionObjectId.insertOne(doc1);
+        assertThat(res.getInsertedId()).isEqualTo(id);
+        Optional<Document> doc = collectionObjectId.findById(id);
+        assertThat(doc.get().getId(UUID.class)).isEqualTo(id);
+    }
+
+    @Test
+    public void testCollectionWithUUIDv6() {
+        Collection<Document> collectionObjectId = getDatabase()
+                .createCollection("collection_uuidv6", CollectionOptions
+                        .builder()
+                        .withDefaultId(uuidv6)
+                        .withVectorDimension(14)
+                        .withVectorSimilarityMetric(cosine)
+                        .build());
+
+        UUIDv6 id = IdUtils.generateUUIDv6();
+        Document doc1 = new Document().id(id);
+        assertThat(JsonUtils.marshallForDataApi(doc1)).contains("uuidv6");
+        InsertOneResult res = collectionObjectId.insertOne(doc1);
+        assertThat(res.getInsertedId()).isEqualTo(id);
+        Optional<Document> doc = collectionObjectId.findById(id);
+        assertThat(doc.get().getId(UUIDv6.class)).isEqualTo(id);
+    }
+
+    @Test
+    public void testCollectionWithUUIDv7() {
+        Collection<Document> collectionObjectId = getDatabase()
+                .createCollection("collection_uuidv7", CollectionOptions
+                        .builder()
+                        .withDefaultId(uuidv6)
+                        .withVectorDimension(14)
+                        .withVectorSimilarityMetric(cosine)
+                        .build());
+
+        UUIDv7 id = IdUtils.generateUUIDv7();
+        Document doc1 = new Document().id(id);
+        assertThat(JsonUtils.marshallForDataApi(doc1)).contains("uuidv7");
+        InsertOneResult res = collectionObjectId.insertOne(doc1);
+        assertThat(res.getInsertedId()).isEqualTo(id);
+        Optional<Document> doc = collectionObjectId.findById(id);
+        assertThat(doc.get().getId(UUIDv6.class)).isEqualTo(id);
+    }
+
+    @Test
+    public void testCollectionWithVectorize() {}
 
 }

@@ -6,6 +6,7 @@ import com.datastax.astra.client.DatabaseAdmin;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.namespaces.CreateNamespaceOptions;
 import com.datastax.astra.internal.http.HttpClientOptions;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,6 +32,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** Version of the API. */
     protected final String token;
 
+    /** Endpoint for a Database in particular. */
     private final String apiEndpointDatabase;
 
     /**
@@ -45,11 +47,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         this.apiEndPoint = apiEndpoint;
         this.token       = token;
         this.options     = options;
-        StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
-        dbApiEndPointBuilder
-                .append("/")
-                .append(options.getApiVersion());
-        this.apiEndpointDatabase = dbApiEndPointBuilder.toString();
+        this.apiEndpointDatabase = apiEndpoint + "/" + options.getApiVersion();
     }
 
     // ------------------------------------------
@@ -63,18 +61,24 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         return runCommand(cmd).getStatusKeyAsStringStream("namespaces");
     }
 
+    /** {@inheritDoc} */
     @Override
     public Database getDatabase(String namespaceName) {
-        return null;
+        Assert.hasLength(namespaceName, "namespaceName");
+        return new Database(apiEndPoint, token, namespaceName, options);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Database getDatabase(String namespaceName, String userToken) {
-        return null;
+        Assert.hasLength(namespaceName, "namespaceName");
+        Assert.hasLength(userToken, "userToken");
+        return new Database(apiEndPoint, userToken, namespaceName, options);
     }
 
     /** {@inheritDoc} */
     public void createNamespace(String namespace) {
+        Assert.hasLength(namespace, "namespace");
         createNamespace(namespace, CreateNamespaceOptions.simpleStrategy(1));
     }
 

@@ -24,6 +24,26 @@ public class AstraDBTestSupport {
     public static final String DATABASE_NAME = "astra_db_client";
 
     /**
+     * Initialize the Test database on an Astra Environment.
+     *
+     * @param env
+     *      target environment
+     * @param cloud
+     *      target cloud
+     * @param region
+     *      target region
+     * @return
+     *      the database instance
+     */
+    public static Database initializeDb(AstraEnvironment env, CloudProviderType cloud, String region) {
+        log.info("Working in environment '{}'", env.name());
+        AstraDBAdmin client = getAstraDBClient(env);
+        UUID databaseId =  client.createDatabase(DATABASE_NAME, cloud, region);
+        log.info("Working with api Endpoint '{}'", ApiLocator.getApiJsonEndpoint(env, databaseId.toString(), region));
+        return client.getDatabase(databaseId);
+    }
+
+    /**
      * Access AstraDBAdmin for different environment (to create DB).
      *
      * @param env
@@ -47,27 +67,7 @@ public class AstraDBTestSupport {
                         .getAdmin();
             default:
                 throw new IllegalArgumentException("Invalid Environment");
-         }
-    }
-
-    /**
-     * Initialize the Test database on an Astra Environment.
-     *
-     * @param env
-     *      target environment
-     * @param cloud
-     *      target cloud
-     * @param region
-     *      target region
-     * @return
-     *      the database instance
-     */
-    public static Database initializeDb(AstraEnvironment env, CloudProviderType cloud, String region) {
-        log.info("Working in environment '{}'", env.name());
-        AstraDBAdmin client = getAstraDBClient(env);
-        UUID databaseId =  client.createDatabase(DATABASE_NAME, cloud, region);
-        log.info("Working with api Endpoint '{}'", ApiLocator.getApiJsonEndpoint(env, databaseId.toString(), region));
-        return client.getDatabase(databaseId);
+        }
     }
 
 

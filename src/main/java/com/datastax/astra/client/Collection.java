@@ -322,10 +322,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
         Command insertOne = Command
                 .create("insertOne")
                 .withDocument(document);
+
         ApiResponse res = runCommand(insertOne);
-        return new InsertOneResult(res
-                .getStatusKeyAsList("insertedIds", Object.class)
-                .get(0));
+        // Object
+        return new InsertOneResult(res.getStatusKeyAsList("insertedIds", Object.class).get(0));
     }
 
     /**

@@ -65,15 +65,12 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             String jsonCommand = JsonUtils.marshallForDataApi(command);
             ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), getToken(), jsonCommand);
             executionInfo.withHttpResponse(httpRes);
-
             ApiResponse jsonRes = JsonUtils.unmarshallBeanForDataApi(httpRes.getBody(), ApiResponse.class);
             executionInfo.withApiResponse(jsonRes);
-
             // Encapsulate Errors
             if (jsonRes.getErrors() != null) {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
-
             return jsonRes;
         } finally {
             // Notify the observers
