@@ -77,10 +77,27 @@ public class HttpClientOptions {
     /** Redirect  */
     HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
 
+    /**
+     * Default constructor.
+     */
+    public HttpClientOptions() {}
+
+    /**
+     * Subclass to represent an http proxy.
+     */
     @Data @AllArgsConstructor
     public static class HttpProxy {
+
+        /** hostname of the proxy. */
         String hostname;
+
+        /** port of the proxy. */
         int port;
+
+        /**
+         * Default constructor.
+         */
+        public HttpProxy() {}
     }
 
 }

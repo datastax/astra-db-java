@@ -145,6 +145,11 @@ public class DataAPIOptions {
         private DataAPIDestination destination = DataAPIDestination.ASTRA;
 
         /**
+         * Default constructor.
+         */
+        public DataAPIClientOptionsBuilder() {}
+
+        /**
          * Builder pattern, update caller information.
          *
          * @param callerName
@@ -282,7 +287,7 @@ public class DataAPIOptions {
          * @param retryDelay the delay between two retry attempts, expressed in milliseconds.
          *                   Must be a non-negative number.
          * @return a reference to this builder, allowing for method chaining.
-         * <p></p>
+         *
          * Example usage:
          * <pre>
          * {@code

@@ -328,6 +328,17 @@ public class RetryHttpClient implements ApiConstants {
             throw new RuntimeException(status.getLastExceptionThatCausedRetry());
     }
 
+
+    /**
+     * Execute the HTTP request.
+     *
+     * @param httpRequest
+     *      current http request
+     * @param mandatory
+     *      check if the response is mandatory
+     * @return
+     *      http response
+     */
     public ApiResponseHttp executeHttp(HttpRequest httpRequest , boolean mandatory) {
         // Invoking the expected endpoint
         Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);

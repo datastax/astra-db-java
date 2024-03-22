@@ -243,6 +243,8 @@ public class Document implements Map<String, Object>, Serializable {
      *      id value
      * @param <T>
      *      type of id
+     * @return
+     *      self reference
      */
     public <T> Document id(T id) {
         return appendIfNotNull(ID, id);
@@ -285,6 +287,8 @@ public class Document implements Map<String, Object>, Serializable {
      *
      * @param vector
      *      vector value
+     * @return
+     *      self reference
      */
     public Document vector(float[] vector) {
         return append(VECTOR, vector);
@@ -567,66 +571,79 @@ public class Document implements Map<String, Object>, Serializable {
 
     // Vanilla Map methods delegate to map field
 
+    /** {@inheritDoc} */
     @Override
     public int size() {
         return documentMap.size();
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isEmpty() {
         return documentMap.isEmpty();
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean containsValue(final Object value) {
         return documentMap.containsValue(value);
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean containsKey(final Object key) {
         return documentMap.containsKey(key);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Object get(final Object key) {
         return documentMap.get(key);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Object put(final String key, final Object value) {
         return documentMap.put(key, value);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Object remove(final Object key) {
         return documentMap.remove(key);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void putAll(final Map<? extends String, ?> map) {
         documentMap.putAll(map);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void clear() {
         documentMap.clear();
     }
 
+    /** {@inheritDoc} */
     @Override
     public Set<String> keySet() {
         return documentMap.keySet();
     }
 
+    /** {@inheritDoc} */
     @Override
     public Collection<Object> values() {
         return documentMap.values();
     }
 
+    /** {@inheritDoc} */
     @Override
     public Set<Entry<String, Object>> entrySet() {
         return documentMap.entrySet();
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -641,10 +658,10 @@ public class Document implements Map<String, Object>, Serializable {
         if (!documentMap.equals(document.documentMap)) {
             return false;
         }
-
         return true;
     }
 
+    /** {@inheritDoc} */
     @Override
     public int hashCode() {
         return documentMap.hashCode();

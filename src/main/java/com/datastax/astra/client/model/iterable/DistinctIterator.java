@@ -63,6 +63,10 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
      *
      * @param findIterable
      *      iterable
+     * @param fieldName
+     *     name of the field to pick
+     * @param fieldClass
+     *      type of the field to pick
      */
     public DistinctIterator(PageableIterable<DOC> findIterable, String fieldName, Class<FIELD> fieldClass) {
         this.parentIterable        = findIterable;

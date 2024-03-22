@@ -39,6 +39,11 @@ public class CollectionDefinition {
      */
     private CollectionOptions options;
 
+    /**
+     * Default constructor.
+     */
+    public CollectionDefinition() {}
+
     /** {@inheritDoc} */
     @Override
     public String toString() {

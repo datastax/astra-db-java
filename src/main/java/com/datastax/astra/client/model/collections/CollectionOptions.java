@@ -51,6 +51,11 @@ public class CollectionOptions {
     private IndexingOptions indexing;
 
     /**
+     * Default constructor.
+     */
+    public CollectionOptions() {}
+
+    /**
      * Subclass representing the indexing options.
      */
     @Data

@@ -188,7 +188,6 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * Retrieves the configuration options for the collection, including vector and indexing settings.
      * These options specify how the collection should be created and managed, potentially affecting
      * performance, search capabilities, and data organization.
-     * <p></p>
      * <p>Example usage:</p>
      * <pre>
      * {@code
@@ -268,12 +267,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
     /**
      * Insert a single document in the collection in an atomic operation.
      *
-     * <p>
      * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
      * that exists already in the collection, an error is raised and the insertion fails.
      * Inserts the provided document. If the document is missing an identifier, the server will generate one.
      * </blockquote>
-     * </p>
      *
      * @param document
      *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
@@ -291,12 +288,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
     /**
      * Insert a single document in the collection in an atomic operation.
      *
-     * <p>
      * <blockquote><b>Note:</b>If an `_id` is explicitly provided, which corresponds to a document
      * that exists already in the collection, an error is raised and the insertion fails.
      * Inserts the provided document. If the document is missing an identifier, the server will generate one.
      * </blockquote>
-     * </p>
      *
      * @param document
      *     the document expressing the document to insert. The `_id` field of the document can be left out, in which case it will be created automatically.
@@ -341,7 +336,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *      if the documents list is null or empty, or any of the documents in the list are null
      */
     public InsertManyResult insertMany(List<? extends DOC> documents) {
-        return insertMany(documents, InsertManyOptions.builder().build());
+        return insertMany(documents, new InsertManyOptions());
     }
 
     /**
@@ -447,6 +442,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
      *               It specifies the conditions that a document must meet to be considered a match.
+     * @param options The {@link FindOneOptions} instance containing additional options for the find operation,
      * @return An {@link Optional<DOC>} that contains the found document if one exists that matches
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
@@ -739,10 +735,29 @@ public class Collection<DOC> extends AbstractCommandRunner {
     // ---   Delete            ----
     // ----------------------------
 
+    /**
+     * attribute for the delete count
+     */
     public static final String DELETED_COUNT = "deletedCount";
+
+    /**
+     * attribute for the matched count
+     */
     public static final String MATCHED_COUNT = "matchedCount";
+
+    /**
+     * attribute for the modified count
+     */
     public static final String MODIFIED_COUNT = "modifiedCount";
+
+    /**
+     * attribute for upserted Id
+     */
     public static final String UPSERTED_ID = "upsertedId";
+
+    /**
+     * attribute for the moreData
+     */
     public static final String MORE_DATA = "moreData";
 
     /**

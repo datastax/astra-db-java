@@ -48,12 +48,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 @Slf4j
 public class Database extends AbstractCommandRunner {
 
-    /** Current Namespace information.
-     * -- GETTER --
-     *  Gets the name of the database.
-     *
-     * @return the database name
-     */
+    /** Current Namespace information.*/
     @Getter
     private final String namespaceName;
 
@@ -136,6 +131,11 @@ public class Database extends AbstractCommandRunner {
     // ----   Access Database Admin          ----
     // ------------------------------------------
 
+    /**
+     * Access a database Admin client from the database
+     * @return
+     *      database admin
+     */
     public DatabaseAdmin getDatabaseAdmin() {
         return getDatabaseAdmin(this.token);
     }
@@ -143,6 +143,8 @@ public class Database extends AbstractCommandRunner {
     /**
      * Gets the name of the database.
      *
+     * @param superUserToken
+     *      provide a token with super user role
      * @return the database name
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
@@ -245,6 +247,8 @@ public class Database extends AbstractCommandRunner {
      *
      * @param collectionName
      *      the name for the new collection to create
+     * @return
+     *      the instance of collection
      */
     public Collection<Document> createCollection(String collectionName) {
         return createCollection(collectionName, null, Document.class);
@@ -275,6 +279,8 @@ public class Database extends AbstractCommandRunner {
      *      vector metric
      * @param documentClass
      *      class of document to return
+     * @param <DOC>
+     *          working class for the document
      * @return
      *      the instance of collection
      */
@@ -290,6 +296,11 @@ public class Database extends AbstractCommandRunner {
      *
      * @param collectionName
      *      the name for the new collection to create
+     * @param documentClass
+     *      class of document to return
+     * @param <DOC>
+     *          working class for the document
+     * @return the collection
      */
     public <DOC> Collection<DOC> createCollection(String collectionName, Class<DOC> documentClass) {
         return createCollection(collectionName, null, documentClass);
@@ -302,6 +313,7 @@ public class Database extends AbstractCommandRunner {
      *      the name for the new collection to create
      * @param collectionOptions
      *      various options for creating the collection
+     * @return the collection
      */
     public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
         return createCollection(collectionName, collectionOptions, Document.class);
@@ -314,6 +326,11 @@ public class Database extends AbstractCommandRunner {
      *      the name for the new collection to create
      * @param collectionOptions
      *      various options for creating the collection
+     * @param documentClass
+     *     the default class to cast any documents returned from the database into.
+     * @param <DOC>
+     *          working class for the document
+     * @return the collection
      */
     public <DOC> Collection<DOC> createCollection(String collectionName, CollectionOptions collectionOptions, Class<DOC> documentClass) {
         hasLength(collectionName, "collectionName");

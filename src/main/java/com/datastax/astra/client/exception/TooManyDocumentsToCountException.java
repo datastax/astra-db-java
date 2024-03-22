@@ -36,6 +36,9 @@ public class TooManyDocumentsToCountException extends Exception {
 
     /**
      * Default constructor.
+     *
+     * @param upperLimit
+     *      what it the most the count can return
      */
     public TooManyDocumentsToCountException(int upperLimit) {
         super("Document count exceeds upper bound set in method call " + upperLimit);

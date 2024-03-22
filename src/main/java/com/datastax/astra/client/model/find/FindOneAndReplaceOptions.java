@@ -54,6 +54,11 @@ public class FindOneAndReplaceOptions {
     ReturnDocument returnDocument = ReturnDocument.after;
 
     /**
+     * Default constructor.
+     */
+    public FindOneAndReplaceOptions() {}
+
+    /**
      * Options of the Return Document flag
      */
     public  enum ReturnDocument {

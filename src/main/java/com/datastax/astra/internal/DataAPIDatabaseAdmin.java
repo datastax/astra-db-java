@@ -62,6 +62,8 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      token value
      * @param apiEndpoint
      *      api endpoint.
+     * @param options
+     *      list of options for the admin
      */
     public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
         this.apiEndPoint = apiEndpoint;
@@ -102,7 +104,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         createNamespace(namespace, CreateNamespaceOptions.simpleStrategy(1));
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Allow to create a namespace with full-fledged definition
+     *
+     * @param namespace
+     *      namespace name
+     * @param options
+     *      options to create a namespace
+     */
     public void createNamespace(String namespace, CreateNamespaceOptions options) {
         hasLength(namespace, "namespace");
         notNull(options, "options");

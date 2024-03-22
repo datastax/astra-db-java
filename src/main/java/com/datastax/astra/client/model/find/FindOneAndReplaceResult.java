@@ -30,7 +30,6 @@ import lombok.NoArgsConstructor;
  *          working class document
  */
 @Data
-@NoArgsConstructor
 public class FindOneAndReplaceResult<DOC> {
 
     /**

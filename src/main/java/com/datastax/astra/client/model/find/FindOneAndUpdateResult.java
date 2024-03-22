@@ -21,14 +21,14 @@ package com.datastax.astra.client.model.find;
  */
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Hold the result of a findOneAndUpdate command.
+ *
  * @param <DOC>
+ *          working document with the collection
  */
 @Data
-@NoArgsConstructor
 public class FindOneAndUpdateResult<DOC> {
 
     /**

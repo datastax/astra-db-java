@@ -46,6 +46,9 @@ public class UUIDv6 {
 
     /**
      * Return the Java Utils UUID.
+     *
+     * @return
+     *      uuid value
      */
     public UUID toUUID() {
         return uuid;

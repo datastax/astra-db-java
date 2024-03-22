@@ -53,7 +53,8 @@ public class Command implements Serializable {
      *
      * @param name
      *      unique command name
-     *
+     * @return
+     *      instance of the command
      */
     public static Command create(String name) {
         return new Command(name);
@@ -158,6 +159,8 @@ public class Command implements Serializable {
      *
      * @param documents
      *      documents for the command
+     * @param <DOC>
+     *      working clas for documents
      * @return
      *      self-reference
      */

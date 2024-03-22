@@ -271,7 +271,9 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        getCollectionSimple().insertMany(docList, InsertManyOptions.builder().concurrency(5).build());
+        InsertManyOptions options = new InsertManyOptions();
+        options.setConcurrency(5);
+        getCollectionSimple().insertMany(docList, options);
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 

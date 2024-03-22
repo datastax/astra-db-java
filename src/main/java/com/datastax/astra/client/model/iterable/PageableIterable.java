@@ -66,6 +66,11 @@ public abstract class PageableIterable<DOC> implements Closeable {
     protected FindOptions options;
 
     /**
+     * Default constructor.
+     */
+    public PageableIterable() {}
+
+    /**
      * Fetch the next page if the result.
      *
      * @return
