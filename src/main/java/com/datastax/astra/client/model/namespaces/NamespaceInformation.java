@@ -20,7 +20,7 @@ package com.datastax.astra.client.model.namespaces;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.internal.utils.JsonUtils;
 import lombok.Data;
 
 /**

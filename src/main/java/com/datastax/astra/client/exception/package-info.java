@@ -4,11 +4,11 @@
  * types of errors that can occur while using the Data API client provided by DataStax Astra.
  * Exceptions in this package are thrown to indicate issues such as:
  * <ul>
- *     <li>General Data API client errors ({@link com.datastax.astra.client.exception.DataApiException})</li>
+ *     <li>General Data API client errors ({@link com.datastax.astra.exception.DataApiException})</li>
  *     <li>Errors related to receiving faulty or unexpected responses from the Data API
- *         ({@link com.datastax.astra.client.exception.DataApiFaultyResponseException})</li>
+ *         ({@link com.datastax.astra.exception.DataApiFaultyResponseException})</li>
  *     <li>Errors specific to the response processing phase, especially when a command
- *         execution involves multiple sub-operations ({@link com.datastax.astra.client.exception.DataApiResponseException})</li>
+ *         execution involves multiple sub-operations ({@link com.datastax.astra.exception.DataApiResponseException})</li>
  *     <li>Other specialized exceptions that may occur during the operation of the Data API client</li>
  * </ul>
  * These exceptions are crucial for robust error handling, allowing developers to catch and
@@ -20,7 +20,7 @@
  * thus improving the overall resilience of applications using the Data API client.
  * </p>
  */
-package com.datastax.astra.client.exception;
+package com.datastax.astra.exception;
 /*-
  * #%L
  * Data API Java Client

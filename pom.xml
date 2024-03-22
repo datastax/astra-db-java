@@ -89,7 +89,7 @@
             <groupId>com.fasterxml.jackson</groupId>
             <artifactId>jackson-bom</artifactId>
             <version>${jackson.version}</version>
-            <scope>import</scope>
+            <scope>runtime</scope>
             <type>pom</type>
         </dependency>
         <dependency>

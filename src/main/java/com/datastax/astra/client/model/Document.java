@@ -36,7 +36,7 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.internal.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 

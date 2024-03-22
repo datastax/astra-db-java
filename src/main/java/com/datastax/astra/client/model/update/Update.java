@@ -21,7 +21,7 @@ package com.datastax.astra.client.model.update;
  */
 
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.internal.utils.JsonUtils;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;

@@ -1,6 +1,6 @@
 package com.datastax.astra.unit.docker;
 
-import com.datastax.astra.internal.auth.StargateAuthenticationService;
+import com.datastax.astra.client.internal.auth.StargateAuthenticationService;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

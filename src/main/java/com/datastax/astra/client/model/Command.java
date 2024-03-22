@@ -22,7 +22,7 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.client.model.filter.Filter;
 import com.datastax.astra.client.model.update.Update;
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.client.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

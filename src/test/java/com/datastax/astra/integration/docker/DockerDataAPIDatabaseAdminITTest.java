@@ -1,7 +1,7 @@
 package com.datastax.astra.integration.docker;
 
 import com.datastax.astra.TestConstants;
-import com.datastax.astra.internal.auth.StargateAuthenticationService;
+import com.datastax.astra.client.internal.auth.StargateAuthenticationService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -21,7 +21,7 @@ package com.datastax.astra.client.model.find;
  */
 
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.client.internal.utils.Assert;
 import lombok.Data;
 
 import java.util.LinkedHashMap;

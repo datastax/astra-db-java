@@ -1,7 +1,7 @@
 package com.datastax.astra;
 
-import com.datastax.astra.client.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.Database;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.ApiLocator;

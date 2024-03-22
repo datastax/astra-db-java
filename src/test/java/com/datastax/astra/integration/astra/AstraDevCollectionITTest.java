@@ -1,7 +1,7 @@
 package com.datastax.astra.integration.astra;
 
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.observer.LoggingCommandObserver;
+import com.datastax.astra.client.internal.observer.LoggingCommandObserver;
 import com.datastax.astra.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

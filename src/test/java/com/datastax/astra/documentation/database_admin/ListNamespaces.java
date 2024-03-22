@@ -1,7 +1,7 @@
 package com.datastax.astra.documentation.database_admin;
 
 import com.datastax.astra.client.Database;
-import com.datastax.astra.internal.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 
 import java.util.stream.Stream;
 

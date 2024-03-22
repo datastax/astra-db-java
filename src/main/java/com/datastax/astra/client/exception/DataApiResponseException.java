@@ -20,10 +20,10 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import com.datastax.astra.client.model.api.ApiError;
-import com.datastax.astra.client.model.api.ApiResponse;
-import com.datastax.astra.client.observer.ExecutionInfos;
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.client.internal.ApiError;
+import com.datastax.astra.client.internal.ApiResponse;
+import com.datastax.astra.client.internal.observer.ExecutionInfos;
+import com.datastax.astra.client.internal.utils.Assert;
 import lombok.Getter;
 
 import java.util.ArrayList;

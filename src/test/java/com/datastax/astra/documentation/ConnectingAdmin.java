@@ -1,7 +1,7 @@
 package com.datastax.astra.documentation;
 
 
-import com.datastax.astra.client.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClient;
 
 public class ConnectingAdmin {

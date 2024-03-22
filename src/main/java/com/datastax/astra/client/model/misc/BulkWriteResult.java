@@ -20,7 +20,7 @@ package com.datastax.astra.client.model.misc;
  * #L%
  */
 
-import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.internal.ApiResponse;
 import lombok.Data;
 
 import java.util.ArrayList;

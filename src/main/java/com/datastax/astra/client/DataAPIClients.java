@@ -20,11 +20,11 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.observer.LoggingCommandObserver;
-import com.datastax.astra.internal.DataAPIDatabaseAdmin;
-import com.datastax.astra.internal.auth.StargateAuthenticationService;
+import com.datastax.astra.client.internal.observer.LoggingCommandObserver;
+import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.internal.auth.StargateAuthenticationService;
 
-import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * Initialization of the client in a Static way.
@@ -48,7 +48,7 @@ public class DataAPIClients {
     public static DataAPIClient localClient() {
         return new DataAPIClient(
                 new StargateAuthenticationService().getToken(),
-                DataAPIOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
+                DataAPIOptions.builder().withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA).build());
     }
 
     /**
@@ -78,7 +78,7 @@ public class DataAPIClients {
     public static DataAPIClient astra(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIDestination.ASTRA)
+                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA)
                 .build());
     }
 
@@ -93,7 +93,7 @@ public class DataAPIClients {
     public static DataAPIClient astraDev(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIDestination.ASTRA_DEV)
+                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_DEV)
                 .build());
     }
 
@@ -108,7 +108,7 @@ public class DataAPIClients {
     public static DataAPIClient astraTest(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIDestination.ASTRA_TEST)
+                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_TEST)
                 .build());
     }
 

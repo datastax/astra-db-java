@@ -21,7 +21,7 @@ package com.datastax.astra.client.exception;
  */
 
 import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.internal.ApiResponse;
 import lombok.Getter;
 
 /**

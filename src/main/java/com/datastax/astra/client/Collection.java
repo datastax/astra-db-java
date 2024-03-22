@@ -20,12 +20,13 @@ package com.datastax.astra.client;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.DataApiFaultyResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.api.ApiResponse;
+import com.datastax.astra.client.internal.ApiResponse;
 import com.datastax.astra.client.model.collections.CollectionDefinition;
 import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.delete.DeleteOneOptions;
@@ -50,10 +51,10 @@ import com.datastax.astra.client.model.update.ReplaceOneOptions;
 import com.datastax.astra.client.model.update.Update;
 import com.datastax.astra.client.model.update.UpdateOneOptions;
 import com.datastax.astra.client.model.update.UpdateResult;
-import com.datastax.astra.internal.AbstractCommandRunner;
-import com.datastax.astra.internal.http.HttpClientOptions;
-import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.internal.AbstractCommandRunner;
+import com.datastax.astra.client.internal.http.HttpClientOptions;
+import com.datastax.astra.client.internal.utils.Assert;
+import com.datastax.astra.client.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,12 +71,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
-import static com.datastax.astra.internal.utils.AnsiUtils.green;
-import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
-import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
-import static com.datastax.astra.internal.utils.Assert.hasLength;
-import static com.datastax.astra.internal.utils.Assert.notNull;
+import static com.datastax.astra.client.internal.utils.AnsiUtils.cyan;
+import static com.datastax.astra.client.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.client.internal.utils.AnsiUtils.magenta;
+import static com.datastax.astra.client.internal.utils.AnsiUtils.yellow;
+import static com.datastax.astra.client.internal.utils.Assert.hasLength;
+import static com.datastax.astra.client.internal.utils.Assert.notNull;
 
 /**
  * A Data API collection, the main object to interact with the Data API, especially for DDL operations.
@@ -86,7 +87,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * options to specialize the usage as vector collections or advanced indexing parameters.
  * </p>
  * <p>
- * A Collection is typed object designed to work both with default @{@link com.datastax.astra.client.model.Document} (wrapper for a Map) and application
+ * A Collection is typed object designed to work both with default @{@link Document} (wrapper for a Map) and application
  * plain old java objects (pojo). The serialization is performed with Jackson and application beans can be annotated.
  * </p>
  * <p>Example usage:</p>
@@ -220,7 +221,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * Retrieves the class type of the POJO (Plain Old Java Object) used for unmarshalling documents
      * within the collection. This class type is crucial for converting the raw data from the collection
      * into more manageable, object-oriented representations. By default, this method returns the
-     * {@link com.datastax.astra.client.model.Document} class, which serves as the standard container
+     * {@link Document} class, which serves as the standard container
      * for document data. Custom implementations can override this default to utilize a different POJO
      * that better suits their data structure and requirements.
      *
@@ -664,8 +665,8 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * <p>
      * Takes in a `upperBound` option which dictates the maximum number of documents that may be present before a
-     * {@link com.datastax.astra.client.exception.TooManyDocumentsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
-     * Data API, a {@link com.datastax.astra.client.exception.TooManyDocumentsToCountException} will be thrown anyway (i.e. `1000`).
+     * {@link TooManyDocumentsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
+     * Data API, a {@link TooManyDocumentsToCountException} will be thrown anyway (i.e. `1000`).
      * </p>
      * <p>
      * Count operations are expensive: for this reason, the best practice is to provide a reasonable `upperBound`
@@ -679,7 +680,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *      The maximum number of documents to count.
      * @return
      *      The number of documents in the collection.
-     * @throws com.datastax.astra.client.exception.TooManyDocumentsToCountException
+     * @throws TooManyDocumentsToCountException
      *      If the number of documents counted exceeds the provided limit.
      */
     public int countDocuments(int upperBound) throws TooManyDocumentsToCountException {

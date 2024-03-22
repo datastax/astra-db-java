@@ -2,7 +2,6 @@ package com.datastax.astra.documentation.database;
 
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.collections.CollectionDefinition;
-import com.datastax.astra.client.model.collections.CollectionOptions;
 
 import java.util.stream.Stream;
 

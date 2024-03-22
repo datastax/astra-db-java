@@ -5,8 +5,6 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 
-import java.util.UUID;
-
 public class Connecting {
     public static void main(String[] args) {
         // Preferred Access with DataAPIClient (default options)

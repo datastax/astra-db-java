@@ -1,7 +1,7 @@
 package com.datastax.astra.documentation;
 
-import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.iterable.FindIterable;

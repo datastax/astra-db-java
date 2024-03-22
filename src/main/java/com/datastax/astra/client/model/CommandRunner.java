@@ -21,10 +21,8 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.exception.DataApiResponseException;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.api.ApiResponse;
-import com.datastax.astra.client.observer.CommandObserver;
-import com.datastax.astra.internal.http.RetryHttpClient;
+import com.datastax.astra.client.internal.ApiResponse;
+import com.datastax.astra.client.internal.observer.CommandObserver;
 
 /**
  * Use to initialize the HTTPClient.

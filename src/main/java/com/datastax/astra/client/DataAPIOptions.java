@@ -20,8 +20,8 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.internal.http.HttpClientOptions;
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.client.internal.http.HttpClientOptions;
+import com.datastax.astra.client.internal.utils.Assert;
 import lombok.Getter;
 
 import java.net.http.HttpClient;
@@ -104,6 +104,42 @@ public class DataAPIOptions {
         httpClientOptions.setResponseTimeoutInSeconds(builder.httpConnectTimeout);
         httpClientOptions.setProxy(builder.httpProxy);
         this.httpClientOptions = httpClientOptions;
+    }
+
+    /**
+     * Represent the destination of the data API.
+     */
+    public enum DataAPIDestination {
+
+        /**
+         * Astra Production environment
+         */
+        ASTRA,
+
+        /**
+         * Astra Development environment
+         */
+        ASTRA_DEV,
+
+        /**
+         * Astra Test environment
+         */
+        ASTRA_TEST,
+
+        /**
+         * Local installation of Datastax Enterprise
+         */
+        DSE,
+
+        /**
+         * Local installation of Apache Cassandra
+         */
+        CASSANDRA,
+
+        /**
+         * Extra local installation .
+         */
+        OTHERS
     }
 
     /**

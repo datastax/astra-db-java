@@ -20,17 +20,20 @@ package com.datastax.astra.client;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIOptions.DataAPIDestination;
+import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.collections.CollectionDefinition;
 import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.find.SimilarityMetric;
-import com.datastax.astra.internal.AbstractCommandRunner;
-import com.datastax.astra.internal.DataAPIDatabaseAdmin;
-import com.datastax.astra.internal.astra.AstraApiEndpoint;
-import com.datastax.astra.internal.AstraDBDatabaseAdmin;
-import com.datastax.astra.internal.http.HttpClientOptions;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.internal.AbstractCommandRunner;
+import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.internal.AstraApiEndpoint;
+import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.client.internal.http.HttpClientOptions;
+import com.datastax.astra.client.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -38,9 +41,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static com.datastax.astra.internal.utils.AnsiUtils.green;
-import static com.datastax.astra.internal.utils.Assert.hasLength;
-import static com.datastax.astra.internal.utils.Assert.notNull;
+import static com.datastax.astra.client.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.client.internal.utils.Assert.hasLength;
+import static com.datastax.astra.client.internal.utils.Assert.notNull;
 
 /**
  * Class to interact with a Namespace.

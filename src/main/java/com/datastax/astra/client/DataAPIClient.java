@@ -20,14 +20,15 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.internal.astra.AstraApiEndpoint;
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.internal.AstraApiEndpoint;
+import com.datastax.astra.client.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.datastax.astra.client.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * Entry point to access the Data API.

@@ -1,6 +1,6 @@
 package com.datastax.astra.documentation.admin;
 
-import com.datastax.astra.client.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.DatabaseInfo;

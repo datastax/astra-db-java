@@ -1,6 +1,6 @@
 package com.datastax.astra.unit;
 
-import com.datastax.astra.internal.astra.AstraApiEndpoint;
+import com.datastax.astra.client.internal.AstraApiEndpoint;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;
 
