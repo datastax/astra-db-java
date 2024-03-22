@@ -177,7 +177,7 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      if namespace exists
      */
-    boolean collectionExists(String collection) {
+    public boolean collectionExists(String collection) {
         return listCollectionNames().anyMatch(collection::equals);
     }
 

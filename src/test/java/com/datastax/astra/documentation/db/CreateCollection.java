@@ -1,30 +1,28 @@
 package com.datastax.astra.documentation.db;
 
-import com.datastax.astra.db.AstraCollection;
-import com.datastax.astra.internal.astra.AstraDatabase;
-import io.stargate.sdk.data.client.exception.DataApiException;
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.data.client.model.SimilarityMetric;
-import io.stargate.sdk.data.client.model.collections.CreateCollectionOptions;
+import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.Database;
+import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.find.SimilarityMetric;
 
 public class CreateCollection {
   public static void main(String[] args) {
-    AstraDatabase db =
-      new AstraDatabase("API_ENDPOINT", "TOKEN");
+    Database db = new Database("API_ENDPOINT", "TOKEN");
 
     // Create a non-vector collection
-    AstraCollection<Document> col =
-      db.createCollection("col");
+    Collection<Document> col = db.createCollection("col");
 
     // Create a vector collection
-    AstraCollection<Document> col_v = db.createCollection("col_v", CreateCollectionOptions
+    Collection<Document> col_v = db.createCollection("col_v", CollectionOptions
       .builder()
       .withVectorDimension(1536)
       .withVectorSimilarityMetric(SimilarityMetric.euclidean)
       .build());
 
     // Create a collection with indexing (deny)
-    AstraCollection<Document> col_i = db.createCollection("col_i", CreateCollectionOptions
+    Collection<Document> col_i = db.createCollection("col_i", CollectionOptions
               .builder()
               .withIndexingDeny("blob")
               .build());

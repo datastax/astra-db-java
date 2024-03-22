@@ -1,28 +1,30 @@
 package com.datastax.astra.integration;
 
-import com.datastax.astra.devops.utils.AstraEnvironment;
-import io.stargate.sdk.data.client.DataApiCollection;
-import io.stargate.sdk.data.client.DataApiNamespace;
-import io.stargate.sdk.data.client.model.Document;
-import io.stargate.sdk.data.client.model.collections.CollectionOptions;
-import io.stargate.sdk.data.test.integration.AbstractCollectionITTest;
-import io.stargate.sdk.types.ObjectId;
+import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.Database;
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.internal.types.ObjectId;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;
 
-import static com.datastax.astra.AstraDBTestSupport.createDatabase;
-import static io.stargate.sdk.data.client.model.SimilarityMetric.cosine;
-import static io.stargate.sdk.data.client.model.collections.CollectionIdTypes.objectId;
+import static com.datastax.astra.AstraDBTestSupport.initializeDb;
+import static com.datastax.astra.client.model.collections.CollectionIdTypes.objectId;
+import static com.datastax.astra.client.model.find.SimilarityMetric.cosine;
 
 public class AstraCollectionITTest extends AbstractCollectionITTest {
 
     @Override
-    public DataApiNamespace initNamespace() {
-        return createDatabase(AstraEnvironment.TEST);
+    public Database initDatabase() {
+        return initializeDb(AstraEnvironment.DEV, CloudProviderType.GCP, "europe-west4");
+        //return createDatabase(AstraEnvironment.DEV, CloudProviderType.AWS, "us-east2");
+        //return createDatabase(AstraEnvironment.PROD, CloudProviderType.AWS, "us-east2");
     }
 
     @Test
     public void testCollectionWithObjectId() {
-        DataApiCollection<Document> collectionObjectId = getDataApiNamespace()
+        Collection<Document> collectionObjectId = getDataApiNamespace()
                 .createCollection("collection_objectid", CollectionOptions
                         .builder()
                         .withDefaultId(objectId)

@@ -126,6 +126,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
     // --- Global Informations ----
     // ----------------------------
 
+    public String getNamespaceName() {
+        return getDatabase().getNamespaceName();
+    }
+
     /**
      * Retrieves the parent {@link Database} instance.
      * This parent namespace is used for performing CRUD (Create, Read, Update, Delete) operations on collections.

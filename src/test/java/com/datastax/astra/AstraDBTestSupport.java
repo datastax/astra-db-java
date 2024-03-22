@@ -1,11 +1,13 @@
 package com.datastax.astra;
 
-import com.datastax.astra.devops.db.domain.CloudProviderType;
-import com.datastax.astra.devops.utils.ApiLocator;
-import com.datastax.astra.devops.utils.AstraEnvironment;
+
 import com.datastax.astra.client.AstraDBAdmin;
-import com.datastax.astra.internal.astra.AstraDatabase;
-import io.stargate.sdk.utils.Utils;
+import com.datastax.astra.client.DataApiClients;
+import com.datastax.astra.client.Database;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.utils.ApiLocator;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import com.dtsx.astra.sdk.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
@@ -25,39 +27,23 @@ public class AstraDBTestSupport {
     public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
-                return new AstraDBAdmin(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
-                        .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")));
+                return DataApiClients.astraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
+                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
+                        .getAdmin();
             case PROD:
-                return new AstraDBAdmin(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
-                        .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")));
+                return DataApiClients.astra(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
+                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
+                        .getAdmin();
             case TEST:
-                return new AstraDBAdmin(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
-                        .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")));
+                return DataApiClients.astraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
+                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
+                        .getAdmin();
             default:
                 throw new IllegalArgumentException("Invalid Environment");
          }
     }
 
-    public static AstraDatabase createDatabase(AstraEnvironment env) {
-        CloudProviderType cloud;
-        String region;
-        switch (env) {
-            case DEV:
-            case TEST:
-                cloud = CloudProviderType.GCP;
-                region = "europe-west4";
-                break;
-            case PROD:
-                cloud = CloudProviderType.GCP;
-                region = "us-east1";
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid Environment");
-        }
-        return createDatabase(env, cloud, region);
-    }
-
-    public static AstraDatabase createDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
+    public static Database initializeDb(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
         UUID databaseId =  client.createDatabase(DATABASE_NAME, cloud, region);

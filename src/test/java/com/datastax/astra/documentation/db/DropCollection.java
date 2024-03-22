@@ -1,10 +1,10 @@
 package com.datastax.astra.documentation.db;
 
-import com.datastax.astra.internal.astra.AstraDatabase;
+import com.datastax.astra.client.Database;
 
 public class DropCollection {
   public static void main(String[] args) {
-    AstraDatabase db = new AstraDatabase("API_ENDPOINT", "TOKEN");
+    Database db = new Database("API_ENDPOINT", "TOKEN");
 
     // Delete an existing collection
     db.dropCollection("collection_vector2");

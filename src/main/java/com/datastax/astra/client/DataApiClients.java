@@ -56,5 +56,12 @@ public class DataApiClients {
                 .build());
     }
 
+    public static DataAPIClient astraTest(String token) {
+        return new DataAPIClient(token, DataAPIClientOptions
+                .builder()
+                .withDestination(DataAPIDestination.ASTRA_TEST)
+                .build());
+    }
+
 
 }

@@ -1,13 +1,13 @@
 package com.datastax.astra.documentation.db;
 
-import com.datastax.astra.internal.astra.AstraDatabase;
+import com.datastax.astra.client.Database;
 
 public class CreateNamespace {
   public static void main(String[] args) {
     // Default initialization
-    AstraDatabase db = new AstraDatabase("API_ENDPOINT", "TOKEN");
+    Database db = new Database("API_ENDPOINT", "TOKEN");
 
     // Create a new namespace
-    db.createNamespace("<namespace_name>");
+    db.getDatabaseAdmin().createNamespace("<namespace_name>");
   }
 }
