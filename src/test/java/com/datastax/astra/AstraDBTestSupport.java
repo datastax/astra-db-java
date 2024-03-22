@@ -1,8 +1,7 @@
 package com.datastax.astra;
 
-
 import com.datastax.astra.client.AstraDBAdmin;
-import com.datastax.astra.client.DataApiClients;
+import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.ApiLocator;
@@ -24,18 +23,26 @@ public class AstraDBTestSupport {
      */
     public static final String DATABASE_NAME = "astra_db_client";
 
+    /**
+     * Access AstraDBAdmin for different environment (to create DB).
+     *
+     * @param env
+     *      astra environment
+     * @return
+     *      instance of AstraDBAdmin
+     */
     public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
-                return DataApiClients.astraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
+                return DataAPIClients.astraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
                         .getAdmin();
             case PROD:
-                return DataApiClients.astra(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
+                return DataAPIClients.astra(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
                         .getAdmin();
             case TEST:
-                return DataApiClients.astraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
+                return DataAPIClients.astraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
                         .getAdmin();
             default:
@@ -43,6 +50,18 @@ public class AstraDBTestSupport {
          }
     }
 
+    /**
+     * Initialize the Test database on an Astra Environment.
+     *
+     * @param env
+     *      target environment
+     * @param cloud
+     *      target cloud
+     * @param region
+     *      target region
+     * @return
+     *      the database instance
+     */
     public static Database initializeDb(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);

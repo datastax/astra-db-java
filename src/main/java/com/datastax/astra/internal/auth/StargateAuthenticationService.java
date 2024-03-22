@@ -1,5 +1,6 @@
 package com.datastax.astra.internal.auth;
 
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.http.HttpClientOptions;
 import com.datastax.astra.internal.http.RetryHttpClient;
@@ -23,7 +24,7 @@ import java.util.UUID;
 public class StargateAuthenticationService implements TokenProvider, ApiConstants {
 
     /** Simple Client. */
-    public static RetryHttpClient httpClient = new RetryHttpClient(HttpClientOptions.builder().build());
+    public static RetryHttpClient httpClient = new RetryHttpClient();
 
     /** Default username for Cassandra. */
     public static final String DEFAULT_USERNAME      = "cassandra";

@@ -102,7 +102,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
     private final Database database;
 
     /** Api Endpoint for the Database. */
-    private final String apiEndpoint;
+    private final String apiEndpointCollection;
 
     /**
      * Full constructor.
@@ -119,7 +119,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
         this.collectionName        = collectionName;
         this.database              = db;
         this.documentClass         = clazz;
-        this.apiEndpoint           = db.getApiEndpointDatabase()  + "/" + collectionName;
+        this.apiEndpointCollection = db.getApiEndpointDatabase() + "/" + collectionName;
     }
 
     // ----------------------------
@@ -1213,10 +1213,18 @@ public class Collection<DOC> extends AbstractCommandRunner {
         return result;
     }
 
+    // --- Required for the Command Runner ---
+
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndpoint;
+        return apiEndpointCollection;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected String getToken() {
+        return database.getToken();
     }
 
     /** {@inheritDoc} */

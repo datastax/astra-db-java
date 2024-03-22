@@ -1,8 +1,9 @@
-package com.datastax.astra.integration;
+package com.datastax.astra.integration.docker;
 
-import com.datastax.astra.client.DataApiClients;
+import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.observer.LoggerCommandObserver;
+import com.datastax.astra.integration.AbstractCollectionITTest;
 
 /**
  * Allow to test Collection information.
@@ -12,7 +13,7 @@ class DockerCollectionITTest extends AbstractCollectionITTest {
     /** {@inheritDoc} */
     @Override
     protected Database initDatabase() {
-        Database db = DataApiClients.localStargate().getDatabase("http://localhost:8181", NAMESPACE_NS1);
+        Database db = DataAPIClients.localStargate().getDatabase("http://localhost:8181", NAMESPACE_NS1);
         db.registerListener("logger", new LoggerCommandObserver(Database.class));
         db.getDatabaseAdmin().createNamespace(NAMESPACE_NS1);
         return db;

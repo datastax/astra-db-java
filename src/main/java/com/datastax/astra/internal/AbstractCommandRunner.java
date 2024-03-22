@@ -46,7 +46,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     }
 
     protected synchronized RetryHttpClient getHttpClient() {
-        if (httpClient != null) {
+        if (httpClient == null) {
             httpClient = new RetryHttpClient(getHttpClientOptions());
         }
         return httpClient;
@@ -63,8 +63,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         try {
             // (Custom) Serialization
             String jsonCommand = JsonUtils.marshallForDataApi(command);
-
-            ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), jsonCommand);
+            ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), getToken(), jsonCommand);
             executionInfo.withHttpResponse(httpRes);
 
             ApiResponse jsonRes = JsonUtils.unmarshallBeanForDataApi(httpRes.getBody(), ApiResponse.class);
@@ -131,6 +130,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     }
 
     protected abstract String getApiEndpoint();
+
+    protected abstract String getToken();
 
     protected abstract HttpClientOptions getHttpClientOptions();
 

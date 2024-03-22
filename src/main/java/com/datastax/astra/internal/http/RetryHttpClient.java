@@ -1,5 +1,6 @@
 package com.datastax.astra.internal.http;
 
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.exception.AlreadyExistException;
 import com.datastax.astra.internal.exception.AuthenticationException;
@@ -44,6 +45,13 @@ public class RetryHttpClient implements ApiConstants {
 
     /** Default settings in Request and Retry */
     public final LinkedHashMap<String, String> userAgents = new LinkedHashMap<>();
+
+    /**
+     * Default initialization of http client.
+     */
+    public RetryHttpClient() {
+        this(DataAPIOptions.builder().build().getHttpClientOptions());
+    }
 
     /**
      * Initialize the instance with all items
@@ -159,22 +167,6 @@ public class RetryHttpClient implements ApiConstants {
      */
     public ApiResponseHttp POST(String url, String token, String body) {
         return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON, true);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @param body
-     *      request body
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp POST_GRAPHQL(String url, String token, String body) {
-        return executeHttp("POST", url, token, body, CONTENT_TYPE_GRAPHQL, true);
     }
 
     /**

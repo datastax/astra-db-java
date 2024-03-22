@@ -1,4 +1,4 @@
-package com.datastax.astra.integration;
+package com.datastax.astra.integration.docker;
 
 import com.datastax.astra.TestConstants;
 import com.datastax.astra.internal.auth.StargateAuthenticationService;

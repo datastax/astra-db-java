@@ -1,7 +1,8 @@
-package com.datastax.astra.internal.astra;
+package com.datastax.astra.internal;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.DatabaseAdmin;
+import com.datastax.astra.internal.astra.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;

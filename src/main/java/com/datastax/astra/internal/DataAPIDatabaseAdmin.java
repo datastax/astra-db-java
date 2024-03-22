@@ -100,13 +100,15 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         log.info("Namespace  '" + green("{}") + "' has been deleted", namespace);
     }
 
+    /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndPoint;
+        return apiEndpointDatabase;
     }
 
+    /** {@inheritDoc} */
     @Override
     protected HttpClientOptions getHttpClientOptions() {
-        return null;
+        return options.getHttpClientOptions();
     }
 }

@@ -6,24 +6,13 @@
         </encoder>
     </appender>
 
-    <!--
-   <logger name="com.datastax.astra.sdk" level="INFO" additivity="false">
-       <appender-ref ref="STDOUT" />
-   </logger>
-    -->
-
-   <logger name="com.dtsx.astra.sdk" level="INFO" additivity="false">
+   <logger name="com.datastax.astra.client" level="DEBUG" additivity="false">
        <appender-ref ref="STDOUT" />
    </logger>
 
-
-    <logger name="io.stargate.sdk" level="DEBUG" additivity="false">
+    <logger name="com.datastax.astra.internal" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
-    <logger name="io.stargate.data_api" level="DEBUG" additivity="false">
-        <appender-ref ref="STDOUT" />
-    </logger>
-
 
     <logger name="org.springframework" level="ERROR" additivity="false">
         <appender-ref ref="STDOUT" />

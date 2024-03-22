@@ -8,7 +8,7 @@ import com.datastax.astra.client.model.find.SimilarityMetric;
 import com.datastax.astra.internal.AbstractCommandRunner;
 import com.datastax.astra.internal.DataAPIDatabaseAdmin;
 import com.datastax.astra.internal.astra.AstraApiEndpoint;
-import com.datastax.astra.internal.astra.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.AstraDBDatabaseAdmin;
 import com.datastax.astra.internal.http.HttpClientOptions;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
@@ -320,11 +320,21 @@ public class Database extends AbstractCommandRunner {
         log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
     }
 
+    // --- Required for the Command Runner ---
+
+    /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
         return apiEndpointDatabase;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    protected String getToken() {
+        return null;
+    }
+
+    /** {@inheritDoc} */
     @Override
     protected HttpClientOptions getHttpClientOptions() {
         return options.getHttpClientOptions();

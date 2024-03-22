@@ -57,17 +57,18 @@ public class DataAPIOptions {
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
         this.apiVersion  = builder.apiVersion;
         this.destination = builder.destination;
-        this.httpClientOptions = HttpClientOptions.builder()
-                    .userAgentCallerName(builder.userAgentCallerName)
-                    .userAgentCallerVersion(builder.userAgentCallerVersion)
-                    .connectionRequestTimeoutInSeconds(builder.httpRequestTimeout)
-                    .responseTimeoutInSeconds(builder.httpConnectTimeout)
-                    .retryCount(builder.retryCount)
-                    .retryDelay(builder.retryDelay)
-                    .proxy(builder.httpProxy)
-                    .httpVersion(builder.httpVersion)
-                    .httpRedirect(builder.httpRedirect)
-                    .build();
+
+        HttpClientOptions httpClientOptions = new HttpClientOptions();
+        httpClientOptions.setHttpVersion(builder.httpVersion);
+        httpClientOptions.setHttpRedirect(builder.httpRedirect);
+        httpClientOptions.setRetryCount(builder.retryCount);
+        httpClientOptions.setRetryDelay(builder.retryDelay);
+        httpClientOptions.setUserAgentCallerName(builder.userAgentCallerName);
+        httpClientOptions.setUserAgentCallerVersion(builder.userAgentCallerVersion);
+        httpClientOptions.setConnectionRequestTimeoutInSeconds(builder.httpRequestTimeout);
+        httpClientOptions.setResponseTimeoutInSeconds(builder.httpConnectTimeout);
+        httpClientOptions.setProxy(builder.httpProxy);
+        this.httpClientOptions = httpClientOptions;
     }
 
     public static class DataAPIClientOptionsBuilder {

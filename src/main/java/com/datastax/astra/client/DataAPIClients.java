@@ -5,7 +5,7 @@ import com.datastax.astra.internal.auth.StargateAuthenticationService;
 /**
  * Initialization of the client in a Static way.
  */
-public class DataApiClients {
+public class DataAPIClients {
 
     /** Default endpoint. */
     public static final String DEFAULT_ENDPOINT = "http://localhost:8181";
@@ -22,7 +22,7 @@ public class DataApiClients {
     /**
      * Utility class, should not be instanced.
      */
-    private DataApiClients() {}
+    private DataAPIClients() {}
 
     /**
      * Create from an Endpoint only

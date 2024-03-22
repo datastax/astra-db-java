@@ -1,7 +1,7 @@
 package com.datastax.astra.client;
 
 import com.datastax.astra.internal.astra.AstraApiEndpoint;
-import com.datastax.astra.internal.astra.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.AstraDBDatabaseAdmin;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.DbOpsClient;

@@ -1,9 +1,10 @@
-package com.datastax.astra.integration;
+package com.datastax.astra.integration.astra;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.integration.AbstractCollectionITTest;
 import com.datastax.astra.internal.types.ObjectId;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
