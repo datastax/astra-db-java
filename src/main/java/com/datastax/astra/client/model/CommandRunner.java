@@ -1,4 +1,4 @@
-package com.datastax.astra.client;
+package com.datastax.astra.client.model;
 
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;

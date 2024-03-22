@@ -2,7 +2,7 @@ package com.datastax.astra.integration;
 
 import com.datastax.astra.TestConstants;
 import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.DatabaseAdmin;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
@@ -210,7 +210,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
 
         // Add a filter
         assertThat(getCollectionSimple()
-                .countDocuments(gt("indice", 3), DataAPIClientOptions.getMaxDocumentCount()))
+                .countDocuments(gt("indice", 3), DataAPIOptions.getMaxDocumentCount()))
                 .isEqualTo(6);
 
         // Filter + limit
@@ -219,7 +219,7 @@ public abstract class AbstractCollectionITTest  implements TestConstants {
         }
 
         // More than 1000 items
-        assertThatThrownBy(() -> getCollectionSimple().countDocuments(DataAPIClientOptions.getMaxDocumentCount()))
+        assertThatThrownBy(() -> getCollectionSimple().countDocuments(DataAPIOptions.getMaxDocumentCount()))
                 .isInstanceOf(TooManyDocumentsToCountException.class)
                 .hasMessageContaining("server");
     }

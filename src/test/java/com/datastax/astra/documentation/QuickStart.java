@@ -39,6 +39,7 @@ public class QuickStart {
 
     // Perform a similarity search
     float[] embeddings = new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
-    FindIterable<Document> docs = col.find(eq("product_price", 9.99));
+    FindIterable<Document> docs = col.find(eq("product_price", 9.99), embeddings, 10);
+
   }
 }

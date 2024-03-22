@@ -1,6 +1,6 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.model.namespaces.CreateNamespaceOptions;
+import com.datastax.astra.client.model.CommandRunner;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;

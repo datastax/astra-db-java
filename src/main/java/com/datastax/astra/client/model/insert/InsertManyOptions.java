@@ -1,6 +1,6 @@
 package com.datastax.astra.client.model.insert;
 
-import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIOptions;
 import lombok.Builder;
 import lombok.Data;
 
@@ -26,13 +26,13 @@ public class InsertManyOptions {
      * If the flag is set to true the command is failing on first error
      */
     @Builder.Default
-    private int chunkSize = DataAPIClientOptions.getMaxDocumentsInInsert();
+    private int chunkSize = DataAPIOptions.getMaxDocumentsInInsert();
 
     /**
      * If the flag is set to true the command is failing on first error
      */
     @Builder.Default
-    private int timeout = DataAPIClientOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
+    private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
 
 
 

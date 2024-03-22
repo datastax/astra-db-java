@@ -1,6 +1,6 @@
 package com.datastax.astra.internal.astra;
 
-import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.DatabaseAdmin;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
@@ -25,7 +25,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     final AstraEnvironment env;
 
     /** Options to personalized http client other client options. */
-    final DataAPIClientOptions options;
+    final DataAPIOptions options;
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
@@ -38,7 +38,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @param databaseId
      *      database identifier
      */
-    public AstraDBDatabaseAdmin(String token, UUID databaseId, AstraEnvironment env, DataAPIClientOptions options) {
+    public AstraDBDatabaseAdmin(String token, UUID databaseId, AstraEnvironment env, DataAPIOptions options) {
         this.env            = env;
         this.token          = token;
         this.databaseId     = databaseId;

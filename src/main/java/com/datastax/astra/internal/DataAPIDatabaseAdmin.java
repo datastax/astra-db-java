@@ -1,16 +1,14 @@
 package com.datastax.astra.internal;
 
-import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.DatabaseAdmin;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.namespaces.CreateNamespaceOptions;
-import com.datastax.astra.client.model.namespaces.NamespaceInformation;
 import com.datastax.astra.internal.http.HttpClientOptions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -25,7 +23,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements DatabaseAdmin {
 
     /** Version of the API. */
-    protected final DataAPIClientOptions options;
+    protected final DataAPIOptions options;
 
     /** Version of the API. */
     protected final String apiEndPoint;
@@ -43,7 +41,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      * @param apiEndpoint
      *      api endpoint.
      */
-    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIClientOptions options) {
+    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
         this.apiEndPoint = apiEndpoint;
         this.token       = token;
         this.options     = options;

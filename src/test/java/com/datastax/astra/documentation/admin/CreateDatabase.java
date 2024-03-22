@@ -1,19 +1,20 @@
-package com.datastax.astra.documentation.client;
+package com.datastax.astra.documentation.admin;
 
 import com.datastax.astra.client.AstraDBAdmin;
-import com.datastax.astra.devops.db.domain.CloudProviderType;
+import com.datastax.astra.client.DataAPIClient;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 
 import java.util.UUID;
 
 public class CreateDatabase {
   public static void main(String[] args) {
-    AstraDBAdmin client = new AstraDBAdmin("TOKEN");
+    AstraDBAdmin astraDBAdmin = new DataAPIClient("TOKEN").getAdmin();
 
     // Choose a cloud provider (GCP, AZURE, AWS) and a region
     CloudProviderType cloudProvider = CloudProviderType.GCP;
     String cloudRegion = "us-east1";
 
     // Create a database
-    UUID newDbId = client.createDatabase("DATABASE_NAME", cloudProvider, cloudRegion);
+    UUID newDbId = astraDBAdmin.createDatabase("DATABASE_NAME", cloudProvider, cloudRegion);
   }
 }

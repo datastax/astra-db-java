@@ -1,4 +1,4 @@
-package com.datastax.astra.documentation.db;
+package com.datastax.astra.documentation.database_admin;
 
 import com.datastax.astra.client.Database;
 

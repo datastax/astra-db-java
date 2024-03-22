@@ -49,7 +49,7 @@ public class Database extends AbstractCommandRunner {
 
     /** Options to setup the client. */
     @Getter
-    private final DataAPIClientOptions options;
+    private final DataAPIOptions options;
 
     /**
      * Initialization with endpoint and apikey.
@@ -60,7 +60,7 @@ public class Database extends AbstractCommandRunner {
      *      api endpoint
      */
     public Database(String apiEndpoint, String token) {
-        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_NAMESPACE, DataAPIClientOptions.builder().build());
+        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_NAMESPACE, DataAPIOptions.builder().build());
     }
 
     /**
@@ -74,7 +74,7 @@ public class Database extends AbstractCommandRunner {
      *      namespace
      */
     public Database(String apiEndpoint, String token, String namespace) {
-        this(apiEndpoint, token, namespace,  DataAPIClientOptions.builder().build());
+        this(apiEndpoint, token, namespace,  DataAPIOptions.builder().build());
     }
 
     /**
@@ -89,7 +89,7 @@ public class Database extends AbstractCommandRunner {
      * @param options
      *      setup of the clients with options
      */
-    public Database(String apiEndpoint, String token, String namespace, DataAPIClientOptions options) {
+    public Database(String apiEndpoint, String token, String namespace, DataAPIOptions options) {
         hasLength(apiEndpoint, "endpoint");
         hasLength(token,     "token");
         hasLength(namespace, "namespace");

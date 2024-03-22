@@ -358,8 +358,8 @@ public class Collection<DOC> extends AbstractCommandRunner {
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > DataAPIClientOptions.getMaxDocumentsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + DataAPIClientOptions.getMaxDocumentsInInsert() + " at a time.");
+        if (options.getChunkSize() > DataAPIOptions.getMaxDocumentsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + DataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
@@ -536,6 +536,18 @@ public class Collection<DOC> extends AbstractCommandRunner {
     /**
      * Finds all documents in the collection.
      *
+     * @param filter
+     *      the query filter
+     * @return
+     *      the find iterable interface
+     */
+    public FindIterable<DOC> find(Filter filter, float[] vector, int limit) {
+        return find(filter, new FindOptions().sortingByVector(vector).limit(limit));
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
      * @param options
      *      options of find one
      * @return
@@ -560,7 +572,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
 
         ApiResponse apiResponse = runCommand(findCommand);
 
-        return new Page<>(DataAPIClientOptions.getMaxPageSize(),
+        return new Page<>(DataAPIOptions.getMaxPageSize(),
                 apiResponse.getData().getNextPageState(),
                 apiResponse.getData().getDocuments()
                         .stream()
@@ -665,8 +677,8 @@ public class Collection<DOC> extends AbstractCommandRunner {
      */
     public int countDocuments(Filter filter, int upperBound) throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> DataAPIClientOptions.getMaxDocumentCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + DataAPIClientOptions.getMaxDocumentCount());
+        if (upperBound<1 || upperBound> DataAPIOptions.getMaxDocumentCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + DataAPIOptions.getMaxDocumentCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);

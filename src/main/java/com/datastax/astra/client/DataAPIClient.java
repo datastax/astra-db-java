@@ -15,13 +15,13 @@ public class DataAPIClient {
     private final String token;
 
     /** Options to setup the client. */
-    private final DataAPIClientOptions options;
+    private final DataAPIOptions options;
 
     public DataAPIClient(String token) {
-        this(token, DataAPIClientOptions.builder().build());
+        this(token, DataAPIOptions.builder().build());
     }
 
-    public DataAPIClient(String token, DataAPIClientOptions options) {
+    public DataAPIClient(String token, DataAPIOptions options) {
         Assert.hasLength(token, "token");
         Assert.notNull(options, "options");
         this.token   = token;

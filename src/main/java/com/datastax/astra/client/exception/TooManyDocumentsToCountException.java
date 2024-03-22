@@ -1,6 +1,6 @@
 package com.datastax.astra.client.exception;
 
-import com.datastax.astra.client.DataAPIClientOptions;
+import com.datastax.astra.client.DataAPIOptions;
 
 /**
  * Error when too many documents in the collection
@@ -11,7 +11,7 @@ public class TooManyDocumentsToCountException extends Exception {
      * Default constructor.
      */
     public TooManyDocumentsToCountException() {
-        super("Document count exceeds '" + DataAPIClientOptions.getMaxDocumentCount() + ", the maximum allowed by the server");
+        super("Document count exceeds '" + DataAPIOptions.getMaxDocumentCount() + ", the maximum allowed by the server");
     }
 
     /**

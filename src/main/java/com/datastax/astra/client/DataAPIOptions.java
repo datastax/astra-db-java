@@ -10,7 +10,7 @@ import java.net.http.HttpClient;
  * Options to set up the client for DataApiClient.
  */
 @Getter
-public class DataAPIClientOptions {
+public class DataAPIOptions {
 
     /** Number of documents for a count. */
     static final int MAX_DOCUMENTS_COUNT = 1000;
@@ -26,8 +26,8 @@ public class DataAPIClientOptions {
 
     /** Default user agent. */
     public static final String DEFAULT_CALLER_VERSION =
-            DataAPIClientOptions.class.getPackage().getImplementationVersion() != null ?
-            DataAPIClientOptions.class.getPackage().getImplementationVersion() : "dev";
+            DataAPIOptions.class.getPackage().getImplementationVersion() != null ?
+            DataAPIOptions.class.getPackage().getImplementationVersion() : "dev";
 
     /** Default timeout for initiating connection. */
     public static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 20;
@@ -54,7 +54,7 @@ public class DataAPIClientOptions {
         return new DataAPIClientOptionsBuilder();
     }
 
-    private DataAPIClientOptions(DataAPIClientOptionsBuilder builder) {
+    private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
         this.apiVersion  = builder.apiVersion;
         this.destination = builder.destination;
         this.httpClientOptions = HttpClientOptions.builder()
@@ -188,8 +188,8 @@ public class DataAPIClientOptions {
             return this;
         }
 
-        public DataAPIClientOptions build() {
-            return new DataAPIClientOptions(this);
+        public DataAPIOptions build() {
+            return new DataAPIOptions(this);
         }
 
 

@@ -2,6 +2,7 @@ package com.datastax.astra.client;
 
 import com.datastax.astra.internal.astra.AstraApiEndpoint;
 import com.datastax.astra.internal.astra.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.DbOpsClient;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
@@ -10,7 +11,6 @@ import com.dtsx.astra.sdk.db.domain.DatabaseCreationRequest;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.ApiLocator;
-import com.dtsx.astra.sdk.utils.Assert;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import lombok.NonNull;
@@ -54,7 +54,7 @@ public class AstraDBAdmin {
     final AstraDBOpsClient devopsDbClient;
 
     /** Options to personalized http client other client options. */
-    final DataAPIClientOptions dataAPIClientOptions;
+    final DataAPIOptions dataAPIOptions;
 
     /** Astra Environment. */
     final AstraEnvironment env;
@@ -87,10 +87,13 @@ public class AstraDBAdmin {
      * @param options
      *      options for client
      */
-    AstraDBAdmin(String token, AstraEnvironment env, DataAPIClientOptions options) {
+    AstraDBAdmin(String token, AstraEnvironment env, DataAPIOptions options) {
+        Assert.hasLength(token, "token");
+        Assert.notNull(env, "environment");
+        Assert.notNull(options, "options");
         this.token = token;
         this.env = env;
-        this.dataAPIClientOptions = options;
+        this.dataAPIOptions = options;
         this.devopsDbClient = new AstraDBOpsClient(token, this.env);
 
         // Local Agent for Resume
@@ -115,6 +118,31 @@ public class AstraDBAdmin {
     }
 
     /**
+     * Return true if the database exists.
+     * @param name
+     *      database identifiers
+     * @return
+     *      if the database exits or not
+     */
+    public boolean databaseExists(String name) {
+        Assert.hasLength(name, "name");
+        return listDatabaseNames().contains(name);
+    }
+
+    /**
+     * Return true if the database exists.
+     *
+     * @param id
+     *      database identifiers
+     * @return
+     *      if the database exits or not
+     */
+    public boolean databaseExists(UUID id) {
+        Assert.notNull(id, "id");
+        return devopsDbClient.findById(id.toString()).isPresent();
+    }
+
+    /**
      * List active databases with vector enabled in current organization.
      *
      * @return
@@ -134,7 +162,8 @@ public class AstraDBAdmin {
      * @return
      *    database identifier
      */
-    public UUID createDatabase(@NonNull String name) {
+    public UUID createDatabase(String name) {
+        Assert.hasLength(name, "name");
         return createDatabase(name, FREE_TIER_CLOUD, FREE_TIER_CLOUD_REGION);
     }
 
@@ -152,7 +181,10 @@ public class AstraDBAdmin {
      * @return
      *      database identifier
      */
-    public UUID createDatabase(@NonNull String name, @NonNull CloudProviderType cloud, @NonNull String cloudRegion) {
+    public UUID createDatabase(String name, CloudProviderType cloud, String cloudRegion, boolean waitForDb) {
+        Assert.hasLength(name, "name");
+        Assert.notNull(cloud, "cloud");
+        Assert.hasLength(cloudRegion, "cloudRegion");
         Optional<Database> optDb = listDatabases().filter(db->name.equals(db.getInfo().getName())).findFirst();
         // Handling all cases for the user
         if (optDb.isPresent()) {
@@ -166,12 +198,16 @@ public class AstraDBAdmin {
                 case PENDING:
                 case RESUMING:
                     log.info("Database {} already exists and is in {} state, waiting for it to be ACTIVE", name, db.getStatus());
-                    waitForDatabase(devopsDbClient.database(db.getId()));
+                    if (waitForDb) {
+                        waitForDatabase(devopsDbClient.database(db.getId()));
+                    }
                     return UUID.fromString(db.getId());
                 case HIBERNATED:
                     log.info("Database {} is in {} state, resuming...", name, db.getStatus());
                     resumeDb(db);
-                    waitForDatabase(devopsDbClient.database(db.getId()));
+                    if (waitForDb) {
+                        waitForDatabase(devopsDbClient.database(db.getId()));
+                    }
                     return UUID.fromString(db.getId());
                 default:
                     throw new IllegalStateException("Database already exist but cannot be activate");
@@ -185,8 +221,28 @@ public class AstraDBAdmin {
                 .keyspace(DEFAULT_NAMESPACE)
                 .withVector().build()));
         log.info("Database {} is starting (id={}): it will take about a minute please wait...", name, newDbId);
-        waitForDatabase(devopsDbClient.database(newDbId.toString()));
+        if (waitForDb) {
+            waitForDatabase(devopsDbClient.database(newDbId.toString()));
+        }
         return newDbId;
+    }
+
+    /**
+     * Create new database with a name on the specified cloud provider and region.
+     * If the database with same name already exists it will be resumed if not active.
+     * The method will wait for the database to be active.
+     *
+     * @param name
+     *      database name
+     * @param cloud
+     *      cloud provider
+     * @param cloudRegion
+     *      cloud region
+     * @return
+     *      database identifier
+     */
+    public UUID createDatabase(String name, CloudProviderType cloud, String cloudRegion) {
+        return createDatabase(name, cloud, cloudRegion, true);
     }
 
     /**
@@ -198,9 +254,22 @@ public class AstraDBAdmin {
      *      if the db has been deleted
      */
     public boolean dropDatabase(@NonNull UUID databaseId) {
+        Assert.notNull(databaseId, "Database identifier");
+        boolean exists = databaseExists(databaseId);
         getDatabaseInformations(databaseId);
         devopsDbClient.database(databaseId.toString()).delete();
-        return true;
+        return exists;
+    }
+
+    public boolean dropDatabase(@NonNull String databaseName) {
+        Assert.hasLength(databaseName, "database");
+        com.datastax.astra.internal.utils.Assert.hasLength(databaseName, "Database ");
+        Optional<Database> db = listDatabases().filter(d -> d.getInfo().getName().equals(databaseName)).findFirst();
+        if (db.isPresent()) {
+            devopsDbClient.database(db.get().getId()).delete();
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -230,13 +299,15 @@ public class AstraDBAdmin {
      *      database client
      */
     public com.datastax.astra.client.Database getDatabase(UUID databaseId, String namespace) {
+        Assert.notNull(databaseId, "databaseId");
+        Assert.hasLength(namespace, "namespace");
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
         return new com.datastax.astra.client.Database(
             new AstraApiEndpoint(databaseId, databaseRegion, env).getApiEndPoint(),
-            token,namespace, dataAPIClientOptions) {
+            token,namespace, dataAPIOptions) {
         };
     }
 
@@ -261,7 +332,8 @@ public class AstraDBAdmin {
      *      database client
      */
     public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
-        return new AstraDBDatabaseAdmin(token, databaseId, env, dataAPIClientOptions);
+        Assert.notNull(databaseId, "databaseId");
+        return new AstraDBDatabaseAdmin(token, databaseId, env, dataAPIOptions);
     }
 
     /**

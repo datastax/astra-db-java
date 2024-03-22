@@ -1,6 +1,6 @@
 package com.datastax.astra.internal;
 
-import com.datastax.astra.client.CommandRunner;
+import com.datastax.astra.client.model.CommandRunner;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.api.ApiResponse;
 import com.datastax.astra.client.model.Command;

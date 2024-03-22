@@ -1,15 +1,6 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.internal.DataAPIDatabaseAdmin;
-import com.datastax.astra.internal.auth.FixedTokenAuthenticationService;
 import com.datastax.astra.internal.auth.StargateAuthenticationService;
-import com.datastax.astra.internal.auth.TokenProvider;
-import com.datastax.astra.internal.http.HttpClientOptions;
-
-import com.datastax.astra.internal.utils.Assert;
-import lombok.NonNull;
-
-import java.util.Collections;
 
 /**
  * Initialization of the client in a Static way.
@@ -39,25 +30,25 @@ public class DataApiClients {
     public static DataAPIClient localStargate() {
         return new DataAPIClient(
                 new StargateAuthenticationService().getToken(),
-                DataAPIClientOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
+                DataAPIOptions.builder().withDestination(DataAPIDestination.CASSANDRA).build());
     }
 
     public static DataAPIClient astra(String token) {
-        return new DataAPIClient(token, DataAPIClientOptions
+        return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA)
                 .build());
     }
 
     public static DataAPIClient astraDev(String token) {
-        return new DataAPIClient(token, DataAPIClientOptions
+        return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA_DEV)
                 .build());
     }
 
     public static DataAPIClient astraTest(String token) {
-        return new DataAPIClient(token, DataAPIClientOptions
+        return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA_TEST)
                 .build());
