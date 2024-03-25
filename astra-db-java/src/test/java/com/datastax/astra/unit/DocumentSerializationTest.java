@@ -34,6 +34,6 @@ public class DocumentSerializationTest {
 
     @Test
     public void shouldSerializeCommand2() {
-        assertThat(JsonUtils.marshallForDataApi(new Object())).isEqualTo("{}}");
+        assertThat(JsonUtils.marshallForDataApi(new Object())).isEqualTo("{}");
     }
 }

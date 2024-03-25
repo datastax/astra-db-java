@@ -300,7 +300,11 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .isEqualTo(6);
 
         // Filter + limit
-        for(int i=11;i<1005;i++) {
+        for(int i=11;i<600;i++) {
+            getCollectionSimple().insertOne(new Document().id(i).append("indice", i));
+        }
+
+        for(int i=602;i<1005;i++) {
             getCollectionSimple().insertOne(new Document().id(i).append("indice", i));
         }
 

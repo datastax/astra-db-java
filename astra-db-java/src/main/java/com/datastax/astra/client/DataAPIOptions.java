@@ -56,7 +56,7 @@ public class DataAPIOptions {
     public static final int DEFAULT_REQUEST_TIMEOUT_SECONDS = 20;
 
     /** Default retry count. */
-    public static final int DEFAULT_RETRY_COUNT = 1;
+    public static final int DEFAULT_RETRY_COUNT = 3;
 
     /** Default retry delay. */
     public static final int DEFAULT_RETRY_DELAY_MILLIS  = 100;
