@@ -38,23 +38,16 @@ class VectorizeITTest {
         db = DataAPIClients.astraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
     }
 
-    private Collection<Document> getCollectionVectorize() {
-        if (collectionVectorize == null) {
-            collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
-            collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizeITTest.class));
-        }
-        return collectionVectorize;
-    }
+
 
     @Test
     public void shouldCreateACollectionWithNvidia() {
-        db.registerListener("logger", new LoggingCommandObserver(VectorizeITTest.class));
-
         Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE, CollectionOptions.builder()
                 .withVectorDimension(NVIDIA_DIMENSION)
                 .withVectorSimilarityMetric(SimilarityMetric.cosine)
                 .withVectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
                 .build());
+
         assertThat(collection).isNotNull();
         assertThat(db.listCollectionNames().collect(Collectors.toList())).contains(COLLECTION_VECTORIZE);
     }
@@ -68,7 +61,6 @@ class VectorizeITTest {
         InsertOneResult res = getCollectionVectorize().insertOne(document);
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isNotNull();
-        System.out.println(res.getInsertedId());
     }
 
     @Test
@@ -76,6 +68,15 @@ class VectorizeITTest {
         getCollectionVectorize()
                 .find(vectorize("Life is too short for Javascript"))
                 .forEach(doc -> System.out.println(doc.toJson()));
+    }
+
+
+    private Collection<Document> getCollectionVectorize() {
+        if (collectionVectorize == null) {
+            collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
+            collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizeITTest.class));
+        }
+        return collectionVectorize;
     }
 
 }
