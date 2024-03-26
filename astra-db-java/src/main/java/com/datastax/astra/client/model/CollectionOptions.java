@@ -168,14 +168,14 @@ public class CollectionOptions {
      *
      * @return a builder
      */
-    public static CreateCollectionOptionsBuilder builder() {
-        return new CreateCollectionOptionsBuilder();
+    public static CollectionOptionsBuilder builder() {
+        return new CollectionOptionsBuilder();
     }
 
     /**
-     * Builder for {@link CollectionDefinition}.
+     * Builder for {@link CollectionInfo}.
      */
-    public static class CreateCollectionOptionsBuilder {
+    public static class CollectionOptionsBuilder {
 
         /**
          * Options for Vector
@@ -221,7 +221,7 @@ public class CollectionOptions {
         /**
          * Default constructor.
          */
-        public CreateCollectionOptionsBuilder() {}
+        public CollectionOptionsBuilder() {}
 
         /**
          * Builder Pattern with the Identifiers.
@@ -231,7 +231,7 @@ public class CollectionOptions {
          * @return
          *      self reference
          */
-        public CreateCollectionOptionsBuilder withDefaultId(CollectionIdTypes idType) {
+        public CollectionOptionsBuilder withDefaultId(CollectionIdTypes idType) {
             this.defaultId = idType;
             return this;
         }
@@ -242,7 +242,7 @@ public class CollectionOptions {
          * @param size size
          * @return self reference
          */
-        public CreateCollectionOptionsBuilder withVectorDimension(int size) {
+        public CollectionOptionsBuilder withVectorDimension(int size) {
             getVector().setDimension(size);
             return this;
         }
@@ -253,7 +253,7 @@ public class CollectionOptions {
          * @param function function
          * @return self reference
          */
-        public CreateCollectionOptionsBuilder withVectorSimilarityMetric(@NonNull SimilarityMetric function) {
+        public CollectionOptionsBuilder withVectorSimilarityMetric(@NonNull SimilarityMetric function) {
             getVector().setMetric(function);
             return this;
         }
@@ -264,7 +264,7 @@ public class CollectionOptions {
          * @param properties size
          * @return self reference
          */
-        public CreateCollectionOptionsBuilder withIndexingDeny(@NonNull String... properties) {
+        public CollectionOptionsBuilder withIndexingDeny(@NonNull String... properties) {
             if (getIndexing().getAllow() != null) {
                 throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
             }
@@ -278,7 +278,7 @@ public class CollectionOptions {
          * @param properties size
          * @return self reference
          */
-        public CreateCollectionOptionsBuilder withIndexingAllow(String... properties) {
+        public CollectionOptionsBuilder withIndexingAllow(String... properties) {
             if (getIndexing().getDeny() != null) {
                 throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
             }
@@ -293,9 +293,27 @@ public class CollectionOptions {
          * @param function  function
          * @return self reference
          */
-        public CreateCollectionOptionsBuilder vector(int dimension, @NonNull SimilarityMetric function) {
+        public CollectionOptionsBuilder vector(int dimension, @NonNull SimilarityMetric function) {
             withVectorSimilarityMetric(function);
             withVectorDimension(dimension);
+            return this;
+        }
+
+        /**
+         * Enable Vectorization within the collection.
+         *
+         * @param provider
+         *      provider Name (LLM)
+         * @param modeName
+         *      mode name
+         * @return
+         *      self reference
+         */
+        public CollectionOptionsBuilder withVectorize(String provider, String modeName) {
+            Service embeddingService = new Service();
+            embeddingService.setProvider(provider);
+            embeddingService.setModelName(modeName);
+            getVector().setService(embeddingService);
             return this;
         }
 

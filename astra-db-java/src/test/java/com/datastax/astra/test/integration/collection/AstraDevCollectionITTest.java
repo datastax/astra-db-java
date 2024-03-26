@@ -1,6 +1,5 @@
-package com.datastax.astra.integration.collection;
+package com.datastax.astra.test.integration.collection;
 
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -17,6 +16,7 @@ class AstraDevCollectionITTest extends AbstractCollectionITTest {
         // return initAstraDatabase(AstraEnvironment.TEST, CloudProviderType.GCP, "us-central1");
         // return initAstraDatabase(AstraEnvironment.TEST, CloudProviderType.AWS, "us-west-2");
     }
+
 
 
 }

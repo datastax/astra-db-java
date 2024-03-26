@@ -1,6 +1,6 @@
-package com.datastax.astra.integration.database;
+package com.datastax.astra.test.integration.database;
 
-import com.datastax.astra.TestConstants;
+import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;

@@ -1,4 +1,4 @@
-package com.datastax.astra;
+package com.datastax.astra.test;
 
 public interface TestConstants {
 

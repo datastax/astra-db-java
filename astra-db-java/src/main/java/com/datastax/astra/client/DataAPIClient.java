@@ -141,9 +141,9 @@ public class DataAPIClient {
         Assert.notNull(databaseId, "databaseId");
         Assert.hasLength(namespace, "namespace");
         return new Database(new AstraApiEndpoint(databaseId,
-                getAdmin().getDatabaseInformations(databaseId).getInfo().getRegion(),
+                getAdmin().getDatabaseInfo(databaseId).getRegion(),
                 getAstraEnvironment()).getApiEndPoint(),
-                namespace);
+                this.token, namespace);
     }
 
     /**

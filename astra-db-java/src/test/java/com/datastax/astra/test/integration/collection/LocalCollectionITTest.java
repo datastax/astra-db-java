@@ -1,4 +1,4 @@
-package com.datastax.astra.integration.collection;
+package com.datastax.astra.test.integration.collection;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;

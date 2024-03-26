@@ -1,6 +1,6 @@
-package com.datastax.astra.integration.collection;
+package com.datastax.astra.test.integration.collection;
 
-import com.datastax.astra.TestConstants;
+import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIOptions;
@@ -50,6 +50,7 @@ import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
+import static com.datastax.astra.client.model.SortOrder.ASCENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -300,16 +301,17 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .isEqualTo(6);
 
         // Filter + limit
-        for(int i=11;i<600;i++) {
-            getCollectionSimple().insertOne(new Document().id(i).append("indice", i));
-        }
-
-        for(int i=602;i<1005;i++) {
-            getCollectionSimple().insertOne(new Document().id(i).append("indice", i));
+        for(int i=11;i<1005;i+=20) {
+            List<Document> docs = new ArrayList<>();
+            for(int j=i;j<i+20;j++) {
+                docs.add(new Document().id(j).append("indice", j));
+            }
+            getCollectionSimple().insertMany(docs);
         }
 
         // More than 1000 items
-        assertThatThrownBy(() -> getCollectionSimple().countDocuments(DataAPIOptions.getMaxDocumentCount()))
+        assertThatThrownBy(() -> getCollectionSimple()
+                .countDocuments(DataAPIOptions.getMaxDocumentCount()))
                 .isInstanceOf(TooManyDocumentsToCountException.class)
                 .hasMessageContaining("server");
     }
@@ -334,7 +336,10 @@ abstract class AbstractCollectionITTest implements TestConstants {
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
         // Sort = no paging
-        FindOptions options = new FindOptions().sortingBy("indice", SortOrder.ASCENDING).skip(11).limit(2);
+        FindOptions options = FindOptions.builder()
+                .sortBy("indice", ASCENDING)
+                .skip(11).limit(2)
+                .build();
         List<Document> documents = getCollectionSimple().find(options).all();
         assertThat(documents.size()).isEqualTo(2);
         assertThat(documents.get(0).getInteger("indice")).isEqualTo(11);
@@ -498,6 +503,11 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
     @Test
     public void testUpdateOne() {
+
+    }
+
+    @Test
+    public void testVectorize() {
 
     }
 

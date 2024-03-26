@@ -1,7 +1,7 @@
 package com.datastax.astra.client.samples.database;
 
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.CollectionDefinition;
+import com.datastax.astra.client.model.CollectionInfo;
 
 import java.util.stream.Stream;
 
@@ -13,8 +13,8 @@ public class ListCollections {
         Stream<String> collectionNames = db.listCollectionNames();
 
         // Get Collection information (with options)
-        Stream<CollectionDefinition> collections = db.listCollections();
-        collections.map(CollectionDefinition::getOptions)
+        Stream<CollectionInfo> collections = db.listCollections();
+        collections.map(CollectionInfo::getOptions)
                    .forEach(System.out::println);
 
     }

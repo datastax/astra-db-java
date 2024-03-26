@@ -1,6 +1,6 @@
-package com.datastax.astra.integration.admin;
+package com.datastax.astra.test.integration.admin;
 
-import com.datastax.astra.TestConstants;
+import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.internal.LoggingCommandObserver;

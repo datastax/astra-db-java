@@ -82,13 +82,11 @@ public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable
      *     tem if it exists
      */
     public Optional<DOC> getItem(int offset) {
-        FindOptions singleResultOptions = new FindOptions();
-        singleResultOptions.skip(offset);
-        singleResultOptions.limit(1);
+        FindOptions.FindOptionsBuilder builder = FindOptions.builder().skip(offset).limit(1);
         if (options.getIncludeSimilarity()) {
-            singleResultOptions.includeSimilarity();
+            builder.withIncludeSimilarity();
         }
-        FindIterable<DOC> sub = new FindIterable<>(collection, filter, singleResultOptions);
+        FindIterable<DOC> sub = new FindIterable<>(collection, filter, builder.build());
         if (sub.fetchNextPage() && sub.getCurrentPage() != null && !sub.getCurrentPage().getResults().isEmpty()) {
             return Optional.ofNullable(sub.getCurrentPage().getResults().get(0));
         }

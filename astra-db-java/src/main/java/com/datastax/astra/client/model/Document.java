@@ -72,7 +72,7 @@ public class Document implements Map<String, Object>, Serializable {
     /**
      * Attribute for vector.
      */
-    public static final String VECTORIZE = "vectorize";
+    public static final String VECTORIZE = "$vectorize";
 
     /**
      * Attribute for similarity

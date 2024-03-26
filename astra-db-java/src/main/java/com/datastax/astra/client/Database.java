@@ -25,7 +25,7 @@ import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.CollectionDefinition;
+import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.AbstractCommandRunner;
@@ -45,7 +45,14 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
- * Class to interact with a Namespace.
+ * A Data API database. This is the entry-point object for doing database-level
+ * DML, such as creating/deleting collections, and for obtaining Collection
+ * objects themselves. This class has a synchronous interface.
+ * <p>
+ * A Database comes with an "API Endpoint", which implies a Database object
+ * instance reaches a specific region (relevant point in case of multi-region
+ * databases).
+ * </p>
  */
 @Slf4j
 public class Database extends AbstractCommandRunner {
@@ -54,19 +61,20 @@ public class Database extends AbstractCommandRunner {
     @Getter
     private final String namespaceName;
 
-    /** Token to be use with the Database. */
+    /** Token to be used with the Database. */
     private final String token;
 
     /** Api Endpoint for the API. */
     private final String apiEndpoint;
 
-    /** Api Endpoint for the Database. */
-    @Getter
-    private final String apiEndpointDatabase;
-
-    /** Options to setup the client. */
+    /** Options to set up the client. */
     @Getter
     private final DataAPIOptions options;
+
+    /**
+     * This core endpoint could be used for admin operations.
+     */
+    private final String databaseAdminEndpoint;
 
     /**
      * Initialization with endpoint and apikey.
@@ -113,8 +121,8 @@ public class Database extends AbstractCommandRunner {
         notNull(options, "options");
         this.namespaceName = namespace;
         this.token         = token;
-        this.apiEndpoint   = apiEndpoint;
         this.options       = options;
+        this.databaseAdminEndpoint  = apiEndpoint + "/" + options.getApiVersion();
         StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
         switch(options.destination) {
             case ASTRA:
@@ -125,8 +133,12 @@ public class Database extends AbstractCommandRunner {
                 }
             break;
         }
-        dbApiEndPointBuilder.append("/").append(options.getApiVersion()).append("/").append(namespaceName);
-        this.apiEndpointDatabase = dbApiEndPointBuilder.toString();
+        this.apiEndpoint = dbApiEndPointBuilder
+                .append("/")
+                .append(options.getApiVersion())
+                .append("/")
+                .append(namespaceName)
+                .toString();
     }
 
     // ------------------------------------------
@@ -146,7 +158,7 @@ public class Database extends AbstractCommandRunner {
      * Gets the name of the database.
      *
      * @param superUserToken
-     *      provide a token with super user role
+     *      provide a token with a super-user role
      * @return the database name
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
@@ -154,7 +166,7 @@ public class Database extends AbstractCommandRunner {
             AstraApiEndpoint endpoint = AstraApiEndpoint.parse(apiEndpoint);
             return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
         }
-        return new DataAPIDatabaseAdmin(apiEndpoint, token, options);
+        return new DataAPIDatabaseAdmin(databaseAdminEndpoint, token, options);
     }
 
     // ------------------------------------------
@@ -183,13 +195,13 @@ public class Database extends AbstractCommandRunner {
      * @return
      *  list of collection definitions
      */
-    public Stream<CollectionDefinition> listCollections() {
+    public Stream<CollectionInfo> listCollections() {
         Command findCollections = Command
                 .create("findCollections")
                 .withOptions(new Document().append("explain", true));
 
         return runCommand(findCollections)
-                .getStatusKeyAsList("collections", CollectionDefinition.class)
+                .getStatusKeyAsList("collections", CollectionInfo.class)
                 .stream();
     }
 
@@ -234,7 +246,7 @@ public class Database extends AbstractCommandRunner {
     public <DOC> Collection<DOC> getCollection(String collectionName, @NonNull Class<DOC> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
-        return new Collection<DOC>(this, collectionName, documentClass);
+        return new Collection<>(this, collectionName, documentClass);
     }
 
     /**
@@ -364,7 +376,7 @@ public class Database extends AbstractCommandRunner {
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndpointDatabase;
+        return apiEndpoint;
     }
 
     /** {@inheritDoc} */

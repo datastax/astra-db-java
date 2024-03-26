@@ -51,9 +51,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** Version of the API. */
     protected final String token;
 
-    /** Endpoint for a Database in particular. */
-    private final String apiEndpointDatabase;
-
     /**
      * Initialize a database admin from token and database id.
      *
@@ -66,9 +63,8 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      */
     public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
         this.apiEndPoint = apiEndpoint;
-        this.token       = token;
-        this.options     = options;
-        this.apiEndpointDatabase = apiEndpoint + "/" + options.getApiVersion();
+        this.token = token;
+        this.options = options;
     }
 
     // ------------------------------------------
@@ -135,7 +131,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndpointDatabase;
+        return apiEndPoint;
     }
 
     /** {@inheritDoc} */

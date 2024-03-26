@@ -1,7 +1,5 @@
-package com.datastax.astra.integration.database;
+package com.datastax.astra.test.integration.database;
 
-import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

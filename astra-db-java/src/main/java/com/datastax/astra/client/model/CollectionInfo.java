@@ -27,7 +27,7 @@ import lombok.Data;
  * Represents the Collection definition with its name and metadata.
  */
 @Data
-public class CollectionDefinition {
+public class CollectionInfo {
 
     /**
      * Name of the collection.
@@ -42,7 +42,7 @@ public class CollectionDefinition {
     /**
      * Default constructor.
      */
-    public CollectionDefinition() {}
+    public CollectionInfo() {}
 
     /** {@inheritDoc} */
     @Override

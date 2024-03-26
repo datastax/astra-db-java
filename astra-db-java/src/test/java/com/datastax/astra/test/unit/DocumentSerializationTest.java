@@ -1,4 +1,4 @@
-package com.datastax.astra.unit;
+package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;

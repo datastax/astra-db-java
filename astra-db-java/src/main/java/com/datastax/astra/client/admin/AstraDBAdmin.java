@@ -20,6 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.model.DatabaseInfo;
 import com.datastax.astra.internal.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
@@ -278,7 +279,7 @@ public class AstraDBAdmin {
     public boolean dropDatabase(@NonNull UUID databaseId) {
         Assert.notNull(databaseId, "Database identifier");
         boolean exists = databaseExists(databaseId);
-        getDatabaseInformations(databaseId);
+        getDatabaseInfo(databaseId);
         devopsDbClient.database(databaseId.toString()).delete();
         return exists;
     }
@@ -310,10 +311,11 @@ public class AstraDBAdmin {
      * @return
      *        the bean representing an Astra database
      */
-    public Database getDatabaseInformations(@NonNull UUID id) {
+    public DatabaseInfo getDatabaseInfo(@NonNull UUID id) {
         Assert.notNull(id, "Database identifier should not be null");
-        return devopsDbClient.findById(id.toString())
-                .orElseThrow(() -> new DatabaseNotFoundException(id.toString()));
+        return new DatabaseInfo(devopsDbClient
+                .findById(id.toString())
+                .orElseThrow(() -> new DatabaseNotFoundException(id.toString())));
     }
 
     // --------------------

@@ -23,15 +23,18 @@ package com.datastax.astra.client;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.DataApiFaultyResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.ApiResponse;
-import com.datastax.astra.client.model.CollectionDefinition;
+import com.datastax.astra.client.model.BulkWriteOptions;
+import com.datastax.astra.client.model.BulkWriteResult;
+import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
+import com.datastax.astra.client.model.DistinctIterable;
+import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
+import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
 import com.datastax.astra.client.model.FindOneAndReplaceResult;
@@ -41,16 +44,13 @@ import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.InsertOneResult;
-import com.datastax.astra.client.model.DistinctIterable;
-import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.Page;
-import com.datastax.astra.client.model.BulkWriteOptions;
-import com.datastax.astra.client.model.BulkWriteResult;
 import com.datastax.astra.client.model.ReplaceOneOptions;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.AbstractCommandRunner;
+import com.datastax.astra.internal.ApiResponse;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
@@ -78,15 +78,17 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
  * A Data API collection, the main object to interact with the Data API, especially for DDL operations.
- * This class has a synchronous and asynchronous signature for all operations.
  * <p>
- * A Collection is spawned from a DataApiNameSpace object, from which it inherits the details on how to reach the API server
+ * A Collection is spawned from a Database object, from which it inherits the details on how to reach the API server
  * (endpoint, authentication). A Collection has a name, which is its unique identifier for a namespace and
  * options to specialize the usage as vector collections or advanced indexing parameters.
  * </p>
  * <p>
  * A Collection is typed object designed to work both with default @{@link Document} (wrapper for a Map) and application
  * plain old java objects (pojo). The serialization is performed with Jackson and application beans can be annotated.
+ * </p>
+ * <p>
+ * All features are provided in synnchronous and asynchronous flavore
  * </p>
  * <p>Example usage:</p>
  * <pre>
@@ -120,7 +122,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
     private final Database database;
 
     /** Api Endpoint for the Database. */
-    private final String apiEndpointCollection;
+    private final String apiEndpoint;
 
     /**
      * Full constructor.
@@ -139,7 +141,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
         this.collectionName        = collectionName;
         this.database              = db;
         this.documentClass         = clazz;
-        this.apiEndpointCollection = db.getApiEndpointDatabase() + "/" + collectionName;
+        this.apiEndpoint = db.getApiEndpoint() + "/" + collectionName;
     }
 
     // ----------------------------
@@ -174,7 +176,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * @return the full collection definition
      */
-    public CollectionDefinition getDefinition() {
+    public CollectionInfo getDefinition() {
         return database
                 .listCollections()
                 .filter(col -> col.getName().equals(collectionName))
@@ -462,20 +464,6 @@ public class Collection<DOC> extends AbstractCommandRunner {
     }
 
     /**
-     * Finds all documents in the collection.
-     *
-     * @param filter
-     *      the query filter
-     * @param options
-     *      options of find one
-     * @return
-     *      the find iterable interface
-     */
-    public FindIterable<DOC> find(Filter filter, FindOptions options) {
-        return new FindIterable<>(this, filter, options);
-    }
-
-    /**
      * Initiates an asynchronous search to find a single document that matches the given filter criteria.
      * This method leverages the functionality of  to perform the
      * search, but it does so asynchronously, returning a {@link CompletableFuture}. This approach allows
@@ -509,6 +497,20 @@ public class Collection<DOC> extends AbstractCommandRunner {
      */
     public Optional<DOC> findById(Object id) {
         return findOne(Filters.eq(id));
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public FindIterable<DOC> find(Filter filter, FindOptions options) {
+        return new FindIterable<>(this, filter, options);
     }
 
     /**
@@ -553,7 +555,29 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<DOC> find(Filter filter, float[] vector, int limit) {
-        return find(filter, new FindOptions().sortingByVector(vector).limit(limit));
+        return find(filter, FindOptions.builder()
+                .withVector(vector)
+                .limit(limit)
+                .build());
+    }
+
+    /**
+     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
+     * to a provided vector, limiting the number of results returned.
+     * <p>
+     * This method leverage the 'vectorization' to compute the embeddings on the fly in order to execute the search.
+     * </p>
+     *
+     * @param filter The query filter to apply when retrieving documents.
+     * @param vectorize A float array representing the vector used to sort the documents.
+     * @param limit The maximum number of documents to return.
+     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
+     */
+    public FindIterable<DOC> find(Filter filter, String vectorize, int limit) {
+        return find(filter, FindOptions.builder()
+                .withVectorize(vectorize)
+                .limit(limit)
+                .build());
     }
 
     /**
@@ -1271,7 +1295,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndpointCollection;
+        return apiEndpoint;
     }
 
     /** {@inheritDoc} */

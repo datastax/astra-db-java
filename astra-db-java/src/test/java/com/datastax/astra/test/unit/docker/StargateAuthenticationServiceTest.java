@@ -1,4 +1,4 @@
-package com.datastax.astra.unit.docker;
+package com.datastax.astra.test.unit.docker;
 
 import com.datastax.astra.internal.TokenProviderStargate;
 import org.junit.jupiter.api.Test;
