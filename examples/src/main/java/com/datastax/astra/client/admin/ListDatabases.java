@@ -1,4 +1,4 @@
-package com.datastax.astra.client.samples.admin;
+package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClient;

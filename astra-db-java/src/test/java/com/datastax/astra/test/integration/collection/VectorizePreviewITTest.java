@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * to target a specific environment and disable if not available
  */
 @Disabled
-class VectorizeITTest {
+class VectorizePreviewITTest {
 
     static final String COLLECTION_VECTORIZE = "collection_vectorize";
     static final String NVIDIA_PROVIDER = "nvidia";
@@ -74,7 +74,7 @@ class VectorizeITTest {
     private Collection<Document> getCollectionVectorize() {
         if (collectionVectorize == null) {
             collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
-            collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizeITTest.class));
+            collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
         }
         return collectionVectorize;
     }

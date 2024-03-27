@@ -278,6 +278,13 @@ abstract class AbstractCollectionITTest implements TestConstants {
     @Test
     public void testCountDocument() throws TooManyDocumentsToCountException {
 
+        InsertManyOptions.builder()
+                .ordered(false)
+                .withConcurrency(5) // recommended
+                .withChunkSize(20)  // maximum chunk size is 20
+                .withTimeout(100)   // global timeout
+                .build();
+
         assertThatThrownBy(() -> getCollectionSimple().countDocuments(-1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("UpperBound");
@@ -366,9 +373,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        InsertManyOptions imo = new InsertManyOptions();
-        imo.setConcurrency(5);;
-        getCollectionSimple().insertMany(docList, imo);
+        getCollectionSimple().insertMany(docList, InsertManyOptions.builder().withConcurrency(5).build());
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 

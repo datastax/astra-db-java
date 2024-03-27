@@ -25,78 +25,64 @@
     <title>Java Client Library for Data API</title>
 </head>
 <body>
-<p>This client library provides a simplified way to interact with Data API for AstraDB or local instances.</p>
+<h1>Overview</h1>
+<p>
+ This client library provides a simplified way to interact with Data API for AstraDB or local instances. For detailed
+ documentation, each operation comes with a detailed description and examples. For other documentation check the
+ <a href="#">Datastax Astra documentation page</a>
+</p>
+<h2>Installation</h2>
 
-<h1>Features</h1>
-<ul>
-    <li>Configurable client for advanced use cases. (paging, distribution workload)</li>
-    <li>Exception handling for API errors.</li>
-    <li>Fine Grained HttpClient configuration.</li>
-    <li>Automatic JSON serialization and deserialization with Jackson.</li>
-    <li>HTTP/2 support for improved performance and lower latency.</li>
-</ul>
+<p>For Maven, add the following dependency to your <code>pom.xml</code>:</p>
+<div style="background: #ffffff; font-size:10px;overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .1em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #007700">&lt;dependency&gt;</span>
+  <span style="color: #007700">&lt;groupId&gt;</span>com.datastax.astra<span style="color: #007700">&lt;/groupId&gt;</span>
+  <span style="color: #007700">&lt;artifactId&gt;</span>astra-db-java<span style="color: #007700">&lt;/artifactId&gt;</span>
+  <span style="color: #007700">&lt;version&gt;</span>${project.version}<span style="color: #007700">&lt;/version&gt;</span>
+<span style="color: #007700">&lt;/dependency&gt;</span>
+</pre></div>
 
 <h2>QuickStart</h2>
+<div style="background: #f8f8f8; font-size:10px;overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .1em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">com.datastax.astra.client.DataAPIClient</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">com.datastax.astra.client.Collection</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">com.datastax.astra.client.Database</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">com.datastax.astra.client.model.Document</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">com.datastax.astra.client.model.FindIterable</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">java.util.List</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">static</span> com<span style="color: #666666">.</span><span style="color: #7D9029">datastax</span><span style="color: #666666">.</span><span style="color: #7D9029">astra</span><span style="color: #666666">.</span><span style="color: #7D9029">client</span><span style="color: #666666">.</span><span style="color: #7D9029">model</span><span style="color: #666666">.</span><span style="color: #7D9029">Filters</span><span style="color: #666666">.</span><span style="color: #7D9029">eq</span><span style="color: #666666">;</span>
+<span style="color: #008000;">import</span> <span style="color: #0000FF;">static</span> com<span style="color: #666666">.</span><span style="color: #7D9029">datastax</span><span style="color: #666666">.</span><span style="color: #7D9029">astra</span><span style="color: #666666">.</span><span style="color: #7D9029">client</span><span style="color: #666666">.</span><span style="color: #7D9029">model</span><span style="color: #666666">.</span><span style="color: #7D9029">SimilarityMetric</span><span style="color: #666666">.</span><span style="color: #7D9029">cosine</span><span style="color: #666666">;</span>
 
-<!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">com.datastax.astra.client.DataAPIClient</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">com.datastax.astra.client.Collection</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">com.datastax.astra.client.Database</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">com.datastax.astra.client.model.Document</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">com.datastax.astra.client.model.FindIterable</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">java.util.List</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">static</span> com<span style="color: #666666">.</span><span style="color: #7D9029">datastax</span><span style="color: #666666">.</span><span style="color: #7D9029">astra</span><span style="color: #666666">.</span><span style="color: #7D9029">client</span><span style="color: #666666">.</span><span style="color: #7D9029">model</span><span style="color: #666666">.</span><span style="color: #7D9029">Filters</span><span style="color: #666666">.</span><span style="color: #7D9029">eq</span><span style="color: #666666">;</span>
-<span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">static</span> com<span style="color: #666666">.</span><span style="color: #7D9029">datastax</span><span style="color: #666666">.</span><span style="color: #7D9029">astra</span><span style="color: #666666">.</span><span style="color: #7D9029">client</span><span style="color: #666666">.</span><span style="color: #7D9029">model</span><span style="color: #666666">.</span><span style="color: #7D9029">SimilarityMetric</span><span style="color: #666666">.</span><span style="color: #7D9029">cosine</span><span style="color: #666666">;</span>
+<span style="color: #008000; font-weight: bold">public</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">GettingStarted</span> <span style="color: #666666">{</span>
+ <span style="color: #008000; font-weight: bold">public</span> <span style="color: #008000; font-weight: bold">static</span> <span style="color: #B00040">void</span> <span style="color: #0000FF">main</span><span style="color: #666666">(</span>String<span style="color: #666666">[]</span> args<span style="color: #666666">)</span> <span style="color: #666666">{</span>
+  <span style="color: #408080; font-style: italic">// Initializing client with a token</span>
+  DataAPIClient client <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">new</span> DataAPIClient<span style="color: #666666">(</span><span style="color: #BA2121">&quot;my_token&quot;</span><span style="color: #666666">);</span>
 
-<span style="color: #008000; font-weight: bold">public</span> <span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">QuickStart</span> <span style="color: #666666">{</span>
+  <span style="color: #408080; font-style: italic">// Accessing the Database through the HTTP endpoint</span>
+  Database db <span style="color: #666666">=</span> client<span style="color: #666666">.</span><span style="color: #7D9029">getDatabase</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;http://db-region.apps.astra.datastax.com&quot;</span><span style="color: #666666">);</span>
 
-  <span style="color: #008000; font-weight: bold">public</span> <span style="color: #008000; font-weight: bold">static</span> <span style="color: #B00040">void</span> <span style="color: #0000FF">main</span><span style="color: #666666">(</span>String<span style="color: #666666">[]</span> args<span style="color: #666666">)</span> <span style="color: #666666">{</span>
+  <span style="color: #408080; font-style: italic">// Create collection with vector support</span>
+  Collection<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> col <span style="color: #666666">=</span> db<span style="color: #666666">.</span><span style="color: #7D9029">createCollection</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;demo&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">2,</span> cosine<span style="color: #666666">);</span>
 
-    <span style="color: #408080; font-style: italic">// Initializing client with a token</span>
-    DataAPIClient client <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">new</span> DataAPIClient<span style="color: #666666">(</span><span style="color: #BA2121">&quot;my_token&quot;</span><span style="color: #666666">);</span>
+  <span style="color: #408080; font-style: italic">// Insert records</span>
+  col<span style="color: #666666">.</span><span style="color: #7D9029">insertMany</span><span style="color: #666666">(</span>List<span style="color: #666666">.</span><span style="color: #7D9029">of</span><span style="color: #666666">(</span>
+   <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc1&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.1</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.2f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">),</span>
+   <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">().</span><span style="color: #7D9029">id</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc2&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.2</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.4f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;hello&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;world&quot;</span><span style="color: #666666">),</span>
+   <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc3&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.6f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">))</span>
+  <span style="color: #666666">);</span>
 
-    <span style="color: #408080; font-style: italic">// Accessing the Database through the HTTP endpoint</span>
-    Database db <span style="color: #666666">=</span> client<span style="color: #666666">.</span><span style="color: #7D9029">getDatabase</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;http://db-region.apps.astra.datastax.com&quot;</span><span style="color: #666666">);</span>
+  <span style="color: #408080; font-style: italic">// Search</span>
+  FindIterable<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> docs <span style="color: #666666">=</span> col<span style="color: #666666">.</span><span style="color: #7D9029">find</span><span style="color: #666666">(</span>
+    eq<span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">),</span> <span style="color: #408080; font-style: italic">// metadata filter</span>
+    <span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]</span> <span style="color: #666666">{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">.5</span>f<span style="color: #666666">},</span>              <span style="color: #408080; font-style: italic">//vector</span>
+    <span style="color: #666666">10);</span>                                 <span style="color: #408080; font-style: italic">// maxRecord</span>
 
-    <span style="color: #408080; font-style: italic">// Create collection with vector support</span>
-    Collection<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> col <span style="color: #666666">=</span> db<span style="color: #666666">.</span><span style="color: #7D9029">createCollection</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;demo&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">2,</span> cosine<span style="color: #666666">);</span>
-
-    <span style="color: #408080; font-style: italic">// Insert records</span>
-    col<span style="color: #666666">.</span><span style="color: #7D9029">insertMany</span><span style="color: #666666">(</span>List<span style="color: #666666">.</span><span style="color: #7D9029">of</span><span style="color: #666666">(</span>
-       <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc1&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.1</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.2f})</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_string&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">)</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_number&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">12),</span>
-       <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">().</span><span style="color: #7D9029">id</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc2&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.2</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.4f})</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_string&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value2&quot;</span><span style="color: #666666">)</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_number&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">20),</span>
-       <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc3&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.6f})</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_string&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">)</span>
-           <span style="color: #666666">.</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_number&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">.3));</span>
-
-    <span style="color: #408080; font-style: italic">// Search</span>
-    FindIterable<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> docs <span style="color: #666666">=</span> col<span style="color: #666666">.</span><span style="color: #7D9029">find</span><span style="color: #666666">(</span>
-      eq<span style="color: #666666">(</span><span style="color: #BA2121">&quot;metadata_string&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">),</span> <span style="color: #408080; font-style: italic">// metadata filter</span>
-      <span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]</span> <span style="color: #666666">{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">.5</span>f<span style="color: #666666">},</span> <span style="color: #408080; font-style: italic">//vector</span>
-      <span style="color: #666666">10);</span> <span style="color: #408080; font-style: italic">// maxRecord</span>
-
-    <span style="color: #408080; font-style: italic">// Iterate and print your results</span>
-    <span style="color: #008000; font-weight: bold">for</span> <span style="color: #666666">(</span>Document doc <span style="color: #666666">:</span> docs<span style="color: #666666">)</span> System<span style="color: #666666">.</span><span style="color: #7D9029">out</span><span style="color: #666666">.</span><span style="color: #7D9029">println</span><span style="color: #666666">(</span>doc<span style="color: #666666">);</span>
-  <span style="color: #666666">}</span>
+  <span style="color: #408080; font-style: italic">// Iterate and print your results</span>
+  <span style="color: #008000; font-weight: bold">for</span> <span style="color: #666666">(</span>Document doc <span style="color: #666666">:</span> docs<span style="color: #666666">)</span> System<span style="color: #666666">.</span><span style="color: #7D9029">out</span><span style="color: #666666">.</span><span style="color: #7D9029">println</span><span style="color: #666666">(</span>doc<span style="color: #666666">);</span>
+ <span style="color: #666666">}</span>
 <span style="color: #666666">}</span>
 </pre></div>
 
-<h2>Getting Started</h2>
-<p>To use this client library in your project, include the following dependency in your build tool configuration:</p>
-<!-- HTML generated using hilite.me --><div style="background: #f8f8f8; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #008000; font-weight: bold">&lt;dependency&gt;</span>
- <span style="color: #008000; font-weight: bold">&lt;groupId&gt;</span>com.datastax.astra<span style="color: #008000; font-weight: bold">&lt;/groupId&gt;</span>
- <span style="color: #008000; font-weight: bold">&lt;artifactId&gt;</span>astra-db-java<span style="color: #008000; font-weight: bold">&lt;/artifactId&gt;</span>
- <span style="color: #008000; font-weight: bold">&lt;version&gt;</span>1.0.0<span style="color: #008000; font-weight: bold">&lt;/version&gt;</span>
-<span style="color: #008000; font-weight: bold">&lt;/dependency&gt;</span>
-</pre></div>
 
-<h2>Documentation</h2>
-<p>
-    For detailed documentation, including all available endpoints and configuration options,
-    see the <a href="docs/index.html">full API documentation</a>.
-</p>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.samples.database;
+package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.Database;
 

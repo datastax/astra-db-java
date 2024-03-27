@@ -24,6 +24,7 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,81 +34,204 @@ import java.util.Map;
 public class FindOneOptions {
 
     /**
-     * Default constructor.
-     */
-    public FindOneOptions() {
-    }
-
-    /**
      * Order by.
      */
-    private Document sort;
+    private final Document sort;
 
     /**
      * Select.
      */
-    private Map<String, Integer> projection;
+    private final Map<String, Integer> projection;
 
     /**
      * Options.
      */
-    private Boolean includeSimilarity;
+    private final Boolean includeSimilarity;
 
     /**
-     * Fluent api.
+     * Create a builder for those options.
      *
      * @return
-     *      add a filter
+     *      instance of the builder.
      */
-    public FindOneOptions includeSimilarity() {
-        includeSimilarity = true;
-        return this;
+    public static FindOneOptionsBuilder builder() {
+        return new FindOneOptionsBuilder();
     }
 
     /**
-     * Fluent api.
-     *
-     * @param pProjection
-     *      add a project field
-     * @return
-     *      current command.
+     * Default constructor.
      */
-    public FindOneOptions projection(Map<String, Integer> pProjection) {
-        Assert.notNull(pProjection, "projection");
-        if (this.projection == null) {
-            this.projection = new LinkedHashMap<>();
+    public FindOneOptions(FindOneOptionsBuilder builder) {
+        this.sort = builder.sort;
+        this.projection = builder.projection;
+        this.includeSimilarity = builder.includeSimilarity;
+    }
+
+    /**
+     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
+     * This builder will help to chain options.
+     */
+    public static class FindOneOptionsBuilder {
+
+        /**
+         * Order by.
+         */
+        private Document sort;
+
+        /**
+         * Projection for return document (select)
+         */
+        private Map<String, Integer> projection;
+
+        /**
+         * Flag to include similarity in the result when operating a semantic search.
+         */
+        private Boolean includeSimilarity;
+
+        /**
+         * Default Builder.
+         */
+        public FindOneOptionsBuilder() {}
+
+        /**
+         * Fluent api.
+         *
+         * @return
+         *      add a filter
+         */
+        public FindOneOptionsBuilder withIncludeSimilarity() {
+            this.includeSimilarity = true;
+            return this;
         }
-        this.projection.putAll(pProjection);
-        return this;
-    }
 
-    /**
-     * Fluent api.
-     *
-     * @param pSort
-     *      add a filter
-     * @return
-     *      current command.
-     */
-    public FindOneOptions sort(Document pSort) {
-        Assert.notNull(pSort, "projection");
-        if (this.sort == null) {
-            sort = new Document();
+        /**
+         * Provide a way to enter projections elements
+         *
+         * @param projections
+         *      projections as a list.
+         * @return
+         *     self reference
+         */
+        public FindOneOptionsBuilder withProjection(List<Projection> projections) {
+            Assert.notNull(projections, "projection");
+            if (this.projection == null) {
+                this.projection = new LinkedHashMap<>();
+            }
+            for (Projection p : projections) {
+                this.projection.put(p.getField(), p.isPresent() ? 1 : 0);
+            }
+            return this;
         }
-        this.sort.putAll(pSort);
-        return this;
-    }
 
-    /**
-     * Add vector in the sort block.
-     *
-     * @param vector
-     *      vector float
-     * @return
-     *      current command
-     */
-    public FindOneOptions sortByVector(float[] vector) {
-        return sort(new Document().append(Document.VECTOR, vector));
+        /**
+         * Fluent api.
+         *
+         * @param pProjection
+         *      add a project field
+         * @return
+         *      current command.
+         */
+        public FindOneOptionsBuilder withProjection(Map<String, Integer> pProjection) {
+            Assert.notNull(pProjection, "projection");
+            if (this.projection == null) {
+                this.projection = new LinkedHashMap<>();
+            }
+            this.projection.putAll(pProjection);
+            return this;
+        }
+
+        /**
+         * Add a criteria with $vectorize in the sort clause
+         *
+         * @param vectorize
+         *      an expression to look for vectorization
+         * @return
+         *      current command
+         */
+        public FindOneOptionsBuilder withVectorize(String vectorize) {
+            Assert.hasLength(vectorize, "vectorize");
+            return sortBy(new Document().append(Document.VECTORIZE, vectorize));
+        }
+
+        /**
+         * Add a criteria with $vector in the sort clause
+         *
+         * @param vector
+         *      vector float
+         * @return
+         *      current command
+         */
+        public FindOneOptionsBuilder withVector(float[] vector) {
+            Assert.notNull(vector, "vector");
+            return sortBy(new Document().append(Document.VECTOR, vector));
+        }
+
+        /**
+         * Fluent api.
+         *
+         * @param field
+         *      field name
+         * @param order
+         *      orders
+         * @return
+         *      Self reference
+         */
+        public FindOneOptionsBuilder sortBy(String field, SortOrder order) {
+            Assert.notNull(order, "order");
+            Assert.hasLength(field, "field");
+            if (this.sort == null) {
+                sort = new Document();
+            }
+            this.sort.put(field, order.getOrder());
+            return this;
+        }
+
+        /**
+         * Fluent api.
+         *
+         * @param sorts
+         *      list of sorts
+         * @return
+         *      Self reference
+         */
+        public FindOneOptionsBuilder sortBy(List<Sort> sorts) {
+            Assert.notNull(sorts, "sort");
+            if (this.sort == null) {
+                sort = new Document();
+            }
+            for (Sort s : sorts) {
+                this.sort.put(s.getField(), s.getSort().getOrder());
+            }
+            return this;
+        }
+
+        /**
+         * Fluent api.
+         *
+         * @param pSort
+         *      add a filter
+         * @return
+         *      current command.
+         */
+        public FindOneOptionsBuilder sortBy(Document pSort) {
+            Assert.notNull(pSort, "sort");
+            if (this.sort == null) {
+                sort = new Document();
+            }
+            this.sort.putAll(pSort);
+            return this;
+        }
+
+        /**
+         * Builder for the find Options.
+         *
+         * @return
+         *      the find options object
+         */
+        public FindOneOptions build() {
+            return new FindOneOptions(this);
+        }
+
     }
 
 }
