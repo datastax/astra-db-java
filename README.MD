@@ -1,10 +1,22 @@
 
 # Java Client for Stargate Data API
 
-`astra-db-java` is the java libraries use to interact with Astra, the Data API with vector support.
+[![License Apache2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.datastax.astra/astra-sdk/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.datastax.astra/astra-db-java)
+![Latest Release](https://img.shields.io/github/v/release/datastax/astra-db-java)
 
-- `astra-db-ts` is the equivalent for typescript
-- `astrapy` is the equivalent in python
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=clun_db-java)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=vulnerabilities)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=bugs)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=coverage)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
+
+This client library provides a simplified way to interact with Data API for AstraDB or local instances. For detailed documentation, each operation comes with a detailed description and examples.
+
+- [`astra-db-ts`](https://github.com/datastax/astra-db-ts) is the equivalent for typescript
+- [`astrapy`](https://github.com/datastax/astrapy) is the equivalent in python
 
 This library is under development and not yet available in Maven Central. You can build it locally and install it in your local repository.
 
@@ -111,6 +123,10 @@ public class GettingStarted {
 ```
 
 ### 3. What's Next
+
+This is an the organization of the different classes of the framework.
+
+![overview](https://datastaxdevs.github.io/astra-db-java/overview.png)
 
 - For more information use the [JAVADOC  documentation](https://datastaxdevs.github.io/astra-db-java/latest/)
 

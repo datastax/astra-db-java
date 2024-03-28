@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.api;
 
 /*-
  * #%L
@@ -20,8 +20,8 @@ package com.datastax.astra.internal;
  * #L%
  */
 
-import com.datastax.astra.client.model.Document;
 import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.model.Document;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NonNull;

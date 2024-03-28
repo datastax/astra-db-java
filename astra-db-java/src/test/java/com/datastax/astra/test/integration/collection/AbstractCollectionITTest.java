@@ -1,5 +1,6 @@
 package com.datastax.astra.test.integration.collection;
 
+import com.datastax.astra.client.model.Sorts;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -22,8 +23,8 @@ import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.SortOrder;
 import com.datastax.astra.client.model.UpdateResult;
-import com.datastax.astra.internal.ApiResponse;
-import com.datastax.astra.internal.LoggingCommandObserver;
+import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -344,7 +345,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         // Sort = no paging
         FindOptions options = FindOptions.builder()
-                .sortBy("indice", ASCENDING)
+                .sort(Sorts.ascending("indice"))
                 .skip(11).limit(2)
                 .build();
         List<Document> documents = getCollectionSimple().find(options).all();

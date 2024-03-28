@@ -1,5 +1,5 @@
 /**
- * Dto Used in public interfaces: types, documents `*Options``*Resuult`
+ * Domain model classes with {@code Requests}, {@code Results}, {@code Options} and {@code Iterables}.
  */
 package com.datastax.astra.client.model;
 /*-

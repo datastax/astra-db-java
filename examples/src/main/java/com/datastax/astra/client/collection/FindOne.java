@@ -2,40 +2,39 @@ package com.datastax.astra.client.collection;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.model.FindOneOptions;
+import com.datastax.astra.client.model.Sorts;
 
-import java.util.List;
+import java.util.Optional;
 
+import static com.datastax.astra.client.model.Filters.and;
 import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.SimilarityMetric.cosine;
+import static com.datastax.astra.client.model.Filters.gt;
 
 public class FindOne {
     public static void main(String[] args) {
-        // Initializing client with a token
-        DataAPIClient client = new DataAPIClient("my_token");
-
-        // Accessing the Database through the HTTP endpoint
-        Database db = client.getDatabase("http://db-region.apps.astra.datastax.com");
-
-        // Create collection with vector support
-        Collection<Document> col = db.createCollection("demo", 2, cosine);
+        // Given an existing collection
+        Collection<Document> collection = new DataAPIClient("my_token")
+                .getDatabase("http://db-region.apps.astra.datastax.com")
+                .getCollection("my_collection");
 
         // Insert records
-        col.insertMany(List.of(
-                new Document("doc1").vector(new float[]{.1f, 0.2f}).append("key", "value1"),
-                new Document().id("doc2").vector(new float[]{.2f, 0.4f}).append("hello", "world"),
-                new Document("doc3").vector(new float[]{.5f, 0.6f}).append("key", "value1"))
-        );
+        collection.insertOne(new Document().id(1).append("name", "John").append("age", 30));
 
-        // Search
-        FindIterable<Document> docs = col.find(
-                eq("key", "value1"), // metadata filter
-                new float[] {.5f, .5f},              //vector
-                10);                                 // maxRecord
+        // FindOne with a filter on id
+        Optional<Document> res = collection.findOne(eq(1));
 
-        // Iterate and print your results
-        for (Document doc : docs) System.out.println(doc);
+        // FindOne with filters on metadata
+        Optional<Document> res2 = collection.findOne(eq("name", "John"));
+        Optional<Document> res3 = collection.findOne(and(eq("name", "John"), gt("age", 30)));
+
+        // FindOne with vector clause (no filter)
+        Optional<Document> res4 = collection.findOne(null, FindOneOptions.builder()
+                .sort(Sorts.vector(new float[] {.1f, .2f}))
+                        .withIncludeSimilarity()
+                .build());
+
+
     }
 }

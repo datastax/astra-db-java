@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.auth;
 
 /*-
  * #%L
@@ -20,30 +20,28 @@ package com.datastax.astra.internal;
  * #L%
  */
 
+import java.util.function.Supplier;
+
 /**
- * Static token, never expires..
- *
+ * To work the APi needs a token. 
+ * It can be static or dynamically generated.
+ * 
  * @author Cedrick LUNVEN (@clunven)
  */
-public class TokenProviderFixed implements TokenProvider {
-
-    /** Reference to token. */
-    private String token;
-    
-    /**
-     * Constructor with all parameters.
-     *
-     * @param token
-     *      static token to be used
-     */
-    public TokenProviderFixed(String token) {
-        this.token = token;
-    }
+public interface TokenProvider extends Supplier<String> {
     
     /** {@inheritDoc} */
     @Override
-    public String getToken() {
-        return token;
+    default String get() {
+        return getToken();
     }
+    
+    /**
+     * Building the token.
+     *
+     * @return
+     *      current token
+     */
+    String getToken();
 
 }

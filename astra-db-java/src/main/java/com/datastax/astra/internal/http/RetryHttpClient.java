@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.http;
 
 /*-
  * #%L
@@ -21,10 +21,10 @@ package com.datastax.astra.internal;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.internal.ApiConstants;
 import com.datastax.astra.client.exception.AlreadyExistException;
 import com.datastax.astra.client.exception.AuthenticationException;
-import com.datastax.astra.internal.ApiResponseHttp;
+import com.datastax.astra.internal.api.ApiConstants;
+import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
 import com.evanlennick.retry4j.config.RetryConfig;
@@ -114,7 +114,7 @@ public class RetryHttpClient implements ApiConstants {
      */
     public String getUserAgentHeader() {
         if (userAgents.isEmpty()) {
-            userAgents.put(ApiConstants.REQUEST_WITH, ApiConstants.class.getPackage().getImplementationVersion());
+            userAgents.put(REQUEST_WITH, ApiConstants.class.getPackage().getImplementationVersion());
         }
         List<Map.Entry<String, String>> entryList = new ArrayList<>(userAgents.entrySet());
         StringBuilder sb = new StringBuilder();

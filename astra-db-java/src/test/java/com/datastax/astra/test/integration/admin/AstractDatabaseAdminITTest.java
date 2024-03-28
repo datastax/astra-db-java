@@ -3,7 +3,7 @@ package com.datastax.astra.test.integration.admin;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.internal.LoggingCommandObserver;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 

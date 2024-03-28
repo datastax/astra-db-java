@@ -1,6 +1,5 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.internal.utils.JsonUtils;

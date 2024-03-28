@@ -21,9 +21,8 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.internal.AstraApiEndpoint;
+import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
 import java.net.http.HttpClient;

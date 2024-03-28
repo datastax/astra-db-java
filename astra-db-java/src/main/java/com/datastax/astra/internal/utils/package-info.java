@@ -1,5 +1,5 @@
 /**
- * Utilities for low-level classes implementation.
+ * Internal technical classes for low-level utilities
  */
 package com.datastax.astra.internal.utils;
 /*-

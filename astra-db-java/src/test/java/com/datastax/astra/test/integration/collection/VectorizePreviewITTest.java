@@ -7,7 +7,7 @@ import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.LoggingCommandObserver;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

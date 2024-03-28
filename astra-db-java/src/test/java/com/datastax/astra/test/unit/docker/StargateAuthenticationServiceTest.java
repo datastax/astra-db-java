@@ -1,6 +1,6 @@
 package com.datastax.astra.test.unit.docker;
 
-import com.datastax.astra.internal.TokenProviderStargate;
+import com.datastax.astra.internal.auth.TokenProviderStargate;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

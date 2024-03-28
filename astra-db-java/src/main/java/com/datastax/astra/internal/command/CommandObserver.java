@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.command;
 
 /*-
  * #%L

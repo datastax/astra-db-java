@@ -1,5 +1,5 @@
 /**
- * Specialized exceptions thrown by the Client.
+ * Exceptions specialized checked and unchecked thrown by the client.
  */
 package com.datastax.astra.client.exception;
 /*-

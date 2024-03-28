@@ -1,5 +1,5 @@
 /**
- * Admin Data API Client Classes (ddl on databases and namespaces).
+ * Administration classes to manage Databases and Namespaces.
  */
 package com.datastax.astra.client.admin;
 /*-

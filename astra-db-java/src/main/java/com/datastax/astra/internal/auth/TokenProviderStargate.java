@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.auth;
 
 /*-
  * #%L
@@ -20,8 +20,12 @@ package com.datastax.astra.internal;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.api.ApiConstants;
+import com.datastax.astra.internal.api.ApiResponseHttp;
+import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.utils.Assert;
+
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.time.Duration;

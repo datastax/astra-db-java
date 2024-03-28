@@ -22,7 +22,7 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.internal.AbstractCommandRunner;
+import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.NamespaceOptions;
 import com.datastax.astra.internal.utils.Assert;

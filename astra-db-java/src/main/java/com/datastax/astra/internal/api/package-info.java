@@ -1,7 +1,7 @@
 /**
- * Internal technical classes
+ * Internal technical classes to marshall API responses
  */
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.api;
 /*-
  * #%L
  * Data API Java Client

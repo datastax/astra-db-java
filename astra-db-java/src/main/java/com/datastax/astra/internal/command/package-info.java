@@ -1,7 +1,7 @@
 /**
- * Internal technical classes
+ * Internal technical classes to run commands against the API.
  */
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.command;
 /*-
  * #%L
  * Data API Java Client

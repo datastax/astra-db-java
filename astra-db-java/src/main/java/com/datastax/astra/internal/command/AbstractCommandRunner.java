@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.command;
 
 /*-
  * #%L
@@ -21,11 +21,14 @@ package com.datastax.astra.internal;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.internal.http.RetryHttpClient;
+import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.ApiResponseHttp;
+import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.client.model.CommandRunner;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.internal.utils.CompletableFutures;
-import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;

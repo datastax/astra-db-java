@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.DatabaseInfo;
-import com.datastax.astra.internal.AstraApiEndpoint;
+import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.DbOpsClient;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;

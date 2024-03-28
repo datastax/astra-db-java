@@ -1,4 +1,4 @@
-package com.datastax.astra.internal;
+package com.datastax.astra.internal.command;
 
 /*-
  * #%L
@@ -20,6 +20,11 @@ package com.datastax.astra.internal;
  * #L%
  */
 
+import com.datastax.astra.internal.api.ApiData;
+import com.datastax.astra.internal.api.ApiError;
+import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.command.ExecutionInfos;
+import com.datastax.astra.internal.utils.AnsiUtils;
 import com.datastax.astra.internal.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,10 +32,6 @@ import org.slf4j.event.Level;
 
 import java.util.List;
 import java.util.UUID;
-
-import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
-import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
-import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
 
 /**
  * Implements a {@link CommandObserver} that logs command execution details. This observer uses SLF4J for logging,
@@ -84,28 +85,28 @@ public class LoggingCommandObserver implements CommandObserver {
         if (executionInfo != null) {
             String req = UUID.randomUUID().toString().substring(30);
             // Log Command
-            log("Command [" + cyan(executionInfo.getCommand().getName()) + "] with id [" + cyan(req) + "]");
-            log(magenta("[" + req + "][request]") + "=" + yellow("{}"),
+            log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
+            log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),
                     JsonUtils.marshallForDataApi(executionInfo.getCommand()));
-            log(magenta("[" + req + "][response]") + "=" + yellow("{}"),
+            log(AnsiUtils.magenta("[" + req + "][response]") + "=" + AnsiUtils.yellow("{}"),
                     JsonUtils.marshallForDataApi(executionInfo.getResponse()));
-            log(magenta("[" + req + "][responseTime]") + "=" + yellow("{}") + " millis.",
+            log(AnsiUtils.magenta("[" + req + "][responseTime]") + "=" + AnsiUtils.yellow("{}") + " millis.",
                     executionInfo.getExecutionTime());
             // Log Data
             ApiData data = executionInfo.getResponse().getData();
             if (data != null && data.getDocument() != null) {
-                log(magenta("[" + req + "][apiData/document]") + "=" + yellow("1 document retrieved, id='{}'"), data.getDocument().getId(Object.class));
+                log(AnsiUtils.magenta("[" + req + "][apiData/document]") + "=" + AnsiUtils.yellow("1 document retrieved, id='{}'"), data.getDocument().getId(Object.class));
             }
             if (data != null && data.getDocuments() != null) {
-                log(magenta("[" + req + "][apiData/documents]") + "=" + yellow("{} document(s)."), data.getDocuments().size());
+                log(AnsiUtils.magenta("[" + req + "][apiData/documents]") + "=" + AnsiUtils.yellow("{} document(s)."), data.getDocuments().size());
             }
 
             // Log Errors
             List<ApiError> errors = executionInfo.getResponse().getErrors();
             if (errors != null) {
-                log(magenta("[" + req + "][errors]") + "="+ yellow("{}") +" errors detected.", errors.size());
+                log(AnsiUtils.magenta("[" + req + "][errors]") + "="+ AnsiUtils.yellow("{}") +" errors detected.", errors.size());
                 for (ApiError error : errors) {
-                    log(magenta("[" + req + "][errors]")+ "="+ yellow("{} [code={}]"), error.getErrorMessage(), error.getErrorCode());
+                    log(AnsiUtils.magenta("[" + req + "][errors]")+ "="+ AnsiUtils.yellow("{} [code={}]"), error.getErrorMessage(), error.getErrorCode());
                 }
             }
         }

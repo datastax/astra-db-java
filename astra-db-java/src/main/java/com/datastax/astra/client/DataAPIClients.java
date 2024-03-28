@@ -20,9 +20,9 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.internal.LoggingCommandObserver;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.internal.TokenProviderStargate;
+import com.datastax.astra.internal.auth.TokenProviderStargate;
 
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 

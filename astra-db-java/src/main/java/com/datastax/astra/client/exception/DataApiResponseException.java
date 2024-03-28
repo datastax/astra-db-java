@@ -20,9 +20,9 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import com.datastax.astra.internal.ApiError;
-import com.datastax.astra.internal.ApiResponse;
-import com.datastax.astra.internal.ExecutionInfos;
+import com.datastax.astra.internal.api.ApiError;
+import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.command.ExecutionInfos;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 

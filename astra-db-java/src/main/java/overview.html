@@ -22,22 +22,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Java Client Library for Data API</title>
+    <title>Java Client Library for DataAPI</title>
 </head>
 <body>
 <h1>Overview</h1>
 <p>
- This client library provides a simplified way to interact with Data API for AstraDB or local instances. For detailed
- documentation, each operation comes with a detailed description and examples. For other documentation check the
- <a href="#">Datastax Astra documentation page</a>
-</p>
+ This client library provides a simplified way to interact with Data API with DataStax AstraDB or local deployments ( Stargate + Cassandra). </p>
+<p>More resources can be found:</p>
+ <ul>
+    <li>In <b><a href="https://docs.datastax.com/en/astra/astra-db-vector/clients/usage.html">Datastax Astra Client documentation page</a></b></li>
+    <li>In the  <b> <a href="https://github.com/datastax/astra-db-java">github repository</a></b> with an {@code examples}  section. </li>
+</ul>
+<p><img src="https://datastaxdevs.github.io/astra-db-java/overview.png" alt="logicial overview" height="400px"/></p>
 <h2>Installation</h2>
 
 <p>For Maven, add the following dependency to your <code>pom.xml</code>:</p>
 <div style="background: #ffffff; font-size:10px;overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .1em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #007700">&lt;dependency&gt;</span>
   <span style="color: #007700">&lt;groupId&gt;</span>com.datastax.astra<span style="color: #007700">&lt;/groupId&gt;</span>
   <span style="color: #007700">&lt;artifactId&gt;</span>astra-db-java<span style="color: #007700">&lt;/artifactId&gt;</span>
-  <span style="color: #007700">&lt;version&gt;</span>${project.version}<span style="color: #007700">&lt;/version&gt;</span>
+  <span style="color: #007700">&lt;version&gt;</span>1.0.0-SNAPSHOT<span style="color: #007700">&lt;/version&gt;</span>
 <span style="color: #007700">&lt;/dependency&gt;</span>
 </pre></div>
 
@@ -63,20 +66,20 @@
   <span style="color: #408080; font-style: italic">// Create collection with vector support</span>
   Collection<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> col <span style="color: #666666">=</span> db<span style="color: #666666">.</span><span style="color: #7D9029">createCollection</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;demo&quot;</span><span style="color: #666666">,</span> <span style="color: #666666">2,</span> cosine<span style="color: #666666">);</span>
 
-  <span style="color: #408080; font-style: italic">// Insert records</span>
+  <span style="color: #408080; font-style: italic">// Insert documents with embeddings</span>
   col<span style="color: #666666">.</span><span style="color: #7D9029">insertMany</span><span style="color: #666666">(</span>List<span style="color: #666666">.</span><span style="color: #7D9029">of</span><span style="color: #666666">(</span>
    <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc1&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.1</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.2f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">),</span>
    <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">().</span><span style="color: #7D9029">id</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc2&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.2</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.4f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;hello&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;world&quot;</span><span style="color: #666666">),</span>
    <span style="color: #008000; font-weight: bold">new</span> <span style="color: #0000FF">Document</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;doc3&quot;</span><span style="color: #666666">).</span><span style="color: #7D9029">vector</span><span style="color: #666666">(</span><span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">0.6f}).</span><span style="color: #7D9029">append</span><span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">))</span>
   <span style="color: #666666">);</span>
 
-  <span style="color: #408080; font-style: italic">// Search</span>
+  <span style="color: #408080; font-style: italic">// Semantic Search with metadata filtering</span>
   FindIterable<span style="color: #666666">&lt;</span>Document<span style="color: #666666">&gt;</span> docs <span style="color: #666666">=</span> col<span style="color: #666666">.</span><span style="color: #7D9029">find</span><span style="color: #666666">(</span>
     eq<span style="color: #666666">(</span><span style="color: #BA2121">&quot;key&quot;</span><span style="color: #666666">,</span> <span style="color: #BA2121">&quot;value1&quot;</span><span style="color: #666666">),</span> <span style="color: #408080; font-style: italic">// metadata filter</span>
     <span style="color: #008000; font-weight: bold">new</span> <span style="color: #B00040">float</span><span style="color: #666666">[]</span> <span style="color: #666666">{.5</span>f<span style="color: #666666">,</span> <span style="color: #666666">.5</span>f<span style="color: #666666">},</span>              <span style="color: #408080; font-style: italic">//vector</span>
     <span style="color: #666666">10);</span>                                 <span style="color: #408080; font-style: italic">// maxRecord</span>
 
-  <span style="color: #408080; font-style: italic">// Iterate and print your results</span>
+  <span style="color: #408080; font-style: italic">// Iterate over and print your results</span>
   <span style="color: #008000; font-weight: bold">for</span> <span style="color: #666666">(</span>Document doc <span style="color: #666666">:</span> docs<span style="color: #666666">)</span> System<span style="color: #666666">.</span><span style="color: #7D9029">out</span><span style="color: #666666">.</span><span style="color: #7D9029">println</span><span style="color: #666666">(</span>doc<span style="color: #666666">);</span>
  <span style="color: #666666">}</span>
 <span style="color: #666666">}</span>
