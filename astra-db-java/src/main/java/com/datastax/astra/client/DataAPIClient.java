@@ -337,31 +337,16 @@ public class DataAPIClient {
      * operations such as querying, updating, and managing data within the specified database and namespace.
      *
      * @param databaseId The unique identifier of the database to interact with.
-     * @param cloud The cloud provider on which the database is deployed, values are AWS, GCP, or AZURE.
-     * @param region The cloud provider region where the database is deployed.
-     * @return
-     *      A {@link Database} client configured to interact with the specified database and namespace, allowing for
-     *      data manipulation and query operations.
-     */
-    public Database getDatabase(UUID databaseId, CloudProviderType cloud, String region) {
-        return getDatabase(databaseId, cloud, region, DEFAULT_NAMESPACE);
-    }
-
-    /**
-     * Retrieves a client for a specific database, enabling interactions with the Data API. This method allows for
-     * operations such as querying, updating, and managing data within the specified database and namespace.
-     *
-     * @param databaseId The unique identifier of the database to interact with.
-     * @param cloud The cloud provider on which the database is deployed, values are AWS, GCP, or AZURE.
-     * @param region The cloud provider region where the database is deployed.
      * @param namespace The namespace associated to this database
+     * @param region The cloud provider region where the database is deployed.
+     *
      * @return
      *      A {@link Database} client configured to interact with the specified database and namespace, allowing for
      *      data manipulation and query operations.
      */
-    public Database getDatabase(UUID databaseId, CloudProviderType cloud, String region, String namespace) {
+    public Database getDatabase(UUID databaseId, String namespace, String region) {
         Assert.notNull(databaseId, "databaseId");
-        Assert.notNull(cloud, "cloud");
+        Assert.hasLength(namespace, "namespace");
         Assert.hasLength(region, "namespace");
         return new Database(new AstraApiEndpoint(databaseId, region,
                 getAstraEnvironment()).getApiEndPoint(),

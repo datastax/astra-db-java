@@ -35,7 +35,7 @@ class VectorizePreviewITTest {
     @BeforeAll
     public static void setup() {
         // Dev KUBERNETES, aws, us-west-2
-        db = DataAPIClients.astraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
+        db = DataAPIClients.createForAstraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
     }
 
 

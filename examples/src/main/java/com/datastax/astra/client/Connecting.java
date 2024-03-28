@@ -25,8 +25,7 @@ public class Connecting {
         UUID databaseId = UUID.fromString("f5abf92f-ff66-48a0-bbc2-d240bc25dc1f");
         Database db3 = client.getDatabase(databaseId);
         Database db4 = client.getDatabase(databaseId, "*NAMESPACE*");
-        Database db5 = client.getDatabase(databaseId, CloudProviderType.GCP, "us-east-2");
-        Database db6 = client.getDatabase(databaseId, CloudProviderType.GCP, "us-east-2", "*NAMESPACE*");
+        Database db5 = client.getDatabase(databaseId, "*NAMESPACE*", "us-east-2");
 
     }
 }

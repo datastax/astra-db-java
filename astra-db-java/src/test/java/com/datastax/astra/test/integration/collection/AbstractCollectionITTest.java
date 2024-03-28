@@ -132,15 +132,15 @@ abstract class AbstractCollectionITTest implements TestConstants {
     public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
-                return DataAPIClients.astraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
+                return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
                         .getAdmin();
             case PROD:
-                return DataAPIClients.astra(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
+                return DataAPIClients.create(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
                         .getAdmin();
             case TEST:
-                return DataAPIClients.astraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
+                return DataAPIClients.createForAstraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
                                 .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
                         .getAdmin();
             default:
@@ -241,12 +241,12 @@ abstract class AbstractCollectionITTest implements TestConstants {
         Optional<Product> doc = getCollectionVector().findOne(eq(1));
 
         // Find One with a filter and projection
-        Optional<Product> doc2 = getCollectionVector().findOne(eq(1), new FindOneOptions()
-                .projection(Map.of("product_name",1)));
+
+        Optional<Product> doc2 = getCollectionVector().findOne(eq(1),
+                FindOneOptions.builder().projection("product_name").build());
 
         // Find One with a projection only
-        Optional<Product> doc3 = getCollectionVector().findOne(null, new FindOneOptions()
-                .projection(Map.of("product_name",1)));
+        Optional<Product> doc3 = getCollectionVector().findOne(null, FindOneOptions.builder().projection("product_name").build());
     }
 
     @Test

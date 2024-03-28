@@ -135,7 +135,23 @@ public class AstraDBAdmin {
      *      list of database names
      */
     public List<String> listDatabaseNames() {
-        return listDatabases().map(db -> db.getInfo().getName()).collect(Collectors.toList());
+        return listDatabases().stream()
+                .map(DatabaseInfo::getName)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * List active databases with vector enabled in current organization.
+     *
+     * @return
+     *      active databases list
+     */
+    public List<DatabaseInfo> listDatabases() {
+        return devopsDbClient
+                .findAllNonTerminated()
+                .filter(db -> db.getInfo().getDbType() != null) // we only want vectorDB
+                .map(DatabaseInfo::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -163,17 +179,7 @@ public class AstraDBAdmin {
         return devopsDbClient.findById(id.toString()).isPresent();
     }
 
-    /**
-     * List active databases with vector enabled in current organization.
-     *
-     * @return
-     *      active databases list
-     */
-    public Stream<Database> listDatabases() {
-        return devopsDbClient
-                .findAllNonTerminated()
-                .filter(db -> db.getInfo().getDbType() != null);
-    }
+
 
     /**
      * Create new database with a name on free tier. The database name should not exist in the tenant.
@@ -208,7 +214,10 @@ public class AstraDBAdmin {
         Assert.hasLength(name, "name");
         Assert.notNull(cloud, "cloud");
         Assert.hasLength(cloudRegion, "cloudRegion");
-        Optional<Database> optDb = listDatabases().filter(db->name.equals(db.getInfo().getName())).findFirst();
+        Optional<Database> optDb = listDatabases().stream()
+                .filter(db->name.equals(db.getName()))
+                .findFirst()
+                .map(DatabaseInfo::getRawDevopsResponse);
         // Handling all cases for the user
         if (optDb.isPresent()) {
             Database db = optDb.get();
@@ -295,9 +304,9 @@ public class AstraDBAdmin {
     public boolean dropDatabase(@NonNull String databaseName) {
         Assert.hasLength(databaseName, "database");
         Assert.hasLength(databaseName, "Database ");
-        Optional<Database> db = listDatabases().filter(d -> d.getInfo().getName().equals(databaseName)).findFirst();
+        Optional<DatabaseInfo> db = listDatabases().stream().filter(d -> d.getName().equals(databaseName)).findFirst();
         if (db.isPresent()) {
-            devopsDbClient.database(db.get().getId()).delete();
+            devopsDbClient.database(db.get().getId().toString()).delete();
             return true;
         }
         return false;

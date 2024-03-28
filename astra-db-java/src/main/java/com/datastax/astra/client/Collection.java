@@ -45,9 +45,7 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.Page;
-import com.datastax.astra.client.model.Projection;
 import com.datastax.astra.client.model.ReplaceOneOptions;
-import com.datastax.astra.client.model.SortOrder;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
@@ -58,10 +56,8 @@ import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -851,10 +847,10 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *  // Assuming a Document in the collection with an id field
      *  Document doc = new Document().id(1).append("name", "John Doe");
      *  // To find the document with the id 1
-     *  FindOneOptions options = FindOneOptions.builder()
-     *    .withIncludeSimilarity()                    // return similarity in vector search
-     *    .withProjection(Map.of("name", 1),  // return a subset of fields
-     *    .build());
+     *  FindOneOptions options2 = FindOneOptions.builder()
+     *    .withIncludeSimilarity()     // return similarity in vector search
+     *    .projections("_id", "name")  // return a subset of fields
+     *    .build();
      *  Optional<Document> foundDoc = collection.findOne(Filters.eq("_id", 1), );
      *  foundDoc.ifPresent(System.out::println);
      * }
@@ -902,6 +898,46 @@ public class Collection<DOC> extends AbstractCommandRunner {
     public CompletableFuture<Optional<DOC>> findOneASync(Filter filter) {
         return CompletableFuture.supplyAsync(() -> findOne(filter));
     }
+
+
+    /**
+     * Asynchronously attempts to find a single document within the collection that matches the given filter criteria,
+     * utilizing the specified {@link FindOneOptions} for the query. This method offers a non-blocking approach to
+     * querying the database, making it well-suited for applications requiring efficient I/O operations without
+     * compromising the responsiveness of the application.
+     *
+     * <p>By executing the search operation in an asynchronous manner, this method allows other tasks to proceed
+     * concurrently, effectively utilizing system resources and improving application throughput. The query leverages
+     * a {@link Filter} instance to define the search criteria, and {@link FindOneOptions} to specify query
+     * customizations, such as projection or sort parameters.</p>
+     *
+     * <p>In cases where no document matches the filter, the method returns a {@link CompletableFuture} completed with
+     * an empty {@link java.util.Optional}, thus avoiding exceptions for non-existent documents. This behavior ensures
+     * a more graceful handling of such scenarios, allowing for cleaner and more robust client code by leveraging
+     * the {@link java.util.Optional} pattern within asynchronous workflows.</p>
+     *
+     * @param filter  The {@link Filter} instance encapsulating the criteria used to identify the desired document.
+     *                It defines the conditions that a document must meet to be considered a match.
+     * @param options The {@link FindOneOptions} providing additional query configurations such as projection
+     *                and sort criteria to tailor the search operation.
+     * @return A {@link CompletableFuture<Optional<DOC>>} that, upon completion, contains an {@link Optional<DOC>}
+     *         with the found document if one exists matching the filter criteria. If no matching document is found,
+     *         a completed future with an empty {@link Optional} is returned, facilitating safe asynchronous retrieval.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Filter filter = Filters.eq("id", 1);
+     * FindOneOptions options = FindOneOptions.builder().projection("name");
+     * CompletableFuture<Optional<Document>> futureDoc = collection.findOneASync(filter, options);
+     * futureDoc.thenAccept(doc -> doc.ifPresent(System.out::println));
+     * }
+     * </pre>
+     */
+    public CompletableFuture<Optional<DOC>> findOneASync(Filter filter, FindOneOptions options) {
+        return CompletableFuture.supplyAsync(() -> findOne(filter, options));
+    }
+
     /**
      * Retrieves a document by its identifier from the collection.
      * <p>
@@ -916,6 +952,40 @@ public class Collection<DOC> extends AbstractCommandRunner {
      */
     public Optional<DOC> findById(Object id) {
         return findOne(Filters.eq(id));
+    }
+
+    /**
+     * Asynchronously retrieves a document from the collection by its unique identifier. This method wraps
+     * the synchronous {@code findById} operation in a {@link CompletableFuture}, enabling non-blocking
+     * database queries that improve application responsiveness and efficiency. The method is ideal for
+     * applications that require the retrieval of specific documents without impacting the performance
+     * of the user interface or other concurrent operations.
+     *
+     * <p>The unique identifier used to locate the document is typically the primary key or a unique field
+     * within the collection. This method abstracts the complexity of asynchronous programming, providing
+     * a straightforward way to execute and handle database queries within a non-blocking model.</p>
+     *
+     * <p>If the document with the specified identifier exists, it is wrapped in an {@link Optional} and
+     * returned within the completed future. Otherwise, the future is completed with an empty {@link Optional},
+     * neatly handling cases where no matching document is found without throwing exceptions.</p>
+     *
+     * @param id The unique identifier of the document to retrieve. This can be of any type that the database
+     *           recognizes as a valid identifier format (e.g., String, Integer).
+     * @return A {@link CompletableFuture<Optional<DOC>>} that, upon completion, contains an {@link Optional<DOC>}
+     *         with the document if found. If no document matches the specified identifier, a completed future
+     *         with an empty {@link Optional} is returned.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Object documentId = "uniqueDocumentId123";
+     * CompletableFuture<Optional<Document>> futureDocument = collection.findByIdASync(documentId);
+     * futureDocument.thenAccept(document -> document.ifPresent(System.out::println));
+     * }
+     * </pre>
+     */
+    public CompletableFuture<Optional<DOC>> findByIdASync(Object id) {
+        return CompletableFuture.supplyAsync(() -> findById(id));
     }
 
     /**
@@ -942,7 +1012,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over all documents in the collection.
      */
     public FindIterable<DOC> find() {
-        return find(null, new FindOptions());
+        return find(null, FindOptions.builder().build());
     }
 
     /**
@@ -956,7 +1026,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the documents that match the filter.
      */
     public FindIterable<DOC> find(Filter filter) {
-        return find(filter, new FindOptions());
+        return find(filter, FindOptions.builder().build());
     }
 
     /**
@@ -975,7 +1045,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      */
     public FindIterable<DOC> find(Filter filter, float[] vector, int limit) {
         return find(filter, FindOptions.builder()
-                .withVector(vector)
+                .vector(vector)
                 .limit(limit)
                 .build());
     }
@@ -994,7 +1064,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      */
     public FindIterable<DOC> find(Filter filter, String vectorize, int limit) {
         return find(filter, FindOptions.builder()
-                .withVectorize(vectorize)
+                .vectorize(vectorize)
                 .limit(limit)
                 .build());
     }

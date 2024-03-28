@@ -34,7 +34,7 @@ public class Sort {
     String field;
 
     /** sort for the field. */
-    SortOrder sort;
+    SortOrder order;
 
     /** Default constructor. */
     public Sort() {}
@@ -52,7 +52,7 @@ public class Sort {
     public static Sort of(String field, SortOrder sort) {
         Sort p = new Sort();
         p.field = field;
-        p.sort = sort;
+        p.order = sort;
         return p;
     }
 

@@ -68,6 +68,6 @@ public class DeleteOneOptions {
      *      current reference  find
      */
     public DeleteOneOptions sortingBy(String fieldName, SortOrder ordering) {
-        return sortingBy(new Document().append(fieldName, ordering.getOrder()));
+        return sortingBy(new Document().append(fieldName, ordering.getCode()));
     }
 }

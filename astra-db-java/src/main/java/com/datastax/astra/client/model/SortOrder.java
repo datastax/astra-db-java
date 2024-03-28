@@ -35,16 +35,16 @@ public enum SortOrder {
     DESCENDING(-1);
 
     /** Order value. */
-    private final Integer order;
+    private final Integer code;
 
     /**
      * Constructor for the enum.
      *
-     * @param order
+     * @param code
      *      value for the order
      */
-    SortOrder(Integer order) {
-        this.order = order;
+    SortOrder(Integer code) {
+        this.code = code;
     }
 
 }

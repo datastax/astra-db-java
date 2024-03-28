@@ -11,7 +11,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     /** {@inheritDoc} */
     @Override
     protected Database initDatabase() {
-        return DataAPIClients.localDatabase();
+        return DataAPIClients.createDefaultLocalDatabase();
     }
 
 }

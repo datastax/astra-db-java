@@ -87,6 +87,6 @@ public class UpdateOneOptions {
      *      current reference  find
      */
     public UpdateOneOptions sortingBy(String fieldName, SortOrder ordering) {
-        return sortingBy(new Document().append(fieldName, ordering.getOrder()));
+        return sortingBy(new Document().append(fieldName, ordering.getCode()));
     }
 }

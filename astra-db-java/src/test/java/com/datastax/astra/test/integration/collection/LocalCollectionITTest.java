@@ -11,7 +11,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     /** {@inheritDoc} */
     @Override
     protected Database initDatabase() {
-        return DataAPIClients.localDatabase();
+        return DataAPIClients.createDefaultLocalDatabase();
     }
 
 }

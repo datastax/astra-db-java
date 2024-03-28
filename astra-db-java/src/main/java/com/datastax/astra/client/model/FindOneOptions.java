@@ -60,6 +60,9 @@ public class FindOneOptions {
 
     /**
      * Default constructor.
+     *
+     * @param builder
+     *    builder to help creating the immutable object.
      */
     public FindOneOptions(FindOneOptionsBuilder builder) {
         this.sort = builder.sort;
@@ -105,6 +108,40 @@ public class FindOneOptions {
         }
 
         /**
+         * Builder for the projection.
+         *
+         * @param fields
+         *     list of fields to include
+         * @return
+         *     self reference
+         */
+        public FindOneOptionsBuilder projections(String... fields) {
+            if (fields != null) {
+                for (String field : fields) {
+                    projection(field);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Builder for the projection.
+         *
+         * @param field
+         *      field to be present
+         * @return
+         *     self reference
+         */
+        public FindOneOptionsBuilder projection(String field) {
+            Assert.hasLength(field, "field");
+            if (this.projection == null) {
+                this.projection = new LinkedHashMap<>();
+            }
+            this.projection.put(field, 1);
+            return this;
+        }
+
+        /**
          * Provide a way to enter projections elements
          *
          * @param projections
@@ -112,7 +149,7 @@ public class FindOneOptions {
          * @return
          *     self reference
          */
-        public FindOneOptionsBuilder withProjection(List<Projection> projections) {
+        public FindOneOptionsBuilder projections(List<Projection> projections) {
             Assert.notNull(projections, "projection");
             if (this.projection == null) {
                 this.projection = new LinkedHashMap<>();
@@ -131,7 +168,7 @@ public class FindOneOptions {
          * @return
          *      current command.
          */
-        public FindOneOptionsBuilder withProjection(Map<String, Integer> pProjection) {
+        public FindOneOptionsBuilder projections(Map<String, Integer> pProjection) {
             Assert.notNull(pProjection, "projection");
             if (this.projection == null) {
                 this.projection = new LinkedHashMap<>();
@@ -141,48 +178,19 @@ public class FindOneOptions {
         }
 
         /**
-         * Add a criteria with $vectorize in the sort clause
-         *
-         * @param vectorize
-         *      an expression to look for vectorization
-         * @return
-         *      current command
-         */
-        public FindOneOptionsBuilder withVectorize(String vectorize) {
-            Assert.hasLength(vectorize, "vectorize");
-            return sortBy(new Document().append(Document.VECTORIZE, vectorize));
-        }
-
-        /**
-         * Add a criteria with $vector in the sort clause
-         *
-         * @param vector
-         *      vector float
-         * @return
-         *      current command
-         */
-        public FindOneOptionsBuilder withVector(float[] vector) {
-            Assert.notNull(vector, "vector");
-            return sortBy(new Document().append(Document.VECTOR, vector));
-        }
-
-        /**
          * Fluent api.
          *
-         * @param field
-         *      field name
-         * @param order
-         *      orders
+         * @param pSort
+         *      list of sorts
          * @return
          *      Self reference
          */
-        public FindOneOptionsBuilder sortBy(String field, SortOrder order) {
-            Assert.notNull(order, "order");
-            Assert.hasLength(field, "field");
+        public FindOneOptionsBuilder sort(Sort pSort) {
+            Assert.notNull(pSort, "sort");
             if (this.sort == null) {
-                sort = new Document();
+                this.sort = new Document();
             }
-            this.sort.put(field, order.getOrder());
+            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
             return this;
         }
 
@@ -194,13 +202,13 @@ public class FindOneOptions {
          * @return
          *      Self reference
          */
-        public FindOneOptionsBuilder sortBy(List<Sort> sorts) {
+        public FindOneOptionsBuilder sort(List<Sort> sorts) {
             Assert.notNull(sorts, "sort");
             if (this.sort == null) {
                 sort = new Document();
             }
             for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getSort().getOrder());
+                this.sort.put(s.getField(), s.getOrder().getCode());
             }
             return this;
         }
@@ -213,7 +221,7 @@ public class FindOneOptions {
          * @return
          *      current command.
          */
-        public FindOneOptionsBuilder sortBy(Document pSort) {
+        public FindOneOptionsBuilder sort(Document pSort) {
             Assert.notNull(pSort, "sort");
             if (this.sort == null) {
                 sort = new Document();

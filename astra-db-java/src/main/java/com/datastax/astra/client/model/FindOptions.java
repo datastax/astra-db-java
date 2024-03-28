@@ -37,27 +37,27 @@ public class FindOptions {
     /**
      * Order by.
      */
-    private Document sort;
+    private final Document sort;
 
     /**
      * Projection for return document (select)
      */
-    private Map<String, Integer> projection;
+    private final Map<String, Integer> projection;
 
     /**
      * Skip a few result in the beginning
      */
-    private Integer skip;
+    private final Integer skip;
 
     /**
      * Stop processing after a few results
      */
-    private Integer limit;
+    private final Integer limit;
 
     /**
      * Flag to include similarity in the result when operating a semantic search.
      */
-    private Boolean includeSimilarity;
+    private final Boolean includeSimilarity;
 
     /**
      * Page state.
@@ -67,25 +67,17 @@ public class FindOptions {
 
     /**
      * Default constructor.
-     */
-    public FindOptions() {
-    }
-
-    /**
-     * Default constructor.
      *
      * @param builder
      *      builder to initialize the options
      */
     public FindOptions(FindOptionsBuilder builder) {
-        if (builder != null) {
-            this.includeSimilarity = builder.includeSimilarity;
-            this.projection = builder.projection;
-            this.pageState  = builder.pageState;
-            this.sort       = builder.sort;
-            this.skip       = builder.skip;
-            this.limit      = builder.limit;
-        }
+        this.includeSimilarity = builder.includeSimilarity;
+        this.projection = builder.projection;
+        this.pageState  = builder.pageState;
+        this.sort       = builder.sort;
+        this.skip       = builder.skip;
+        this.limit      = builder.limit;
     }
 
     /**
@@ -96,32 +88,6 @@ public class FindOptions {
      */
     public static FindOptionsBuilder builder() {
         return new FindOptionsBuilder();
-    }
-
-    /**
-     * Builder options with a vectorize.
-     *
-     * @param vectorize
-     *     vectorize expression
-     * @return
-     *      self references
-     */
-    public static FindOptions vectorize(String vectorize) {
-        Assert.hasLength(vectorize, "vectorize");
-        return builder().withVectorize(vectorize).build();
-    }
-
-    /**
-     * Builder options with 'vectorize'.
-     *
-     * @param vector
-     *     build a find query on vector
-     * @return
-     *      self references
-     */
-    public static FindOptions vector(float[] vector) {
-        Assert.notNull(vector, "vector");
-        return builder().withVector(vector).build();
     }
 
     /**
@@ -171,7 +137,7 @@ public class FindOptions {
          * @return
          *      add a filter
          */
-        public FindOptionsBuilder withIncludeSimilarity() {
+        public FindOptionsBuilder includeSimilarity() {
             this.includeSimilarity = true;
             return this;
         }
@@ -184,8 +150,42 @@ public class FindOptions {
          * @return
          *      self reference
          */
-        public FindOptionsBuilder withPageState(String pageState) {
+        public FindOptionsBuilder pageState(String pageState) {
             this.pageState = pageState;
+            return this;
+        }
+
+        /**
+         * Builder for the projection.
+         *
+         * @param fields
+         *     list of fields to include
+         * @return
+         *     self reference
+         */
+        public FindOptionsBuilder projections(String... fields) {
+            if (fields != null) {
+                for (String field : fields) {
+                    projection(field);
+                }
+            }
+            return this;
+        }
+
+        /**
+         * Builder for the projection.
+         *
+         * @param field
+         *      field to be present
+         * @return
+         *     self reference
+         */
+        public FindOptionsBuilder projection(String field) {
+            Assert.hasLength(field, "field");
+            if (this.projection == null) {
+                this.projection = new LinkedHashMap<>();
+            }
+            this.projection.put(field, 1);
             return this;
         }
 
@@ -197,7 +197,7 @@ public class FindOptions {
          * @return
          *     self reference
          */
-        public FindOptionsBuilder withProjection(List<Projection> projections) {
+        public FindOptionsBuilder projections(List<Projection> projections) {
             Assert.notNull(projections, "projection");
             if (this.projection == null) {
                 this.projection = new LinkedHashMap<>();
@@ -216,7 +216,7 @@ public class FindOptions {
          * @return
          *      current command.
          */
-        public FindOptionsBuilder withProjection(Map<String, Integer> pProjection) {
+        public FindOptionsBuilder projections(Map<String, Integer> pProjection) {
             Assert.notNull(pProjection, "projection");
             if (this.projection == null) {
                 this.projection = new LinkedHashMap<>();
@@ -265,9 +265,8 @@ public class FindOptions {
          * @return
          *      current command
          */
-        public FindOptionsBuilder withVectorize(String vectorize) {
-            Assert.hasLength(vectorize, "vectorize");
-            return sortBy(new Document().append(Document.VECTORIZE, vectorize));
+        public FindOptionsBuilder vectorize(String vectorize) {
+            return sort(Sorts.vectorize(vectorize));
         }
 
         /**
@@ -278,28 +277,24 @@ public class FindOptions {
          * @return
          *      current command
          */
-        public FindOptionsBuilder withVector(float[] vector) {
-            Assert.notNull(vector, "vector");
-            return sortBy(new Document().append(Document.VECTOR, vector));
+        public FindOptionsBuilder vector(float[] vector) {
+            return sort(Sorts.vector(vector));
         }
 
         /**
          * Fluent api.
          *
-         * @param field
-         *      field name
-         * @param order
-         *      orders
+         * @param pSort
+         *      list of sorts
          * @return
          *      Self reference
          */
-        public FindOptionsBuilder sortBy(String field, SortOrder order) {
-            Assert.notNull(order, "order");
-            Assert.hasLength(field, "field");
+        public FindOptionsBuilder sort(Sort pSort) {
+            Assert.notNull(pSort, "sort");
             if (this.sort == null) {
-                sort = new Document();
+                this.sort = new Document();
             }
-            this.sort.put(field, order.getOrder());
+            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
             return this;
         }
 
@@ -311,13 +306,13 @@ public class FindOptions {
          * @return
          *      Self reference
          */
-        public FindOptionsBuilder sortBy(List<Sort> sorts) {
+        public FindOptionsBuilder sort(List<Sort> sorts) {
             Assert.notNull(sorts, "sort");
             if (this.sort == null) {
                 sort = new Document();
             }
             for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getSort().getOrder());
+                this.sort.put(s.getField(), s.getOrder().getCode());
             }
             return this;
         }
@@ -330,7 +325,7 @@ public class FindOptions {
          * @return
          *      current command.
          */
-        public FindOptionsBuilder sortBy(Document pSort) {
+        public FindOptionsBuilder sort(Document pSort) {
             Assert.notNull(pSort, "sort");
             if (this.sort == null) {
                 sort = new Document();
