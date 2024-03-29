@@ -122,8 +122,12 @@ public class Database extends AbstractCommandRunner {
         this.namespaceName = namespace;
         this.token         = token;
         this.options       = options;
-        this.databaseAdminEndpoint  = apiEndpoint + "/" + options.getApiVersion();
+        // Adding version number if needed
+        this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
+                apiEndpoint :
+                apiEndpoint + "/" + options.getApiVersion();
         StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
+        // Adding /api/json if needed for Astra.
         switch(options.destination) {
             case ASTRA:
             case ASTRA_TEST:

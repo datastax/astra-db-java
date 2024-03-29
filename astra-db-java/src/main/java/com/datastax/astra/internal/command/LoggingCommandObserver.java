@@ -88,9 +88,11 @@ public class LoggingCommandObserver implements CommandObserver {
             log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
             log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),
                     JsonUtils.marshallForDataApi(executionInfo.getCommand()));
-            log(AnsiUtils.magenta("[" + req + "][response]") + "=" + AnsiUtils.yellow("{}"),
+            log(AnsiUtils.magenta("[" + req + "][response-code]") + "=" + AnsiUtils.yellow("{}"),
+                    executionInfo.getResponseHttpCode());
+            log(AnsiUtils.magenta("[" + req + "][response-body]") + "=" + AnsiUtils.yellow("{}"),
                     JsonUtils.marshallForDataApi(executionInfo.getResponse()));
-            log(AnsiUtils.magenta("[" + req + "][responseTime]") + "=" + AnsiUtils.yellow("{}") + " millis.",
+            log(AnsiUtils.magenta("[" + req + "][response-time]") + "=" + AnsiUtils.yellow("{}") + " millis.",
                     executionInfo.getExecutionTime());
             // Log Data
             ApiData data = executionInfo.getResponse().getData();

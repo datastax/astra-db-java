@@ -1,7 +1,5 @@
 package com.datastax.astra.test.integration.collection;
 
-import com.datastax.astra.client.model.Sorts;
-import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIOptions;
@@ -22,11 +20,12 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.SortOrder;
+import com.datastax.astra.client.model.Sorts;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.test.TestConstants;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,14 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
-import static com.datastax.astra.client.model.SortOrder.ASCENDING;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -115,9 +112,8 @@ abstract class AbstractCollectionITTest implements TestConstants {
     public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
-        UUID databaseId =  client.createDatabase(DATABASE_NAME, cloud, region);
-        log.info("Working with api Endpoint '{}'", ApiLocator.getApiJsonEndpoint(env, databaseId.toString(), region));
-        Database db =  client.getDatabase(databaseId);
+        DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
+        Database db = databaseAdmin.getDatabase();
         db.registerListener("logger", new LoggingCommandObserver(Database.class));
         return db;
     }

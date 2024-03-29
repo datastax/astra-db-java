@@ -54,7 +54,7 @@ import lombok.Getter;
  * @see DataApiException
  */
 @Getter
-public class DataApiFaultyResponseException extends DataApiException {
+public class DataAPIFaultyResponseException extends DataApiException {
 
     /** Command which triggered the error. */
     private final Command command;
@@ -70,7 +70,7 @@ public class DataApiFaultyResponseException extends DataApiException {
      * @param res The actual response received from the Data API which was not as expected.
      * @param msg The detailed error message explaining the nature of the fault.
      */
-    public DataApiFaultyResponseException(Command cmd, ApiResponse res, String msg) {
+    public DataAPIFaultyResponseException(Command cmd, ApiResponse res, String msg) {
         super(DEFAULT_ERROR_CODE, msg);
         this.command = cmd;
         this.response = res;

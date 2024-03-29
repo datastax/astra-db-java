@@ -11,10 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Work with the AstraDBEndpoint Object.
  */
-public class AstraApiEndpointTest {
+class AstraApiEndpointTest {
 
     @Test
-    public void shouldParseApiEndpoint() {
+    void shouldParseApiEndpoint() {
         String url1 = "https://4391daae-016c-49e3-8d0a-b4633a86082c-us-east1.apps.astra.datastax.com";
         AstraApiEndpoint example1 = AstraApiEndpoint.parse(url1);
         assertThat(example1).isNotNull();

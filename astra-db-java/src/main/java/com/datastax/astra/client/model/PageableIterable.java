@@ -76,7 +76,7 @@ public abstract class PageableIterable<DOC> implements Closeable {
      */
     public boolean fetchNextPage() {
         if (currentPage == null || currentPage.getPageState().isPresent()) {
-            if (currentPage != null) {
+            if (currentPage != null && currentPage.getPageState().isPresent()) {
                 options.setPageState(currentPage.getPageState().get());
             }
             this.currentPage  = collection.findPage(filter, options);

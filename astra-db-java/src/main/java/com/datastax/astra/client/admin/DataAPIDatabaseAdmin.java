@@ -29,6 +29,8 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -73,9 +75,11 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
-    public Stream<String> listNamespaceNames() {
+    public Set<String> listNamespaceNames() {
         Command cmd = Command.create("findNamespaces");
-        return runCommand(cmd).getStatusKeyAsStringStream("namespaces");
+        return runCommand(cmd)
+                .getStatusKeyAsStringStream("namespaces")
+                .collect(Collectors.toSet());
     }
 
     /** {@inheritDoc} */

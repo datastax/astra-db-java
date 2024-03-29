@@ -41,36 +41,21 @@ package com.datastax.astra.client.exception;
  *
  * @author Cedrick LUNVEN (@clunven)
  */
-public class AuthenticationException extends IllegalStateException {
+public class AuthenticationException extends DataApiException {
     
     /** Serial. */
     private static final long serialVersionUID = -4491748257797687008L;
-    
-    /**
-     * Default Constructor.
-     */
-    public AuthenticationException() {
-        this("Cannot authenticate, check token and/or credentials");
-    }
-    
+
+    /** Error Code. */
+    private static final String ERROR_CODE = "AUTH-001";
+
     /**
      * Constructor with message
      * @param msg
      *      message
      */
     public AuthenticationException(String msg) {
-        super(msg);
-    }
-    
-    /**
-     * Constructor with message and exception
-     * @param msg
-     *      message
-     * @param parent
-     *      parent exception      
-     */
-    public AuthenticationException(String msg, Throwable parent) {
-        super(msg, parent);
+        super(ERROR_CODE, msg);
     }
 
 }

@@ -178,17 +178,15 @@ public class AstraDBAdmin {
         return devopsDbClient.findById(id.toString()).isPresent();
     }
 
-
-
     /**
      * Create new database with a name on free tier. The database name should not exist in the tenant.
      *
      * @param name
      *    database name
      * @return
-     *    database identifier
+     *   database admin object
      */
-    public UUID createDatabase(String name) {
+    public DatabaseAdmin createDatabase(String name) {
         Assert.hasLength(name, "name");
         return createDatabase(name, FREE_TIER_CLOUD, FREE_TIER_CLOUD_REGION);
     }
@@ -207,9 +205,9 @@ public class AstraDBAdmin {
      * @param waitForDb
      *      if set to true, the method is blocking
      * @return
-     *      database identifier
+     *      database admin object
      */
-    public UUID createDatabase(String name, CloudProviderType cloud, String cloudRegion, boolean waitForDb) {
+    public DatabaseAdmin createDatabase(String name, CloudProviderType cloud, String cloudRegion, boolean waitForDb) {
         Assert.hasLength(name, "name");
         Assert.notNull(cloud, "cloud");
         Assert.hasLength(cloudRegion, "cloudRegion");
@@ -223,7 +221,7 @@ public class AstraDBAdmin {
             switch(db.getStatus()) {
                 case ACTIVE:
                     log.info("Database " + green("{}") + " already exists and is ACTIVE.", name);
-                    return UUID.fromString(db.getId());
+                    return getDatabaseAdmin(UUID.fromString(db.getId()));
                 case MAINTENANCE:
                 case INITIALIZING:
                 case PENDING:
@@ -232,14 +230,14 @@ public class AstraDBAdmin {
                     if (waitForDb) {
                         waitForDatabase(devopsDbClient.database(db.getId()));
                     }
-                    return UUID.fromString(db.getId());
+                    return getDatabaseAdmin(UUID.fromString(db.getId()));
                 case HIBERNATED:
                     log.info("Database {} is in {} state, resuming...", name, db.getStatus());
                     resumeDb(db);
                     if (waitForDb) {
                         waitForDatabase(devopsDbClient.database(db.getId()));
                     }
-                    return UUID.fromString(db.getId());
+                    return getDatabaseAdmin(UUID.fromString(db.getId()));
                 default:
                     throw new IllegalStateException("Database already exist but cannot be activate");
             }
@@ -255,7 +253,7 @@ public class AstraDBAdmin {
         if (waitForDb) {
             waitForDatabase(devopsDbClient.database(newDbId.toString()));
         }
-        return newDbId;
+        return getDatabaseAdmin(newDbId);
     }
 
     /**
@@ -270,9 +268,9 @@ public class AstraDBAdmin {
      * @param cloudRegion
      *      cloud region
      * @return
-     *      database identifier
+     *      database admin object
      */
-    public UUID createDatabase(String name, CloudProviderType cloud, String cloudRegion) {
+    public DatabaseAdmin createDatabase(String name, CloudProviderType cloud, String cloudRegion) {
         return createDatabase(name, cloud, cloudRegion, true);
     }
 

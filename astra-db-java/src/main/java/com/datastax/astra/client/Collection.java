@@ -21,7 +21,7 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.exception.DataApiFaultyResponseException;
+import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.BulkWriteOptions;
 import com.datastax.astra.client.model.BulkWriteResult;
@@ -104,11 +104,11 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * }
  * </pre>
  *
- * @param <DOC>
+ * @param <T>
  *     Java bean to unmarshall documents for collection.
  */
 @Slf4j
-public class Collection<DOC> extends AbstractCommandRunner {
+public class Collection<T> extends AbstractCommandRunner {
 
     /** Collection identifier. */
     @Getter
@@ -116,7 +116,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
 
     /** Working class representing documents of the collection. The default value is {@link Document}. */
     @Getter
-    protected final Class<DOC> documentClass;
+    protected final Class<T> documentClass;
 
     /** Parent Database reference.  */
     @Getter
@@ -155,7 +155,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    protected Collection(Database db, String collectionName, Class<DOC> clazz) {
+    protected Collection(Database db, String collectionName, Class<T> clazz) {
         notNull(db, "database");
         notNull(clazz, "working class");
         hasLength(collectionName, "collectionName");
@@ -331,14 +331,14 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final InsertOneResult insertOne(DOC document) {
+    public final InsertOneResult insertOne(T document) {
         Assert.notNull(document, "document");
         return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class));
     }
 
     /**
      * Asynchronously inserts a single document into the collection. This method provides the same functionality as
-     * {@link #insertOne(DOC document)}, but it operates asynchronously, returning a {@link CompletableFuture} that
+     * {@link #insertOne(T document)}, but it operates asynchronously, returning a {@link CompletableFuture} that
      * will be completed with the insertion result. Utilizing this method is beneficial for non-blocking operations,
      * allowing other tasks to proceed while the document insertion is being processed.
      *
@@ -346,11 +346,11 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * applications requiring high throughput or for operations that do not need immediate completion confirmation.</p>
      *
      * <p>For details on the behavior, parameters, and return type, refer to the documentation of the synchronous
-     * {@link #insertOne(DOC document)} method. This method inherits all the properties and behaviors of its synchronous
+     * {@link #insertOne(T document)} method. This method inherits all the properties and behaviors of its synchronous
      * counterpart, including error handling and the generation or requirement of the {@code _id} field.</p>
      *
      * @param document The document to be inserted into the collection. The specifications regarding the document
-     *                 structure and the {@code _id} field are the same as described in {@link #insertOne(DOC document)}.
+     *                 structure and the {@code _id} field are the same as described in {@link #insertOne(T document)}.
      * @return A {@link CompletableFuture} that, upon completion, contains the result of the insert operation as an
      *         {@link InsertOneResult}. The completion may occur with a result in case of success or with an exception
      *         in case of failure.
@@ -366,12 +366,12 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(DOC document) {
+    public final CompletableFuture<InsertOneResult> insertOneAsync(T document) {
         return CompletableFuture.supplyAsync(() -> insertOne(document));
     }
 
     /**
-     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(DOC document)}
+     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(T document)}
      * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
      * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
      * of the insertion, maintaining the integrity and consistency of the collection.
@@ -404,7 +404,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final InsertOneResult insertOne(DOC document, float[] embeddings) {
+    public final InsertOneResult insertOne(T document, float[] embeddings) {
         Assert.notNull(document, "document");
         Assert.notNull(embeddings, "vectorize");
         return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vector(embeddings));
@@ -412,7 +412,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a single document into the collection with vector embeddings. This method mirrors the
-     * functionality of {@link #insertOne(DOC document, float[] embeddings)}, operating asynchronously to return a
+     * functionality of {@link #insertOne(T document, float[] embeddings)}, operating asynchronously to return a
      * {@link CompletableFuture} that completes with the insertion result. It is designed for use cases where
      * non-blocking operations are essential, enabling other processes to continue while the document insertion
      * is executed in the background.
@@ -423,7 +423,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * critical.</p>
      *
      * <p>For a comprehensive understanding of the behavior, parameters, including the purpose and use of vector
-     * embeddings, refer to the synchronous {@link #insertOne(DOC document, float[] embeddings)} method. This
+     * embeddings, refer to the synchronous {@link #insertOne(T document, float[] embeddings)} method. This
      * asynchronous variant adopts all the behaviors and properties of its synchronous counterpart.</p>
      *
      * @param document   The document to be inserted, potentially without an {@code _id} field which, if omitted,
@@ -446,13 +446,13 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(DOC document, float[] embeddings) {
+    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, float[] embeddings) {
         return CompletableFuture.supplyAsync(() -> insertOne(document, embeddings));
     }
 
     /**
      * Inserts a single document into the collection in an atomic operation, extending the base functionality of
-     * the {@link #insertOne(DOC document)} method by adding the capability to compute and include a vector of embeddings
+     * the {@link #insertOne(T document)} method by adding the capability to compute and include a vector of embeddings
      * directly within the document. This is achieved through a specified expression, which the service translates
      * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
      * vector similarity.
@@ -486,7 +486,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final InsertOneResult insertOne(DOC document, String vectorize) {
+    public final InsertOneResult insertOne(T document, String vectorize) {
         Assert.notNull(document, "document");
         Assert.hasLength(vectorize, "vectorize");
         return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vectorize(vectorize));
@@ -494,7 +494,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a single document into the collection with a vectorization expression. This method
-     * provides an asynchronous counterpart to {@link #insertOne(DOC document, String vectorize)}, allowing for
+     * provides an asynchronous counterpart to {@link #insertOne(T document, String vectorize)}, allowing for
      * non-blocking operations while a document, along with its vectorization based on the provided string, is
      * inserted into the collection.
      *
@@ -505,7 +505,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * <p>For detailed information on the behavior and parameters, especially the purpose and processing of the
      * {@code vectorize} string, refer to the documentation of the synchronous
-     * {@link #insertOne(DOC document, String vectorize)} method. This asynchronous method inherits all functionalities
+     * {@link #insertOne(T document, String vectorize)} method. This asynchronous method inherits all functionalities
      * and behaviors from its synchronous counterpart, ensuring consistency across the API.</p>
      *
      * @param document  The document to be inserted into the collection. The requirements and options regarding the
@@ -530,7 +530,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(DOC document, String vectorize) {
+    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, String vectorize) {
         return CompletableFuture.supplyAsync(() -> insertOne(document, vectorize));
     }
 
@@ -606,7 +606,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *                                  the options specified are invalid.
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
-    public InsertManyResult insertMany(List<? extends DOC> documents, InsertManyOptions options) {
+    public InsertManyResult insertMany(List<? extends T> documents, InsertManyOptions options) {
         Assert.isTrue(documents != null && !documents.isEmpty(), "documents list cannot be null or empty");
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
@@ -635,8 +635,13 @@ public class Collection<DOC> extends AbstractCommandRunner {
             } else {
                 throw new TimeoutException("Request did not complete withing ");
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread was interrupted while waiting", e);
+        }  catch (TimeoutException e) {
+            throw new RuntimeException("Operation timed out", e);
         } catch (Exception e) {
-            throw new RuntimeException("Cannot merge call results into a InsertManyResult", e);
+            throw new RuntimeException("Error occurred during async operation", e.getCause());
         }
         return finalResult;
     }
@@ -684,7 +689,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *         or exceptionally in case of an error.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      */
-    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends DOC> documents, InsertManyOptions options) {
+    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends T> documents, InsertManyOptions options) {
         return CompletableFuture.supplyAsync(() -> insertMany(documents, options));
     }
 
@@ -716,7 +721,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
-    public InsertManyResult insertMany(List<? extends DOC> documents) {
+    public InsertManyResult insertMany(List<? extends T> documents) {
         return insertMany(documents, InsertManyOptions.builder().build());
     }
 
@@ -758,7 +763,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *         case of an error.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      */
-    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends DOC> documents) {
+    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends T> documents) {
         return CompletableFuture.supplyAsync(() -> insertMany(documents));
     }
 
@@ -774,7 +779,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      insert many result for a paged call
      */
-    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends DOC> documents, InsertManyOptions options, int start) {
+    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends T> documents, InsertManyOptions options, int start) {
         int end = Math.min(start + options.getChunkSize(), documents.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
@@ -822,11 +827,11 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * @param filter The {@link Filter} instance encapsulating the search criteria used to pinpoint the desired document.
      *               This object specifies the exact conditions that must be met for a document to be selected as a match.
-     * @return An {@link java.util.Optional<DOC>} encapsulating the found document, if any, that meets the filter criteria.
+     * @return An {@link java.util.Optional< T >} encapsulating the found document, if any, that meets the filter criteria.
      *         If no document matches the specified conditions, an empty {@link java.util.Optional} is returned, ensuring
      *         that retrieval operations can be performed safely without the concern of {@link java.util.NoSuchElementException}.
      */
-    public Optional<DOC> findOne(Filter filter) {
+    public Optional<T> findOne(Filter filter) {
         return findOne(filter, FindOneOptions.builder().build());
     }
 
@@ -859,11 +864,11 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
      *               It specifies the conditions that a document must meet to be considered a match.
      * @param options The {@link FindOneOptions} instance containing additional options for the find operation,
-     * @return An {@link Optional<DOC>} that contains the found document if one exists that matches
+     * @return An {@link Optional< T >} that contains the found document if one exists that matches
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
-    public Optional<DOC> findOne(Filter filter, FindOneOptions options) {
+    public Optional<T> findOne(Filter filter, FindOneOptions options) {
         notNull(options, "options");
         Command findOne = Command
                 .create("findOne")
@@ -895,7 +900,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *         otherwise, it is empty to indicate the absence of a matching document. This future allows for
      *         non-blocking operations and facilitates the integration of asynchronous programming patterns.
      */
-    public CompletableFuture<Optional<DOC>> findOneASync(Filter filter) {
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter) {
         return CompletableFuture.supplyAsync(() -> findOne(filter));
     }
 
@@ -920,7 +925,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *                It defines the conditions that a document must meet to be considered a match.
      * @param options The {@link FindOneOptions} providing additional query configurations such as projection
      *                and sort criteria to tailor the search operation.
-     * @return A {@link CompletableFuture<Optional<DOC>>} that, upon completion, contains an {@link Optional<DOC>}
+     * @return A {@link CompletableFuture<Optional< T >>} that, upon completion, contains an {@link Optional< T >}
      *         with the found document if one exists matching the filter criteria. If no matching document is found,
      *         a completed future with an empty {@link Optional} is returned, facilitating safe asynchronous retrieval.
      *
@@ -934,7 +939,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public CompletableFuture<Optional<DOC>> findOneASync(Filter filter, FindOneOptions options) {
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter, FindOneOptions options) {
         return CompletableFuture.supplyAsync(() -> findOne(filter, options));
     }
 
@@ -950,7 +955,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return An {@link Optional} containing the found document, or an empty {@link Optional} if no document
      *         matches the provided {@code id}.
      */
-    public Optional<DOC> findById(Object id) {
+    public Optional<T> findById(Object id) {
         return findOne(Filters.eq(id));
     }
 
@@ -971,7 +976,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * @param id The unique identifier of the document to retrieve. This can be of any type that the database
      *           recognizes as a valid identifier format (e.g., String, Integer).
-     * @return A {@link CompletableFuture<Optional<DOC>>} that, upon completion, contains an {@link Optional<DOC>}
+     * @return A {@link CompletableFuture<Optional< T >>} that, upon completion, contains an {@link Optional< T >}
      *         with the document if found. If no document matches the specified identifier, a completed future
      *         with an empty {@link Optional} is returned.
      *
@@ -984,7 +989,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public CompletableFuture<Optional<DOC>> findByIdASync(Object id) {
+    public CompletableFuture<Optional<T>> findByIdASync(Object id) {
         return CompletableFuture.supplyAsync(() -> findById(id));
     }
 
@@ -998,7 +1003,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      the find iterable interface
      */
-    public FindIterable<DOC> find(Filter filter, FindOptions options) {
+    public FindIterable<T> find(Filter filter, FindOptions options) {
         return new FindIterable<>(this, filter, options);
     }
 
@@ -1011,7 +1016,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *
      * @return A {@link FindIterable} for iterating over all documents in the collection.
      */
-    public FindIterable<DOC> find() {
+    public FindIterable<T> find() {
         return find(null, FindOptions.builder().build());
     }
 
@@ -1025,7 +1030,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param filter The query filter to apply when retrieving documents.
      * @return A {@link FindIterable} for iterating over the documents that match the filter.
      */
-    public FindIterable<DOC> find(Filter filter) {
+    public FindIterable<T> find(Filter filter) {
         return find(filter, FindOptions.builder().build());
     }
 
@@ -1043,7 +1048,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param limit The maximum number of documents to return.
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
-    public FindIterable<DOC> find(Filter filter, float[] vector, int limit) {
+    public FindIterable<T> find(Filter filter, float[] vector, int limit) {
         return find(filter, FindOptions.builder()
                 .vector(vector)
                 .limit(limit)
@@ -1062,7 +1067,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param limit The maximum number of documents to return.
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
-    public FindIterable<DOC> find(Filter filter, String vectorize, int limit) {
+    public FindIterable<T> find(Filter filter, String vectorize, int limit) {
         return find(filter, FindOptions.builder()
                 .vectorize(vectorize)
                 .limit(limit)
@@ -1080,7 +1085,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param options The {@link FindOptions} to apply when executing the find operation.
      * @return A {@link FindIterable} for iterating over the documents according to the specified options.
      */
-    public FindIterable<DOC> find(FindOptions options) {
+    public FindIterable<T> find(FindOptions options) {
         return find(null, options);
     }
 
@@ -1106,7 +1111,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @param options The {@link FindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.
      */
-    public Page<DOC> findPage(Filter filter, FindOptions options) {
+    public Page<T> findPage(Filter filter, FindOptions options) {
         Command findCommand = Command
                 .create("find")
                 .withFilter(filter)
@@ -1140,12 +1145,12 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *      the field name
      * @param resultClass
      *      the class to cast any distinct items into.
-     * @param <FIELD>
+     * @param <F>
      *      the target type of the iterable.
      * @return
      *      an iterable of distinct values
      */
-    public <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Class<FIELD> resultClass) {
+    public <F> DistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
         return distinct(fieldName, null, resultClass);
     }
 
@@ -1158,12 +1163,12 @@ public class Collection<DOC> extends AbstractCommandRunner {
      *      the query filter
      * @param resultClass
      *      the class to cast any distinct items into.
-     * @param <FIELD>
+     * @param <F>
      *      the target type of the iterable.
      * @return
      *      an iterable of distinct values
      */
-    public <FIELD> DistinctIterable<DOC, FIELD> distinct(String fieldName, Filter filter, Class<FIELD> resultClass) {
+    public <F> DistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
         return new DistinctIterable<>(this, fieldName, filter, resultClass);
     }
 
@@ -1385,7 +1390,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      the document that was replaced.  Depending on the value of the {@code returnOriginal} property, this will either be the document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be returned
      */
-    public Optional<DOC> findOneAndReplace(Filter filter, DOC replacement) {
+    public Optional<T> findOneAndReplace(Filter filter, T replacement) {
         return findOneAndReplace(filter, replacement, new FindOneAndReplaceOptions());
     }
 
@@ -1404,7 +1409,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    public Optional<DOC> findOneAndReplace(Filter filter, DOC replacement, FindOneAndReplaceOptions options) {
+    public Optional<T> findOneAndReplace(Filter filter, T replacement, FindOneAndReplaceOptions options) {
 
         Command findOneAndReplace = Command
                 .create("findOneAndReplace")
@@ -1438,7 +1443,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      result of the replace one operation
      */
-    public UpdateResult replaceOne(Filter filter, DOC replacement) {
+    public UpdateResult replaceOne(Filter filter, T replacement) {
         return replaceOne(filter, replacement, new ReplaceOneOptions());
     }
 
@@ -1454,7 +1459,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      the result of the replace one operation
      */
-    public UpdateResult replaceOne(Filter filter, DOC replacement, ReplaceOneOptions replaceOneOptions) {
+    public UpdateResult replaceOne(Filter filter, T replacement, ReplaceOneOptions replaceOneOptions) {
 
         Command findOneAndReplace = Command
                 .create("findOneAndReplace")
@@ -1466,7 +1471,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
                 );
 
         // Execute the `findOneAndReplace`
-        FindOneAndReplaceResult<DOC> res = executeFindOneAndReplace(findOneAndReplace);
+        FindOneAndReplaceResult<T> res = executeFindOneAndReplace(findOneAndReplace);
 
         // Parse the result for a replace one
         UpdateResult result = new UpdateResult();
@@ -1489,13 +1494,13 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      command result
      */
-    private FindOneAndReplaceResult<DOC> executeFindOneAndReplace(Command cmd) {
+    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd) {
         // Run Command
         ApiResponse apiResponse = runCommand(cmd);
         // Parse Command Result
-        FindOneAndReplaceResult<DOC> result = new FindOneAndReplaceResult<>();
+        FindOneAndReplaceResult<T> result = new FindOneAndReplaceResult<>();
         if (apiResponse.getData() == null) {
-            throw new DataApiFaultyResponseException(cmd, apiResponse,"Faulty response from find_one_and_replace API command.");
+            throw new DataAPIFaultyResponseException(cmd, apiResponse,"Faulty response from find_one_and_replace API command.");
         }
         if (apiResponse.getData().getDocument() != null) {
             result.setDocument(apiResponse
@@ -1526,7 +1531,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return the document that was updated before the update was applied.  If no documents matched the query filter, then null will be
      * returned
      */
-    public Optional<DOC> findOneAndUpdate(Filter filter, Update update) {
+    public Optional<T> findOneAndUpdate(Filter filter, Update update) {
         return findOneAndUpdate(filter, update, new FindOneAndUpdateOptions());
     }
 
@@ -1545,7 +1550,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    public Optional<DOC> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options) {
+    public Optional<T> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options) {
         notNull(update, "update");
         notNull(options, "options");
         Command cmd = Command
@@ -1696,7 +1701,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      the document that was removed.  If no documents matched the query filter, then null will be returned
      */
-    public Optional<DOC> findOneAndDelete(Filter filter) {
+    public Optional<T> findOneAndDelete(Filter filter) {
         return findOneAndDelete(filter, new FindOneAndDeleteOptions());
     }
 
@@ -1710,7 +1715,7 @@ public class Collection<DOC> extends AbstractCommandRunner {
      * @return
      *      the document that was removed.  If no documents matched the query filter, then null will be returned
      */
-    public Optional<DOC> findOneAndDelete(Filter filter, FindOneAndDeleteOptions options) {
+    public Optional<T> findOneAndDelete(Filter filter, FindOneAndDeleteOptions options) {
         Command findOneAndReplace = Command
                 .create("findOneAndDelete")
                 .withFilter(filter)
@@ -1764,16 +1769,22 @@ public class Collection<DOC> extends AbstractCommandRunner {
         if (options.isOrdered()) {
             result.setResponses(commands.stream().map(this::runCommand).collect(Collectors.toList()));
         } else {
-            ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
-            List<Future<ApiResponse>> futures = new ArrayList<>();
-            commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req))));
-            executor.shutdown();
+
             try {
+                ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+                List<Future<ApiResponse>> futures = new ArrayList<>();
+                commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req))));
+                executor.shutdown();
                 for (Future<ApiResponse> future : futures) {
                     result.getResponses().add(future.get());
                 }
-            } catch(Exception ex) {
-                throw new IllegalStateException("Cannot access command results", ex);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Thread was interrupted while waiting for command results", e);
+            } catch (RuntimeException e) {
+                throw new IllegalStateException("Cannot access command results", e);
+            } catch (Exception e) {
+                throw new IllegalStateException("Error occurred during command execution", e.getCause());
             }
         }
         return result;

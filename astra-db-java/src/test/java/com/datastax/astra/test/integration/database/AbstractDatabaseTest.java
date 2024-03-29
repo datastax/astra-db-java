@@ -1,5 +1,6 @@
 package com.datastax.astra.test.integration.database;
 
+import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -88,9 +89,8 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
-        UUID databaseId =  client.createDatabase(DATABASE_NAME, cloud, region);
-        log.info("Working with api Endpoint '{}'", ApiLocator.getApiJsonEndpoint(env, databaseId.toString(), region));
-        Database db =  client.getDatabase(databaseId);
+        DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
+        Database db = databaseAdmin.getDatabase();
         db.registerListener("logger", new LoggingCommandObserver(Database.class));
         return db;
     }
@@ -245,6 +245,11 @@ abstract class AbstractDatabaseTest implements TestConstants {
         assertThatThrownBy(collection::getOptions)
                 .isInstanceOf(DataApiException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
+        assertThatThrownBy(collection::getOptions)
+                .isInstanceOf(DataApiException.class)
+                .hasMessageContaining("COLLECTION_NOT_EXIST")
+                .extracting("errorCode")  // Extract the errorCode attribute
+                .isEqualTo("COLLECTION_NOT_EXIST");  // Replace EXPECTED_ERROR_CODE with the expected error code
     }
 
     @Test

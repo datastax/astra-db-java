@@ -66,6 +66,18 @@ public class FindOptions {
     private String pageState;
 
     /**
+     * Syntax sugar to create a FindOptions with a vectorize sort.
+     *
+     * @param vectorize
+     *      vectorize expression
+     * @return
+     *      find options
+     */
+    public static FindOptions vectorize(String vectorize) {
+        return FindOptions.builder().vectorize(vectorize).build();
+    }
+
+    /**
      * Default constructor.
      *
      * @param builder

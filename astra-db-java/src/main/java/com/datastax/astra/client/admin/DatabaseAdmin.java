@@ -23,6 +23,8 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CommandRunner;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -78,7 +80,7 @@ public interface DatabaseAdmin {
      * @return A {@link Stream<String>} containing the names of all namespaces within the current database. The stream
      *         provides a flexible and efficient means to process the namespace names according to the application's needs.
      */
-    Stream<String> listNamespaceNames();
+    Set<String> listNamespaceNames();
 
     /**
      * Asynchronously retrieves a stream of namespace names available in the current database. This method facilitates
@@ -105,7 +107,7 @@ public interface DatabaseAdmin {
      *         of all namespaces within the current database. This allows for the asynchronous processing of namespace
      *         names with the flexibility and efficiency benefits of using a stream.
      */
-    default CompletableFuture<Stream<String>> listNamespaceNamesAsync() {
+    default CompletableFuture<Set<String>> listNamespaceNamesAsync() {
         return CompletableFuture.supplyAsync(this::listNamespaceNames);
     }
 
@@ -252,7 +254,7 @@ public interface DatabaseAdmin {
      *      if namespace exists
      */
     default boolean namespaceExists(String namespace) {
-        return listNamespaceNames().anyMatch(namespace::equals);
+        return listNamespaceNames().contains(namespace);
     }
 
 }

@@ -16,6 +16,6 @@ mvn clean test jacoco:report
 
 - Push to SONAR
 ```json
-mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=clun_astra-db-java
+mvn clean test jacoco:report  verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=clun_astra-db-java
 ```
 

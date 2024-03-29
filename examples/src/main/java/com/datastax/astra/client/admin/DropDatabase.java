@@ -14,5 +14,6 @@ public class DropDatabase {
 
     // Delete an existing database by ID
     astraDBAdmin.dropDatabase(UUID.fromString("<database_id>"));
+
   }
 }

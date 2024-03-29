@@ -5,6 +5,7 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -36,13 +37,17 @@ class VectorizePreviewITTest {
     public static void setup() {
         // Dev KUBERNETES, aws, us-west-2
         db = DataAPIClients.createForAstraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
+
+        collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
+        collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
     }
 
 
 
     @Test
     public void shouldCreateACollectionWithNvidia() {
-        Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE, CollectionOptions.builder()
+        Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE,
+                CollectionOptions.builder()
                 .withVectorDimension(NVIDIA_DIMENSION)
                 .withVectorSimilarityMetric(SimilarityMetric.cosine)
                 .withVectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
@@ -54,29 +59,18 @@ class VectorizePreviewITTest {
 
     @Test
     public void shouldInsertOneDocumentWithVectorize() {
-        getCollectionVectorize().deleteAll();
+        collectionVectorize.deleteAll();
         Document document = new Document()
                 .append("name", "cedrick")
                 .vectorize("Life is too short for Javascript");
-        InsertOneResult res = getCollectionVectorize().insertOne(document);
+        InsertOneResult res = collectionVectorize.insertOne(document);
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isNotNull();
     }
 
     @Test
     public void testFindVectorize() {
-        getCollectionVectorize()
-                .find(vectorize("Life is too short for Javascript"))
+        collectionVectorize.find(vectorize("Life is too short for Javascript"))
                 .forEach(doc -> System.out.println(doc.toJson()));
     }
-
-
-    private Collection<Document> getCollectionVectorize() {
-        if (collectionVectorize == null) {
-            collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
-            collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
-        }
-        return collectionVectorize;
-    }
-
 }

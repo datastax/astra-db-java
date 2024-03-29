@@ -14,8 +14,6 @@ public class ListCollections {
 
         // Get Collection information (with options)
         Stream<CollectionInfo> collections = db.listCollections();
-        collections.map(CollectionInfo::getOptions)
-                   .forEach(System.out::println);
-
+        collections.map(CollectionInfo::getOptions).forEach(System.out::println);
     }
 }

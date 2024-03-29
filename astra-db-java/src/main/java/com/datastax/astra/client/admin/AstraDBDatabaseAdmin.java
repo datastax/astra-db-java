@@ -27,6 +27,8 @@ import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -129,10 +131,10 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /** {@inheritDoc} */
     @Override
-    public Stream<String> listNamespaceNames() {
+    public Set<String> listNamespaceNames() {
         return devopsDbClient
                 .database(databaseId.toString())
-                .keyspaces().findAll().stream();
+                .keyspaces().findAll();
     }
 
     /** {@inheritDoc} */

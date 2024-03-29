@@ -12,9 +12,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Test different use case of client serialization.
  */
-public class DocumentSerializationTest {
+class DocumentSerializationTest {
     @Test
-    public void shouldSerializeAsJson() {
+    void shouldSerializeAsJson() {
         String json = "{\"hello\":\"world\"}";
         assertThat(new Document().append("hello", "world").toJson()).isEqualTo(json);
         Document doc1 = Document.parse(json);
@@ -22,7 +22,7 @@ public class DocumentSerializationTest {
     }
 
     @Test
-    public void shouldSerializeCommand() {
+    void shouldSerializeCommand() {
         Command ccc = Command.create("createCollection")
                 .append("name", "demo")
                 .withOptions(CollectionOptions.builder()
@@ -33,7 +33,7 @@ public class DocumentSerializationTest {
     }
 
     @Test
-    public void shouldSerializeCommand2() {
+    void shouldSerializeCommand2() {
         assertThat(JsonUtils.marshallForDataApi(new Object())).isEqualTo("{}");
     }
 }

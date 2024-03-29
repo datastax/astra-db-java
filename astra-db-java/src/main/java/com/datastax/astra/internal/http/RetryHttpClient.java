@@ -21,7 +21,6 @@ package com.datastax.astra.internal.http;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.exception.AlreadyExistException;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.api.ApiResponseHttp;
@@ -101,6 +100,8 @@ public class RetryHttpClient implements ApiConstants {
                 .withExponentialBackoff()
                 .build();
 
+        userAgents.put(DataAPIOptions.DEFAULT_CALLER_NAME, DataAPIOptions.DEFAULT_CALLER_NAME);
+
         if (!userAgents.containsKey(config.getUserAgentCallerName())) {
             userAgents.put(config.getUserAgentCallerName(), config.getUserAgentCallerVersion());
         }
@@ -139,48 +140,6 @@ public class RetryHttpClient implements ApiConstants {
      *      target url
      * @param token
      *      authentication token
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp GET(String url, String token) {
-        return executeHttp("GET", url, token, null, CONTENT_TYPE_JSON, false);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp HEAD(String url, String token) {
-        return executeHttp("HEAD", url, token, null, CONTENT_TYPE_JSON, false);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp POST(String url, String token) {
-        return executeHttp("POST", url, token, null, CONTENT_TYPE_JSON, true);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
      * @param body
      *      request body
      * @return
@@ -188,52 +147,6 @@ public class RetryHttpClient implements ApiConstants {
      */
     public ApiResponseHttp POST(String url, String token, String body) {
         return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON, true);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp DELETE(String url, String token) {
-        return executeHttp("DELETE", url, token, null, CONTENT_TYPE_JSON, true);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @param body
-     *      request body
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp PUT(String url, String token, String body) {
-        return executeHttp("PUT", url, token, body, CONTENT_TYPE_JSON, false);
-    }
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @param body
-     *      request body
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp PATCH(String url, String token, String body) {
-        return executeHttp("PATCH", url, token, body, CONTENT_TYPE_JSON, true);
     }
 
     private HttpRequest builtHttpRequest(final String method,
@@ -252,9 +165,7 @@ public class RetryHttpClient implements ApiConstants {
                 .header(HEADER_CASSANDRA, token)
                 .header(HEADER_AUTHORIZATION, "Bearer " + token)
                 .timeout(Duration.ofSeconds(httpClientOptions.getResponseTimeoutInSeconds()))
-                .method(method, (body==null) ?
-                        HttpRequest.BodyPublishers.noBody() :
-                        HttpRequest.BodyPublishers.ofString(body))
+                .method(method, HttpRequest.BodyPublishers.ofString(body))
                 .build();
         } catch(URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URL '" + url + "'", e);
@@ -262,36 +173,19 @@ public class RetryHttpClient implements ApiConstants {
     }
 
     private ApiResponseHttp parseHttpResponse(HttpResponse<String> response, boolean mandatory) {
-        try {
-            // Parsing result as expected bean
-            ApiResponseHttp res;
-            if (response == null) {
-                return new ApiResponseHttp("Response is empty, please check url",
-                        HttpURLConnection.HTTP_UNAVAILABLE, null);
-            }
-            res = new ApiResponseHttp(response.body(), response.statusCode(),
+        ApiResponseHttp res = new ApiResponseHttp(response.body(), response.statusCode(),
                     response.headers().map().entrySet()
                             .stream()
                             .collect(Collectors.toMap(Map.Entry::getKey,
                                     entry -> entry.getValue().toString()))
-            );
-            // Error management
-            if (HttpURLConnection.HTTP_NOT_FOUND == res.getCode() && !mandatory) {
-                return res;
-            }
-            if (res.getCode() >= 300) {
-                log.error("Error for request url={}, method={}, code={}, body={}",
-                        response.request().uri().toString(), response.request().method(),
-                        res.getCode(), res.getBody());
-                processErrors(res, mandatory);
-            }
-            return res;
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid argument", e);
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Error in HTTP Request", e);
+        );
+        if (res.getCode() >= 300) {
+            log.error("Error for request url={}, method={}, code={}, body={}",
+                    response.request().uri().toString(), response.request().method(),
+                     res.getCode(), res.getBody());
+            processErrors(res, mandatory);
         }
+        return res;
     }
 
     /**
@@ -317,18 +211,10 @@ public class RetryHttpClient implements ApiConstants {
                                        final String token,
                                        String body,
                                        String contentType, boolean mandatory) {
-            // Parse request
-            HttpRequest httpRequest = builtHttpRequest(method, url, token, body, contentType);
-
-            // Invoking the expected endpoint
-            Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);
-
-            if (status.wasSuccessful()) {
-                return parseHttpResponse(status.getResult(), mandatory);
-            }
-            throw new RuntimeException(status.getLastExceptionThatCausedRetry());
+        HttpRequest httpRequest = builtHttpRequest(method, url, token, body, contentType);
+        Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);
+        return parseHttpResponse(status.getResult(), mandatory);
     }
-
 
     /**
      * Execute the HTTP request.
@@ -341,13 +227,7 @@ public class RetryHttpClient implements ApiConstants {
      *      http response
      */
     public ApiResponseHttp executeHttp(HttpRequest httpRequest , boolean mandatory) {
-        // Invoking the expected endpoint
-        Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);
-
-        if (status.wasSuccessful()) {
-            return parseHttpResponse(status.getResult(), mandatory);
-        }
-        throw new RuntimeException(status.getLastExceptionThatCausedRetry());
+        return parseHttpResponse(executeHttpRequest(httpRequest).getResult(), mandatory);
     }
 
     /**
@@ -381,33 +261,10 @@ public class RetryHttpClient implements ApiConstants {
      */
     private void processErrors(ApiResponseHttp res, boolean mandatory) {
         switch(res.getCode()) {
-            // 400
-            case HttpURLConnection.HTTP_BAD_REQUEST:
-                throw new IllegalArgumentException("Error Code=" + res.getCode() +
-                        " (HTTP_BAD_REQUEST) Invalid Parameters: "
-                        + res.getBody());
-                // 401
+            // 401
             case HttpURLConnection.HTTP_UNAUTHORIZED:
                 throw new AuthenticationException("Error Code=" + res.getCode() +
                         ", (HTTP_UNAUTHORIZED) Invalid Credentials Check your token: " +
-                        res.getBody());
-                // 403
-            case HttpURLConnection.HTTP_FORBIDDEN:
-                throw new AuthenticationException("Error Code=" + res.getCode() +
-                        ", (HTTP_FORBIDDEN) Invalid permissions, check your token: " +
-                        res.getBody());
-                // 404
-            case HttpURLConnection.HTTP_NOT_FOUND:
-                if (mandatory) {
-                    throw new IllegalArgumentException("Error Code=" + res.getCode() +
-                            "(HTTP_NOT_FOUND) Object not found:  "
-                            + res.getBody());
-                }
-                break;
-            // 409
-            case HttpURLConnection.HTTP_CONFLICT:
-                throw new AlreadyExistException("Error Code=" + res.getCode() +
-                        ", (HTTP_CONFLICT) Object may already exist with same identifiers: " +
                         res.getBody());
             case 422:
                 throw new IllegalArgumentException("Error Code=" + res.getCode() +

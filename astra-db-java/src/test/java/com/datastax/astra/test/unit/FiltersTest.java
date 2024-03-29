@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FiltersTest {
 
     @Test
-    public void testFiltersSerializations() {
+    void testFiltersSerializations() {
         Filter f = Filters.eq("hello", 3);
         assertThat(JsonUtils.marshallForDataApi(f)).isEqualTo("{\"hello\":3}");
     }

@@ -1,14 +1,15 @@
-package com.datastax.astra.client;
+package com.datastax.astra.client.database_admin;
 
 
-import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.DatabaseAdmin;
 
 import java.util.UUID;
 
 import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
 
-public class ConnectingAdmin {
+public class GetDatabaseAdmin {
     public static void main(String[] args) {
         // Default Initialization
         DataAPIClient client = new DataAPIClient("TOKEN");
@@ -16,7 +17,6 @@ public class ConnectingAdmin {
         // Accessing admin providing a new token possibly with stronger permissions
         AstraDBAdmin astradbAdmin = client.getAdmin("SUPER_USER_TOKEN");
 
-        // Create a Database
-        astradbAdmin.createDatabase("db-demo", GCP, "us-east-1").listNamespaceNames();
+        DatabaseAdmin admin = astradbAdmin.getDatabaseAdmin(UUID.fromString("<database_id>"));
     }
 }

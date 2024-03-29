@@ -91,16 +91,13 @@ public class DataApiResponseException extends DataApiException {
      *      list of errors
      */
     public List<ApiError> getApiErrors() {
-        if (commandsList != null) {
-            return commandsList.stream()
+        return commandsList.stream()
                     .map(ExecutionInfos::getResponse)
                     .filter(Objects::nonNull)
                     .map(ApiResponse::getErrors)
                     .filter(Objects::nonNull)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
-        }
-        return new ArrayList<>();
     }
 
     /**

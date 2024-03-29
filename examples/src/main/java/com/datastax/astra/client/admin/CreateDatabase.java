@@ -15,6 +15,6 @@ public class CreateDatabase {
     String cloudRegion = "us-east1";
 
     // Create a database
-    UUID newDbId = astraDBAdmin.createDatabase("DATABASE_NAME", cloudProvider, cloudRegion);
+    DatabaseAdmin admin = astraDBAdmin.createDatabase("DATABASE_NAME", cloudProvider, cloudRegion);
   }
 }

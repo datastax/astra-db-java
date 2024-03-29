@@ -20,6 +20,7 @@ package com.datastax.astra.internal.auth;
  * #L%
  */
 
+import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
@@ -27,6 +28,7 @@ import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.time.Duration;
 import java.util.Map;
@@ -46,7 +48,7 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
     public static final String DEFAULT_USERNAME      = "cassandra";
     
     /** Default password for Cassandra. */
-    public static final String DEFAULT_PASSWORD      = "cassandra";
+    public static final String DEFAULT_CREDENTIALS = "cassandra";
     
     /** Default URL for a Stargate node. */
     public static final String DEFAULT_AUTH_URL      = "http://localhost:8081";
@@ -73,19 +75,7 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
 
     /**  Using defaults settings. */
     public TokenProviderStargate() {
-        this(DEFAULT_USERNAME, DEFAULT_PASSWORD, DEFAULT_AUTH_URL);
-    }
-
-    /**
-     * Overriding credentials.
-     *
-     * @param username
-     *      username
-     * @param password
-     *      password
-     */
-    public TokenProviderStargate(String username, String password) {
-        this(username, password, DEFAULT_AUTH_URL);
+        this(DEFAULT_USERNAME, DEFAULT_CREDENTIALS, DEFAULT_AUTH_URL);
     }
 
     /**
@@ -101,8 +91,7 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
     public TokenProviderStargate(String username, String password, String url) {
         Assert.hasLength(username, "username");
         Assert.hasLength(password, "password");
-        Assert.notNull(url, "Url list");
-        Assert.isTrue(!url.isEmpty(), "Url list should not be empty");
+        Assert.hasLength(url, "Url list");
         this.username = username;
         this.password = password;
         this.authenticationUrl = url;
@@ -129,24 +118,19 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
      *      new value for a token
      */
     private String renewToken() {
+        String body = JsonUtils.marshallForDataApi(Map.of("username", username, "password", password));
         try {
-            String body = "{"
-                    + "  \"username\":" + JsonUtils.valueAsJson(username)
-                    + ", \"password\":" + JsonUtils.valueAsJson(password)
-                    + "}";
-
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(authenticationUrl + "/v1/auth"))
-                    .method("POST", HttpRequest.BodyPublishers.ofString(body))
-                    .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-                    .header(HEADER_USER_AGENT, REQUEST_WITH)
-                    .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
-                    .header(HEADER_REQUESTED_WITH, REQUEST_WITH)
-                    .build();
+              .uri(new URI(authenticationUrl + "/v1/auth"))
+              .method("POST", HttpRequest.BodyPublishers.ofString(body))
+              .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+              .header(HEADER_USER_AGENT, REQUEST_WITH)
+              .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
+              .header(HEADER_REQUESTED_WITH, REQUEST_WITH)
+              .build();
 
             // Reuse Execute HTTP for the retry mechanism
             ApiResponseHttp response = httpClient.executeHttp(request, true);
-
             if (response !=null) {
                 if (201 == response.getCode() || 200 == response.getCode()) {
                     return (String) JsonUtils.unmarshallBeanForDataApi(response.getBody(), Map.class).get("authToken");
@@ -154,8 +138,8 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
             }
             String errorMessage = (response != null) ? response.getBody() : "no response";
             throw new IllegalStateException("Cannot generate authentication token " + errorMessage);
-        } catch(Exception e)  {
-            throw new IllegalArgumentException("Cannot generate authentication token", e);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Authentication URL was invalid " + authenticationUrl, e);
         }
     }
 

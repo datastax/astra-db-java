@@ -22,7 +22,7 @@ package com.datastax.astra.client.model;
 
 import com.fasterxml.uuid.Generators;
 
-import java.util.Random;
+import java.security.SecureRandom;
 import java.util.UUID;
 
 /**
@@ -80,7 +80,7 @@ public class UUIDv7 {
      *      uuid v6.
      */
     public static UUIDv7 generate() {
-        return new UUIDv7(Generators.timeBasedEpochRandomGenerator(new Random()).generate());
+        return new UUIDv7(Generators.timeBasedEpochRandomGenerator(new SecureRandom()).generate());
     }
 
 }
