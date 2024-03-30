@@ -25,6 +25,7 @@ import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.BulkWriteOptions;
 import com.datastax.astra.client.model.BulkWriteResult;
+import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
@@ -44,21 +45,30 @@ import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.InsertOneResult;
+import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.Page;
 import com.datastax.astra.client.model.ReplaceOneOptions;
+import com.datastax.astra.client.model.UUIDv6;
+import com.datastax.astra.client.model.UUIDv7;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.CustomEJsonInstantDeserializer;
+import com.datastax.astra.internal.utils.CustomUuidv6Serializer;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -124,6 +134,16 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
+
+    /**
+     * Keep Collection options in -memory to avoid multiple calls to the API.
+     */
+    private CollectionOptions options;
+
+    /**
+     * Check if options has been fetched
+     */
+    private boolean optionChecked = false;
 
     /**
      * Constructs an instance of a collection within the specified database. This constructor
@@ -257,10 +277,11 @@ public class Collection<T> extends AbstractCommandRunner {
      *         such as vector and indexing options. Returns {@code null} if no options are set or applicable.
      */
     public CollectionOptions getOptions() {
-        return Optional
-                .ofNullable(getDefinition()
-                        .getOptions())
-                .orElse(new CollectionOptions());
+        if (!optionChecked) {
+            options = Optional.ofNullable(getDefinition().getOptions()).orElse(new CollectionOptions());
+            optionChecked = true;
+        }
+        return options;
     }
 
     /**
@@ -545,7 +566,51 @@ public class Collection<T> extends AbstractCommandRunner {
     private InsertOneResult _insertOne(Document document) {
         Assert.notNull(document, "document");
         Command insertOne = Command.create("insertOne").withDocument(document);
-        return new InsertOneResult(runCommand(insertOne).getStatusKeyAsList("insertedIds", Object.class).get(0));
+        Object documentId = runCommand(insertOne)
+                .getStatusKeyAsList("insertedIds", Object.class)
+                .get(0);
+        return new InsertOneResult(unmarshallDocumentId(documentId));
+    }
+
+    /**
+     * Unmarshall the document id.
+     *
+     * @param id
+     *      object id returned by the server
+     * @return
+     *      unmarshalled id
+     */
+    @SuppressWarnings("unchecked")
+    protected Object unmarshallDocumentId(Object id) {
+        if (id instanceof Map) {
+            // only maps will required to be unmarshalled
+            Map<String, Object> mapId = (Map<String, Object>) id;
+            if (mapId.containsKey("$date")) {
+                // eJson date
+                return  Instant.ofEpochMilli((Long) mapId.get("$date"));
+            }
+            if (mapId.containsKey("$uuid")) {
+                // defaultId with UUID
+                UUID uid = UUID.fromString((String) mapId.get("$uuid"));
+                if (getOptions() != null && getOptions().getDefaultId() != null) {
+                    switch(getOptions().getDefaultId().get("type")) {
+                        case uuidv6:
+                            return new UUIDv6(uid);
+                        case uuidv7:
+                            return new UUIDv7(uid);
+                        default:
+                            return uid;
+                    }
+                }
+                throw new IllegalStateException("Returned is is a UUID, but no defaultId is set in the collection definition.");
+            }
+            if (mapId.containsKey("$objectId")) {
+                // defaultId with ObjectId
+                return new ObjectId((String) mapId.get("$objectId"));
+            }
+            throw new IllegalArgumentException("Cannot marshall id " + id);
+        }
+        return id;
     }
 
     /**
@@ -786,7 +851,11 @@ public class Collection<T> extends AbstractCommandRunner {
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document().append("ordered", options.isOrdered()));
-            return new InsertManyResult(runCommand(insertMany).getStatusKeyAsList("insertedIds", Object.class));
+            return new InsertManyResult(runCommand(insertMany)
+                    .getStatusKeyAsList("insertedIds", Object.class)
+                    .stream()
+                    .map(this::unmarshallDocumentId)
+                    .collect(Collectors.toList()));
         };
     }
 
@@ -1791,6 +1860,18 @@ public class Collection<T> extends AbstractCommandRunner {
     }
 
     // --- Required for the Command Runner ---
+
+    /**
+     * Register the logging listener to the collection.
+     *
+     * @return
+     *      self reference
+     */
+    public Collection<T> enableLogging() {
+        registerListener("logger", new LoggingCommandObserver(Collection.class));
+        return this;
+    }
+
 
     /** {@inheritDoc} */
     @Override

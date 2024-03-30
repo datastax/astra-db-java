@@ -236,6 +236,7 @@ public class Document implements Map<String, Object>, Serializable {
         return get(ID, clazz);
     }
 
+
     /**
      * Set value for the identifier.
      *

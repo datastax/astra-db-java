@@ -87,4 +87,6 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         assertThat(getDatabaseAdmin().namespaceExists("ns2")).isFalse();
     }
 
+
+
 }

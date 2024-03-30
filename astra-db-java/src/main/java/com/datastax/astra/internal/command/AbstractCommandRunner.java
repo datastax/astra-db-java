@@ -20,6 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
+import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.api.ApiResponse;
@@ -34,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -111,13 +111,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /**
      * Asynchronously send calls to listener for tracing.
      *
-     * @param lambda
-     *      operations to execute
-     * @return
-     *      the void object
+     * @param lambda operations to execute
      */
-    private CompletionStage<Void> notifyASync(Consumer<CommandObserver> lambda) {
-        return CompletableFutures.allDone(observers.values().stream()
+    private void notifyASync(Consumer<CommandObserver> lambda) {
+        CompletableFutures.allDone(observers.values().stream()
                 .map(l -> CompletableFuture.runAsync(() -> lambda.accept(l)))
                 .collect(Collectors.toList()));
     }

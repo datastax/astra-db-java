@@ -36,6 +36,13 @@ public class UUIDv7 {
     private final UUID uuid;
 
     /**
+     * Default constructor.
+     */
+    public UUIDv7() {
+        this(Generators.timeBasedEpochRandomGenerator(new SecureRandom()).generate());
+    }
+
+    /**
      * Constructor.
      *
      * @param uuid
@@ -71,16 +78,6 @@ public class UUIDv7 {
      */
     public static UUIDv7 fromString(String strUUID) {
         return new UUIDv7(UUID.fromString(strUUID));
-    }
-
-    /**
-     * Generate a new UUIDv6.
-     *
-     * @return
-     *      uuid v6.
-     */
-    public static UUIDv7 generate() {
-        return new UUIDv7(Generators.timeBasedEpochRandomGenerator(new SecureRandom()).generate());
     }
 
 }

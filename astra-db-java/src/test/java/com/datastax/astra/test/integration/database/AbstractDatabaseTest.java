@@ -1,6 +1,12 @@
 package com.datastax.astra.test.integration.database;
 
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.model.CollectionIdTypes;
+import com.datastax.astra.client.model.InsertManyResult;
+import com.datastax.astra.client.model.InsertOneResult;
+import com.datastax.astra.client.model.ObjectId;
+import com.datastax.astra.client.model.UUIDv6;
+import com.datastax.astra.client.model.UUIDv7;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -14,18 +20,24 @@ import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.model.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -58,20 +70,19 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public Database getDatabase() {
         if (database == null) {
             AbstractDatabaseTest.database = initDatabase();
-
-            database.dropCollection(COLLECTION_SIMPLE);
-            database.dropCollection(COLLECTION_VECTOR);
-
-            database.dropCollection(COLLECTION_ALLOW);
-            database.dropCollection(COLLECTION_DENY);
-
-            database.dropCollection(COLLECTION_UUID);
-            database.dropCollection(COLLECTION_UUID_V6);
-            database.dropCollection(COLLECTION_UUID_V7);
-            database.dropCollection(COLLECTION_OBJECTID);
-
         }
         return database;
+    }
+
+    private void deleteAllCollections() {
+        getDatabase().dropCollection(COLLECTION_SIMPLE);
+        getDatabase().dropCollection(COLLECTION_VECTOR);
+        getDatabase().dropCollection(COLLECTION_ALLOW);
+        getDatabase().dropCollection(COLLECTION_DENY);
+        getDatabase().dropCollection(COLLECTION_UUID);
+        getDatabase().dropCollection(COLLECTION_UUID_V6);
+        getDatabase().dropCollection(COLLECTION_UUID_V7);
+        getDatabase().dropCollection(COLLECTION_OBJECTID);
     }
 
     /**
@@ -86,7 +97,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
      * @return
      *      the database instance
      */
-    public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
+    protected static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
         DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
@@ -103,7 +114,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
      * @return
      *      instance of AstraDBAdmin
      */
-    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
+    protected static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
                 return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
@@ -122,10 +133,14 @@ abstract class AbstractDatabaseTest implements TestConstants {
         }
     }
 
+    // ------------------------------------
+    // --------- Collections --------------
+    // ------------------------------------
 
     @Test
     @Order(1)
     public void shouldCreateCollectionSimple() {
+        deleteAllCollections();
         // When
         getDatabase().createCollection(COLLECTION_SIMPLE);
         assertThat(getDatabase().collectionExists(COLLECTION_SIMPLE)).isTrue();
@@ -261,6 +276,165 @@ abstract class AbstractDatabaseTest implements TestConstants {
         assertThatThrownBy(() -> invalid.insertOne(new Document().append("hello", "world")))
                 .isInstanceOf(DataApiException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
+    }
+
+    /**
+     * Bean to be used for the test suite
+     */
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    static class Product<ID> {
+        @JsonProperty("_id")
+        private ID     id;
+        private String name;
+        private Double price;
+        private UUID   code;
+    }
+
+    /**
+     * Bean to be used for the test suite
+     */
+    static class ProductObjectId extends Product<ObjectId> {
+        public ProductObjectId() { super(); }
+    }
+
+    @Test
+    @Order(10)
+    public void shouldCollectionWorkWithUUIDs() {
+        deleteAllCollections();
+        // When
+        Collection<Document> collectionUUID = getDatabase()
+                .createCollection(COLLECTION_UUID, CollectionOptions.builder()
+                .withDefaultId(CollectionIdTypes.uuid)
+                .build()).enableLogging();
+        collectionUUID.deleteAll();
+        UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
+        // Insert One
+        InsertOneResult res = collectionUUID.insertOne(new Document().id(uid).append("sample", uid));
+        assertThat(res).isNotNull();
+        assertThat(res.getInsertedId()).isInstanceOf(UUID.class);
+        Optional<Document> doc = collectionUUID.findOne(eq(uid));
+        assertThat(doc).isPresent();
+        assertThat(doc.get().get("sample", UUID.class)).isEqualTo(uid);
+        assertThat(doc.get().getId(UUID.class)).isInstanceOf(UUID.class);
+
+        // Insert Many
+        List<Document> docs = List.of(
+                new Document().append("idx", 1),
+                new Document().append("idx", 2),
+                new Document().append("idx", 3));
+        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        assertThat(resultsList).isNotNull();
+        resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUID.class));
+    }
+
+
+
+    @Test
+    @Order(11)
+    public void shouldCollectionWorkWithObjectIds() {
+        // When
+        Collection<Document> collectionUUID = getDatabase()
+                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
+                        .withDefaultId(CollectionIdTypes.objectId)
+                        .build()).enableLogging();
+        collectionUUID.deleteAll();
+
+        // Insert One
+        ObjectId id1 = new ObjectId();
+        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        assertThat(res).isNotNull();
+        assertThat(res.getInsertedId()).isInstanceOf(ObjectId.class);
+        Optional<Document> doc = collectionUUID.findOne(eq(id1));
+        assertThat(doc).isPresent();
+        assertThat(doc.get().get("sample", UUID.class)).isNotNull();
+        assertThat(doc.get().getId(ObjectId.class)).isInstanceOf(ObjectId.class);
+
+        // Insert Many
+        List<Document> docs = List.of(
+                new Document().append("idx", 1),
+                new Document().append("idx", 2),
+                new Document().append("idx", 3));
+        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        assertThat(resultsList).isNotNull();
+        resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(ObjectId.class));
+
+        // Use Bean
+        ProductObjectId product = new ProductObjectId();
+        product.setId(new ObjectId());
+        product.setName("name");
+        product.setCode(UUID.randomUUID());
+        product.setPrice(0d);
+        Collection<ProductObjectId> collectionObjectId = getDatabase()
+                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
+                        .withDefaultId(CollectionIdTypes.objectId)
+                        .build(), ProductObjectId.class).enableLogging();
+        collectionObjectId.deleteAll();
+        collectionObjectId.insertOne(product);
+        Optional<ProductObjectId> productObjectId = collectionObjectId.findOne(eq(product.getId()));
+        assertThat(productObjectId).isPresent();
+    }
+
+    @Test
+    @Order(12)
+    public void shouldCollectionWorkWithUUIDv6() {
+        // When
+        Collection<Document> collectionUUID = getDatabase()
+                .createCollection(COLLECTION_UUID_V6, CollectionOptions.builder()
+                        .withDefaultId(CollectionIdTypes.uuidv6)
+                        .build()).enableLogging();
+        collectionUUID.deleteAll();
+
+        // Insert One
+        UUIDv6 id1 = new UUIDv6();
+        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        assertThat(res).isNotNull();
+        assertThat(res.getInsertedId()).isInstanceOf(UUIDv6.class);
+        Optional<Document> doc = collectionUUID.findOne(eq(id1));
+        assertThat(doc).isPresent();
+        assertThat(doc.get().get("sample", UUID.class)).isNotNull();
+        assertThat(doc.get().getId(UUIDv6.class)).isInstanceOf(UUIDv6.class);
+
+        // Insert Many
+        List<Document> docs = List.of(
+                new Document().append("idx", 1),
+                new Document().append("idx", 2),
+                new Document().append("idx", 3));
+        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        assertThat(resultsList).isNotNull();
+        resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv6.class));
+    }
+
+    @Test
+    @Order(13)
+    public void shouldCollectionWorkWithUUIDv7() {
+        // When
+        Collection<Document> collectionUUID = getDatabase()
+                .createCollection(COLLECTION_UUID_V7, CollectionOptions.builder()
+                        .withDefaultId(CollectionIdTypes.uuidv7)
+                        .build()).enableLogging();
+        collectionUUID.deleteAll();
+
+        // Insert One
+        UUIDv7 id1 = new UUIDv7();
+        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        assertThat(res).isNotNull();
+        assertThat(res.getInsertedId()).isInstanceOf(UUIDv7.class);
+        Optional<Document> doc = collectionUUID.findOne(eq(id1));
+        assertThat(doc).isPresent();
+        assertThat(doc.get().get("sample", UUID.class)).isNotNull();
+        assertThat(doc.get().getId(UUIDv7.class)).isInstanceOf(UUIDv7.class);
+
+        // Insert Many
+        List<Document> docs = List.of(
+                new Document().append("idx", 1),
+                new Document().append("idx", 2),
+                new Document().append("idx", 3));
+        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        assertThat(resultsList).isNotNull();
+        resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv7.class));
     }
 
 }

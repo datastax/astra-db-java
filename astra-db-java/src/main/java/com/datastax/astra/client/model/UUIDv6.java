@@ -35,6 +35,13 @@ public class UUIDv6 {
     private final UUID uuid;
 
     /**
+     * Default constructor.
+     */
+    public UUIDv6() {
+        this(Generators.timeBasedReorderedGenerator().generate());
+    }
+
+    /**
      * Constructor.
      *
      * @param uuid
@@ -71,17 +78,5 @@ public class UUIDv6 {
     public static UUIDv6 fromString(String strUUID) {
         return new UUIDv6(UUID.fromString(strUUID));
     }
-
-    /**
-     * Generate a new UUIDv6.
-     *
-     * @return
-     *      uuid v6.
-     */
-    public static UUIDv6 generate() {
-        return new UUIDv6(Generators.timeBasedReorderedGenerator().generate());
-    }
-
-
 
 }

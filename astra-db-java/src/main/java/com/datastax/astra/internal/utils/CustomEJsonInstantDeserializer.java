@@ -45,6 +45,9 @@ public class CustomEJsonInstantDeserializer extends JsonDeserializer<Instant> {
     public Instant deserialize(JsonParser jp, DeserializationContext ctxt)
         throws IOException, JsonProcessingException {
         JsonNode node = jp.getCodec().readTree(jp);
+        if (null == node.get("$date")) {
+            throw new IllegalArgumentException("Cannot convert the expression as an Instant " + node);
+        }
         long timestamp = node.get("$date").asLong();
         return Instant.ofEpochMilli(timestamp);
     }

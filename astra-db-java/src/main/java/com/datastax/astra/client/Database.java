@@ -32,6 +32,7 @@ import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.NonNull;
@@ -376,6 +377,17 @@ public class Database extends AbstractCommandRunner {
     }
 
     // --- Required for the Command Runner ---
+
+    /**
+     * Register the logging listener to the collection.
+     *
+     * @return
+     *      self reference
+     */
+    public Database enableLogging() {
+        registerListener("logger", new LoggingCommandObserver(Database.class));
+        return this;
+    }
 
     /** {@inheritDoc} */
     @Override

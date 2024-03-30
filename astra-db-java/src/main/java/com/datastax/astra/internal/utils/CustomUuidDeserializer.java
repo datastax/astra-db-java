@@ -45,8 +45,10 @@ public class CustomUuidDeserializer extends JsonDeserializer<UUID> {
     public UUID deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException, JsonProcessingException {
         JsonNode node = jp.getCodec().readTree(jp);
-        String hexString = node.get("$uuid").asText();
-        return UUID.fromString(hexString);
+        if (null == node.get("$uuid")) {
+            throw new IllegalArgumentException("Cannot convert the expression as an UUID " + node);
+        }
+        return UUID.fromString(node.get("$uuid").asText());
     }
 
 }
