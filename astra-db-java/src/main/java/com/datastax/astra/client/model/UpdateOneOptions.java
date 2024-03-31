@@ -21,6 +21,7 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.OptionsUtils;
 import lombok.Data;
 
 import java.util.List;
@@ -43,121 +44,118 @@ public class UpdateOneOptions {
     private Document sort;
 
     /**
-     * Create a builder for those options.
-     *
-     * @return
-     *      instance of the builder.
-     */
-    public static UpdateOneOptionsBuilder builder() {
-        return new UpdateOneOptionsBuilder();
-    }
-
-    /**
      * Default constructor.
-     *
-     * @param builder
-     *    builder to help creating the immutable object.
      */
-    public UpdateOneOptions(UpdateOneOptionsBuilder builder) {
-        this.sort   = builder.sort;
-        this.upsert = builder.upsert;
+    public UpdateOneOptions() {
     }
 
     /**
-     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
-     * This builder will help to chain options.
+     * Upsert flag.
+     *
+     * @param upsert upsert flag
+     * @return current command.
      */
-    public static class UpdateOneOptionsBuilder {
+    public UpdateOneOptions upsert(Boolean upsert) {
+        this.upsert = upsert;
+        return this;
+    }
 
-        /**
-         * if upsert is selected
-         */
-        private Boolean upsert;
+    /**
+     * Syntax sugar as delete option is only a sort
+     *
+     * @param sort
+     *      add a filter
+     * @return
+     *      current command.
+     */
+    public UpdateOneOptions sort(Sort... sort) {
+        setSort(OptionsUtils.sort(sort));
+        return this;
+    }
 
-        /**
-         * Order by.
-         */
-        private Document sort;
-
-        /**
-         * Builder Pattern, update the upsert flag
-         *
-         * @param upsert
-         *     upsert flag
-         * @return
-         *      self reference
-         */
-        public UpdateOneOptionsBuilder upsert(Boolean upsert) {
-            Assert.notNull(upsert, "upsert");
-            this.upsert = upsert;
-            return this;
+    /**
+     * Add a criteria with $vectorize in the sort clause
+     *
+     * @param vectorize an expression to look for vectorization
+     * @param sorts The sort criteria to be applied to the delete operation.
+     * @return current command
+     */
+    public UpdateOneOptions vectorize(String vectorize, Sort ... sorts) {
+        setSort(Sorts.vectorize(vectorize));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
         }
+        return this;
+    }
 
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public UpdateOneOptionsBuilder sort(Sort pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                this.sort = new Document();
-            }
-            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
-            return this;
+    /**
+     * Add a criteria with $vector in the sort clause
+     *
+     * @param vector vector float
+     * @param sorts The sort criteria to be applied to the delete operation.
+     * @return current command
+     */
+    public UpdateOneOptions vector(float[] vector, Sort... sorts) {
+        setSort(Sorts.vector(vector));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
         }
-
-        /**
-         * Fluent api.
-         *
-         * @param sorts
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public UpdateOneOptionsBuilder sort(List<Sort> sorts) {
-            Assert.notNull(sorts, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getOrder().getCode());
-            }
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      add a filter
-         * @return
-         *      current command.
-         */
-        public UpdateOneOptionsBuilder sort(Document pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            this.sort.putAll(pSort);
-            return this;
-        }
-
-        /**
-         * Builder for the Options.
-         *
-         * @return
-         *      the find options object
-         */
-        public UpdateOneOptions build() {
-            return new UpdateOneOptions(this);
-        }
-
+        return this;
     }
 
 
+    /**
+     * Builder for creating {@link UpdateOneOptions} instances with a fluent API.
+     */
+    public static class Builder {
+
+        /**
+         * Hide constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * Create a new instance of {@link UpdateOneOptions}.
+         *
+         * @param upsert upsert flag
+         * @return new instance of {@link UpdateOneOptions}.
+         */
+        public static UpdateOneOptions upsert(boolean upsert) {
+            return new UpdateOneOptions().upsert(upsert);
+        }
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param sort The sort criteria to be applied to the delete operation.
+         * @return A new {@link UpdateOneOptions} instance configured with the provided sort criteria.
+         */
+        public static UpdateOneOptions sort(Sort... sort) {
+            return new UpdateOneOptions().sort(sort);
+        }
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param vectorize The sort criteria to be applied to the delete operation.
+         * @param sort The sort criteria to be applied to the delete operation.
+         * @return A new {@link UpdateOneOptions} instance configured with the provided sort criteria.
+         */
+        public static UpdateOneOptions vectorize(String vectorize, Sort... sort) {
+            return new UpdateOneOptions().vectorize(vectorize, sort);
+        }
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param vector The sort criteria to be applied to the delete operation.
+         * @param sort The sort criteria to be applied to the delete operation.
+         * @return A new {@link UpdateOneOptions} instance configured with the provided sort criteria.
+         */
+        public static UpdateOneOptions vector(float[] vector, Sort... sort) {
+            return new UpdateOneOptions().vector(vector, sort);
+        }
+    }
 
 }

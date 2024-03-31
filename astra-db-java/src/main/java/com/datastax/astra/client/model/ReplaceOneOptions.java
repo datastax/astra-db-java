@@ -31,10 +31,43 @@ public class ReplaceOneOptions {
     /**
      * if upsert is selected
      */
-    Boolean upsert = false;
+    Boolean upsert;
 
     /**
      * Default constructor.
      */
     public ReplaceOneOptions() {}
+
+    /**
+     * Upsert flag.
+     *
+     * @param upsert upsert flag
+     * @return current command.
+     */
+    public ReplaceOneOptions upsert(Boolean upsert) {
+        this.upsert = upsert;
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link ReplaceOneOptions} instances with a fluent API.
+     */
+    public static class Builder {
+
+        /**
+         * Hide constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * Create a new instance of {@link ReplaceOneOptions}.
+         *
+         * @param upsert upsert flag
+         * @return new instance of {@link ReplaceOneOptions}.
+         */
+        public static ReplaceOneOptions upsert(boolean upsert) {
+            return new ReplaceOneOptions().upsert(upsert);
+        }
+    }
 }

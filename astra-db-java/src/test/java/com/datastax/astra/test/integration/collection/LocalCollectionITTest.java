@@ -26,9 +26,8 @@ import static com.datastax.astra.client.model.Filters.lt;
 import static com.datastax.astra.client.model.Filters.lte;
 import static com.datastax.astra.client.model.Filters.ne;
 import static com.datastax.astra.client.model.Filters.nin;
-import static com.datastax.astra.client.model.InsertManyOptions.builder;
-import static com.datastax.astra.client.model.InsertManyOptions.ordered;
-import static com.datastax.astra.client.model.UpdateManyOptions.upsert;
+import static com.datastax.astra.client.model.InsertManyOptions.Builder.ordered;
+import static com.datastax.astra.client.model.UpdateManyOptions.Builder.upsert;
 import static com.datastax.astra.client.model.Updates.set;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -124,10 +123,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         try {
             getCollectionSimple().deleteAll();
-            InsertManyResult res = getCollectionSimple().insertMany(players, builder()
-                    .ordered(false).timeout(10000)
-                    .chunkSize(10).concurrency(1)
-                    .build());
+            InsertManyResult res = getCollectionSimple().insertMany(players,
+                    ordered(false).timeout(10000).chunkSize(10).concurrency(1));
         } catch (DataApiResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -145,14 +142,12 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
             documents.add(new Document().id(i).append("idx", i));
         }
         getCollectionSimple().deleteAll();
-        getCollectionSimple().insertMany(documents, builder().ordered(false).concurrency(5).build());
+        getCollectionSimple().insertMany(documents, ordered(false).concurrency(5));
         assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(nbDocs);
 
         getCollectionSimple().deleteMany(gt("idx", 500));
         assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(501);
     }
-
-    // ======== FIND =========
 
     @Test
     public void shouldTestFindWithFilters() {
@@ -169,7 +164,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         assertThat(getCollectionSimple().find(ne("_id", 20))
                 .all().size()).isEqualTo(22);
         assertThat(getCollectionSimple().find(exists("firstName"))
-                .all().size()).isEqualTo(22);
+                .all().size()).isEqualTo(23);
         assertThat(getCollectionSimple().find(and(exists("firstName"), gte("_id", 20)))
                 .all().size()).isEqualTo(4);
     }

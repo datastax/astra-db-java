@@ -20,6 +20,7 @@ import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
+import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.Sorts;
 import com.datastax.astra.client.model.Update;
@@ -54,9 +55,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.datastax.astra.client.model.DeleteOneOptions.sort;
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
+import static com.datastax.astra.client.model.FindOneOptions.Builder.projection;
+import static com.datastax.astra.client.model.FindOptions.Builder.sort;
+import static com.datastax.astra.client.model.InsertManyOptions.Builder.concurrency;
+import static com.datastax.astra.client.model.Projections.include;
+import static com.datastax.astra.client.model.Sorts.ascending;
 import static com.datastax.astra.client.model.Sorts.descending;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -297,12 +302,13 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         // Find One with a filter and projection
 
-        Optional<ProductString> doc2 = getCollectionVector().findOne(eq("1"),
-                FindOneOptions.builder().projection("name").build());
+        Optional<ProductString> doc2 = getCollectionVector().findOne(
+                eq("1"),
+                projection(include("name")));
 
         // Find One with a projection only
         Optional<ProductString> doc3 = getCollectionVector().findOne(null,
-                FindOneOptions.builder().projection("name").build());
+                projection(include("name")));
     }
 
     @Test
@@ -333,13 +339,10 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
     @Test
     public void testCountDocument() throws TooManyDocumentsToCountException {
-
-        InsertManyOptions.builder()
-                .ordered(false)
+        InsertManyOptions.Builder.ordered(false)
                 .concurrency(5) // recommended
                 .chunkSize(20)  // maximum chunk size is 20
-                .timeout(100)   // global timeout
-                .build();
+                .timeout(100);  // global timeout
 
         assertThatThrownBy(() -> getCollectionSimple().countDocuments(-1))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -399,10 +402,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
         // Sort = no paging
-        FindOptions options = FindOptions.builder()
-                .sort(Sorts.ascending("indice"))
-                .skip(11).limit(2)
-                .build();
+        FindOptions options = sort(ascending("indice")).skip(11).limit(2);
         List<Document> documents = getCollectionSimple().find(options).all();
         assertThat(documents.size()).isEqualTo(2);
         assertThat(documents.get(0).getInteger("indice")).isEqualTo(11);
@@ -429,7 +429,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        getCollectionSimple().insertMany(docList, InsertManyOptions.builder().concurrency(5).build());
+        getCollectionSimple().insertMany(docList, concurrency(5));
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 
@@ -506,7 +506,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .collect(Collectors.toList()));
         getCollectionSimple().deleteOne(
                 eq("test", "test"),
-                sort(descending("indice")));;
+                DeleteOneOptions.Builder.sort(descending("indice")));;
         results = getCollectionSimple()
                 .find().all()
                 .stream().collect(Collectors
@@ -668,7 +668,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
                         .inc("test", 1d)
                         .rename("field1", "field2")
                         .updateMul(Map.of("price", 1.1d)),
-                FindOneAndUpdateOptions.builder().returnDocumentAfter().build());
+                FindOneAndUpdateOptions.Builder.returnDocumentAfter());
         assertThat(doc).isPresent();
         assertThat(doc.get().getDouble("test")).isEqualTo(11.1d);
         assertThat(doc.get().getDouble("price")).isEqualTo(11.11d);

@@ -11,6 +11,7 @@ import java.util.Optional;
 import static com.datastax.astra.client.model.Filters.and;
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
+import static com.datastax.astra.client.model.FindOneOptions.Builder.vector;
 
 public class FindOne {
     public static void main(String[] args) {
@@ -30,9 +31,6 @@ public class FindOne {
         Optional<Document> res3 = collection.findOne(and(eq("name", "John"), gt("age", 30)));
 
         // FindOne with vector clause (no filter)
-        Optional<Document> res4 = collection.findOne(null, FindOneOptions.builder()
-                .sort(Sorts.vector(new float[] {.1f, .2f}))
-                        .withIncludeSimilarity()
-                .build());
+        Optional<Document> res4 = collection.findOne(null, vector(new float[] {.1f, .2f}).includeSimilarity());
     }
 }

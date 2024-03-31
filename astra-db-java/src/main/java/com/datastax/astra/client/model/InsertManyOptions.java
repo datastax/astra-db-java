@@ -21,6 +21,7 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
+import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -32,139 +33,133 @@ public class InsertManyOptions {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private final boolean ordered ;
+    private boolean ordered = false;
 
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private final int concurrency;
+    private int concurrency = 1;
 
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private final int chunkSize;
+    private int chunkSize = DataAPIOptions.getMaxDocumentsInInsert();
 
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private final int timeout;
+    private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
 
     /**
-     * Constructor leveraging the builder.
-     *
-     * @param builder
-     *      builder class
+     * Populate inserMany options
      */
-    private InsertManyOptions(Builder builder) {
-        this.ordered     = builder.ordered;
-        this.concurrency = builder.concurrency;
-        this.chunkSize   = builder.chunkSize;
-        this.timeout     = builder.timeout;
+    public InsertManyOptions() {
     }
 
     /**
-     * Expressed the most common options.
+     * Setter for ordered.
      *
      * @param ordered
-     *      if items are ordered
+     *      ordered value
      * @return
-     *      insert many option
+     *      insert many options
      */
-    public static InsertManyOptions ordered(Boolean ordered) {
-        return new InsertManyOptions.Builder()
-                .ordered(ordered)
-                .build();
+    public InsertManyOptions ordered(boolean ordered) {
+        this.ordered = ordered;
+        return this;
     }
 
+
     /**
-     * Create a builder for the options.
+     * Setter for concurrency.
      *
+     * @param concurrency
+     *      concurrency value
      * @return
-     *      instance of builder
+     *      insert many options
      */
-    public static Builder builder() {
-        return new Builder();
+    public InsertManyOptions concurrency(int concurrency) {
+        this.concurrency = concurrency;
+        return this;
     }
 
     /**
-     * Inner class as a Builder.
+     * Setter for chunkSize.
+     *
+     * @param chunkSize
+     *      chunkSize value
+     * @return
+     *      insert many options
+     */
+    public InsertManyOptions chunkSize(int chunkSize) {
+        this.chunkSize = chunkSize;
+        return this;
+    }
+
+    /**
+     * Setter for timeout.
+     *
+     * @param timeout
+     *      timeout value
+     * @return
+     *      insert many options
+     */
+    public InsertManyOptions timeout(int timeout) {
+        this.timeout = timeout;
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
      */
     public static class Builder {
-        /** builder. */
-        private boolean ordered = false;
-        /** builder. */
-        private int concurrency = 1;
-        /** builder. */
-        private int chunkSize = DataAPIOptions.getMaxDocumentsInInsert();
-        /** builder. */
-        private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
 
         /**
-         * Default constructor.
+         * Hide constructor.
          */
-        public Builder() {}
-
-        /**
-         * Builder pattern, populate field.
-         *
-         * @param ordered
-         *      ordered value
-         * @return
-         *      self reference
-         */
-        public Builder ordered(boolean ordered) {
-            this.ordered = ordered;
-            return this;
+        private Builder() {
         }
 
         /**
-         * Builder pattern, populate field.
+         * Initializes the building process with ordered options.
          *
-         * @param concurrency
-         *      concurrency value
-         * @return
-         *      self reference
+         * @param ordered The ordered criteria to be applied to the insertMany operation.
+         * @return A new {@link InsertManyOptions} instance configured with the provided ordered criteria.
          */
-        public Builder concurrency(int concurrency) {
-            this.concurrency = concurrency;
-            return this;
+        public static InsertManyOptions ordered(boolean ordered) {
+            return new InsertManyOptions().ordered(ordered);
         }
 
         /**
-         * Builder pattern, populate field.
+         * Initializes the building process with concurrency options.
          *
-         * @param chunkSize
-         *      chunkSize value
-         * @return
-         *      self reference
+         * @param concurrency The concurrency criteria to be applied to the insertMany operation.
+         * @return A new {@link InsertManyOptions} instance configured with the provided concurrency criteria.
          */
-        public Builder chunkSize(int chunkSize) {
-            this.chunkSize = chunkSize;
-            return this;
+        public static InsertManyOptions concurrency(int concurrency) {
+            return new InsertManyOptions().concurrency(concurrency);
         }
 
         /**
-         * Builder pattern, populate field.
+         * Initializes the building process with chunkSize options.
          *
-         * @param timeout
-         *      timeout value
-         * @return
-         *      self reference
+         * @param chunkSize The chunkSize criteria to be applied to the insertMany operation.
+         * @return A new {@link InsertManyOptions} instance configured with the provided chunkSize criteria.
          */
-        public Builder timeout(int timeout) {
-            this.timeout = timeout;
-            return this;
+        public static InsertManyOptions chunkSize(int chunkSize) {
+            return new InsertManyOptions().chunkSize(chunkSize);
         }
 
         /**
-         * Create the instance of the InsertManyOptions.
+         * Initializes the building process with timeout options.
          *
-         * @return
-         *      immutable instance of InsertManyOptions
+         * @param timeout The timeout criteria to be applied to the insertMany operation.
+         * @return A new {@link InsertManyOptions} instance configured with the provided timeout criteria.
          */
-        public InsertManyOptions build() {
-            return new InsertManyOptions(this);
+        public static InsertManyOptions timeout(int timeout) {
+            return new InsertManyOptions().timeout(timeout);
         }
+
     }
 
 }

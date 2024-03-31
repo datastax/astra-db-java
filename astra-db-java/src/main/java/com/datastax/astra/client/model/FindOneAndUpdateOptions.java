@@ -21,282 +21,215 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.Assert;
-import lombok.Getter;
+import com.datastax.astra.internal.utils.OptionsUtils;
+import lombok.Data;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 
 /**
  * List options for a findOneAndUpdate command.
  */
-@Getter
+@Data
 public class FindOneAndUpdateOptions {
 
     /**
      * Order by.
      */
-    private final Document sort;
+    private Document sort;
 
     /**
      * Select.
      */
-    private final Map<String, Integer> projection;
+    private Map<String, Integer> projection;
 
     /**
      * Upsert flag.
      */
-    private final Boolean upsert;
+    private Boolean upsert;
 
     /**
      * Return document flag.
      */
-    private final FindOneAndReplaceOptions.ReturnDocument returnDocument;
+    private String returnDocument;
 
     /**
      * Default constructor.
-     *
-     * @param builder
-     *      tht builder to help creating the immutable object.
      */
-    private FindOneAndUpdateOptions(FindOneAndUpdateOptionsBuider builder) {
-        this.projection     = builder.projection;
-        this.sort           = builder.sort;
-        this.upsert         = builder.upsert;
-        this.returnDocument = builder.returnDocument;
+    public FindOneAndUpdateOptions() {}
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     *
+     * @param sort
+     *      add a filter
+     * @return
+     *      current command.
+     */
+    public FindOneAndUpdateOptions sort(Sort... sort) {
+        setSort(OptionsUtils.sort(sort));
+        return this;
     }
 
     /**
-     * Create a builder to help creating the options object.
+     * Add a criteria with $vectorize in the sort clause
+     *
+     * @param vectorize an expression to look for vectorization
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
+     */
+    public FindOneAndUpdateOptions vectorize(String vectorize, Sort ... sorts) {
+        setSort(Sorts.vectorize(vectorize));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
+        }
+        return this;
+    }
+
+    /**
+     * Add a criteria with $vector in the sort clause
+     *
+     * @param vector vector float
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
+     */
+    public FindOneAndUpdateOptions vector(float[] vector, Sort... sorts) {
+        setSort(Sorts.vector(vector));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
+        }
+        return this;
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     *
+     * @param projection
+     *      add a filter
+     * @return
+     *      current command.
+     */
+    public FindOneAndUpdateOptions projection(Projection... projection) {
+        setProjection(OptionsUtils.projection(projection));
+        return this;
+    }
+
+    /**
+     * Builder Pattern, update the returnDocument flag
      *
      * @return
-     *      an instance of builder
+     *      self reference
      */
-    public static FindOneAndUpdateOptionsBuider builder() {
-        return new FindOneAndUpdateOptionsBuider();
+    public FindOneAndUpdateOptions returnDocumentAfter() {
+        this.returnDocument = ReturnDocument.AFTER.getKey();
+        return this;
     }
 
     /**
-     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
-     * This builder will help to chain options.
+     * Builder Pattern, update the returnDocument flag
+     *
+     * @return
+     *      self reference
      */
-    public static class FindOneAndUpdateOptionsBuider {
-        /**
-         * Order by.
-         */
-        private Document sort;
+    public FindOneAndUpdateOptions returnDocumentBefore() {
+        this.returnDocument = ReturnDocument.BEFORE.getKey();
+        return this;
+    }
+
+    /**
+     * Builder Pattern, update the upsert flag.
+     *
+     * @param upsert
+     *      upsert flag
+     * @return
+     *      self reference
+     */
+    public FindOneAndUpdateOptions upsert(Boolean upsert) {
+        Assert.notNull(upsert, "upsert");
+        this.upsert = upsert;
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
+     */
+    public static class Builder {
 
         /**
-         * Select.
+         * Hide constructor.
          */
-        private Map<String, Integer> projection;
-
-        /**
-         * Upsert flag.
-         */
-        private Boolean upsert;
-
-        /**
-         * Return document flag.
-         */
-        private FindOneAndReplaceOptions.ReturnDocument returnDocument = FindOneAndReplaceOptions.ReturnDocument.after;
-
-        /**
-         * Builder for the projection.
-         *
-         * @param fields
-         *     list of fields to include
-         * @return
-         *     self reference
-         */
-        public FindOneAndUpdateOptionsBuider projections(String... fields) {
-            if (fields != null) {
-                for (String field : fields) {
-                    projection(field);
-                }
-            }
-            return this;
+        private Builder() {
         }
 
         /**
-         * Builder for the projection.
+         * Initializes the building process with sorting options.
          *
-         * @param field
-         *      field to be present
-         * @return
-         *     self reference
+         * @param sort The sort criteria to be applied to the findOneAndUpdate operation.
+         * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided sort criteria.
          */
-        public FindOneAndUpdateOptionsBuider  projection(String field) {
-            Assert.hasLength(field, "field");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            this.projection.put(field, 1);
-            return this;
+        public static FindOneAndUpdateOptions sort(Sort... sort) {
+            return new FindOneAndUpdateOptions().sort(sort);
         }
 
         /**
-         * Provide a way to enter projections elements
+         * Initializes the building process with projection options.
          *
-         * @param projections
-         *      projections as a list.
-         * @return
-         *     self reference
+         * @param projection The projection criteria to be applied to the findOneAndUpdate operation.
+         * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided projection criteria.
          */
-        public FindOneAndUpdateOptionsBuider projections(List<Projection> projections) {
-            Assert.notNull(projections, "projection");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            for (Projection p : projections) {
-                this.projection.put(p.getField(), p.isPresent() ? 1 : 0);
-            }
-            return this;
+        public static FindOneAndUpdateOptions projection(Projection... projection) {
+            return new FindOneAndUpdateOptions().projection(projection);
         }
 
         /**
-         * Fluent api.
+         * Initializes the building process with returnDocument options.
          *
-         * @param pProjection
-         *      add a project field
-         * @return
-         *      current command.
+         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided returnDocument criteria.
          */
-        public FindOneAndUpdateOptionsBuider projections(Map<String, Integer> pProjection) {
-            Assert.notNull(pProjection, "projection");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            this.projection.putAll(pProjection);
-            return this;
+        public static FindOneAndUpdateOptions returnDocumentAfter() {
+            return new FindOneAndUpdateOptions().returnDocumentAfter();
         }
 
         /**
-         * Builder Pattern, update the returnDocument flag
+         * Initializes the building process with returnDocument options.
          *
-         * @return
-         *      self reference
+         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided returnDocument criteria.
          */
-        public FindOneAndUpdateOptionsBuider returnDocumentAfter() {
-            Assert.notNull(returnDocument, "returnDocument");
-            this.returnDocument = FindOneAndReplaceOptions.ReturnDocument.after;
-            return this;
+        public static FindOneAndUpdateOptions returnDocumentBefore() {
+            return new FindOneAndUpdateOptions().returnDocumentBefore();
         }
 
         /**
-         * Builder Pattern, update the returnDocument flag
+         * Initializes the building process with upsert options.
          *
-         * @return
-         *      self reference
+         * @param upsert The upsert criteria to be applied to the findOneAndUpdate operation.
+         * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided upsert criteria.
          */
-        public FindOneAndUpdateOptionsBuider returnDocumentBefore() {
-            Assert.notNull(returnDocument, "returnDocument");
-            this.returnDocument = FindOneAndReplaceOptions.ReturnDocument.before;
-            return this;
+        public static FindOneAndUpdateOptions upsert(Boolean upsert) {
+            return new FindOneAndUpdateOptions().upsert(upsert);
         }
 
         /**
-         * Builder Pattern, update the upsert flag.
+         * Initializes the building process with vectorize options.
          *
-         * @param upsert
-         *      upsert flag
-         * @return
-         *      self reference
+         * @param vectorize The vectorize criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided vectorize criteria.
          */
-        public FindOneAndUpdateOptionsBuider upsert(Boolean upsert) {
-            Assert.notNull(upsert, "upsert");
-            this.upsert = upsert;
-            return this;
+        public static FindOneAndUpdateOptions vectorize(String vectorize, Sort... sorts) {
+            return new FindOneAndUpdateOptions().vectorize(vectorize, sorts);
         }
 
         /**
-         * Add a criteria with $vectorize in the sort clause
+         * Initializes the building process with vector options.
          *
-         * @param vectorize
-         *      an expression to look for vectorization
-         * @return
-         *      current command
+         * @param vector The vector criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided vector criteria.
          */
-        public FindOneAndUpdateOptionsBuider vectorize(String vectorize) {
-            return sort(Sorts.vectorize(vectorize));
+        public static FindOneAndUpdateOptions vector(float[] vector, Sort... sorts) {
+            return new FindOneAndUpdateOptions().vector(vector, sorts);
         }
-
-        /**
-         * Add a criteria with $vector in the sort clause
-         *
-         * @param vector
-         *      vector float
-         * @return
-         *      current command
-         */
-        public FindOneAndUpdateOptionsBuider vector(float[] vector) {
-            return sort(Sorts.vector(vector));
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public FindOneAndUpdateOptionsBuider  sort(Sort pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                this.sort = new Document();
-            }
-            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param sorts
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public FindOneAndUpdateOptionsBuider sort(List<Sort> sorts) {
-            Assert.notNull(sorts, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getOrder().getCode());
-            }
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      add a filter
-         * @return
-         *      current command.
-         */
-        public FindOneAndUpdateOptionsBuider sort(Document pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            this.sort.putAll(pSort);
-            return this;
-        }
-
-        /**
-         * Builder for the find Options.
-         *
-         * @return
-         *      the find options object
-         */
-        public FindOneAndUpdateOptions build() {
-            return new FindOneAndUpdateOptions(this);
-        }
-
     }
 
 }

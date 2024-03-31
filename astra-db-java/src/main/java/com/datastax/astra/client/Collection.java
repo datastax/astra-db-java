@@ -22,7 +22,6 @@ package com.datastax.astra.client;
 
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.BulkWriteOptions;
 import com.datastax.astra.client.model.BulkWriteResult;
@@ -48,6 +47,7 @@ import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.Page;
 import com.datastax.astra.client.model.ReplaceOneOptions;
+import com.datastax.astra.client.model.ReturnDocument;
 import com.datastax.astra.client.model.UUIDv6;
 import com.datastax.astra.client.model.UUIDv7;
 import com.datastax.astra.client.model.Update;
@@ -788,7 +788,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
     public InsertManyResult insertMany(List<? extends T> documents) {
-        return insertMany(documents, InsertManyOptions.builder().build());
+        return insertMany(documents, new InsertManyOptions());
     }
 
     /**
@@ -902,7 +902,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *         that retrieval operations can be performed safely without the concern of {@link java.util.NoSuchElementException}.
      */
     public Optional<T> findOne(Filter filter) {
-        return findOne(filter, FindOneOptions.builder().build());
+        return findOne(filter, new FindOneOptions());
     }
 
     /**
@@ -1087,7 +1087,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over all documents in the collection.
      */
     public FindIterable<T> find() {
-        return find(null, FindOptions.builder().build());
+        return find(null, new FindOptions());
     }
 
     /**
@@ -1101,7 +1101,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the documents that match the filter.
      */
     public FindIterable<T> find(Filter filter) {
-        return find(filter, FindOptions.builder().build());
+        return find(filter, new FindOptions());
     }
 
     /**
@@ -1119,10 +1119,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, float[] vector, int limit) {
-        return find(filter, FindOptions.builder()
-                .vector(vector)
-                .limit(limit)
-                .build());
+        return find(filter, FindOptions.Builder.vector(vector).limit(limit));
     }
 
     /**
@@ -1138,10 +1135,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, String vectorize, int limit) {
-        return find(filter, FindOptions.builder()
-                .vectorize(vectorize)
-                .limit(limit)
-                .build());
+        return find(filter, FindOptions.Builder.vectorize(vectorize).limit(limit));
     }
 
     /**
@@ -1358,7 +1352,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      */
     public DeleteResult deleteOne(Filter filter) {
-        return deleteOne(filter, DeleteOneOptions.builder().build());
+        return deleteOne(filter, new DeleteOneOptions());
     }
 
     /**
@@ -1487,7 +1481,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
                         .appendIfNotNull("upsert", options.getUpsert())
-                        .appendIfNotNull("returnDocument", options.getReturnDocument().name())
+                        .appendIfNotNull("returnDocument", options.getReturnDocument())
                 );
 
         ApiResponse res = runCommand(findOneAndReplace);
@@ -1535,7 +1529,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withReplacement(replacement)
                 .withOptions(new Document()
                         .appendIfNotNull("upsert", replaceOneOptions.getUpsert())
-                        .append("returnDocument", FindOneAndReplaceOptions.ReturnDocument.before.name())
+                        .append("returnDocument", ReturnDocument.BEFORE.getKey())
                 );
 
         // Execute the `findOneAndReplace`
@@ -1600,7 +1594,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * returned
      */
     public Optional<T> findOneAndUpdate(Filter filter, Update update) {
-        return findOneAndUpdate(filter, update, FindOneAndUpdateOptions.builder().build());
+        return findOneAndUpdate(filter, update, new FindOneAndUpdateOptions());
     }
 
     /**
@@ -1629,7 +1623,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
                         .appendIfNotNull("upsert", options.getUpsert())
-                        .append("returnDocument", options.getReturnDocument().name())
+                        .append("returnDocument", options.getReturnDocument())
                 );
 
         ApiResponse res = runCommand(cmd);
@@ -1653,7 +1647,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update one operation
      */
     public UpdateResult updateOne(Filter filter, Update update) {
-        return updateOne(filter, update, UpdateOneOptions.builder().build());
+        return updateOne(filter, update, new UpdateOneOptions());
     }
 
     /**
@@ -1710,7 +1704,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update many operation
      */
     public UpdateResult updateMany(Filter filter, Update update) {
-        return updateMany(filter, update, UpdateManyOptions.builder().build());
+        return updateMany(filter, update, new UpdateManyOptions());
     }
 
     /**

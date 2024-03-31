@@ -20,15 +20,13 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
-import lombok.Getter;
-
-import java.util.List;
+import com.datastax.astra.internal.utils.OptionsUtils;
+import lombok.Data;
 
 /**
  * Options to delete One document.
  */
-@Getter
+@Data
 public class DeleteOneOptions {
 
     /**
@@ -39,9 +37,7 @@ public class DeleteOneOptions {
     /**
      * Default constructor.
      */
-    public DeleteOneOptions(DeleteOneOptionsBuilder builder) {
-        this.sort = builder.sort;
-    }
+    public DeleteOneOptions() {}
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -51,129 +47,82 @@ public class DeleteOneOptions {
      * @return
      *      current command.
      */
-    public static DeleteOneOptions sort(Sort sort) {
-        return new DeleteOneOptionsBuilder().sort(sort).build();
-    }
-
-    /**
-     * Create a builder for those options.
-     *
-     * @return
-     *      instance of the builder.
-     */
-    public static DeleteOneOptionsBuilder builder() {
-        return new DeleteOneOptionsBuilder();
-    }
-
-    /**
-     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
-     * This builder will help to chain options.
-     */
-    public static class DeleteOneOptionsBuilder {
-
-        /**
-         * Order by.
-         */
-        private Document sort;
-
-        /**
-         * Default Builder.
-         */
-        public DeleteOneOptionsBuilder() {}
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public DeleteOneOptionsBuilder sort(Sort pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                this.sort = new Document();
-            }
-            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param sorts
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public DeleteOneOptionsBuilder sort(List<Sort> sorts) {
-            Assert.notNull(sorts, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getOrder().getCode());
-            }
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      add a filter
-         * @return
-         *      current command.
-         */
-        public DeleteOneOptionsBuilder sort(Document pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            this.sort.putAll(pSort);
-            return this;
-        }
-
-        /**
-         * Builder for the find Options.
-         *
-         * @return
-         *      the find options object
-         */
-        public DeleteOneOptions build() {
-            return new DeleteOneOptions(this);
-        }
-
-    }
-
-    /**
-     * Fluent api.
-     *
-     * @param pSort
-     *      add a filter
-     * @return
-     *      current command.
-     */
-    public DeleteOneOptions sortingBy(Document pSort) {
-        Assert.notNull(pSort, "sort");
-        if (this.sort == null) {
-            sort = new Document();
-        }
-        this.sort.putAll(pSort);
+    public DeleteOneOptions sort(Sort... sort) {
+        setSort(OptionsUtils.sort(sort));
         return this;
     }
 
     /**
-     * Add a sort clause to the current field.
+     * Add a criteria with $vectorize in the sort clause
      *
-     * @param fieldName
-     *      field name
-     * @param ordering
-     *      field ordering
-     * @return
-     *      current reference  find
+     * @param vectorize an expression to look for vectorization
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
      */
-    public DeleteOneOptions sortingBy(String fieldName, SortOrder ordering) {
-        return sortingBy(new Document().append(fieldName, ordering.getCode()));
+    public DeleteOneOptions vectorize(String vectorize, Sort ... sorts) {
+        setSort(Sorts.vectorize(vectorize));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
+        }
+        return this;
     }
+
+    /**
+     * Add a criteria with $vector in the sort clause
+     *
+     * @param vector vector float
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
+     */
+    public DeleteOneOptions vector(float[] vector, Sort... sorts) {
+        setSort(Sorts.vector(vector));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
+        }
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link DeleteOneOptions} instances with a fluent API.
+     */
+    public static class Builder {
+
+        /**
+         * Hide constructor.
+         */
+        private Builder() {}
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param sort The sort criteria to be applied to the delete operation.
+         * @return A new {@link DeleteOneOptions} instance configured with the provided sort criteria.
+         */
+        public static DeleteOneOptions sort(Sort... sort) {
+            return new DeleteOneOptions().sort(sort);
+        }
+
+        /**
+         * Initializes the building process with vectorize options.
+         *
+         * @param vectorize The vectorize criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link DeleteOneOptions} instance configured with the provided vectorize criteria.
+         */
+        public static DeleteOneOptions vectorize(String vectorize, Sort... sorts) {
+            return new DeleteOneOptions().vectorize(vectorize, sorts);
+        }
+
+        /**
+         * Initializes the building process with vector options.
+         *
+         * @param vector The vector criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link DeleteOneOptions} instance configured with the provided vector criteria.
+         */
+        public static DeleteOneOptions vector(float[] vector, Sort... sorts) {
+            return new DeleteOneOptions().vector(vector, sorts);
+        }
+    }
+
 }

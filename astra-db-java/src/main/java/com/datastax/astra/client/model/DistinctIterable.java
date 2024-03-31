@@ -73,7 +73,7 @@ public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implemen
         this.filter      = filter;
         this.fieldName   = fieldName;
         this.fieldClass  = fieldClass;
-        this.options     = FindOptions.builder().build();
+        this.options     = new FindOptions();
     }
 
     /** {@inheritDoc} */

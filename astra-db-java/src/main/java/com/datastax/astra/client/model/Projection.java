@@ -21,23 +21,30 @@ package com.datastax.astra.client.model;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Encode the presence of a field in the result.
  */
-@Data @AllArgsConstructor
+@Getter @Setter
 public class Projection {
 
     /** Name of the field. */
-    private String field;
+    private final String field;
 
     /** Is the field present in the result. */
-    private boolean present;
+    private final boolean present;
 
     /**
      * Default constructor.
+     * @param field
+     *      field value
+     * @param present
+     *      tell if field is present
      */
-    public Projection() {}
-
+    public Projection(String field, boolean present) {
+        this.field = field;
+        this.present = present;
+    }
 }

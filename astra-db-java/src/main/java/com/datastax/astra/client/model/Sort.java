@@ -22,38 +22,31 @@ package com.datastax.astra.client.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Class to help building a projection.
  */
-@Data
-@AllArgsConstructor
+@Getter @Setter
 public class Sort {
 
     /** name of the Projection. */
-    String field;
+    private final String field;
 
     /** sort for the field. */
-    SortOrder order;
-
-    /** Default constructor. */
-    public Sort() {}
+    private final SortOrder order;
 
     /**
-     * Builder for a projection.
+     * Default Constructor.
      *
      * @param field
-     *      name of the field to sort on
-     * @param sort
-     *      sort clause
-     * @return
-     *      self reference
+     *      field name
+     * @param order
+     *      field ordering instruction
      */
-    public static Sort of(String field, SortOrder sort) {
-        Sort p = new Sort();
-        p.field = field;
-        p.order = sort;
-        return p;
+    public Sort(String field, SortOrder order) {
+        this.field = field;
+        this.order = order;
     }
-
 }

@@ -20,13 +20,13 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Hold the result of delete commands (deleteOne, deleteMany).
  */
-@Data @AllArgsConstructor
+@Getter @Setter
 public class DeleteResult {
 
     /**
@@ -36,7 +36,11 @@ public class DeleteResult {
 
     /**
      * Default constructor.
+     *
+     * @param deletedCount
+     *      number of items deleted
      */
-    public DeleteResult() {}
-
+    public DeleteResult(int deletedCount) {
+        this.deletedCount = deletedCount;
+    }
 }

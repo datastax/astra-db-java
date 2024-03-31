@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.model.FindOptions.vectorize;
+import static com.datastax.astra.client.model.FindOptions.Builder.vectorize;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -69,7 +69,8 @@ class VectorizePreviewITTest {
 
     @Test
     public void testFindVectorize() {
-        collectionVectorize.find(vectorize("Life is too short for Javascript"))
+        collectionVectorize.find(
+                vectorize("Life is too short for Javascript"))
                 .forEach(doc -> System.out.println(doc.toJson()));
     }
 }

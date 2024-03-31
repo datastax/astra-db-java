@@ -20,12 +20,10 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
 
 /**
  * Options for the updateOne operation
-
  */
 @Data
 public class UpdateManyOptions {
@@ -36,73 +34,42 @@ public class UpdateManyOptions {
     private Boolean upsert;
 
     /**
-     * Create a builder for those options.
-     *
-     * @return
-     *      instance of the builder.
-     */
-    public static UpdateManyOptionsBuilder builder() {
-        return new UpdateManyOptionsBuilder();
-    }
-
-    /**
-     * Create an instance of the options with upsert flag.
-     * @param upsert
-     *      upsert value
-     * @return
-     *      instance of the options
-     */
-    public static UpdateManyOptions upsert(Boolean upsert) {
-        return new UpdateManyOptionsBuilder().upsert(upsert).build();
-    }
-
-    /**
      * Default constructor.
-     *
-     * @param builder
-     *    builder to help creating the immutable object.
      */
-    public UpdateManyOptions(UpdateManyOptionsBuilder builder) {
-        this.upsert = builder.upsert;
+    public UpdateManyOptions() {
     }
 
     /**
-     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
-     * This builder will help to chain options.
+     * Upsert flag.
+     *
+     * @param upsert upsert flag
+     * @return current command.
      */
-    public static class UpdateManyOptionsBuilder {
-
-        /**
-         * if upsert is selected
-         */
-        private Boolean upsert;
-
-        /**
-         * Builder Pattern, update the upsert flag
-         *
-         * @param upsert
-         *     upsert flag
-         * @return
-         *      self reference
-         */
-        public UpdateManyOptionsBuilder upsert(Boolean upsert) {
-            Assert.notNull(upsert, "upsert");
-            this.upsert = upsert;
-            return this;
-        }
-
-        /**
-         * Builder for the Options.
-         *
-         * @return
-         *      the find options object
-         */
-        public UpdateManyOptions build() {
-            return new UpdateManyOptions(this);
-        }
-
+    public UpdateManyOptions upsert(Boolean upsert) {
+        this.upsert = upsert;
+        return this;
     }
 
+    /**
+     * Builder for creating {@link UpdateManyOptions} instances with a fluent API.
+     */
+    public static class Builder {
 
+        /**
+         * Hide constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * Create a new instance of {@link UpdateManyOptions}.
+         *
+         * @param upsert upsert flag
+         * @return new instance of {@link UpdateManyOptions}.
+         */
+        public static UpdateManyOptions upsert(boolean upsert) {
+            return new UpdateManyOptions().upsert(upsert);
+        }
+    }
 
 }

@@ -20,226 +20,164 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
-import lombok.Getter;
+import com.datastax.astra.internal.utils.OptionsUtils;
+import lombok.Data;
 
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  * List Options for a FindOne command.
  */
-@Getter
+@Data
 public class FindOneOptions {
 
     /**
      * Order by.
      */
-    private final Document sort;
+    private Document sort;
 
     /**
      * Select.
      */
-    private final Map<String, Integer> projection;
+    private Map<String, Integer> projection;
 
     /**
      * Options.
      */
-    private final Boolean includeSimilarity;
-
-    /**
-     * Create a builder for those options.
-     *
-     * @return
-     *      instance of the builder.
-     */
-    public static FindOneOptionsBuilder builder() {
-        return new FindOneOptionsBuilder();
-    }
+    private Boolean includeSimilarity;
 
     /**
      * Default constructor.
-     *
-     * @param builder
-     *    builder to help creating the immutable object.
      */
-    public FindOneOptions(FindOneOptionsBuilder builder) {
-        this.sort = builder.sort;
-        this.projection = builder.projection;
-        this.includeSimilarity = builder.includeSimilarity;
+    public FindOneOptions() {}
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     *
+     * @param sort
+     *      add a filter
+     * @return
+     *      current command.
+     */
+    public FindOneOptions sort(Sort... sort) {
+        setSort(OptionsUtils.sort(sort));
+        return this;
     }
 
     /**
-     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
-     * This builder will help to chain options.
+     * Add a criteria with $vectorize in the sort clause
+     *
+     * @param vectorize an expression to look for vectorization
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
      */
-    public static class FindOneOptionsBuilder {
-
-        /**
-         * Order by.
-         */
-        private Document sort;
-
-        /**
-         * Projection for return document (select)
-         */
-        private Map<String, Integer> projection;
-
-        /**
-         * Flag to include similarity in the result when operating a semantic search.
-         */
-        private Boolean includeSimilarity;
-
-        /**
-         * Default Builder.
-         */
-        public FindOneOptionsBuilder() {}
-
-        /**
-         * Fluent api.
-         *
-         * @return
-         *      add a filter
-         */
-        public FindOneOptionsBuilder withIncludeSimilarity() {
-            this.includeSimilarity = true;
-            return this;
+    public FindOneOptions vectorize(String vectorize, Sort ... sorts) {
+        setSort(Sorts.vectorize(vectorize));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
         }
-
-        /**
-         * Builder for the projection.
-         *
-         * @param fields
-         *     list of fields to include
-         * @return
-         *     self reference
-         */
-        public FindOneOptionsBuilder projections(String... fields) {
-            if (fields != null) {
-                for (String field : fields) {
-                    projection(field);
-                }
-            }
-            return this;
-        }
-
-        /**
-         * Builder for the projection.
-         *
-         * @param field
-         *      field to be present
-         * @return
-         *     self reference
-         */
-        public FindOneOptionsBuilder projection(String field) {
-            Assert.hasLength(field, "field");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            this.projection.put(field, 1);
-            return this;
-        }
-
-        /**
-         * Provide a way to enter projections elements
-         *
-         * @param projections
-         *      projections as a list.
-         * @return
-         *     self reference
-         */
-        public FindOneOptionsBuilder projections(List<Projection> projections) {
-            Assert.notNull(projections, "projection");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            for (Projection p : projections) {
-                this.projection.put(p.getField(), p.isPresent() ? 1 : 0);
-            }
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pProjection
-         *      add a project field
-         * @return
-         *      current command.
-         */
-        public FindOneOptionsBuilder projections(Map<String, Integer> pProjection) {
-            Assert.notNull(pProjection, "projection");
-            if (this.projection == null) {
-                this.projection = new LinkedHashMap<>();
-            }
-            this.projection.putAll(pProjection);
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public FindOneOptionsBuilder sort(Sort pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                this.sort = new Document();
-            }
-            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param sorts
-         *      list of sorts
-         * @return
-         *      Self reference
-         */
-        public FindOneOptionsBuilder sort(List<Sort> sorts) {
-            Assert.notNull(sorts, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            for (Sort s : sorts) {
-                this.sort.put(s.getField(), s.getOrder().getCode());
-            }
-            return this;
-        }
-
-        /**
-         * Fluent api.
-         *
-         * @param pSort
-         *      add a filter
-         * @return
-         *      current command.
-         */
-        public FindOneOptionsBuilder sort(Document pSort) {
-            Assert.notNull(pSort, "sort");
-            if (this.sort == null) {
-                sort = new Document();
-            }
-            this.sort.putAll(pSort);
-            return this;
-        }
-
-        /**
-         * Builder for the find Options.
-         *
-         * @return
-         *      the find options object
-         */
-        public FindOneOptions build() {
-            return new FindOneOptions(this);
-        }
-
+        return this;
     }
 
+    /**
+     * Add a criteria with $vector in the sort clause
+     *
+     * @param vector vector float
+     * @param sorts The sort criteria to be applied to the findOne operation.
+     * @return current command
+     */
+    public FindOneOptions vector(float[] vector, Sort... sorts) {
+        setSort(Sorts.vector(vector));
+        if (sorts != null) {
+            getSort().putAll(OptionsUtils.sort(sorts));
+        }
+        return this;
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     *
+     * @param projection
+     *      add a filter
+     * @return
+     *      current command.
+     */
+    public FindOneOptions projection(Projection... projection) {
+        setProjection(OptionsUtils.projection(projection));
+        return this;
+    }
+
+    /**
+      * Fluent api.
+      *
+      * @return
+      *      add a filter
+      */
+    public FindOneOptions includeSimilarity() {
+        this.includeSimilarity = true;
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
+     */
+    public static class Builder {
+
+        /**
+         * Hide constructor.
+         */
+        private Builder() {
+        }
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param sort The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
+         */
+        public static FindOneOptions sort(Sort... sort) {
+            return new FindOneOptions().sort(sort);
+        }
+
+        /**
+         * Initializes the building process with projection options.
+         *
+         * @param projection The projection criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided projection criteria.
+         */
+        public static FindOneOptions projection(Projection... projection) {
+            return new FindOneOptions().projection(projection);
+        }
+
+        /**
+         * Initializes the building process with includeSimilarity options.
+         *
+         * @return A new {@link FindOneOptions} instance configured with the provided includeSimilarity criteria.
+         */
+        public static FindOneOptions includeSimilarity() {
+            return new FindOneOptions().includeSimilarity();
+        }
+
+        /**
+         * Initializes the building process with vectorize options.
+         *
+         * @param vectorize The vectorize criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided vectorize criteria.
+         */
+        public static FindOneOptions vectorize(String vectorize, Sort... sorts) {
+            return new FindOneOptions().vectorize(vectorize, sorts);
+        }
+
+        /**
+         * Initializes the building process with vector options.
+         *
+         * @param vector The vector criteria to be applied to the findOne operation
+         * @param sorts The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided vector criteria.
+         */
+        public static FindOneOptions vector(float[] vector, Sort... sorts) {
+            return new FindOneOptions().vector(vector, sorts);
+        }
+    }
 }
