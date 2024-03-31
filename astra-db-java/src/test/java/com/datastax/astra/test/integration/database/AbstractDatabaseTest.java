@@ -97,7 +97,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
      * @return
      *      the database instance
      */
-    protected static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
+    public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
         DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
@@ -114,7 +114,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
      * @return
      *      instance of AstraDBAdmin
      */
-    protected static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
+    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
                 return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
@@ -159,8 +159,8 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public void shouldCreateCollectionsVector() {
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
                 CollectionOptions.builder()
-                        .withVectorDimension(14)
-                        .withVectorSimilarityMetric(SimilarityMetric.cosine)
+                        .vectorDimension(14)
+                        .vectorSimilarity(SimilarityMetric.cosine)
                         .build());
         assertThat(collectionVector).isNotNull();
         assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
@@ -175,7 +175,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public void shouldCreateCollectionsAllows() {
         Collection<Document> collectionAllow = getDatabase().createCollection(COLLECTION_ALLOW,
                 CollectionOptions.builder()
-                        .withIndexingAllow("a", "b", "c")
+                        .indexingAllow("a", "b", "c")
                         .build());
         assertThat(collectionAllow).isNotNull();
         CollectionOptions options = collectionAllow.getOptions();
@@ -188,7 +188,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public void shouldCreateCollectionsDeny() {
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
                 CollectionOptions.builder()
-                        .withIndexingDeny("a", "b", "c")
+                        .indexingDeny("a", "b", "c")
                         .build());
         assertThat(collectionDeny).isNotNull();
         CollectionOptions options = collectionDeny.getOptions();
@@ -221,7 +221,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         // Given
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
                 CollectionOptions.builder()
-                        .withIndexingDeny("a", "b", "c")
+                        .indexingDeny("a", "b", "c")
                         .build());
         assertThat(getDatabase().collectionExists(COLLECTION_DENY)).isTrue();
         // When
@@ -306,7 +306,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID, CollectionOptions.builder()
-                .withDefaultId(CollectionIdTypes.uuid)
+                .defaultId(CollectionIdTypes.uuid)
                 .build()).enableLogging();
         collectionUUID.deleteAll();
         UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -338,7 +338,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
-                        .withDefaultId(CollectionIdTypes.objectId)
+                        .defaultId(CollectionIdTypes.objectId)
                         .build()).enableLogging();
         collectionUUID.deleteAll();
 
@@ -369,7 +369,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         product.setPrice(0d);
         Collection<ProductObjectId> collectionObjectId = getDatabase()
                 .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
-                        .withDefaultId(CollectionIdTypes.objectId)
+                        .defaultId(CollectionIdTypes.objectId)
                         .build(), ProductObjectId.class).enableLogging();
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
@@ -383,7 +383,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID_V6, CollectionOptions.builder()
-                        .withDefaultId(CollectionIdTypes.uuidv6)
+                        .defaultId(CollectionIdTypes.uuidv6)
                         .build()).enableLogging();
         collectionUUID.deleteAll();
 
@@ -413,7 +413,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID_V7, CollectionOptions.builder()
-                        .withDefaultId(CollectionIdTypes.uuidv7)
+                        .defaultId(CollectionIdTypes.uuidv7)
                         .build()).enableLogging();
         collectionUUID.deleteAll();
 

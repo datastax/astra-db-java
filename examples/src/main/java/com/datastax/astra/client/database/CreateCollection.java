@@ -2,7 +2,6 @@ package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.CollectionOptions;
@@ -21,26 +20,26 @@ public class CreateCollection {
     // Create a vector collection
     Collection<Document> vector2 = db.createCollection("vector2", CollectionOptions
       .builder()
-      .withVectorDimension(1536)
-      .withVectorSimilarityMetric(SimilarityMetric.euclidean)
+      .vectorDimension(1536)
+      .vectorSimilarity(SimilarityMetric.euclidean)
       .build());
 
     // Create a collection with indexing (deny)
     Collection<Document> indexing1 = db.createCollection("indexing1", CollectionOptions
               .builder()
-              .withIndexingDeny("blob")
+              .indexingDeny("blob")
               .build());
 
     // Create a collection with indexing (allow) - cannot use allow and denay at the same time
     Collection<Document> allow1 = db.createCollection("allow1", CollectionOptions
             .builder()
-            .withIndexingAllow("metadata")
+            .indexingAllow("metadata")
             .build());
 
     // Enforce default id type could be objectid, uuid, uuivv6, uuidv7
     Collection<Document> defaultId = db.createCollection("defaultId", CollectionOptions
             .builder()
-            .withDefaultId(CollectionIdTypes.objectId)
+            .defaultId(CollectionIdTypes.objectId)
             .build());
 
   }

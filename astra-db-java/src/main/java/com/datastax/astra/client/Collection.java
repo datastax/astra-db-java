@@ -20,12 +20,12 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
+import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.BulkWriteOptions;
 import com.datastax.astra.client.model.BulkWriteResult;
-import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
@@ -51,14 +51,13 @@ import com.datastax.astra.client.model.ReplaceOneOptions;
 import com.datastax.astra.client.model.UUIDv6;
 import com.datastax.astra.client.model.UUIDv7;
 import com.datastax.astra.client.model.Update;
+import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
-import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.CustomEJsonInstantDeserializer;
-import com.datastax.astra.internal.utils.CustomUuidv6Serializer;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +70,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -354,7 +354,7 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final InsertOneResult insertOne(T document) {
         Assert.notNull(document, "document");
-        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class));
+        return _insertOne(JsonUtils.convertValue(document, Document.class));
     }
 
     /**
@@ -428,7 +428,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, float[] embeddings) {
         Assert.notNull(document, "document");
         Assert.notNull(embeddings, "vectorize");
-        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vector(embeddings));
+        return _insertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings));
     }
 
     /**
@@ -510,7 +510,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, String vectorize) {
         Assert.notNull(document, "document");
         Assert.hasLength(vectorize, "vectorize");
-        return _insertOne(JsonUtils.convertValueForDataApi(document, Document.class).vectorize(vectorize));
+        return _insertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize));
     }
 
     /**
@@ -581,7 +581,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      unmarshalled id
      */
     @SuppressWarnings("unchecked")
-    protected Object unmarshallDocumentId(Object id) {
+    private Object unmarshallDocumentId(Object id) {
         if (id instanceof Map) {
             // only maps will required to be unmarshalled
             Map<String, Object> mapId = (Map<String, Object>) id;
@@ -700,13 +700,14 @@ public class Collection<T> extends AbstractCommandRunner {
             } else {
                 throw new TimeoutException("Request did not complete withing ");
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException | ExecutionException e) {
+            if (e.getCause() instanceof DataApiException) {
+                throw (DataApiException) e.getCause();
+            }
             Thread.currentThread().interrupt();
             throw new RuntimeException("Thread was interrupted while waiting", e);
         }  catch (TimeoutException e) {
             throw new RuntimeException("Operation timed out", e);
-        } catch (Exception e) {
-            throw new RuntimeException("Error occurred during async operation", e.getCause());
         }
         return finalResult;
     }
@@ -1357,7 +1358,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      */
     public DeleteResult deleteOne(Filter filter) {
-        return deleteOne(filter, new DeleteOneOptions());
+        return deleteOne(filter, DeleteOneOptions.builder().build());
     }
 
     /**
@@ -1406,9 +1407,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 if (status.containsKey(DELETED_COUNT)) {
                     totalCount.addAndGet(status.getInteger(DELETED_COUNT));
                 }
-                if (status.containsKey(MORE_DATA)) {
-                    moreData = status.getBoolean(MORE_DATA);
-                }
+                moreData = status.containsKey(MORE_DATA);
             }
         } while(moreData);
         return new DeleteResult(totalCount.get());
@@ -1547,7 +1546,7 @@ public class Collection<T> extends AbstractCommandRunner {
         result.setMatchedCount(res.getMatchedCount());
         result.setModifiedCount(res.getModifiedCount());
         if (res.getDocument() != null) {
-            Document doc = JsonUtils.convertValueForDataApi(res.getDocument(), Document.class);
+            Document doc = JsonUtils.convertValue(res.getDocument(), Document.class);
             if (doc.getId(Object.class) != null) {
                 result.setUpsertedId(doc.getId(Object.class));
             }
@@ -1601,7 +1600,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * returned
      */
     public Optional<T> findOneAndUpdate(Filter filter, Update update) {
-        return findOneAndUpdate(filter, update, new FindOneAndUpdateOptions());
+        return findOneAndUpdate(filter, update, FindOneAndUpdateOptions.builder().build());
     }
 
     /**
@@ -1654,7 +1653,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update one operation
      */
     public UpdateResult updateOne(Filter filter, Update update) {
-        return updateOne(filter, update, new UpdateOneOptions());
+        return updateOne(filter, update, UpdateOneOptions.builder().build());
     }
 
     /**
@@ -1711,7 +1710,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update many operation
      */
     public UpdateResult updateMany(Filter filter, Update update) {
-        return updateMany(filter, update, new UpdateOneOptions());
+        return updateMany(filter, update, UpdateManyOptions.builder().build());
     }
 
     /**
@@ -1726,7 +1725,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    public UpdateResult updateMany(Filter filter, Update update, UpdateOneOptions options) {
+    public UpdateResult updateMany(Filter filter, Update update, UpdateManyOptions options) {
         notNull(update, "update");
         notNull(options, "options");
         boolean moreData = true;

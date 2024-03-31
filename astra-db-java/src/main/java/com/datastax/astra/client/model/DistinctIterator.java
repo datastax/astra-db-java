@@ -84,7 +84,7 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
      *      extraction of field from document
      */
     private FIELD extractField(DOC doc) {
-        return JsonUtils.convertValueForDataApi(doc, Document.class).get(fieldName, fieldClass);
+        return JsonUtils.convertValue(doc, Document.class).get(fieldName, fieldClass);
     }
 
     /** {@inheritDoc} */

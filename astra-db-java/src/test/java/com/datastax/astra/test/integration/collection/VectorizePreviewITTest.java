@@ -5,7 +5,6 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -48,9 +47,9 @@ class VectorizePreviewITTest {
     public void shouldCreateACollectionWithNvidia() {
         Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE,
                 CollectionOptions.builder()
-                .withVectorDimension(NVIDIA_DIMENSION)
-                .withVectorSimilarityMetric(SimilarityMetric.cosine)
-                .withVectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
+                .vectorDimension(NVIDIA_DIMENSION)
+                .vectorSimilarity(SimilarityMetric.cosine)
+                .vectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
                 .build());
 
         assertThat(collection).isNotNull();

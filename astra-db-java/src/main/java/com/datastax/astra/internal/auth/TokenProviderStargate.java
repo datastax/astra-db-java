@@ -20,7 +20,6 @@ package com.datastax.astra.internal.auth;
  * #L%
  */
 
-import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
@@ -118,7 +117,7 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
      *      new value for a token
      */
     private String renewToken() {
-        String body = JsonUtils.marshallForDataApi(Map.of("username", username, "password", password));
+        String body = JsonUtils.marshall(Map.of("username", username, "password", password));
         try {
             HttpRequest request = HttpRequest.newBuilder()
               .uri(new URI(authenticationUrl + "/v1/auth"))
@@ -133,7 +132,7 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
             ApiResponseHttp response = httpClient.executeHttp(request, true);
             if (response !=null) {
                 if (201 == response.getCode() || 200 == response.getCode()) {
-                    return (String) JsonUtils.unmarshallBeanForDataApi(response.getBody(), Map.class).get("authToken");
+                    return (String) JsonUtils.unMarshallBean(response.getBody(), Map.class).get("authToken");
                 }
             }
             String errorMessage = (response != null) ? response.getBody() : "no response";

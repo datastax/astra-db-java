@@ -91,7 +91,7 @@ public class ApiResponse {
      */
     public <T> T getStatusKeyAsObject(@NonNull String key, @NonNull Class<T> targetClass) {
         if (status.containsKey(key)) {
-            return JsonUtils.convertValueForDataApi(status.get(key), targetClass);
+            return JsonUtils.convertValue(status.get(key), targetClass);
         }
         return null;
     }

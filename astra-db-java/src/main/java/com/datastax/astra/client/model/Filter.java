@@ -49,7 +49,7 @@ public class Filter extends Document {
     @SuppressWarnings("unchecked")
     public Filter(String json) {
         super();
-        this.documentMap.putAll(JsonUtils.unmarshallBeanForDataApi(json, Map.class));
+        this.documentMap.putAll(JsonUtils.unMarshallBean(json, Map.class));
     }
 
     /**
@@ -163,7 +163,7 @@ public class Filter extends Document {
      *      json expression
      */
     public String toJson() {
-        return JsonUtils.marshallForDataApi(this);
+        return JsonUtils.marshall(this);
     }
 
 }

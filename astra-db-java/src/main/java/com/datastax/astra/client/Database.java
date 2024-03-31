@@ -305,8 +305,8 @@ public class Database extends AbstractCommandRunner {
      */
     public <DOC> Collection<DOC> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<DOC> documentClass) {
             return createCollection(collectionName, CollectionOptions.builder()
-                    .withVectorDimension(dimension)
-                    .withVectorSimilarityMetric(metric)
+                    .vectorDimension(dimension)
+                    .vectorSimilarity(metric)
                     .build(), documentClass);
     }
 
@@ -357,7 +357,7 @@ public class Database extends AbstractCommandRunner {
         Command createCollection = Command
                 .create("createCollection")
                 .append("name", collectionName)
-                .withOptions(JsonUtils.convertValueForDataApi(collectionOptions, Document.class));
+                .withOptions(JsonUtils.convertValue(collectionOptions, Document.class));
         runCommand(createCollection);
         log.info("Collection  '" + green("{}") + "' has been created", collectionName);
         return getCollection(collectionName, documentClass);

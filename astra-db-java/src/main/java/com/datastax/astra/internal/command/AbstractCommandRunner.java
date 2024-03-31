@@ -20,7 +20,6 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.api.ApiResponse;
@@ -92,10 +91,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
         try {
             // (Custom) Serialization
-            String jsonCommand = JsonUtils.marshallForDataApi(command);
+            String jsonCommand = JsonUtils.marshall(command);
             ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), getToken(), jsonCommand);
             executionInfo.withHttpResponse(httpRes);
-            ApiResponse jsonRes = JsonUtils.unmarshallBeanForDataApi(httpRes.getBody(), ApiResponse.class);
+            ApiResponse jsonRes = JsonUtils.unMarshallBean(httpRes.getBody(), ApiResponse.class);
             executionInfo.withApiResponse(jsonRes);
             // Encapsulate Errors
             if (jsonRes.getErrors() != null) {
@@ -141,16 +140,16 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         String payload;
         if (api.getData() != null) {
             if (api.getData().getDocument() != null) {
-                payload = JsonUtils.marshallForDataApi(api.getData().getDocument());
+                payload = JsonUtils.marshall(api.getData().getDocument());
             } else if (api.getData().getDocuments() != null) {
-                payload = JsonUtils.marshallForDataApi(api.getData().getDocuments());
+                payload = JsonUtils.marshall(api.getData().getDocuments());
             } else {
                 throw new IllegalStateException("Cannot marshall into '" + documentClass + "' no documents returned.");
             }
         } else {
-            payload = JsonUtils.marshallForDataApi(api.getStatus());
+            payload = JsonUtils.marshall(api.getStatus());
         }
-        return JsonUtils.unmarshallBeanForDataApi(payload, documentClass);
+        return JsonUtils.unMarshallBean(payload, documentClass);
     }
 
     /**

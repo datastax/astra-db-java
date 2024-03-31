@@ -12,7 +12,7 @@ public class FiltersTest {
     @Test
     void testFiltersSerializations() {
         Filter f = Filters.eq("hello", 3);
-        assertThat(JsonUtils.marshallForDataApi(f)).isEqualTo("{\"hello\":3}");
+        assertThat(JsonUtils.marshall(f)).isEqualTo("{\"hello\":3}");
     }
 
 }

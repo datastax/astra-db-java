@@ -74,7 +74,7 @@ public class NamespaceInformation {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return JsonUtils.marshallForDataApi(this);
+        return JsonUtils.marshall(this);
     }
 
 }

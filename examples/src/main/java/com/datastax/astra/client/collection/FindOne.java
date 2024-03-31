@@ -34,7 +34,5 @@ public class FindOne {
                 .sort(Sorts.vector(new float[] {.1f, .2f}))
                         .withIncludeSimilarity()
                 .build());
-
-
     }
 }

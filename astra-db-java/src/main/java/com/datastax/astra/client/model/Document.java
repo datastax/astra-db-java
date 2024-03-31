@@ -116,6 +116,16 @@ public class Document implements Map<String, Object>, Serializable {
     }
 
     /**
+     * Create a document with no attributes.
+     *
+     * @return
+     *      instance of document
+     */
+    public static Document create() {
+        return new Document();
+    }
+
+    /**
      * Marshall as a document if needed.
      *
      * @param clazz
@@ -126,7 +136,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      current type
      */
     public <T> T map(Class<T> clazz) {
-        return JsonUtils.convertValueForDataApi(documentMap, clazz);
+        return JsonUtils.convertValue(documentMap, clazz);
     }
 
     /**
@@ -159,7 +169,7 @@ public class Document implements Map<String, Object>, Serializable {
      */
     @SuppressWarnings("unchecked")
     public static Document parse(final String json) {
-        return new Document(JsonUtils.unmarshallBeanForDataApi(json, LinkedHashMap.class));
+        return new Document(JsonUtils.unMarshallBean(json, LinkedHashMap.class));
     }
 
     /**
@@ -204,7 +214,7 @@ public class Document implements Map<String, Object>, Serializable {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return clazz.cast(JsonUtils.convertValueForDataApi(documentMap.get(key), clazz));
+        return clazz.cast(JsonUtils.convertValue(documentMap.get(key), clazz));
     }
 
     /**
@@ -219,7 +229,7 @@ public class Document implements Map<String, Object>, Serializable {
      */
     @SuppressWarnings("unchecked")
     public <T> T get(@NonNull final String key, @NonNull  final T defaultValue) {
-        Object value = JsonUtils.convertValueForDataApi(documentMap.get(key), defaultValue.getClass());
+        Object value = JsonUtils.convertValue(documentMap.get(key), defaultValue.getClass());
         return value == null ? defaultValue : (T) value;
     }
 
@@ -336,6 +346,10 @@ public class Document implements Map<String, Object>, Serializable {
      * @throws ClassCastException if the value is not an long
      */
     public Long getLong(final String key) {
+        Object o = get(key);
+        if (o instanceof Integer) {
+            return ((Integer) o).longValue();
+        }
         return (Long) get(key);
     }
 
@@ -422,9 +436,43 @@ public class Document implements Map<String, Object>, Serializable {
      * @return
      *      configuration value
      */
+    @SuppressWarnings("unchecked")
+    public ObjectId getObjectId(String k) {
+        Object o = get(k);
+        if (o == null) {
+            return null;
+        }
+        if (!(o instanceof LinkedHashMap)) {
+            throw new IllegalArgumentException("UUID must be a string or a map with a $objectId key but found " + o);
+        }
+        LinkedHashMap<String, String> map = (LinkedHashMap<String, String>) o;
+        if (!map.containsKey("$objectId")) {
+            throw new IllegalArgumentException("UUID must be a string or a map with a $objectId key but found " + o);
+        }
+        return  new ObjectId(map.get("$objectId"));
+    }
+
+    /**
+     * Access element from the map
+     * @param k
+     *      current configuration key
+     * @return
+     *      configuration value
+     */
+    @SuppressWarnings("unchecked")
     public UUID getUUID(String k) {
-        String uuid = getString(k);
-        return (uuid == null) ? null : UUID.fromString(uuid);
+        Object o = get(k);
+        if (o == null) {
+            return null;
+        }
+        if (!(o instanceof LinkedHashMap)) {
+            throw new IllegalArgumentException("UUID must be a string or a map with a $uuid key but found " + o);
+        }
+        LinkedHashMap<String, String> map = (LinkedHashMap<String, String>) o;
+        if (!map.containsKey("$uuid")) {
+            throw new IllegalArgumentException("UUID must be a string or a map with a $uuid key but found " + o);
+        }
+        return  UUID.fromString(map.get("$uuid"));
     }
 
     /**
@@ -557,7 +605,7 @@ public class Document implements Map<String, Object>, Serializable {
      */
     @Override
     public String toString() {
-        return JsonUtils.marshallForDataApi(documentMap);
+        return JsonUtils.marshall(documentMap);
     }
 
     /**

@@ -231,7 +231,7 @@ public class CollectionOptions {
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder withDefaultId(CollectionIdTypes idType) {
+        public CollectionOptionsBuilder defaultId(CollectionIdTypes idType) {
             this.defaultId = idType;
             return this;
         }
@@ -242,7 +242,7 @@ public class CollectionOptions {
          * @param size size
          * @return self reference
          */
-        public CollectionOptionsBuilder withVectorDimension(int size) {
+        public CollectionOptionsBuilder vectorDimension(int size) {
             getVector().setDimension(size);
             return this;
         }
@@ -253,7 +253,7 @@ public class CollectionOptions {
          * @param function function
          * @return self reference
          */
-        public CollectionOptionsBuilder withVectorSimilarityMetric(@NonNull SimilarityMetric function) {
+        public CollectionOptionsBuilder vectorSimilarity(@NonNull SimilarityMetric function) {
             getVector().setMetric(function);
             return this;
         }
@@ -264,7 +264,7 @@ public class CollectionOptions {
          * @param properties size
          * @return self reference
          */
-        public CollectionOptionsBuilder withIndexingDeny(@NonNull String... properties) {
+        public CollectionOptionsBuilder indexingDeny(@NonNull String... properties) {
             if (getIndexing().getAllow() != null) {
                 throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
             }
@@ -278,7 +278,7 @@ public class CollectionOptions {
          * @param properties size
          * @return self reference
          */
-        public CollectionOptionsBuilder withIndexingAllow(String... properties) {
+        public CollectionOptionsBuilder indexingAllow(String... properties) {
             if (getIndexing().getDeny() != null) {
                 throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
             }
@@ -294,8 +294,8 @@ public class CollectionOptions {
          * @return self reference
          */
         public CollectionOptionsBuilder vector(int dimension, @NonNull SimilarityMetric function) {
-            withVectorSimilarityMetric(function);
-            withVectorDimension(dimension);
+            vectorSimilarity(function);
+            vectorDimension(dimension);
             return this;
         }
 
@@ -309,7 +309,7 @@ public class CollectionOptions {
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder withVectorize(String provider, String modeName) {
+        public CollectionOptionsBuilder vectorize(String provider, String modeName) {
             Service embeddingService = new Service();
             embeddingService.setProvider(provider);
             embeddingService.setModelName(modeName);

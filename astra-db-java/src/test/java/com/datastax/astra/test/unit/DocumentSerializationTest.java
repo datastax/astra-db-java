@@ -26,14 +26,14 @@ class DocumentSerializationTest {
         Command ccc = Command.create("createCollection")
                 .append("name", "demo")
                 .withOptions(CollectionOptions.builder()
-                    .withVectorDimension(14)
-                    .withVectorSimilarityMetric(SimilarityMetric.cosine)
+                    .vectorDimension(14)
+                    .vectorSimilarity(SimilarityMetric.cosine)
                     .build());
-        System.out.println(JsonUtils.marshallForDataApi(ccc));
+        System.out.println(JsonUtils.marshall(ccc));
     }
 
     @Test
     void shouldSerializeCommand2() {
-        assertThat(JsonUtils.marshallForDataApi(new Object())).isEqualTo("{}");
+        assertThat(JsonUtils.marshall(new Object())).isEqualTo("{}");
     }
 }

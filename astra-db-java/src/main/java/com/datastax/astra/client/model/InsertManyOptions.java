@@ -63,6 +63,20 @@ public class InsertManyOptions {
     }
 
     /**
+     * Expressed the most common options.
+     *
+     * @param ordered
+     *      if items are ordered
+     * @return
+     *      insert many option
+     */
+    public static InsertManyOptions ordered(Boolean ordered) {
+        return new InsertManyOptions.Builder()
+                .ordered(ordered)
+                .build();
+    }
+
+    /**
      * Create a builder for the options.
      *
      * @return
@@ -111,7 +125,7 @@ public class InsertManyOptions {
          * @return
          *      self reference
          */
-        public Builder withConcurrency(int concurrency) {
+        public Builder concurrency(int concurrency) {
             this.concurrency = concurrency;
             return this;
         }
@@ -124,7 +138,7 @@ public class InsertManyOptions {
          * @return
          *      self reference
          */
-        public Builder withChunkSize(int chunkSize) {
+        public Builder chunkSize(int chunkSize) {
             this.chunkSize = chunkSize;
             return this;
         }
@@ -137,7 +151,7 @@ public class InsertManyOptions {
          * @return
          *      self reference
          */
-        public Builder withTimeout(int timeout) {
+        public Builder timeout(int timeout) {
             this.timeout = timeout;
             return this;
         }

@@ -23,6 +23,8 @@ package com.datastax.astra.client.model;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Options for the updateOne operation
 
@@ -41,52 +43,121 @@ public class UpdateOneOptions {
     private Document sort;
 
     /**
+     * Create a builder for those options.
+     *
+     * @return
+     *      instance of the builder.
+     */
+    public static UpdateOneOptionsBuilder builder() {
+        return new UpdateOneOptionsBuilder();
+    }
+
+    /**
      * Default constructor.
-     */
-    public UpdateOneOptions() {}
-
-    /**
-     * Builder Pattern, update the upsert flag
      *
-     * @param upsert
-     *     upsert flag
-     * @return
-     *      self reference
+     * @param builder
+     *    builder to help creating the immutable object.
      */
-    public UpdateOneOptions upsert(Boolean upsert) {
-        Assert.notNull(upsert, "upsert");
-        this.upsert = upsert;
-        return this;
+    public UpdateOneOptions(UpdateOneOptionsBuilder builder) {
+        this.sort   = builder.sort;
+        this.upsert = builder.upsert;
     }
 
     /**
-     * Builder Pattern, update the sort clause
-     *
-     * @param pSort
-     *      sort clause of the command
-     * @return
-     *      self reference
+     * Find is an operation with multiple options to filter, sort, project, skip, limit, and more.
+     * This builder will help to chain options.
      */
-    public UpdateOneOptions sortingBy(Document pSort) {
-        Assert.notNull(pSort, "sort");
-        if (this.sort == null) {
-            sort = new Document();
+    public static class UpdateOneOptionsBuilder {
+
+        /**
+         * if upsert is selected
+         */
+        private Boolean upsert;
+
+        /**
+         * Order by.
+         */
+        private Document sort;
+
+        /**
+         * Builder Pattern, update the upsert flag
+         *
+         * @param upsert
+         *     upsert flag
+         * @return
+         *      self reference
+         */
+        public UpdateOneOptionsBuilder upsert(Boolean upsert) {
+            Assert.notNull(upsert, "upsert");
+            this.upsert = upsert;
+            return this;
         }
-        this.sort.putAll(pSort);
-        return this;
+
+        /**
+         * Fluent api.
+         *
+         * @param pSort
+         *      list of sorts
+         * @return
+         *      Self reference
+         */
+        public UpdateOneOptionsBuilder sort(Sort pSort) {
+            Assert.notNull(pSort, "sort");
+            if (this.sort == null) {
+                this.sort = new Document();
+            }
+            this.sort.put(pSort.getField(), pSort.getOrder().getCode());
+            return this;
+        }
+
+        /**
+         * Fluent api.
+         *
+         * @param sorts
+         *      list of sorts
+         * @return
+         *      Self reference
+         */
+        public UpdateOneOptionsBuilder sort(List<Sort> sorts) {
+            Assert.notNull(sorts, "sort");
+            if (this.sort == null) {
+                sort = new Document();
+            }
+            for (Sort s : sorts) {
+                this.sort.put(s.getField(), s.getOrder().getCode());
+            }
+            return this;
+        }
+
+        /**
+         * Fluent api.
+         *
+         * @param pSort
+         *      add a filter
+         * @return
+         *      current command.
+         */
+        public UpdateOneOptionsBuilder sort(Document pSort) {
+            Assert.notNull(pSort, "sort");
+            if (this.sort == null) {
+                sort = new Document();
+            }
+            this.sort.putAll(pSort);
+            return this;
+        }
+
+        /**
+         * Builder for the Options.
+         *
+         * @return
+         *      the find options object
+         */
+        public UpdateOneOptions build() {
+            return new UpdateOneOptions(this);
+        }
+
     }
 
-    /**
-     * Add a sort clause to the current field.
-     *
-     * @param fieldName
-     *      field name
-     * @param ordering
-     *      field ordering
-     * @return
-     *      current reference  find
-     */
-    public UpdateOneOptions sortingBy(String fieldName, SortOrder ordering) {
-        return sortingBy(new Document().append(fieldName, ordering.getCode()));
-    }
+
+
 }

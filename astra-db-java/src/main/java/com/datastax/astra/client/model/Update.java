@@ -49,7 +49,7 @@ public class Update extends Document {
     public Update(String json) {
         super();
         //this.filter = JsonUtils.unmarshallBean(json, Map.class);
-        this.documentMap.putAll(JsonUtils.unmarshallBeanForDataApi(json, Map.class));
+        this.documentMap.putAll(JsonUtils.unMarshallBean(json, Map.class));
     }
 
     /**
@@ -83,7 +83,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update inc(String key, Integer offset) {
+    public Update inc(String key, Double offset) {
         return update("$inc", key, offset);
     }
 
@@ -95,7 +95,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update inc(Map<String, Integer> fields) {
+    public Update inc(Map<String, Double> fields) {
         if (fields !=null) fields.forEach(this::inc);
         return this;
     }
@@ -148,7 +148,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update set(Map<String, Integer> fields) {
+    public Update set(Document fields) {
         if (fields !=null) fields.forEach(this::set);
         return this;
     }
