@@ -72,7 +72,7 @@ public class FilterBuilder {
      * @return
      *      builder
      */
-    private Filter simpleKeyword(FilterKeyword key, Object value) {
+    private Filter simpleKeyword(DataAPIKeywords key, Object value) {
         filter.documentMap.put(fieldName, Map.of(key.getKeyword(), value));
         return filter;
     }
@@ -142,7 +142,7 @@ public class FilterBuilder {
      *      self reference
      */
     public Filter isAnArrayExactlyEqualsTo(Object[] value) {
-        filter.documentMap.put(fieldName, Map.of(FilterKeyword.ALL.getKeyword(), value));
+        filter.documentMap.put(fieldName, Map.of(DataAPIKeywords.ALL.getKeyword(), value));
         return filter;
     }
 
@@ -225,7 +225,7 @@ public class FilterBuilder {
      *      self reference
      */
     public Filter exists() {
-        return simpleKeyword(FilterKeyword.EXISTS, true);
+        return simpleKeyword(DataAPIKeywords.EXISTS, true);
     }
     
     /**
@@ -237,7 +237,7 @@ public class FilterBuilder {
      *      self reference
      */
     public Filter hasSize(int size) {
-        return simpleKeyword(FilterKeyword.SIZE, size);
+        return simpleKeyword(DataAPIKeywords.SIZE, size);
     }
 
 }

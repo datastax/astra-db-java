@@ -37,7 +37,7 @@ public class CollectionOptions {
     /**
      * The 'defaultId' to allow working with different types of identifiers.
      */
-    private Map<String, CollectionIdTypes> defaultId;
+    private DefaultIdOptions defaultId;
 
     /**
      * Vector options.
@@ -52,7 +52,36 @@ public class CollectionOptions {
     /**
      * Default constructor.
      */
-    public CollectionOptions() {}
+    public CollectionOptions() {
+        // left blank on purpose, built with builder
+    }
+
+    /**
+     * Subclass representing the indexing options.
+     */
+    @Data
+    public static class DefaultIdOptions {
+
+        /** Type for the default id. */
+        private String type;
+
+        /**
+         * Default constructor.
+         */
+        public DefaultIdOptions() {
+            // marshalled by jackson
+        }
+
+        /**
+         * Default constructor.
+         *
+         * @param type
+         *      type for the default id
+         */
+        public DefaultIdOptions(String type) {
+            this.type = type;
+        }
+    }
 
     /**
      * Subclass representing the indexing options.
@@ -190,7 +219,7 @@ public class CollectionOptions {
         /**
          * Options for Default Id
          */
-        CollectionIdTypes defaultId;
+        String defaultId;
 
         /**
          * Access the vector options.
@@ -231,8 +260,8 @@ public class CollectionOptions {
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder defaultId(CollectionIdTypes idType) {
-            this.defaultId = idType;
+        public CollectionOptionsBuilder defaultIdType(CollectionIdTypes idType) {
+            this.defaultId = idType.getValue();
             return this;
         }
 
@@ -327,7 +356,7 @@ public class CollectionOptions {
             req.vector    = this.vector;
             req.indexing  = this.indexing;
             if (defaultId != null) {
-                req.defaultId = Map.of("type", this.defaultId);
+                req.defaultId = new DefaultIdOptions(defaultId);
             }
             return req;
         }

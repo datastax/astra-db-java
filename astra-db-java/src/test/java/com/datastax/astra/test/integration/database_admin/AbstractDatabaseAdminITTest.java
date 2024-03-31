@@ -117,10 +117,10 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         // Surface
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> getDatabaseAdmin().createNamespace(null))
-                .withMessage("Parameter 'namespace' should be null nor empty");
+                .withMessage("Parameter 'namespaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> getDatabaseAdmin().createNamespace(""))
-                .withMessage("Parameter 'namespace' should be null nor empty");
+                .withMessage("Parameter 'namespaceName' should be null nor empty");
     }
 
     @Test

@@ -37,7 +37,9 @@ public class DeleteOneOptions {
     /**
      * Default constructor.
      */
-    public DeleteOneOptions() {}
+    public DeleteOneOptions() {
+        // Left blank as sort is populated in static way
+    }
 
     /**
      * Syntax sugar as delete option is only a sort

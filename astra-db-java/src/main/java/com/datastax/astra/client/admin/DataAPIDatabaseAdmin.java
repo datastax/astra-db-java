@@ -44,6 +44,9 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 @Getter
 public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements DatabaseAdmin {
 
+    /** parameters names. */
+    private static final String ARG_NAMESPACE = "namespaceName";
+
     /** Version of the API. */
     protected final DataAPIOptions options;
 
@@ -85,21 +88,21 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     public Database getDatabase(String namespaceName) {
-        Assert.hasLength(namespaceName, "namespaceName");
+        Assert.hasLength(namespaceName, ARG_NAMESPACE);
         return new Database(apiEndPoint, token, namespaceName, options);
     }
 
     /** {@inheritDoc} */
     @Override
     public Database getDatabase(String namespaceName, String userToken) {
-        Assert.hasLength(namespaceName, "namespaceName");
+        Assert.hasLength(namespaceName, ARG_NAMESPACE);
         Assert.hasLength(userToken, "userToken");
         return new Database(apiEndPoint, userToken, namespaceName, options);
     }
 
     /** {@inheritDoc} */
     public void createNamespace(String namespace) {
-        Assert.hasLength(namespace, "namespace");
+        Assert.hasLength(namespace, ARG_NAMESPACE);
         createNamespace(namespace, NamespaceOptions.simpleStrategy(1));
     }
 
@@ -112,7 +115,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      options to create a namespace
      */
     public void createNamespace(String namespace, NamespaceOptions options) {
-        hasLength(namespace, "namespace");
+        hasLength(namespace, ARG_NAMESPACE);
         notNull(options, "options");
         Command createNamespace = Command
                         .create("createNamespace")
@@ -124,7 +127,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     public void dropNamespace(String namespace) {
-        hasLength(namespace, "namespace");
+        hasLength(namespace, ARG_NAMESPACE);
         Command dropNamespace = Command
                 .create("dropNamespace")
                 .append("name", namespace);

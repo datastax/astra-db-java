@@ -53,9 +53,9 @@ public class LocalAdminITTest extends AbstractDatabaseAdminITTest {
         // non-passing case
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropNamespace(null))
-                .withMessage("Parameter 'namespace' should be null nor empty");
+                .withMessage("Parameter 'namespaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropNamespace(""))
-                .withMessage("Parameter 'namespace' should be null nor empty");
+                .withMessage("Parameter 'namespaceName' should be null nor empty");
     }
 }

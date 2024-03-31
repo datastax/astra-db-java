@@ -137,6 +137,9 @@ public class Database extends AbstractCommandRunner {
                     dbApiEndPointBuilder.append("/api/json");
                 }
             break;
+            default:
+                // left blank as local deployments does not require any change
+            break;
         }
         this.apiEndpoint = dbApiEndPointBuilder
                 .append("/")

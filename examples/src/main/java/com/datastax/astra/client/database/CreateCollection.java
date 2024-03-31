@@ -39,8 +39,7 @@ public class CreateCollection {
     // Enforce default id type could be objectid, uuid, uuivv6, uuidv7
     Collection<Document> defaultId = db.createCollection("defaultId", CollectionOptions
             .builder()
-            .defaultId(CollectionIdTypes.objectId)
+            .defaultIdType(CollectionIdTypes.OBJECT_ID)
             .build());
-
   }
 }

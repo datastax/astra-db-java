@@ -60,30 +60,10 @@ import java.util.UUID;
 public class Document implements Map<String, Object>, Serializable {
 
     /**
-     * Attribute for id.
-     */
-    public static final String ID = "_id";
-
-    /**
-     * Attribute for vector.
-     */
-    public static final String VECTOR = "$vector";
-
-    /**
-     * Attribute for vector.
-     */
-    public static final String VECTORIZE = "$vectorize";
-
-    /**
-     * Attribute for similarity
-     */
-    public static final String SIMILARITY = "$similarity";
-
-    /**
      * Data to be used in the document.
      */
     @JsonUnwrapped
-    public LinkedHashMap<String, Object> documentMap;
+    public transient LinkedHashMap<String, Object> documentMap;
 
     /**
      * Default Constructor.
@@ -243,7 +223,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      type of id
      */
     public <T> T getId(@NonNull final Class<T> clazz) {
-        return get(ID, clazz);
+        return get(DataAPIKeywords.ID.getKeyword(), clazz);
     }
 
 
@@ -258,7 +238,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      self reference
      */
     public <T> Document id(T id) {
-        return appendIfNotNull(ID, id);
+        return appendIfNotNull(DataAPIKeywords.ID.getKeyword(), id);
     }
 
     /**
@@ -270,7 +250,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      self reference
      */
     public Document vectorize(String text) {
-        return appendIfNotNull(VECTORIZE, text);
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), text);
     }
 
     /**
@@ -280,7 +260,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      value for vectorize
      */
     public Optional<String> getVectorize() {
-        return Optional.ofNullable(get(VECTORIZE, String.class));
+        return Optional.ofNullable(get(DataAPIKeywords.VECTORIZE.getKeyword(), String.class));
     }
 
     /**
@@ -290,7 +270,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      vector list
      */
     public Optional<float[]>  getVector() {
-        return Optional.ofNullable(get(VECTOR, float[].class));
+        return Optional.ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class));
     }
 
     /**
@@ -302,7 +282,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      self reference
      */
     public Document vector(float[] vector) {
-        return append(VECTOR, vector);
+        return append(DataAPIKeywords.VECTOR.getKeyword(), vector);
     }
 
     /**
@@ -312,7 +292,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      vector list
      */
     public Optional<Double> getSimilarity() {
-        return Optional.ofNullable(get(SIMILARITY, Double.class));
+        return Optional.ofNullable(get(DataAPIKeywords.SIMILARITY.getKeyword(), Double.class));
     }
 
     /**
@@ -446,10 +426,10 @@ public class Document implements Map<String, Object>, Serializable {
             throw new IllegalArgumentException("UUID must be a string or a map with a $objectId key but found " + o);
         }
         LinkedHashMap<String, String> map = (LinkedHashMap<String, String>) o;
-        if (!map.containsKey("$objectId")) {
+        if (!map.containsKey(DataAPIKeywords.OBJECT_ID.getKeyword())) {
             throw new IllegalArgumentException("UUID must be a string or a map with a $objectId key but found " + o);
         }
-        return  new ObjectId(map.get("$objectId"));
+        return  new ObjectId(map.get(DataAPIKeywords.OBJECT_ID.getKeyword()));
     }
 
     /**
@@ -469,10 +449,10 @@ public class Document implements Map<String, Object>, Serializable {
             throw new IllegalArgumentException("UUID must be a string or a map with a $uuid key but found " + o);
         }
         LinkedHashMap<String, String> map = (LinkedHashMap<String, String>) o;
-        if (!map.containsKey("$uuid")) {
+        if (!map.containsKey(DataAPIKeywords.UUID.getKeyword())) {
             throw new IllegalArgumentException("UUID must be a string or a map with a $uuid key but found " + o);
         }
-        return  UUID.fromString(map.get("$uuid"));
+        return  UUID.fromString(map.get(DataAPIKeywords.UUID.getKeyword()));
     }
 
     /**
@@ -701,13 +681,8 @@ public class Document implements Map<String, Object>, Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         Document document = (Document) o;
-
-        if (!documentMap.equals(document.documentMap)) {
-            return false;
-        }
-        return true;
+        return documentMap.equals(document.documentMap);
     }
 
     /** {@inheritDoc} */

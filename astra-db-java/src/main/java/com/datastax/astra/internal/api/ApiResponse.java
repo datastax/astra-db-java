@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
  * various types of responses within a unified framework.
  */
 @Data
-public class ApiResponse {
+public class ApiResponse implements Serializable {
 
     /**
      * Holds status information returned by the API for all operations except those prefixed with 'find'.

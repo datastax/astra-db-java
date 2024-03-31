@@ -194,14 +194,16 @@ public class DataAPIOptions {
         /**
          * Default constructor.
          */
-        public HttpClientOptions() {}
+        public HttpClientOptions() {
+            // left blanks as default values are set
+        }
 
     }
 
     /**
      * Subclass to represent an http proxy.
      */
-    @Data @AllArgsConstructor
+    @Data
     public static class HttpProxy {
 
         /** hostname of the proxy. */
@@ -212,8 +214,16 @@ public class DataAPIOptions {
 
         /**
          * Default constructor.
+         *
+         * @param hostname
+         *    host name
+         * @param port
+         *      roxy port
          */
-        public HttpProxy() {}
+        public HttpProxy(String hostname, int port) {
+            this.hostname = hostname;
+            this.port = port;
+        }
     }
 
 
@@ -258,7 +268,9 @@ public class DataAPIOptions {
         /**
          * Default constructor.
          */
-        public DataAPIClientOptionsBuilder() {}
+        public DataAPIClientOptionsBuilder() {
+            // left blanks as default values are set
+        }
 
         /**
          * Builder pattern, update caller information.

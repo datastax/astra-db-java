@@ -41,6 +41,8 @@ public final class BulkWriteOptions {
     /**
      * Default constructor.
      */
-    public BulkWriteOptions() {}
+    public BulkWriteOptions() {
+        // left blank attributes have default values
+    }
 
 }

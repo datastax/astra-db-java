@@ -46,6 +46,8 @@ public class UpdateResult {
     /**
      * Default constructor.
      */
-    public UpdateResult() {}
+    public UpdateResult() {
+        // left blank as fields are populated by jackson
+    }
 
 }

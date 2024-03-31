@@ -25,6 +25,7 @@ import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.BulkWriteOptions;
 import com.datastax.astra.client.model.BulkWriteResult;
+import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
@@ -33,6 +34,7 @@ import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.DistinctIterable;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
+import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -79,6 +81,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.model.CollectionIdTypes.UUIDV6;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -119,6 +122,57 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  */
 @Slf4j
 public class Collection<T> extends AbstractCommandRunner {
+
+    /** parameters names. */
+    private static final String ARG_OPTIONS = "options";
+    /** parameters names. */
+    private static final String ARG_FILTER = "filter";
+    /** parameters names. */
+    private static final String ARG_DATABASE = "database";
+    /** parameters names. */
+    private static final String ARG_CLAZZ = "working class 'clazz'";
+    /** parameters names. */
+    private static final String ARG_COLLECTION_NAME = "collectionName";
+    /** parameters names. */
+    private static final String ARG_EMBEDDINGS = "vector embeddings";
+    /** parameters names. */
+    private static final String ARG_VECTORIZE = "expression to vectorize";
+    /** parameters names. */
+    private static final String ARG_UPDATE = "update";
+    /** parameters names. */
+    private static final String ARG_COMMANDS = "commands";
+    /** parameters names. */
+    private static final String DOCUMENT = "document";
+
+    // Json Outputs
+
+    /** parameters names. */
+    private static final String RESULT_INSERTED_IDS = "insertedIds";
+    /** parsing output json */
+    public static final String RESULT_DELETED_COUNT = "deletedCount";
+    /** parsing output json */
+    public static final String RESULT_MATCHED_COUNT = "matchedCount";
+    /** parsing output json */
+    public static final String RESULT_MODIFIED_COUNT = "modifiedCount";
+    /** parsing output json */
+    public static final String RESULT_UPSERTED_ID = "upsertedId";
+    /** parsing output json */
+    public static final String RESULT_MORE_DATA = "moreData";
+    /** parsing output json */
+    public static final String RESULT_COUNT = "count";
+
+    // Json Inputs
+
+    /** json inputs */
+    public static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
+    /** json inputs */
+    private static final String INPUT_UPSERT = "upsert";
+    /** json inputs */
+    private static final String INPUT_RETURN_DOCUMENT = "returnDocument";
+    /** json inputs */
+    private static final String INPUT_ORDERED = "ordered";
+    /** json inputs */
+    private static final String INPUT_PAGE_STATE = "pageState";
 
     /** Collection identifier. */
     @Getter
@@ -176,9 +230,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     protected Collection(Database db, String collectionName, Class<T> clazz) {
-        notNull(db, "database");
-        notNull(clazz, "working class");
-        hasLength(collectionName, "collectionName");
+        notNull(db, ARG_DATABASE);
+        notNull(clazz, ARG_CLAZZ);
+        hasLength(collectionName, ARG_COLLECTION_NAME);
         this.collectionName        = collectionName;
         this.database              = db;
         this.documentClass         = clazz;
@@ -353,7 +407,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final InsertOneResult insertOne(T document) {
-        Assert.notNull(document, "document");
+        Assert.notNull(document, DOCUMENT);
         return _insertOne(JsonUtils.convertValue(document, Document.class));
     }
 
@@ -426,8 +480,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final InsertOneResult insertOne(T document, float[] embeddings) {
-        Assert.notNull(document, "document");
-        Assert.notNull(embeddings, "vectorize");
+        Assert.notNull(document, DOCUMENT);
+        Assert.notNull(embeddings, ARG_EMBEDDINGS);
         return _insertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings));
     }
 
@@ -508,8 +562,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final InsertOneResult insertOne(T document, String vectorize) {
-        Assert.notNull(document, "document");
-        Assert.hasLength(vectorize, "vectorize");
+        Assert.notNull(document, DOCUMENT);
+        Assert.hasLength(vectorize, ARG_VECTORIZE);
         return _insertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize));
     }
 
@@ -564,10 +618,10 @@ public class Collection<T> extends AbstractCommandRunner {
      *      object wrapping the returned identifier
      */
     private InsertOneResult _insertOne(Document document) {
-        Assert.notNull(document, "document");
+        Assert.notNull(document, DOCUMENT);
         Command insertOne = Command.create("insertOne").withDocument(document);
         Object documentId = runCommand(insertOne)
-                .getStatusKeyAsList("insertedIds", Object.class)
+                .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                 .get(0);
         return new InsertOneResult(unmarshallDocumentId(documentId));
     }
@@ -585,18 +639,19 @@ public class Collection<T> extends AbstractCommandRunner {
         if (id instanceof Map) {
             // only maps will required to be unmarshalled
             Map<String, Object> mapId = (Map<String, Object>) id;
-            if (mapId.containsKey("$date")) {
+            if (mapId.containsKey(DataAPIKeywords.DATE.getKeyword())) {
                 // eJson date
-                return  Instant.ofEpochMilli((Long) mapId.get("$date"));
+                return  Instant.ofEpochMilli((Long) mapId.get(DataAPIKeywords.DATE.getKeyword()));
             }
-            if (mapId.containsKey("$uuid")) {
+            if (mapId.containsKey(DataAPIKeywords.UUID.getKeyword())) {
                 // defaultId with UUID
-                UUID uid = UUID.fromString((String) mapId.get("$uuid"));
+                UUID uid = UUID.fromString((String) mapId.get(DataAPIKeywords.UUID.getKeyword()));
                 if (getOptions() != null && getOptions().getDefaultId() != null) {
-                    switch(getOptions().getDefaultId().get("type")) {
-                        case uuidv6:
+                    CollectionIdTypes defaultIdType = CollectionIdTypes.fromValue(getOptions().getDefaultId().getType());
+                    switch(defaultIdType) {
+                        case UUIDV6:
                             return new UUIDv6(uid);
-                        case uuidv7:
+                        case UUIDV7:
                             return new UUIDv7(uid);
                         default:
                             return uid;
@@ -604,9 +659,9 @@ public class Collection<T> extends AbstractCommandRunner {
                 }
                 throw new IllegalStateException("Returned is is a UUID, but no defaultId is set in the collection definition.");
             }
-            if (mapId.containsKey("$objectId")) {
+            if (mapId.containsKey(DataAPIKeywords.OBJECT_ID.getKeyword())) {
                 // defaultId with ObjectId
-                return new ObjectId((String) mapId.get("$objectId"));
+                return new ObjectId((String) mapId.get(DataAPIKeywords.OBJECT_ID.getKeyword()));
             }
             throw new IllegalArgumentException("Cannot marshall id " + id);
         }
@@ -851,9 +906,9 @@ public class Collection<T> extends AbstractCommandRunner {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
-                    .withOptions(new Document().append("ordered", options.isOrdered()));
+                    .withOptions(new Document().append(INPUT_ORDERED, options.isOrdered()));
             return new InsertManyResult(runCommand(insertMany)
-                    .getStatusKeyAsList("insertedIds", Object.class)
+                    .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                     .stream()
                     .map(this::unmarshallDocumentId)
                     .collect(Collectors.toList()));
@@ -939,14 +994,14 @@ public class Collection<T> extends AbstractCommandRunner {
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
     public Optional<T> findOne(Filter filter, FindOneOptions options) {
-        notNull(options, "options");
+        notNull(options, ARG_OPTIONS);
         Command findOne = Command
                 .create("findOne")
                 .withFilter(filter)
                 .withSort(options.getSort())
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
-                        .appendIfNotNull("includeSimilarity", options.getIncludeSimilarity()));
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
         return Optional.ofNullable(
                 runCommand(findOne)
                         .getData().getDocument()
@@ -1184,8 +1239,8 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withOptions(new Document()
                         .appendIfNotNull("skip", options.getSkip())
                         .appendIfNotNull("limit", options.getLimit())
-                        .appendIfNotNull("pageState", options.getPageState())
-                        .appendIfNotNull("includeSimilarity", options.getIncludeSimilarity()));
+                        .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
 
         ApiResponse apiResponse = runCommand(findCommand);
 
@@ -1302,8 +1357,8 @@ public class Collection<T> extends AbstractCommandRunner {
         // Run command
         ApiResponse response = runCommand(command);
         // Build Result
-        Boolean moreData = response.getStatus().getBoolean("moreData");
-        Integer count    = response.getStatus().getInteger("count");
+        Boolean moreData = response.getStatus().getBoolean(RESULT_MORE_DATA);
+        Integer count    = response.getStatus().getInteger(RESULT_COUNT);
         if (moreData != null && moreData) {
             throw new TooManyDocumentsToCountException();
         } else if (count > upperBound) {
@@ -1316,30 +1371,7 @@ public class Collection<T> extends AbstractCommandRunner {
     // ---   Delete            ----
     // ----------------------------
 
-    /**
-     * attribute for the delete count
-     */
-    public static final String DELETED_COUNT = "deletedCount";
 
-    /**
-     * attribute for the matched count
-     */
-    public static final String MATCHED_COUNT = "matchedCount";
-
-    /**
-     * attribute for the modified count
-     */
-    public static final String MODIFIED_COUNT = "modifiedCount";
-
-    /**
-     * attribute for upserted Id
-     */
-    public static final String UPSERTED_ID = "upsertedId";
-
-    /**
-     * attribute for the moreData
-     */
-    public static final String MORE_DATA = "moreData";
 
     /**
      * Removes at most one document from the collection that matches the given filter.
@@ -1374,7 +1406,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withSort(deleteOneOptions.getSort());
 
         ApiResponse apiResponse = runCommand(deleteOne);
-        int deletedCount = apiResponse.getStatus().getInteger(DELETED_COUNT);
+        int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
         return new DeleteResult(deletedCount);
     }
 
@@ -1387,7 +1419,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the remove many operation
      */
     public DeleteResult deleteMany(Filter filter) {
-        Assert.notNull(filter, "filter");
+        Assert.notNull(filter, ARG_FILTER);
         AtomicInteger totalCount = new AtomicInteger(0);
         boolean moreData = false;
         do {
@@ -1398,10 +1430,10 @@ public class Collection<T> extends AbstractCommandRunner {
             ApiResponse apiResponse = runCommand(deleteMany);
             Document status = apiResponse.getStatus();
             if (status != null) {
-                if (status.containsKey(DELETED_COUNT)) {
-                    totalCount.addAndGet(status.getInteger(DELETED_COUNT));
+                if (status.containsKey(RESULT_DELETED_COUNT)) {
+                    totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
                 }
-                moreData = status.containsKey(MORE_DATA);
+                moreData = status.containsKey(RESULT_MORE_DATA);
             }
         } while(moreData);
         return new DeleteResult(totalCount.get());
@@ -1480,8 +1512,8 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withSort(options.getSort())
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
-                        .appendIfNotNull("upsert", options.getUpsert())
-                        .appendIfNotNull("returnDocument", options.getReturnDocument())
+                        .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
+                        .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
         ApiResponse res = runCommand(findOneAndReplace);
@@ -1528,8 +1560,8 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withFilter(filter)
                 .withReplacement(replacement)
                 .withOptions(new Document()
-                        .appendIfNotNull("upsert", replaceOneOptions.getUpsert())
-                        .append("returnDocument", ReturnDocument.BEFORE.getKey())
+                        .appendIfNotNull(INPUT_UPSERT, replaceOneOptions.getUpsert())
+                        .append(INPUT_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
                 );
 
         // Execute the `findOneAndReplace`
@@ -1572,11 +1604,11 @@ public class Collection<T> extends AbstractCommandRunner {
         }
         Document status = apiResponse.getStatus();
         if (status != null) {
-            if (status.containsKey(MATCHED_COUNT)) {
-                result.setMatchedCount(status.getInteger(MATCHED_COUNT));
+            if (status.containsKey(RESULT_MATCHED_COUNT)) {
+                result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
             }
-            if (status.containsKey(MODIFIED_COUNT)) {
-                result.setModifiedCount(status.getInteger(MODIFIED_COUNT));
+            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
+                result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
             }
         }
         return result;
@@ -1613,8 +1645,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * returned
      */
     public Optional<T> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options) {
-        notNull(update, "update");
-        notNull(options, "options");
+        notNull(update, ARG_UPDATE);
+        notNull(options, ARG_OPTIONS);
         Command cmd = Command
                 .create("findOneAndUpdate")
                 .withFilter(filter)
@@ -1622,8 +1654,8 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withSort(options.getSort())
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
-                        .appendIfNotNull("upsert", options.getUpsert())
-                        .append("returnDocument", options.getReturnDocument())
+                        .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
+                        .append(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
         ApiResponse res = runCommand(cmd);
@@ -1663,31 +1695,39 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update one operation
      */
     public UpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
-        notNull(update, "update");
-        notNull(updateOptions, "options");
+        notNull(update, ARG_UPDATE);
+        notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
                 .create("updateOne")
                 .withFilter(filter)
                 .withUpdate(update)
                 .withSort(updateOptions.getSort())
                 .withOptions(new Document()
-                        .appendIfNotNull("upsert", updateOptions.getUpsert())
+                        .appendIfNotNull(INPUT_UPSERT, updateOptions.getUpsert())
                 );
         return getUpdateResult(runCommand(cmd));
     }
 
+    /**
+     * Update all documents in the collection according to the specified arguments.
+     *
+     * @param apiResponse
+     *       response for the API
+     * @return
+     *      the result of the update many operation
+     */
     private static UpdateResult getUpdateResult(ApiResponse apiResponse) {
         UpdateResult result = new UpdateResult();
         Document status = apiResponse.getStatus();
         if (status != null) {
-            if (status.containsKey(MATCHED_COUNT)) {
-                result.setMatchedCount(status.getInteger(MATCHED_COUNT));
+            if (status.containsKey(RESULT_MATCHED_COUNT)) {
+                result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
             }
-            if (status.containsKey(MODIFIED_COUNT)) {
-                result.setModifiedCount(status.getInteger(MODIFIED_COUNT));
+            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
+                result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
             }
-            if (status.containsKey(UPSERTED_ID)) {
-                result.setMatchedCount(status.getInteger(UPSERTED_ID));
+            if (status.containsKey(RESULT_UPSERTED_ID)) {
+                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
             }
         }
         return result;
@@ -1720,8 +1760,8 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the update many operation
      */
     public UpdateResult updateMany(Filter filter, Update update, UpdateManyOptions options) {
-        notNull(update, "update");
-        notNull(options, "options");
+        notNull(update, ARG_UPDATE);
+        notNull(options, ARG_OPTIONS);
         boolean moreData = true;
         String nextPageState = null;
         UpdateResult result = new UpdateResult();
@@ -1733,8 +1773,8 @@ public class Collection<T> extends AbstractCommandRunner {
                     .withFilter(filter)
                     .withUpdate(update)
                     .withOptions(new Document()
-                            .appendIfNotNull("upsert", options.getUpsert())
-                            .appendIfNotNull("pageState", nextPageState));
+                            .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
+                            .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
             ApiResponse res = runCommand(cmd);
             // Data
             if (res.getData() != null) {
@@ -1742,14 +1782,14 @@ public class Collection<T> extends AbstractCommandRunner {
             }
             // Status
             Document status = res.getStatus();
-            if (status.containsKey(MATCHED_COUNT)) {
-                result.setMatchedCount(result.getMatchedCount() + status.getInteger(MATCHED_COUNT));
+            if (status.containsKey(RESULT_MATCHED_COUNT)) {
+                result.setMatchedCount(result.getMatchedCount() + status.getInteger(RESULT_MATCHED_COUNT));
             }
-            if (status.containsKey(MODIFIED_COUNT)) {
-                result.setModifiedCount(result.getModifiedCount() + status.getInteger(MODIFIED_COUNT));
+            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
+                result.setModifiedCount(result.getModifiedCount() + status.getInteger(RESULT_MODIFIED_COUNT));
             }
-            if (status.containsKey(UPSERTED_ID)) {
-                result.setUpsertedId(status.getInteger(UPSERTED_ID));
+            if (status.containsKey(RESULT_UPSERTED_ID)) {
+                result.setUpsertedId(status.getInteger(RESULT_UPSERTED_ID));
             }
         } while(nextPageState != null);
         return result;
@@ -1821,8 +1861,8 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the bulk write
      */
     public BulkWriteResult bulkWrite(List<Command> commands, BulkWriteOptions options) {
-        notNull(commands, "commands");
-        notNull(options, "options");
+        notNull(commands, ARG_COMMANDS);
+        notNull(options, ARG_OPTIONS);
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered bulk_write concurrently.");
         }
@@ -1864,7 +1904,6 @@ public class Collection<T> extends AbstractCommandRunner {
         registerListener("logger", new LoggingCommandObserver(Collection.class));
         return this;
     }
-
 
     /** {@inheritDoc} */
     @Override

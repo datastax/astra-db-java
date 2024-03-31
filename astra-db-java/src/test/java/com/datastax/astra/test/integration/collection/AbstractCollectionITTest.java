@@ -15,14 +15,11 @@ import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
 import com.datastax.astra.client.model.FindOneAndUpdateOptions;
-import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
-import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.client.model.Sorts;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.api.ApiResponse;
@@ -37,6 +34,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -69,9 +67,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
 abstract class AbstractCollectionITTest implements TestConstants {
-
-    /** Tested Store. */
-    static DatabaseAdmin apiDataAPIClient;
 
     static Document COMPLETE_DOCUMENT = new Document().id("1")
             .append("metadata_instant", Instant.now())

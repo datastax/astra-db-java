@@ -46,7 +46,9 @@ public class FindOneAndDeleteOptions {
     /**
      * Default constructor.
      */
-    public FindOneAndDeleteOptions() {}
+    public FindOneAndDeleteOptions() {
+        // left blank as sort is populated in static way
+    }
 
     /**
      * Syntax sugar as delete option is only a sort

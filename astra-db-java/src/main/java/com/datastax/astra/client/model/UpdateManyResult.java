@@ -56,5 +56,7 @@ public class UpdateManyResult {
     /**
      * Default constructor.
      */
-    public UpdateManyResult() {}
+    public UpdateManyResult() {
+        // left blank as fields are populated by jackson
+    }
 }

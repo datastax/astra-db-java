@@ -55,7 +55,9 @@ public class FindOneAndReplaceOptions {
     /**
      * Default constructor.
      */
-    public FindOneAndReplaceOptions() {}
+    public FindOneAndReplaceOptions() {
+        // left blank as attributes are populated in static way
+    }
 
     /**
      * Syntax sugar as delete option is only a sort

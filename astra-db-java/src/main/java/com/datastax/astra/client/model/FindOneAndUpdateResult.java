@@ -54,6 +54,8 @@ public class FindOneAndUpdateResult<DOC> {
     /**
      * Default constructor.
      */
-    public FindOneAndUpdateResult() {}
+    public FindOneAndUpdateResult() {
+        // left blank as fields are populated by jackson
+    }
 
 }

@@ -64,7 +64,7 @@ public class Sorts {
      *       sort instance.
      */
     public static Document vector(float[] embeddings) {
-        return new Document().append(Document.VECTOR, embeddings);
+        return new Document().append(DataAPIKeywords.VECTOR.getKeyword(), embeddings);
     }
 
     /**
@@ -76,7 +76,7 @@ public class Sorts {
      *       sort instance.
      */
     public static Document vectorize(String vectorize) {
-        return new Document().append(Document.VECTORIZE, vectorize);
+        return new Document().append(DataAPIKeywords.VECTORIZE.getKeyword(), vectorize);
     }
 
 }

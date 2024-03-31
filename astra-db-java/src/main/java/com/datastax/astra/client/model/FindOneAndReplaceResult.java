@@ -50,7 +50,9 @@ public class FindOneAndReplaceResult<DOC> {
     /**
      * Default constructor.
      */
-    public FindOneAndReplaceResult() {}
+    public FindOneAndReplaceResult() {
+        // left blank as fields are populated by jackson
+    }
 
 
 }

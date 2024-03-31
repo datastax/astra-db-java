@@ -41,6 +41,8 @@ public class InsertManyResult {
     /**
      * Default constructor.
      */
-    public InsertManyResult() {}
+    public InsertManyResult() {
+        // left blank as fields are populated by jackson
+    }
 
 }

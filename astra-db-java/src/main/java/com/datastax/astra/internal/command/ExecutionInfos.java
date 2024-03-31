@@ -25,6 +25,7 @@ import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.model.Command;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ import java.util.Map;
  * record of a command's execution, facilitating analysis, logging, and monitoring of command operations.
  */
 @Getter
-public class ExecutionInfos {
+public class ExecutionInfos implements Serializable {
 
     /**
      * The original command request that was executed. This field provides access to the details of the

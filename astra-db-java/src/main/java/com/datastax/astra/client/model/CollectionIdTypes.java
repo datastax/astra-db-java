@@ -20,20 +20,59 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import lombok.Getter;
+
 /**
  * List of possible types for the collection 'defaultId'.
  */
+@Getter
 public enum CollectionIdTypes {
 
-    /** represent a bson ObjectId. */
-    objectId,
+    /**
+     * Represent a BSON ObjectId.
+     */
+    OBJECT_ID("objectId"),
 
-    /** uuid in version v6 allowing natural ordering. */
-    uuidv6,
+    /**
+     * UUID in version v6 allowing natural ordering.
+     */
+    UUIDV6("uuidv6"),
 
-    /** uuid in version v7 random and time-based. */
-    uuidv7,
+    /**
+     * UUID in version v7, random and time-based.
+     */
+    UUIDV7("uuidv7"),
 
-    /** uuid v4, the default random uuid, */
-    uuid
+    /**
+     * UUID v4, the default random UUID.
+     */
+    UUID("uuid");
+
+    private final String value;
+
+    /**
+     * Constructor.
+     *
+     * @param value
+     *      value to the types
+     */
+    CollectionIdTypes(String value) {
+        this.value = value;
+    }
+
+    /**
+     * Creates a CollectionIdTypes from its string value.
+     *
+     * @param value The string value to look for.
+     * @return The corresponding CollectionIdTypes enum constant.
+     * @throws IllegalArgumentException if the value does not correspond to any CollectionIdTypes.
+     */
+    public static CollectionIdTypes fromValue(String value) {
+        for (CollectionIdTypes type : values()) {
+            if (type.getValue().equals(value)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown value: " + value);
+    }
 }

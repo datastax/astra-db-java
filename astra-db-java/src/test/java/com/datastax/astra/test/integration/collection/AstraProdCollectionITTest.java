@@ -3,6 +3,7 @@ package com.datastax.astra.test.integration.collection;
 import com.datastax.astra.client.Database;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import org.junit.jupiter.api.Disabled;
 
 /**
  * Allow to test Collection information.

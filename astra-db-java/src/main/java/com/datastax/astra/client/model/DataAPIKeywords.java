@@ -36,15 +36,38 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import lombok.Getter;
+
 /**
  * Constants in the JSON API.
  */
-public enum FilterKeyword {
+@Getter
+public enum DataAPIKeywords {
+
+    /**
+     * ID.
+     */
+    ID("_id"),
 
     /**
      * ALL.
      */
     ALL("$all"),
+
+    /**
+     * ALL.
+     */
+    DATE("$date"),
+
+    /**
+     * UUID
+     */
+    UUID("$uuid"),
+
+    /**
+     * OBJECT_ID.
+     */
+    OBJECT_ID("$objectId"),
 
     /**
      * SIZE.
@@ -82,16 +105,7 @@ public enum FilterKeyword {
      * @param op
      *      current operator
      */
-    FilterKeyword(String op) {
+    DataAPIKeywords(String op) {
         this.keyword = op;
-    }
-
-    /**
-     * Gets keyword
-     *
-     * @return value of keyword
-     */
-    public String getKeyword() {
-        return keyword;
     }
 }
