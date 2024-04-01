@@ -21,12 +21,14 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Options to delete One document.
  */
-@Data
+@Getter
+@Setter
 public class DeleteOneOptions {
 
     /**

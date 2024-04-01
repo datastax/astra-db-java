@@ -20,12 +20,14 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Options for the updateOne operation
  */
-@Data
+@Getter
+@Setter
 public class UpdateManyOptions {
 
     /**
@@ -37,6 +39,7 @@ public class UpdateManyOptions {
      * Default constructor.
      */
     public UpdateManyOptions() {
+        // left blank as fields are populated by builder
     }
 
     /**

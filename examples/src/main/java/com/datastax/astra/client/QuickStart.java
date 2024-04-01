@@ -1,15 +1,12 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
 
 import java.util.List;
 
 import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.SimilarityMetric.cosine;
+import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
 
 public class QuickStart {
   public static void main(String[] args) {
@@ -18,7 +15,7 @@ public class QuickStart {
     // Accessing the Database
     Database db = client.getDatabase("API_ENDPOINT");
     // Create collection with vector search
-    Collection<Document> col = db.createCollection("demo", 14, cosine);
+    Collection<Document> col = db.createCollection("demo", 14, COSINE);
     // Insert vectors
     col.insertMany(List.of(
        new Document("doc1")

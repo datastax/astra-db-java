@@ -22,7 +22,8 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
@@ -30,7 +31,8 @@ import java.util.Map;
 /**
  * List options for a findOneAndUpdate command.
  */
-@Data
+@Getter
+@Setter
 public class FindOneAndUpdateOptions {
 
     /**
@@ -56,7 +58,9 @@ public class FindOneAndUpdateOptions {
     /**
      * Default constructor.
      */
-    public FindOneAndUpdateOptions() {}
+    public FindOneAndUpdateOptions() {
+        // left blank, jackson serialization
+    }
 
     /**
      * Syntax sugar as delete option is only a sort

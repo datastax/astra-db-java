@@ -163,7 +163,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
                 CollectionOptions.builder()
                         .vectorDimension(14)
-                        .vectorSimilarity(SimilarityMetric.cosine)
+                        .vectorSimilarity(SimilarityMetric.COSINE)
                         .build());
         assertThat(collectionVector).isNotNull();
         assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
@@ -276,7 +276,8 @@ abstract class AbstractDatabaseTest implements TestConstants {
         assertThat(getDatabase().collectionExists("invalid")).isFalse();
         Collection<Document> invalid = getDatabase().getCollection("invalid");
         assertThat(invalid).isNotNull();
-        assertThatThrownBy(() -> invalid.insertOne(new Document().append("hello", "world")))
+        final Document doc = new Document().append("hello", "world");
+        assertThatThrownBy(() -> invalid.insertOne(doc))
                 .isInstanceOf(DataApiException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
     }

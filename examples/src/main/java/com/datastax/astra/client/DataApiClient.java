@@ -6,13 +6,13 @@ import com.datastax.astra.client.model.Document;
 import java.util.List;
 import java.util.UUID;
 
-import static com.datastax.astra.client.model.SimilarityMetric.cosine;
+import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
 
 public class DataApiClient {
     public static void main(String[] args) {
         DataAPIClient client = new DataAPIClient("TOKEN");
         Database database0 = client.getDatabase("API_ENDPOINT");
-        Collection<Document> collection0 = database0.createCollection("movies", 2, cosine);
+        Collection<Document> collection0 = database0.createCollection("movies", 2, COSINE);
         collection0.insertOne(new Document().append("title", "The Title").vector(new float[]{1.0f, 1.0f}));
         Database database1 = client.getDatabase(UUID.fromString("01234567-..."));
         Database database2 = client.getDatabase(UUID.fromString("01234567-..."), "*NAMESPACE*", "us-east1");

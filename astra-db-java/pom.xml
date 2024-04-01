@@ -17,14 +17,17 @@
         <!-- Sonar -->
         <sonar.organization>clun-datastax</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <required-maven.version>3.6.3</required-maven.version>
 
         <!-- Third Party Libraries -->
         <devops-sdk.version>1.2.7</devops-sdk.version>
         <slf4j.version>2.0.9</slf4j.version>
-        <logback.version>1.5.0</logback.version>
-        <jackson.version>2.16.2</jackson.version>
+        <logback.version>1.5.3</logback.version>
+        <jackson.version>2.17.0</jackson.version>
         <lombok.version>1.18.32</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
+        <awaitility.version>4.2.1</awaitility.version>
+        <mockwebserver.version>4.12.0</mockwebserver.version>
         <uuid-generator.version>5.0.0</uuid-generator.version>
 
         <!-- Test -->
@@ -35,19 +38,20 @@
         <!-- Maven -->
         <maven.plugin.compiler.source>11</maven.plugin.compiler.source>
         <maven.plugin.compiler.target>11</maven.plugin.compiler.target>
-        <version.maven.plugin.compiler>3.11.0</version.maven.plugin.compiler>
+        <version.maven.plugin.compiler>3.13.0</version.maven.plugin.compiler>
         <version.maven.plugin.coveralls>4.3.0</version.maven.plugin.coveralls>
-        <version.maven.plugin.dependency>3.6.0</version.maven.plugin.dependency>
-        <version.maven.plugin.gpg>3.1.0</version.maven.plugin.gpg>
+        <version.maven.plugin.dependency>3.6.1</version.maven.plugin.dependency>
+        <version.maven.plugin.enforcer>3.4.1</version.maven.plugin.enforcer>
+        <version.maven.plugin.gpg>3.2.2</version.maven.plugin.gpg>
         <version.maven.plugin.jacoco>0.8.11</version.maven.plugin.jacoco>
-        <version.maven.plugin.javadoc>3.5.0</version.maven.plugin.javadoc>
+        <version.maven.plugin.javadoc>3.6.3</version.maven.plugin.javadoc>
         <version.maven.plugin.jar>3.3.0</version.maven.plugin.jar>
-        <version.maven.plugin.license>2.3.0</version.maven.plugin.license>
+        <version.maven.plugin.license>2.4.0</version.maven.plugin.license>
         <version.maven.plugin.nexus>1.6.13</version.maven.plugin.nexus>
         <version.maven.plugin.release>3.0.1</version.maven.plugin.release>
         <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
         <version.maven.plugin.source>3.3.0</version.maven.plugin.source>
-        <version.maven.plugin.surefire>3.1.2</version.maven.plugin.surefire>
+        <version.maven.plugin.surefire>3.2.5</version.maven.plugin.surefire>
 
     </properties>
 
@@ -132,13 +136,19 @@
             <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
-            <version>4.12.0</version>
+            <version>${mockwebserver.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+            <scope>test</scope>
+        </dependency>
+
 
     </dependencies>
 
@@ -201,6 +211,27 @@
                     <target>${maven.plugin.compiler.target}</target>
                     <showWarnings>false</showWarnings>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>${version.maven.plugin.enforcer}</version>
+                <executions>
+                    <execution>
+                        <id>enforce-maven</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireMavenVersion>
+                                    <version>${required-maven.version}</version>
+                                </requireMavenVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>

@@ -29,12 +29,12 @@ import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.DistinctIterable;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -81,7 +81,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.model.CollectionIdTypes.UUIDV6;
+import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -408,7 +409,7 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final InsertOneResult insertOne(T document) {
         Assert.notNull(document, DOCUMENT);
-        return _insertOne(JsonUtils.convertValue(document, Document.class));
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class));
     }
 
     /**
@@ -482,7 +483,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, float[] embeddings) {
         Assert.notNull(document, DOCUMENT);
         Assert.notNull(embeddings, ARG_EMBEDDINGS);
-        return _insertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings));
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings));
     }
 
     /**
@@ -564,7 +565,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, String vectorize) {
         Assert.notNull(document, DOCUMENT);
         Assert.hasLength(vectorize, ARG_VECTORIZE);
-        return _insertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize));
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize));
     }
 
     /**
@@ -617,7 +618,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      object wrapping the returned identifier
      */
-    private InsertOneResult _insertOne(Document document) {
+    private InsertOneResult internalInsertOne(Document document) {
         Assert.notNull(document, DOCUMENT);
         Command insertOne = Command.create("insertOne").withDocument(document);
         Object documentId = runCommand(insertOne)
@@ -753,16 +754,14 @@ public class Collection<T> extends AbstractCommandRunner {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
-                throw new TimeoutException("Request did not complete withing ");
+                throw new DataApiException(ERROR_CODE_TIMEOUT, "Request did not complete withing ");
             }
         } catch (InterruptedException | ExecutionException e) {
             if (e.getCause() instanceof DataApiException) {
                 throw (DataApiException) e.getCause();
             }
             Thread.currentThread().interrupt();
-            throw new RuntimeException("Thread was interrupted while waiting", e);
-        }  catch (TimeoutException e) {
-            throw new RuntimeException("Operation timed out", e);
+            throw new DataApiException(ERROR_CODE_INTERRUPTED, "Thread was interrupted while waiting", e);
         }
         return finalResult;
     }
@@ -1347,7 +1346,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @throws TooManyDocumentsToCountException
      *      If the number of documents counted exceeds the provided limit.
      */
-    public int countDocuments(Filter filter, int upperBound) throws TooManyDocumentsToCountException {
+    public int countDocuments(Filter filter, int upperBound)
+    throws TooManyDocumentsToCountException {
         // Argument Validation
         if (upperBound<1 || upperBound> DataAPIOptions.getMaxDocumentCount()) {
             throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + DataAPIOptions.getMaxDocumentCount());
@@ -1762,7 +1762,6 @@ public class Collection<T> extends AbstractCommandRunner {
     public UpdateResult updateMany(Filter filter, Update update, UpdateManyOptions options) {
         notNull(update, ARG_UPDATE);
         notNull(options, ARG_OPTIONS);
-        boolean moreData = true;
         String nextPageState = null;
         UpdateResult result = new UpdateResult();
         result.setMatchedCount(0);
@@ -1866,12 +1865,13 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered bulk_write concurrently.");
         }
-        BulkWriteResult result = new BulkWriteResult(0);
-        result = new BulkWriteResult(commands.size());
+        BulkWriteResult result = new BulkWriteResult(commands.size());
         if (options.isOrdered()) {
-            result.setResponses(commands.stream().map(this::runCommand).collect(Collectors.toList()));
+            result.setResponses(commands
+                    .stream()
+                    .map(this::runCommand)
+                    .collect(Collectors.toList()));
         } else {
-
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
                 List<Future<ApiResponse>> futures = new ArrayList<>();

@@ -20,7 +20,6 @@ package com.datastax.astra.internal.auth;
  * #L%
  */
 
-import com.datastax.astra.internal.api.ApiConstants;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.utils.JsonUtils;
@@ -38,10 +37,10 @@ import java.util.UUID;
  *
  * @author Cedrick LUNVEN (@clunven)
  */
-public class TokenProviderStargate implements TokenProvider, ApiConstants {
+public class TokenProviderStargate implements TokenProvider {
 
     /** Simple Client. */
-    public static RetryHttpClient httpClient = new RetryHttpClient();
+    public static final RetryHttpClient HTTP_CLIENT = new RetryHttpClient();
 
     /** Default username for Cassandra. */
     public static final String DEFAULT_USERNAME      = "cassandra";
@@ -53,17 +52,17 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
     public static final String DEFAULT_AUTH_URL      = "http://localhost:8081";
     
     /** Default Timeout for Stargate token (1800s). */
-    public static Duration DEFAULT_TIMEOUT_TOKEN = Duration.ofMinutes(30);
+    public static final Duration DEFAULT_TIMEOUT_TOKEN = Duration.ofMinutes(30);
+
+
+    /** Authentication token, time to live. */
+    private final static Duration tokenTtl = DEFAULT_TIMEOUT_TOKEN;
 
     /** Credentials. */
     private final String username;
 
     /** Credentials. */
     private final String password;
-
-    /** Authentication token, time to live. */
-    private final Duration tokenTtl = DEFAULT_TIMEOUT_TOKEN;
-    
     /** Mark the token update. */
     private long tokenCreationTime = 0;
     
@@ -122,18 +121,18 @@ public class TokenProviderStargate implements TokenProvider, ApiConstants {
             HttpRequest request = HttpRequest.newBuilder()
               .uri(new URI(authenticationUrl + "/v1/auth"))
               .method("POST", HttpRequest.BodyPublishers.ofString(body))
-              .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
-              .header(HEADER_USER_AGENT, REQUEST_WITH)
-              .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
-              .header(HEADER_REQUESTED_WITH, REQUEST_WITH)
+              .header(RetryHttpClient.HEADER_CONTENT_TYPE, RetryHttpClient.CONTENT_TYPE_JSON)
+              .header(RetryHttpClient.HEADER_USER_AGENT, RetryHttpClient.REQUEST_WITH)
+              .header(RetryHttpClient.HEADER_REQUEST_ID, UUID.randomUUID().toString())
+              .header(RetryHttpClient.HEADER_REQUESTED_WITH, RetryHttpClient.REQUEST_WITH)
               .build();
 
             // Reuse Execute HTTP for the retry mechanism
-            ApiResponseHttp response = httpClient.executeHttp(request, true);
-            if (response !=null) {
-                if (201 == response.getCode() || 200 == response.getCode()) {
-                    return (String) JsonUtils.unMarshallBean(response.getBody(), Map.class).get("authToken");
-                }
+            ApiResponseHttp response = HTTP_CLIENT
+                    .parseHttpResponse(HTTP_CLIENT
+                            .executeHttpRequest(request).getResult());
+            if ((response !=null) && (201 == response.getCode() || 200 == response.getCode())) {
+                return (String) JsonUtils.unMarshallBean(response.getBody(), Map.class).get("authToken");
             }
             String errorMessage = (response != null) ? response.getBody() : "no response";
             throw new IllegalStateException("Cannot generate authentication token " + errorMessage);

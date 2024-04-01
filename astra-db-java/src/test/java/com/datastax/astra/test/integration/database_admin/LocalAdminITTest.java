@@ -13,7 +13,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class LocalAdminITTest extends AbstractDatabaseAdminITTest {
+class LocalAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
     protected DatabaseAdmin initDatabaseAdmin() {
@@ -40,10 +40,9 @@ public class LocalAdminITTest extends AbstractDatabaseAdminITTest {
         assertThat(ns3).isNotNull();
 
         // non-passing case
+        final NamespaceOptions options = NamespaceOptions.networkTopologyStrategy(Map.of("invalid", 1));
         assertThatExceptionOfType(DataApiException.class).isThrownBy(() ->
-                dbAdmin.createNamespace("ns4",
-                        NamespaceOptions.networkTopologyStrategy(Map.of("invalid", 1)))
-        );
+                dbAdmin.createNamespace("ns4", options));
 
         // DROP NAMESPACES
         dbAdmin.dropNamespace("ns3");

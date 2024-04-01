@@ -22,7 +22,7 @@ package com.datastax.astra.internal.http;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.AuthenticationException;
-import com.datastax.astra.internal.api.ApiConstants;
+import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
@@ -48,11 +48,43 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_HTTP;
+
 /**
  * Http Client using JDK11 client with a retry mechanism.
  */
 @Slf4j
-public class RetryHttpClient implements ApiConstants {
+public class RetryHttpClient {
+
+    /** Headers, Api is usig JSON */
+    public static final String CONTENT_TYPE_JSON        = "application/json";
+
+    /** Headers, Api is usig JSON */
+    public static final String CONTENT_TYPE_GRAPHQL     = "application/graphql";
+
+    /** Header param. */
+    public static final String HEADER_ACCEPT            = "Accept";
+
+    /** Headers param to insert the token. */
+    public static final String HEADER_CASSANDRA         = "X-Cassandra-Token";
+
+    /** Headers param to insert the unique identifier for the request. */
+    public static final String HEADER_REQUEST_ID        = "X-Cassandra-Request-Id";
+
+    /** Headers param to insert the conte type. */
+    public static final String HEADER_CONTENT_TYPE      = "Content-Type";
+
+    /** Headers param to insert the token for devops API. */
+    public static final String HEADER_AUTHORIZATION     = "Authorization";
+
+    /** Headers name to insert the user agent identifying the client. */
+    public static final String HEADER_USER_AGENT        = "User-Agent";
+
+    /** Headers param to insert the user agent identifying the client. */
+    public static final String HEADER_REQUESTED_WITH    = "X-Requested-With";
+
+    /** Value for the requested with. */
+    public static final String REQUEST_WITH = "data-api-client-java";
 
     /** JDK11 Http client. */
     protected final HttpClient httpClient;
@@ -64,7 +96,7 @@ public class RetryHttpClient implements ApiConstants {
     protected final RetryConfig retryConfig;
 
     /** Default settings in Request and Retry */
-    public final LinkedHashMap<String, String> userAgents = new LinkedHashMap<>();
+    public final Map<String, String> userAgents = new LinkedHashMap<>();
 
     /**
      * Default initialization of http client.
@@ -115,7 +147,7 @@ public class RetryHttpClient implements ApiConstants {
      */
     public String getUserAgentHeader() {
         if (userAgents.isEmpty()) {
-            userAgents.put(REQUEST_WITH, ApiConstants.class.getPackage().getImplementationVersion());
+            userAgents.put(REQUEST_WITH, RetryHttpClient.class.getPackage().getImplementationVersion());
         }
         List<Map.Entry<String, String>> entryList = new ArrayList<>(userAgents.entrySet());
         StringBuilder sb = new StringBuilder();
@@ -145,8 +177,8 @@ public class RetryHttpClient implements ApiConstants {
      * @return
      *      http request
      */
-    public ApiResponseHttp POST(String url, String token, String body) {
-        return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON, true);
+    public ApiResponseHttp post(String url, String token, String body) {
+        return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON);
     }
 
     private HttpRequest builtHttpRequest(final String method,
@@ -172,7 +204,16 @@ public class RetryHttpClient implements ApiConstants {
         }
     }
 
-    private ApiResponseHttp parseHttpResponse(HttpResponse<String> response, boolean mandatory) {
+
+    /**
+     * Parse HTTP response as a ApiResponseHttp.
+     *
+     * @param response
+     *      http response from the JDK11 client
+     * @return
+     *      the response as an ApiResponseHttp
+     */
+    public ApiResponseHttp parseHttpResponse(HttpResponse<String> response) {
         ApiResponseHttp res = new ApiResponseHttp(response.body(), response.statusCode(),
                     response.headers().map().entrySet()
                             .stream()
@@ -183,7 +224,7 @@ public class RetryHttpClient implements ApiConstants {
             log.error("Error for request url={}, method={}, code={}, body={}",
                     response.request().uri().toString(), response.request().method(),
                      res.getCode(), res.getBody());
-            processErrors(res, mandatory);
+            processErrors(res);
         }
         return res;
     }
@@ -201,8 +242,6 @@ public class RetryHttpClient implements ApiConstants {
      *      request content type
      * @param body
      *      request body
-     * @param mandatory
-     *      allow 404 errors
      * @return
      *      basic request
      */
@@ -210,24 +249,10 @@ public class RetryHttpClient implements ApiConstants {
                                        final String url,
                                        final String token,
                                        String body,
-                                       String contentType, boolean mandatory) {
+                                       String contentType) {
         HttpRequest httpRequest = builtHttpRequest(method, url, token, body, contentType);
         Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);
-        return parseHttpResponse(status.getResult(), mandatory);
-    }
-
-    /**
-     * Execute the HTTP request.
-     *
-     * @param httpRequest
-     *      current http request
-     * @param mandatory
-     *      check if the response is mandatory
-     * @return
-     *      http response
-     */
-    public ApiResponseHttp executeHttp(HttpRequest httpRequest , boolean mandatory) {
-        return parseHttpResponse(executeHttpRequest(httpRequest).getResult(), mandatory);
+        return parseHttpResponse(status.getResult());
     }
 
     /**
@@ -239,7 +264,7 @@ public class RetryHttpClient implements ApiConstants {
      *      the closeable response
      */
     @SuppressWarnings("unchecked")
-    private Status<HttpResponse<String>> executeHttpRequest(HttpRequest req) {
+    public Status<HttpResponse<String>> executeHttpRequest(HttpRequest req) {
         Callable<HttpResponse<String>> executeRequest = () ->
                 httpClient.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         return new CallExecutorBuilder<String>()
@@ -259,7 +284,7 @@ public class RetryHttpClient implements ApiConstants {
      * 404 is expected and should not result in throwing exception (=not find)
      * @param res HttpResponse
      */
-    private void processErrors(ApiResponseHttp res, boolean mandatory) {
+    private void processErrors(ApiResponseHttp res) {
         switch(res.getCode()) {
             // 401
             case HttpURLConnection.HTTP_UNAUTHORIZED:
@@ -274,7 +299,7 @@ public class RetryHttpClient implements ApiConstants {
                 if (res.getCode() == HttpURLConnection.HTTP_UNAVAILABLE) {
                     throw new IllegalStateException(res.getBody() + " (http:" + res.getCode() + ")");
                 }
-                throw new RuntimeException(res.getBody() + " (http:" + res.getCode() + ")");
+                throw new DataApiException(ERROR_CODE_HTTP, res.getBody() + " (http:" + res.getCode() + ")");
         }
     }
 

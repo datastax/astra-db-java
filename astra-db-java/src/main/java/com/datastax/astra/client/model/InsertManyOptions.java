@@ -21,7 +21,6 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import lombok.Data;
 import lombok.Getter;
 
 /**
@@ -54,6 +53,7 @@ public class InsertManyOptions {
      * Populate inserMany options
      */
     public InsertManyOptions() {
+        // left blank, jackson serialization
     }
 
     /**
@@ -118,6 +118,7 @@ public class InsertManyOptions {
          * Hide constructor.
          */
         private Builder() {
+            // builder pattern
         }
 
         /**

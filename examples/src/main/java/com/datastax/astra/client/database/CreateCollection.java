@@ -3,8 +3,8 @@ package com.datastax.astra.client.database;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionIdTypes;
-import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 
 public class CreateCollection {
@@ -15,13 +15,13 @@ public class CreateCollection {
     Collection<Document> simple1 = db.createCollection("col");
 
     Collection<Document> vector1 = db
-            .createCollection("vector1", 14, SimilarityMetric.cosine);
+            .createCollection("vector1", 14, SimilarityMetric.DOT_PRODUCT);
 
     // Create a vector collection
     Collection<Document> vector2 = db.createCollection("vector2", CollectionOptions
       .builder()
       .vectorDimension(1536)
-      .vectorSimilarity(SimilarityMetric.euclidean)
+      .vectorSimilarity(SimilarityMetric.EUCLIDEAN)
       .build());
 
     // Create a collection with indexing (deny)

@@ -59,6 +59,21 @@ public class DataApiException extends RuntimeException {
     /** Default error code. */
     public static final String DEFAULT_ERROR_CODE = "CLIENT_ERROR";
 
+    /** Default error code. */
+    public static final String ERROR_CODE_TIMEOUT = "CLIENT_TIMEOUT";
+
+    /** Default error code. */
+    public static final String ERROR_CODE_INTERRUPTED = "CLIENT_INTERRUPTED";
+
+    /** Default error code. */
+    public static final String ERROR_CODE_RANDOM = "CLIENT_RANDOM";
+
+    /** Default error code. */
+    public static final String ERROR_CODE_HTTP = "CLIENT_HTTP";
+
+    /** Default error code. */
+    public static final String ERROR_CODE_SERIALIZATION = "CLIENT_SERIALIZATION";
+
     /** Error. */
     private final String errorCode;
 

@@ -56,10 +56,10 @@ public interface CommandRunner {
      *     if the returned object contains error response is encapsulated in a DataApiResponseException.
      * @return
      *      instance of expecting type.
-     * @param <DOC>
+     * @param <T>
      *      document type to use
      */
-    <DOC> DOC runCommand(Command command, Class<DOC> documentClass)
+    <T> T runCommand(Command command, Class<T> documentClass)
     throws DataApiResponseException;
 
     /**

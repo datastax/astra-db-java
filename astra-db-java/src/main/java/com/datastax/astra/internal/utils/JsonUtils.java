@@ -36,6 +36,7 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.UUIDv6;
 import com.datastax.astra.client.model.UUIDv7;
@@ -56,6 +57,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
+
+import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_SERIALIZATION;
 
 /**
  * Custom implementation of serialization : faster + no jackson dependency
@@ -117,6 +120,7 @@ public class JsonUtils {
      * Default constructor
      */
     private JsonUtils() {
+        // left blank, hiding constructor for utility class
     }
 
     /**
@@ -135,7 +139,7 @@ public class JsonUtils {
             }
             return getDataApiObjectMapper().writeValueAsString(o);
         } catch (Exception e) {
-            throw new RuntimeException("Cannot marshall object " + o, e);
+            throw new DataApiException(ERROR_CODE_SERIALIZATION, "Cannot marshall object " + o, e);
         }
     }
 
@@ -170,7 +174,7 @@ public class JsonUtils {
         try {
             return getDataApiObjectMapper().readValue(body, ref);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Cannot unmarshall object " + body, e);
+            throw new DataApiException(ERROR_CODE_SERIALIZATION, "Cannot unmarshall object " + body, e);
         }
     }
 }

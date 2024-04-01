@@ -21,12 +21,14 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.JsonUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents the Namespace (keyspac) definition with its name and metadata.
  */
-@Data
+@Getter
+@Setter
 public class NamespaceInformation {
 
     /**
@@ -35,14 +37,46 @@ public class NamespaceInformation {
     public enum ReplicationStrategy {
 
         /**
-         * dev
+         * The simple strategy, for development environments.
          */
-        SimpleStrategy,
+        SIMPLE_STRATEGY("SimpleStrategy"),
 
         /**
-         * prod
+         * The network topology strategy, for production environments.
          */
-        NetworkTopologyStrategy
+        NETWORK_TOPOLOGY_STRATEGY("NetworkTopologyStrategy");
+
+        /**
+         * Enum value
+         */
+        @Getter
+        private final String value;
+
+        /**
+         * Constructor.
+         *
+         * @param value
+         *      value for the replication
+         */
+        ReplicationStrategy(String value) {
+            this.value = value;
+        }
+
+        /**
+         * Creates a ReplicationStrategy from its string value.
+         *
+         * @param value The string value to look for.
+         * @return The corresponding ReplicationStrategy enum constant.
+         * @throws IllegalArgumentException if the value does not correspond to any ReplicationStrategy.
+         */
+        public static ReplicationStrategy fromValue(String value) {
+            for (ReplicationStrategy type : values()) {
+                if (type.getValue().equals(value)) {
+                    return type;
+                }
+            }
+            throw new IllegalArgumentException("Unknown value: " + value);
+        }
     }
 
     /**

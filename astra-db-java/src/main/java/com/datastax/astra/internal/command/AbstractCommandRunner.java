@@ -92,7 +92,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         try {
             // (Custom) Serialization
             String jsonCommand = JsonUtils.marshall(command);
-            ApiResponseHttp httpRes = getHttpClient().POST(getApiEndpoint(), getToken(), jsonCommand);
+            ApiResponseHttp httpRes = getHttpClient().post(getApiEndpoint(), getToken(), jsonCommand);
             executionInfo.withHttpResponse(httpRes);
             ApiResponse jsonRes = JsonUtils.unMarshallBean(httpRes.getBody(), ApiResponse.class);
             executionInfo.withApiResponse(jsonRes);
@@ -120,7 +120,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public <DOC> DOC runCommand(Command command, Class<DOC> documentClass) {
+    public <T> T runCommand(Command command, Class<T> documentClass) {
         return mapAsDocument(runCommand(command), documentClass);
     }
 
@@ -133,10 +133,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      *      document class
      * @return
      *      document
-     * @param <DOC>
+     * @param <T>
      *     document type
      */
-    protected <DOC> DOC mapAsDocument(ApiResponse api, Class<DOC> documentClass) {
+    protected <T> T mapAsDocument(ApiResponse api, Class<T> documentClass) {
         String payload;
         if (api.getData() != null) {
             if (api.getData().getDocument() != null) {

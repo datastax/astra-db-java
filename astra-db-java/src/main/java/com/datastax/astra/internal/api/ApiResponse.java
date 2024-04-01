@@ -20,11 +20,12 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ import java.util.stream.Stream;
  * such as status information, error details, and data returned by 'find' operations. It provides flexibility to handle
  * various types of responses within a unified framework.
  */
-@Data
+@Getter
+@Setter
 public class ApiResponse implements Serializable {
 
     /**
@@ -53,18 +55,19 @@ public class ApiResponse implements Serializable {
      * may occur for each item. The inclusion of this field is conditional and based on the presence of errors.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<ApiError> errors;
+    private transient List<ApiError> errors;
 
     /**
      * Encapsulates the data retrieved by operations prefixed with 'find'. This field is populated with the results
      * from such queries, packaging the returned data within an {@link ApiData} object.
      */
-    private ApiData data;
+    private transient ApiData data;
 
     /**
      * Default constructor for {@link ApiResponse}. Initializes a new instance of the class without setting any properties.
      */
     public ApiResponse() {
+        // left blank, will be populated by jackson
     }
 
     /**
@@ -112,7 +115,7 @@ public class ApiResponse implements Serializable {
                     JsonUtils.getDataApiObjectMapper().getTypeFactory()
                             .constructCollectionType(List.class, targetClass));
         }
-        return null;
+        return new ArrayList<>();
     }
 
     /**

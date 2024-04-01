@@ -20,15 +20,20 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.datastax.astra.client.model.NamespaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
+import static com.datastax.astra.client.model.NamespaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
+
 /**
  * Options to create a Namespace.
  */
-@Data
+@Getter
+@Setter
 public class NamespaceOptions {
 
     /**
@@ -54,7 +59,7 @@ public class NamespaceOptions {
      */
     public static NamespaceOptions simpleStrategy(int replicationFactor) {
         NamespaceOptions options = new NamespaceOptions();
-        options.replication.put("class", NamespaceInformation.ReplicationStrategy.SimpleStrategy.name());
+        options.replication.put("class", SIMPLE_STRATEGY.getValue());
         options.replication.put("replication_factor", replicationFactor);
         return options;
     }
@@ -69,7 +74,7 @@ public class NamespaceOptions {
      */
     public static NamespaceOptions networkTopologyStrategy(Map<String, Integer> datacenters) {
         NamespaceOptions options = new NamespaceOptions();
-        options.replication.put("class", NamespaceInformation.ReplicationStrategy.NetworkTopologyStrategy.name());
+        options.replication.put("class", NETWORK_TOPOLOGY_STRATEGY.getValue());
         options.replication.putAll(datacenters);
         return options;
     }

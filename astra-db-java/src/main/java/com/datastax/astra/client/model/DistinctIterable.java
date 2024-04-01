@@ -31,22 +31,22 @@ import java.util.NoSuchElementException;
 /**
  * Iterator to get all distinct value for a particular field.
  *
- * @param <FIELD>
+ * @param <F>
  *     type of the field we are looping on.
- * @param <DOC>
+ * @param <T>
  *     type of the document used in the associated collection.
  */
 @Slf4j
-public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implements Iterable<FIELD> {
+public class DistinctIterable<T, F> extends PageableIterable<T> implements Iterable<F> {
 
     /** The name of the field. */
     private final String fieldName;
 
     /** The class in use. */
-    private final Class<FIELD> fieldClass;
+    private final Class<F> fieldClass;
 
     /** Iterator on fields. */
-    protected DistinctIterator<DOC, FIELD> currentPageIterator;
+    protected DistinctIterator<T, F> currentPageIterator;
 
     /**
      * Constructs an iterable that provides distinct elements from a specified collection, optionally filtered by
@@ -68,7 +68,7 @@ public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implemen
      * @param fieldClass The class of the field values being iterated over. This parameter is used to ensure type safety
      *                   and proper casting of the field values extracted from the documents in the collection.
      */
-    public DistinctIterable(Collection<DOC> collection, String fieldName, Filter filter, Class<FIELD> fieldClass) {
+    public DistinctIterable(Collection<T> collection, String fieldName, Filter filter, Class<F> fieldClass) {
         this.collection  = collection;
         this.filter      = filter;
         this.fieldName   = fieldName;
@@ -78,7 +78,7 @@ public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implemen
 
     /** {@inheritDoc} */
     @Override @NonNull
-    public DistinctIterator<DOC, FIELD> iterator() {
+    public DistinctIterator<T, F> iterator() {
         if (currentPageIterator == null) {
             active = fetchNextPage();
             this.currentPageIterator = new DistinctIterator<>(this, fieldName, fieldClass);
@@ -92,12 +92,12 @@ public class DistinctIterable<DOC, FIELD> extends PageableIterable<DOC> implemen
      * @return
      *      all values of the iterable
      */
-    public List<FIELD> all() {
+    public List<F> all() {
         if (exhausted) throw new IllegalStateException("Iterable is already exhausted.");
         if (active)    throw new IllegalStateException("Iterable has already been started");
-        List<FIELD> results = new ArrayList<>();
+        List<F> results = new ArrayList<>();
         try {
-            for (FIELD fieldValue : this) results.add(fieldValue);
+            for (F fieldValue : this) results.add(fieldValue);
         } catch (NoSuchElementException e) {
             log.warn("Last page was empty");
         }

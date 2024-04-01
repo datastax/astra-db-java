@@ -20,12 +20,14 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Options for the replaceOne operation.
  */
-@Data
+@Getter
+@Setter
 public class ReplaceOneOptions {
 
     /**
@@ -36,7 +38,9 @@ public class ReplaceOneOptions {
     /**
      * Default constructor.
      */
-    public ReplaceOneOptions() {}
+    public ReplaceOneOptions() {
+        // left blank as fields are populated by builder
+    }
 
     /**
      * Upsert flag.

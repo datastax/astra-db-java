@@ -22,6 +22,8 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.internal.api.ApiResponse;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +31,7 @@ import java.util.List;
 /**
  * Store the list of responses returned by the bulk write.
  */
-@Data
+@Getter @Setter
 public class BulkWriteResult {
 
     /**

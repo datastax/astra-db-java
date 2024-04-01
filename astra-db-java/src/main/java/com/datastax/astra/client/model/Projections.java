@@ -21,8 +21,6 @@ package com.datastax.astra.client.model;
  */
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Encode the presence of a field in the result.

@@ -2,7 +2,7 @@
 # Java Client for Data API
 
 [![License Apache2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
+[![Maven Central](https://img.shields.io/maven-central/v/com.datastax.astra/astra-db-java)](https://search.maven.org/artifact/com.datastax.astra/astra-db-java)
 
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=clun_db-java)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
@@ -10,14 +10,10 @@
 
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=bugs)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=vulnerabilities)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
-![GitHub issues](https://img.shields.io/github/issues/datastax/astra-db-java)
 [![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
 
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=coverage)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-
-
-[![Maven Central](https://img.shields.io/maven-central/v/com.datastax.astra/astra-db-java)](https://search.maven.org/artifact/com.datastax.astra/astra-db-java)
-
 
 
 This client library provides a simplified way to interact with Data API for AstraDB or local instances. For detailed documentation, each operation comes with a detailed description and examples.
@@ -26,7 +22,6 @@ This client library provides a simplified way to interact with Data API for Astr
 - [`astrapy`](https://github.com/datastax/astrapy) is the equivalent in python
 
 This library is under development and not yet available in Maven Central. You can build it locally and install it in your local repository.
-![Latest Release](https://img.shields.io/github/v/release/datastax/astra-db-java)
 
 
 ## 1. Local Installation

@@ -109,36 +109,6 @@ public class Filter extends Document {
     }
 
     /**
-     * Adding a ADD keyword.
-     *
-     * @return
-     *      current list
-     */
-    public FilterBuilderList and() {
-        return new FilterBuilderList(this, "$and");
-    }
-
-    /**
-     * Adding a OR keyword.
-     *
-     * @return
-     *      current list
-     */
-    public FilterBuilderList or() {
-        return new FilterBuilderList(this, "$or");
-    }
-
-    /**
-     * Adding a NOT keyword.
-     *
-     * @return
-     *      current list
-     */
-    public FilterBuilderList not() {
-        return new FilterBuilderList(this, "$not");
-    }
-
-    /**
      * Build a filter for find by id.
      *
      * @param id
@@ -162,6 +132,7 @@ public class Filter extends Document {
      * @return
      *      json expression
      */
+    @Override
     public String toJson() {
         return JsonUtils.marshall(this);
     }

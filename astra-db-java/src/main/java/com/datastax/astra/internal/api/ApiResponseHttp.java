@@ -20,14 +20,17 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Response HTTP.
- *
- * @author Cedrick LUNVEN (@clunven)
  */
+@Getter
+@Setter
 public class ApiResponseHttp {
     
     /** JSON String. */
@@ -67,36 +70,5 @@ public class ApiResponseHttp {
         this.code = code;
         this.headers = headers;
     }
-
-    /**
-     * Getter accessor for attribute 'body'.
-     *
-     * @return
-     *       current value of 'body'
-     */
-    public String getBody() {
-        return body;
-    }
-
-    /**
-     * Getter accessor for attribute 'code'.
-     *
-     * @return
-     *       current value of 'code'
-     */
-    public int getCode() {
-        return code;
-    }
-
-    /**
-     * Getter accessor for attribute 'headers'.
-     *
-     * @return
-     *       current value of 'headers'
-     */
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-    
 
 }

@@ -20,15 +20,48 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import lombok.Getter;
+
 /**
  * Similarity metric.
  */
+@Getter
 public enum SimilarityMetric {
 
     /** Distance with cosine. */
-    cosine,
+    COSINE("cosine"),
     /** Distance with Euclidean (L2). */
-    euclidean,
+    EUCLIDEAN("euclidean"),
     /**Distance with dot+product (L1). */
-    dot_product
+    DOT_PRODUCT("dot_product");
+
+    /** Value for the similarity metric. */
+    final String value;
+
+    /**
+     * Constructor.
+     *
+     * @param value
+     *      value
+     */
+    SimilarityMetric(String value) {
+        this.value = value;
+    }
+
+    /**
+     * Build from the key.
+     *
+     * @param value
+     *      similarity value
+     * @return
+     *      similarity enum
+     */
+    public static SimilarityMetric fromValue(String value) {
+        for (SimilarityMetric metric : SimilarityMetric.values()) {
+            if (metric.getValue().equalsIgnoreCase(value)) {
+                return metric;
+            }
+        }
+        throw new IllegalArgumentException("Unknown SimilarityMetric: " + value);
+    }
 }

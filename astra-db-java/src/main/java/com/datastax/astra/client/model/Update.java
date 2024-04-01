@@ -48,7 +48,6 @@ public class Update extends Document {
     @SuppressWarnings("unchecked")
     public Update(String json) {
         super();
-        //this.filter = JsonUtils.unmarshallBean(json, Map.class);
         this.documentMap.putAll(JsonUtils.unMarshallBean(json, Map.class));
     }
 

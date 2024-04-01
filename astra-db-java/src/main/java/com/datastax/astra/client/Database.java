@@ -246,12 +246,12 @@ public class Database extends AbstractCommandRunner {
      *      the name of the collection to return
      * @param documentClass
      *      the default class to cast any documents returned from the database into.
-     * @param <DOC>
+     * @param <T>
      *      the type of the class to use instead of {@code Document}.
      * @return
      *      the collection
      */
-    public <DOC> Collection<DOC> getCollection(String collectionName, @NonNull Class<DOC> documentClass) {
+    public <T> Collection<T> getCollection(String collectionName, @NonNull Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
         return new Collection<>(this, collectionName, documentClass);
@@ -301,12 +301,12 @@ public class Database extends AbstractCommandRunner {
      *      vector metric
      * @param documentClass
      *      class of document to return
-     * @param <DOC>
+     * @param <T>
      *          working class for the document
      * @return
      *      the instance of collection
      */
-    public <DOC> Collection<DOC> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<DOC> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<T> documentClass) {
             return createCollection(collectionName, CollectionOptions.builder()
                     .vectorDimension(dimension)
                     .vectorSimilarity(metric)
@@ -320,11 +320,11 @@ public class Database extends AbstractCommandRunner {
      *      the name for the new collection to create
      * @param documentClass
      *      class of document to return
-     * @param <DOC>
+     * @param <T>
      *          working class for the document
      * @return the collection
      */
-    public <DOC> Collection<DOC> createCollection(String collectionName, Class<DOC> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
         return createCollection(collectionName, null, documentClass);
     }
 
@@ -350,11 +350,11 @@ public class Database extends AbstractCommandRunner {
      *      various options for creating the collection
      * @param documentClass
      *     the default class to cast any documents returned from the database into.
-     * @param <DOC>
+     * @param <T>
      *          working class for the document
      * @return the collection
      */
-    public <DOC> Collection<DOC> createCollection(String collectionName, CollectionOptions collectionOptions, Class<DOC> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
         Command createCollection = Command

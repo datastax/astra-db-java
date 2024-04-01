@@ -95,13 +95,13 @@ public class FilterBuilder {
      *
      * @param value
      *      value
-     * @param <VAL>
+     * @param <V>
      *       the type of the values
      * @return
      *      self reference
      */
     @SafeVarargs
-    public final <VAL> Filter isAnArrayContaining(VAL... value) {
+    public final <V> Filter isAnArrayContaining(V... value) {
         return simpleOperator(FilterOperator.EQUALS_TO, value);
     }
 
@@ -110,12 +110,12 @@ public class FilterBuilder {
      *
      * @param value
      *      value
-     * @param <VAL>
+     * @param <V>
      *       the type of the values
      * @return
      *      self reference
      */
-    public <VAL> Filter isInArray(VAL[] value) {
+    public <V> Filter isInArray(V[] value) {
         return simpleOperator(FilterOperator.IN, value);
     }
 
@@ -124,12 +124,12 @@ public class FilterBuilder {
      *
      * @param value
      *      value
-     * @param <VAL>
+     * @param <V>
      *       the type of the values
      * @return
      *      self reference
      */
-    public <VAL> Filter isNotInArray(VAL[] value) {
+    public <V> Filter isNotInArray(V[] value) {
         return simpleOperator(FilterOperator.NOT_IN, value);
     }
 

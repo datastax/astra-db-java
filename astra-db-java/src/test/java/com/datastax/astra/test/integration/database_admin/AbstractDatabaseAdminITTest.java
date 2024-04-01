@@ -91,12 +91,12 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
     void shouldListAvailableNamespace() {
         assertThat(getDatabaseAdmin()).isNotNull();
         // Sync
-        assertThat(getDatabaseAdmin().listNamespaceNames().size()).isGreaterThan(0);
+        assertThat(getDatabaseAdmin().listNamespaceNames().size()).isPositive();
 
         // Async
         getDatabaseAdmin().listNamespaceNamesAsync()
                 .thenApply(Set::size)
-                .thenAccept(count -> assertThat(count).isGreaterThan(0));
+                .thenAccept(count -> assertThat(count).isPositive());
     }
 
     // --------------------
@@ -115,27 +115,28 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         getDatabaseAdmin().createNamespaceAsync("ns2").thenAccept(dan -> assertThat(dan).isNotNull());
 
         // Surface
+        final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> getDatabaseAdmin().createNamespace(null))
+                .isThrownBy(() -> dbAdmin2.createNamespace(null))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> getDatabaseAdmin().createNamespace(""))
+                .isThrownBy(() -> dbAdmin2.createNamespace(""))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
     }
 
     @Test
     void shouldDropNamespace() throws InterruptedException {
         getDatabaseAdmin().createNamespace("tmp");
-        Thread.sleep(1000);
+        while (!getDatabaseAdmin().namespaceExists("tmp")) {
+            log.warn("Waiting for namespace 'tmp' to be created");
+        }
+
         assertThat( getDatabaseAdmin().listNamespaceNames())
                 .as("Check if 'ns2' is present in the namespace names")
                 .anyMatch("tmp"::equals);
         assertThat( getDatabaseAdmin().namespaceExists("tmp")).isTrue();
-
         Database ns2 =  getDatabaseAdmin().getDatabase("tmp");
-        System.out.println(ns2.getNamespaceName());
         assertThat(ns2).isNotNull();
-
         ns2.drop();
         assertThat(getDatabaseAdmin().namespaceExists("tmp")).isFalse();
     }

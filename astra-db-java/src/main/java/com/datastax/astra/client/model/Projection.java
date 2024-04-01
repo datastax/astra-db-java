@@ -20,7 +20,6 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 

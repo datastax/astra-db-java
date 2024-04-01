@@ -21,12 +21,13 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.JsonUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents the Collection definition with its name and metadata.
  */
-@Data
+@Getter @Setter
 public class CollectionInfo {
 
     /**
@@ -42,7 +43,9 @@ public class CollectionInfo {
     /**
      * Default constructor.
      */
-    public CollectionInfo() {}
+    public CollectionInfo() {
+        // left blank, serialization with jackson
+    }
 
     /** {@inheritDoc} */
     @Override

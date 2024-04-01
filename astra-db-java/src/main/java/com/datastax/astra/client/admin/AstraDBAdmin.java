@@ -388,8 +388,7 @@ public class AstraDBAdmin {
         while(DatabaseStatusType.ACTIVE != getStatus(dbc) && ((System.currentTimeMillis()-top) < 1000L*180)) {
             try {
                 Thread.sleep( 5000);
-                System.out.print("■");
-                System.out.flush();
+                log.info("■");
             } catch (InterruptedException e) {
                 log.warn("Interrupted {}",e.getMessage());
                 Thread.currentThread().interrupt();

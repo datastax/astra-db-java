@@ -24,7 +24,8 @@ import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.Datacenter;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Set;
 import java.util.UUID;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * Bean representing the database information.
  */
-@Data
+@Getter @Setter
 public class DatabaseInfo {
 
     /** Identifier for the database */

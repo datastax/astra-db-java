@@ -20,22 +20,23 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Store the result of a findOneAndReplace operation.
  *
- * @param <DOC>
+ * @param <T>
  *          working class document
  */
-@Data
-public class FindOneAndReplaceResult<DOC> {
+@Getter
+@Setter
+public class FindOneAndReplaceResult<T> {
 
     /**
      * Replacement if provided
      */
-    private DOC document;
+    private T document;
 
     /**
      * Number of matched documents

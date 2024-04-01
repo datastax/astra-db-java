@@ -28,20 +28,20 @@ import java.util.NoSuchElementException;
 /**
  * Implementing a custom iterator that will load next page if needed when hitting the last item of page.
  *
- * @param <DOC>
+ * @param <T>
  *     working document
  */
 @Getter
-public class FindIterator<DOC> implements Iterator<DOC> {
+public class FindIterator<T> implements Iterator<T> {
 
     /** Iterable for both find and distinct. */
-    private final PageableIterable<DOC> parentIterable;
+    private final PageableIterable<T> parentIterable;
 
     /** Progress on the current page. */
     private int availableWithoutFetch;
 
     /** Iterator on current document page. */
-    private Iterator<DOC> resultsIterator;
+    private Iterator<T> resultsIterator;
 
     /**
      * Starting the cursor on an iterable to fetch more pages.
@@ -49,7 +49,7 @@ public class FindIterator<DOC> implements Iterator<DOC> {
      * @param findIterable
      *      iterable
      */
-    public FindIterator(PageableIterable<DOC> findIterable) {
+    public FindIterator(PageableIterable<T> findIterable) {
         this.parentIterable        = findIterable;
         this.availableWithoutFetch = findIterable.getCurrentPage().getResults().size();
         this.resultsIterator       = findIterable.getCurrentPage().getResults().iterator();
@@ -75,7 +75,7 @@ public class FindIterator<DOC> implements Iterator<DOC> {
      *      next document in the iterator
      */
     @Override
-    public DOC next() {
+    public T next() {
         if (resultsIterator.hasNext()) {
             availableWithoutFetch--;
             parentIterable.getTotalItemProcessed().incrementAndGet();

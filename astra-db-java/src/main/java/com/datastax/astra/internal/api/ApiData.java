@@ -21,7 +21,8 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.model.Document;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -31,7 +32,8 @@ import java.util.List;
  * This class is designed to package the data section of a response, including any relevant documents, a potential single document,
  * and information for paginated results, such as the state of the next page.
  */
-@Data
+@Getter
+@Setter
 public class ApiData {
 
     /**
@@ -60,5 +62,7 @@ public class ApiData {
      * Default constructor for {@link ApiData}. Initializes a new instance of the class without setting any properties.
      * Fields should be set via their setters or directly, depending on the usage context and the framework's conventions.
      */
-    public ApiData() {}
+    public ApiData() {
+        // left blank, will be populated by jackson
+    }
 }

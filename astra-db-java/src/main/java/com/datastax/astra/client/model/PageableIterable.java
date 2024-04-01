@@ -29,16 +29,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Helping Iteration on Pages and Documents for DataApi.
  *
- * @param <DOC>
+ * @param <T>
  *     type of the document used in the associated collection.
  */
 @Getter
-public abstract class PageableIterable<DOC> implements Closeable {
+public abstract class PageableIterable<T> implements Closeable {
 
     // -------- Inputs ---------
 
     /** Reference to the collection in use. */
-    protected Collection<DOC> collection;
+    protected Collection<T> collection;
 
     /** Check host many has been processed (skip and limit support) */
     protected final AtomicInteger totalItemProcessed = new AtomicInteger(0);
@@ -50,7 +50,7 @@ public abstract class PageableIterable<DOC> implements Closeable {
     protected boolean exhausted = false;
 
     /** The current page in use. */
-    protected Page<DOC> currentPage;
+    protected Page<T> currentPage;
 
     /** Number of items still available to retrieve in this page. */
     protected int currentPageAvailable;
@@ -66,7 +66,9 @@ public abstract class PageableIterable<DOC> implements Closeable {
     /**
      * Default constructor.
      */
-    public PageableIterable() {}
+    protected PageableIterable() {
+        // left blank as populated internaly
+    }
 
     /**
      * Fetch the next page if the result.

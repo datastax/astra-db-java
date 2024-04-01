@@ -20,12 +20,14 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Return update result.
  */
-@Data
+@Getter
+@Setter
 public class UpdateResult {
 
     /**

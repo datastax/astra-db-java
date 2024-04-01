@@ -21,14 +21,16 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
 /**
  * List Options for a FindOne command.
  */
-@Data
+@Getter
+@Setter
 public class FindOneOptions {
 
     /**
@@ -49,7 +51,9 @@ public class FindOneOptions {
     /**
      * Default constructor.
      */
-    public FindOneOptions() {}
+    public FindOneOptions() {
+        // left blank, jackson serialization
+    }
 
     /**
      * Syntax sugar as delete option is only a sort

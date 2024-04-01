@@ -1,13 +1,12 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
+
 import java.util.List;
+
 import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.SimilarityMetric.cosine;
+import static com.datastax.astra.client.model.SimilarityMetric.EUCLIDEAN;
 
 public class GettingStarted {
  public static void main(String[] args) {
@@ -18,7 +17,7 @@ public class GettingStarted {
   Database db = client.getDatabase("http://db-region.apps.astra.datastax.com");
 
   // Create collection with vector support
-  Collection<Document> col = db.createCollection("demo", 2, cosine);
+  Collection<Document> col = db.createCollection("demo", 2, EUCLIDEAN);
 
   // Insert records
   col.insertMany(List.of(

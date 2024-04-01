@@ -63,7 +63,7 @@ public class Document implements Map<String, Object>, Serializable {
      * Data to be used in the document.
      */
     @JsonUnwrapped
-    public transient LinkedHashMap<String, Object> documentMap;
+    public transient Map<String, Object> documentMap;
 
     /**
      * Default Constructor.

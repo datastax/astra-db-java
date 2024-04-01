@@ -36,8 +36,6 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import java.util.Arrays;
-
 /**
  * Syntaxic sugar for common validations.
  * 
@@ -80,13 +78,13 @@ public class Assert {
     /**
      * Check condition at start.
      *
-     * @param b
+     * @param condition
      *      predicate should be true
      * @param msg
      *      error message
      */
-    public static void isTrue(Boolean b, String msg) {
-        if (!b) {
+    public static void isTrue(boolean condition, String msg) {
+        if (!condition) {
             throw new IllegalArgumentException(msg);
         }
     }

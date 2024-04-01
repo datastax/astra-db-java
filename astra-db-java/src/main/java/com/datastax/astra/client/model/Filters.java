@@ -177,13 +177,13 @@ public class Filters {
      *      the field name
      * @param values
      *      the list of values
-     * @param <VAL>
+     * @param <V>
      *       the type of the values
      * @return the filter
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public static <VAL> Filter in(final String fieldName, final VAL... values) {
+    public static <V> Filter in(final String fieldName, final V... values) {
         return new Filter().where(fieldName).isInArray(values);
     }
 
@@ -194,13 +194,13 @@ public class Filters {
      *      the field name
      * @param values
      *      the list of values
-     * @param <VAL>
+     * @param <V>
      *       the type of the values
      * @return the filter
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public static <VAL> Filter nin(final String fieldName, final VAL... values) {
+    public static <V> Filter nin(final String fieldName, final V... values) {
         return new Filter().where(fieldName).isNotInArray(values);
     }
 

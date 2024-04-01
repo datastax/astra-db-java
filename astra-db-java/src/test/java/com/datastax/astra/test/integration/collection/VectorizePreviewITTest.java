@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ class VectorizePreviewITTest {
     private static Collection<Document> collectionVectorize;
 
     @BeforeAll
-    public static void setup() {
+    static void setup() {
         // Dev KUBERNETES, aws, us-west-2
         db = DataAPIClients.createForAstraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
 
@@ -41,14 +42,12 @@ class VectorizePreviewITTest {
         collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
     }
 
-
-
     @Test
-    public void shouldCreateACollectionWithNvidia() {
+    void shouldCreateACollectionWithNvidia() {
         Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE,
                 CollectionOptions.builder()
                 .vectorDimension(NVIDIA_DIMENSION)
-                .vectorSimilarity(SimilarityMetric.cosine)
+                .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
                 .build());
 
@@ -57,7 +56,7 @@ class VectorizePreviewITTest {
     }
 
     @Test
-    public void shouldInsertOneDocumentWithVectorize() {
+    void shouldInsertOneDocumentWithVectorize() {
         collectionVectorize.deleteAll();
         Document document = new Document()
                 .append("name", "cedrick")
@@ -68,9 +67,10 @@ class VectorizePreviewITTest {
     }
 
     @Test
-    public void testFindVectorize() {
-        collectionVectorize.find(
-                vectorize("Life is too short for Javascript"))
-                .forEach(doc -> System.out.println(doc.toJson()));
+    void testFindVectorize() {
+        List<Document> doclist = collectionVectorize
+                .find(vectorize("Life is too short for Javascript"))
+                .all();
+        assertThat(doclist).isNotNull().isNotEmpty();
     }
 }

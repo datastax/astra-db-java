@@ -22,7 +22,6 @@ package com.datastax.astra.internal.utils;
 
 import com.datastax.astra.client.model.ObjectId;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,12 +37,13 @@ public class CustomObjectIdDeserializer extends JsonDeserializer<ObjectId> {
      * Default constructor.
      */
     public CustomObjectIdDeserializer() {
+        // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
     public ObjectId deserialize(JsonParser jp, DeserializationContext ctxt)
-    throws IOException, JsonProcessingException {
+    throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
         String hexString = node.get("$objectId").asText();
         return new ObjectId(hexString);

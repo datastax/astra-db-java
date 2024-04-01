@@ -21,12 +21,14 @@ package com.datastax.astra.client.model;
  */
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents the result returned by command 'insertOne()', mainly the insertedI
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 public class InsertOneResult {
 
@@ -38,6 +40,8 @@ public class InsertOneResult {
     /**
      * Default constructor.
      */
-    public InsertOneResult() {}
+    public InsertOneResult() {
+        // left blank and populated by jackson
+    }
 
 }

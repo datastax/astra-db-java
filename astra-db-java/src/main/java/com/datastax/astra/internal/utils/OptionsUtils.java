@@ -37,7 +37,9 @@ public class OptionsUtils {
     /**
      * Hide default constructor.
      */
-    private OptionsUtils() {}
+    private OptionsUtils() {
+        // left blank, hiding constructor for utility class
+    }
 
     /**
      * Fluent api.
@@ -62,7 +64,7 @@ public class OptionsUtils {
      * @return
      *      Self reference
      */
-    public static LinkedHashMap<String, Integer> projection(Projection... pProjections) {
+    public static Map<String, Integer> projection(Projection... pProjections) {
         Assert.notNull(pProjections, "sort");
         return Arrays.stream(pProjections).collect(Collectors.toMap(
                   Projection::getField, // keyMapper

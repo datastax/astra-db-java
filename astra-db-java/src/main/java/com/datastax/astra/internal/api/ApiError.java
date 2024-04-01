@@ -20,14 +20,16 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Encapsulates error details from a JSON API response. This class is used to represent error information
  * such as messages, codes, and exception classes associated with an API request failure. It allows for
  * a structured way to convey error details from the server to the client.
  */
-@Data
+@Getter
+@Setter
 public class ApiError {
 
     /**
@@ -53,7 +55,9 @@ public class ApiError {
      * Default constructor for {@link ApiError}. Initializes a new instance of the class without setting any properties.
      * Properties should be set via their setters or directly, depending on the usage context and the framework's conventions.
      */
-    public ApiError() {}
+    public ApiError() {
+        // left blank, will be populated by jackson
+    }
 
     /**
      * Constructs a comprehensive error message by combining the exception class name, error code, and the detailed message.

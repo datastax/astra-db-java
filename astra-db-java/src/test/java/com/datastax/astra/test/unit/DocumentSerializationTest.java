@@ -27,9 +27,9 @@ class DocumentSerializationTest {
                 .append("name", "demo")
                 .withOptions(CollectionOptions.builder()
                     .vectorDimension(14)
-                    .vectorSimilarity(SimilarityMetric.cosine)
+                    .vectorSimilarity(SimilarityMetric.COSINE)
                     .build());
-        System.out.println(JsonUtils.marshall(ccc));
+        assertThat(JsonUtils.marshall(ccc)).contains(SimilarityMetric.COSINE.getValue());
     }
 
     @Test

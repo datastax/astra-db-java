@@ -21,7 +21,6 @@ package com.datastax.astra.internal.utils;
  */
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,12 +37,13 @@ public class CustomUuidDeserializer extends JsonDeserializer<UUID> {
      * Default constructor.
      */
     public CustomUuidDeserializer() {
+        // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
     public UUID deserialize(JsonParser jp, DeserializationContext ctxt)
-    throws IOException, JsonProcessingException {
+    throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
         if (null == node.get("$uuid")) {
             throw new IllegalArgumentException("Cannot convert the expression as an UUID " + node);

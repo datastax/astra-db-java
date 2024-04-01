@@ -22,8 +22,8 @@ package com.datastax.astra.client.model;
 
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,8 @@ import java.util.List;
 /**
  * Represents the result returned by command 'insertMany()', mainly the insertedIds.
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 public class InsertManyResult {
 

@@ -5,6 +5,9 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
+import com.datastax.astra.client.model.BulkWriteOptions;
+import com.datastax.astra.client.model.BulkWriteResult;
+import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.InsertManyResult;
@@ -69,7 +72,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
             );
 
     @Test
-    public void shouldTestUpdateMany() {
+    void shouldTestUpdateMany() {
         getCollectionSimple().deleteAll();
         // Given 2 documents in the collection
         Document doc1 = new Document().id(1).append("a", "a").append("b", "c");
@@ -87,7 +90,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     }
 
     @Test
-    public void shouldTestInsertMany() {
+    void shouldTestInsertMany() {
         getCollectionSimple().deleteAll();
         InsertManyResult res = getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM, ordered(true));
         assertThat(res.getInsertedIds()).hasSize(FRENCH_SOCCER_TEAM.size());
@@ -95,7 +98,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     }
 
     @Test
-    public void shouldInsertManyWithDuplicatesOrder() {
+    void shouldInsertManyWithDuplicatesOrder() {
         getCollectionSimple().deleteAll();
         List<Document> players = new ArrayList<>(FRENCH_SOCCER_TEAM.subList(0, 5));
         // duplicate
@@ -134,7 +137,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     }
 
     @Test
-    public void shouldInsertManyChunkedParallel() throws TooManyDocumentsToCountException {
+    void shouldInsertManyChunkedParallel() throws TooManyDocumentsToCountException {
         List<Document> documents = new ArrayList<>();
         long start = System.currentTimeMillis();
         int nbDocs = 999;
@@ -150,27 +153,24 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     }
 
     @Test
-    public void shouldTestFindWithFilters() {
+    void shouldTestFindWithFilters() {
         getCollectionSimple().deleteAll();
         getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM);
-        assertThat(getCollectionSimple().find(gte("_id", 20))
-                .all().size()).isEqualTo(4);
-        assertThat(getCollectionSimple().find(gt("_id", 20))
-                .all().size()).isEqualTo(3);
-        assertThat(getCollectionSimple().find(lt("_id", 3))
-                .all().size()).isEqualTo(2);
-        assertThat(getCollectionSimple().find(lte("_id", 3))
-                .all().size()).isEqualTo(3);
-        assertThat(getCollectionSimple().find(ne("_id", 20))
-                .all().size()).isEqualTo(22);
-        assertThat(getCollectionSimple().find(exists("firstName"))
-                .all().size()).isEqualTo(23);
-        assertThat(getCollectionSimple().find(and(exists("firstName"), gte("_id", 20)))
-                .all().size()).isEqualTo(4);
+        assertThat(getCollectionSimple().find(gte("_id", 20)).all()).hasSize(4);
+        assertThat(getCollectionSimple().find(gt("_id", 20)).all()).hasSize(3);
+
+        assertThat(getCollectionSimple().find(lt("_id", 3)).all()).hasSize(2);
+        assertThat(getCollectionSimple().find(lte("_id", 3)).all()).hasSize(3);
+        assertThat(getCollectionSimple().find(ne("_id", 20)).all()).hasSize(22);
+        assertThat(getCollectionSimple().find(exists("firstName")).all()).hasSize(23);
+        assertThat(getCollectionSimple().find(and(
+                exists("firstName"),
+                gte("_id", 20)))
+                .all()).hasSize(4);
     }
 
     @Test
-    public void shouldFindWithExtraOptions() {
+    void shouldFindWithExtraOptions() {
         getCollectionSimple().deleteAll();
         getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
 
@@ -178,28 +178,28 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
                 .where("metadata_string")
                 .isInArray(new String[]{"hello", "world"})).all().size()).isEqualTo(1);
         assertThat(getCollectionSimple().find(in("metadata_string", "hello", "world"))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter().where("metadata_string")
                 .isNotInArray(new String[]{"Hallo", "Welt"}))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
         assertThat(getCollectionSimple().find(nin("metadata_string", "Hallo", "Welt"))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter().where("metadata_boolean_array")
                 .hasSize(3))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
         assertThat(getCollectionSimple().find(hasSize("metadata_boolean_array", 3))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter()
                         .where("metadata_instant")
                         .isLessThan(Instant.now()))
-                .all().size()).isEqualTo(1);
+                .all()).hasSize(1);
     }
 
     @Test
-    public void shouldDoSemanticSearch() {
+    void shouldDoSemanticSearch() {
        getCollectionVector();
        Collection<Document> collectionVectorRaw = getDatabase().getCollection(COLLECTION_VECTOR);
        collectionVectorRaw.deleteAll();
@@ -228,8 +228,28 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         // Perform a similarity search
         float[] embeddings = new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
         Filter metadataFilter = new Filter().where("product_price").isEqualsTo(9.99);
-        List<Document> docs = collectionVectorRaw.find(null, embeddings, 2).all();
+        List<Document> docs = collectionVectorRaw.find(metadataFilter, embeddings, 2).all();
         assertThat(docs).hasSize(2);
+    }
+
+    @Test
+    void shouldBulkWrite() {
+        getCollectionSimple().deleteAll();
+        Command cmd1 = Command.create("insertOne").withDocument(new Document().id(1).append("name", "hello"));
+        Command cmd2 = Command.create("insertOne").withDocument(new Document().id(2).append("name", "hello"));
+
+        BulkWriteOptions options1 = BulkWriteOptions.Builder.ordered(false).concurrency(1);
+        BulkWriteResult res = getCollectionSimple().bulkWrite(List.of(cmd1, cmd2), options1);
+        assertThat(res).isNotNull();
+        assertThat(res.getResponses().size()).isEqualTo(2);
+        assertThat(res.getResponses().get(0).getStatus().getList("insertedIds", Integer.class).get(0)).isEqualTo(1);
+
+        BulkWriteOptions options2 = BulkWriteOptions.Builder.concurrency(1).ordered(false);
+        Command cmd3 = Command.create("insertOne").withDocument(new Document().id(3).append("name", "hello"));
+        Command cmd4 = Command.create("insertOne").withDocument(new Document().id(4).append("name", "hello"));
+        getCollectionSimple().bulkWrite(List.of(cmd3, cmd4), options2);
+
+
     }
 
 }

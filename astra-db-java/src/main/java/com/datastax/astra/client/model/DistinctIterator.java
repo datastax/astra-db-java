@@ -31,31 +31,31 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Iterator to retrieve distincts values of a field in a document.
- * @param <DOC>
+ * Iterator to retrieve distinct values of a field in a document.
+ * @param <T>
  *      working class representing the document
- * @param <FIELD>
+ * @param <F>
  *     working class representing the field to extract from the document.
  */
 @Slf4j
-public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
+public class DistinctIterator<T, F> implements Iterator<F> {
 
     /** Iterable for both find and distinct. */
-    private final PageableIterable<DOC> parentIterable;
+    private final PageableIterable<T> parentIterable;
 
     /** Iterator on current document page. */
-    private Iterator<FIELD> resultsIterator;
+    private Iterator<F> resultsIterator;
 
     /** The name of the field. */
     private final String fieldName;
 
     /** The class in use. */
-    private final Class<FIELD> fieldClass;
+    private final Class<F> fieldClass;
 
-    private Set<FIELD> currentPageRecords;
+    private Set<F> currentPageRecords;
 
     /** Existing values. */
-    private final Set<FIELD> existingValues = new HashSet<>();
+    private final Set<F> existingValues = new HashSet<>();
 
     /**
      * Starting the cursor on an iterable to fetch more pages.
@@ -67,7 +67,7 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
      * @param fieldClass
      *      type of the field to pick
      */
-    public DistinctIterator(PageableIterable<DOC> findIterable, String fieldName, Class<FIELD> fieldClass) {
+    public DistinctIterator(PageableIterable<T> findIterable, String fieldName, Class<F> fieldClass) {
         this.parentIterable        = findIterable;
         this.fieldName             = fieldName;
         this.fieldClass            = fieldClass;
@@ -78,19 +78,18 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
     /**
      * Mapping of the document to expected field.
      *
-     * @param doc
+     * @param t
      *      current document
      * @return
      *      extraction of field from document
      */
-    private FIELD extractField(DOC doc) {
-        return JsonUtils.convertValue(doc, Document.class).get(fieldName, fieldClass);
+    private F extractField(T t) {
+        return JsonUtils.convertValue(t, Document.class).get(fieldName, fieldClass);
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean hasNext() {
-        Set<FIELD> remaining = new HashSet<>();
         boolean hasNext = resultsIterator.hasNext()|| parentIterable.getCurrentPage().getPageState().isPresent();
         if (!hasNext) {
             parentIterable.close();
@@ -99,7 +98,7 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
     }
 
     /**
-     * Implementing a logic of iterator combining current page and paging. An local iterator is started on elements
+     * Implementing a logic of iterator combining current page and paging. A local iterator is started on elements
      * of the processing page. If the local iterator is exhausted, the flag 'nextPageState' can tell us is there are
      * more elements to retrieve. if 'nextPageState' is not null the next page is fetch at Iterable level and the
      * local iterator is reinitialized on the new page.
@@ -108,10 +107,10 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
      *      next document in the iterator
      */
     @Override
-    public FIELD next() {
+    public F next() {
         if (resultsIterator.hasNext()) {
             parentIterable.getTotalItemProcessed().incrementAndGet();
-            FIELD nextValue = resultsIterator.next();
+            F nextValue = resultsIterator.next();
             existingValues.add(nextValue);
             return nextValue;
         } else if (parentIterable.getCurrentPage().getPageState().isPresent()) {
@@ -129,7 +128,7 @@ public class DistinctIterator<DOC, FIELD> implements Iterator<FIELD> {
     }
 
     /**
-     * Items of a page are extracted, deduplicated, then the local resultsIterator is initialize
+     * Items of a page are extracted, deduplicated, then the local resultsIterator is initialized
      * with the items not already processed.
      */
     private void initResultIterator() {

@@ -20,12 +20,14 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  *
  * Options used in the `bulkWrite` command.
  */
-@Data
+@Getter @Setter
 public final class BulkWriteOptions {
 
     /**
@@ -43,6 +45,68 @@ public final class BulkWriteOptions {
      */
     public BulkWriteOptions() {
         // left blank attributes have default values
+    }
+
+    /**
+     * Setter for ordered.
+     *
+     * @param ordered
+     *      ordered value
+     * @return
+     *      insert many options
+     */
+    public BulkWriteOptions ordered(boolean ordered) {
+        this.ordered = ordered;
+        return this;
+    }
+
+
+    /**
+     * Setter for concurrency.
+     *
+     * @param concurrency
+     *      concurrency value
+     * @return
+     *      insert many options
+     */
+    public BulkWriteOptions concurrency(int concurrency) {
+        this.concurrency = concurrency;
+        return this;
+    }
+
+    /**
+     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
+     */
+    public static class Builder {
+
+        /**
+         * Hide constructor.
+         */
+        private Builder() {
+            // builder pattern
+        }
+
+        /**
+         * Initializes the building process with ordered options.
+         *
+         * @param ordered The ordered criteria to be applied to the insertMany operation.
+         * @return A new {@link BulkWriteOptions} instance configured with the provided ordered criteria.
+         */
+        public static BulkWriteOptions ordered(boolean ordered) {
+            return new BulkWriteOptions().ordered(ordered);
+        }
+
+        /**
+         * Initializes the building process with concurrency options.
+         *
+         * @param concurrency The concurrency criteria to be applied to the insertMany operation.
+         * @return A new {@link BulkWriteOptions} instance configured with the provided concurrency criteria.
+         */
+        public static BulkWriteOptions concurrency(int concurrency) {
+            return new BulkWriteOptions().concurrency(concurrency);
+        }
+
+
     }
 
 }

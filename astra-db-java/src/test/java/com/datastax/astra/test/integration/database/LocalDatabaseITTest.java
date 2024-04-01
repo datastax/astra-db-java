@@ -41,14 +41,14 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void shouldGetATokenFromAuthenticationEndpoint() {
+    void shouldGetATokenFromAuthenticationEndpoint() {
         assertThat(new TokenProviderStargate().getToken()).isNotNull();
     }
 
     @Test
     void shouldThrowAuthenticationCode() {
-        assertThatThrownBy(() -> new TokenProviderStargate("invalid", "invalid", DEFAULT_AUTH_URL).getToken())
-                .isInstanceOf(AuthenticationException.class);
+        TokenProviderStargate tokenProvider = new TokenProviderStargate("invalid", "invalid", DEFAULT_AUTH_URL);
+        assertThatThrownBy(tokenProvider::getToken).isInstanceOf(AuthenticationException.class);
     }
 
     @Test
@@ -65,7 +65,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     }
 
     @Test
-    public void shouldInitializeHttpClientWithProxy() throws IOException {
+    void shouldInitializeHttpClientWithProxy() throws IOException {
         // Create a MockWebServer
         MockWebServer mockWebServer = new MockWebServer();
         // Enqueue a mock response (this could be adapted to simulate proxy behavior)
@@ -94,22 +94,23 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)
                 .getDatabaseAdmin()
                 .listNamespaceNames();
+        assertThat(names).isNotNull();
 
         // Shutdown the server
         mockWebServer.shutdown();
     }
 
     @Test
-    public void shouldInitializeHttpClientWithCallerAndProxy() {
+    void shouldInitializeHttpClientWithCallerAndProxy() {
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new TokenProviderStargate().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
                         .withCaller("Cedrick", "1.0")
                         .build());
-        otherCallerClient
+        assertThat(otherCallerClient
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)
-                .listCollectionNames();
+                .listCollectionNames()).isNotNull();
     }
 
 }

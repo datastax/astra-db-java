@@ -27,10 +27,8 @@ import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 /**
  * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.

@@ -20,9 +20,12 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +34,8 @@ import java.util.Map;
 /**
  * Set of options to define and initialize a collection.
  */
-@Data
+@Getter
+@Setter
 public class CollectionOptions {
 
     /**
@@ -102,14 +106,16 @@ public class CollectionOptions {
         /**
          * Default constructor.
          */
-        public IndexingOptions() {}
+        public IndexingOptions() {
+            // left blank, serialization with jackson
+        }
     }
 
     /**
      * Subclass representing the vector options.
      */
     @Data
-    static public class VectorOptions {
+    public static class VectorOptions {
 
         /**
          * Size of the vector.
@@ -119,7 +125,7 @@ public class CollectionOptions {
         /**
          * Similarity metric.
          */
-        private SimilarityMetric metric;
+        private String metric;
 
         /**
          * Service for vectorization
@@ -127,7 +133,20 @@ public class CollectionOptions {
         private Service service;
 
         /** Default constructor. */
-        public VectorOptions() {}
+        public VectorOptions() {
+            // left blank, serialization with jackson
+        }
+
+        /**
+         * Get metric as an enum.
+         *
+         * @return
+         *      similarity metric
+         */
+        @JsonIgnore
+        public SimilarityMetric getSimilarityMetric() {
+            return SimilarityMetric.fromValue(metric);
+        }
     }
 
     /**
@@ -149,7 +168,9 @@ public class CollectionOptions {
         private Map<String, Parameters> parameters;
 
         /** Default constructor. */
-        public Service() {}
+        public Service() {
+            // left blank, serialization with jackson
+        }
     }
 
 
@@ -166,7 +187,9 @@ public class CollectionOptions {
         private String secretName;
 
         /** Default constructor. */
-        public Authentication() {}
+        public Authentication() {
+            // left blank, serialization with jackson
+        }
     }
 
     /**
@@ -189,7 +212,9 @@ public class CollectionOptions {
         private String help;
 
         /** Default constructor. */
-        public Parameters() {}
+        public Parameters() {
+            // left blank, serialization with jackson
+        }
     }
 
     /**
@@ -250,7 +275,9 @@ public class CollectionOptions {
         /**
          * Default constructor.
          */
-        public CollectionOptionsBuilder() {}
+        public CollectionOptionsBuilder() {
+            // left blank, builder pattern
+        }
 
         /**
          * Builder Pattern with the Identifiers.
@@ -283,7 +310,7 @@ public class CollectionOptions {
          * @return self reference
          */
         public CollectionOptionsBuilder vectorSimilarity(@NonNull SimilarityMetric function) {
-            getVector().setMetric(function);
+            getVector().setMetric(function.getValue());
             return this;
         }
 

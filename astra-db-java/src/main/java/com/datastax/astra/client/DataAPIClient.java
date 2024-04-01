@@ -70,6 +70,17 @@ import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
  */
 public class DataAPIClient {
 
+    /** parameters names. */
+    private static final String ARG_NAMESPACE = "namespace";
+    /** parameters names. */
+    private static final String ARG_OPTIONS = "options";
+    /** parameters names. */
+    private static final String ARG_TOKEN = "token";
+    /** parameters names. */
+    private static final String ARG_DATABASE_ID = "databaseId";
+    /** parameters names. */
+    private static final String ARG_REGION = "region";
+
     /**
      * The authentication token used as credentials in HTTP requests, specifically as the Authorization bearer token.
      * This token is crucial for accessing and interacting with Astra environments, where it plays a role in determining
@@ -177,8 +188,8 @@ public class DataAPIClient {
      * @throws IllegalArgumentException if the token is empty or null, or if the options are null.
      */
     public DataAPIClient(String token, DataAPIOptions options) {
-        Assert.hasLength(token, "token");
-        Assert.notNull(options, "options");
+        Assert.hasLength(token, ARG_TOKEN);
+        Assert.notNull(options, ARG_OPTIONS);
         this.token   = token;
         this.options = options;
     }
@@ -323,8 +334,8 @@ public class DataAPIClient {
      *         data manipulation and query operations.
      */
     public Database getDatabase(UUID databaseId, String namespace) {
-        Assert.notNull(databaseId, "databaseId");
-        Assert.hasLength(namespace, "namespace");
+        Assert.notNull(databaseId, ARG_DATABASE_ID);
+        Assert.hasLength(namespace, ARG_NAMESPACE);
         return new Database(new AstraApiEndpoint(databaseId,
                 getAdmin().getDatabaseInfo(databaseId).getRegion(),
                 getAstraEnvironment()).getApiEndPoint(),
@@ -344,9 +355,9 @@ public class DataAPIClient {
      *      data manipulation and query operations.
      */
     public Database getDatabase(UUID databaseId, String namespace, String region) {
-        Assert.notNull(databaseId, "databaseId");
-        Assert.hasLength(namespace, "namespace");
-        Assert.hasLength(region, "namespace");
+        Assert.notNull(databaseId, ARG_DATABASE_ID);
+        Assert.hasLength(namespace, ARG_NAMESPACE);
+        Assert.hasLength(region, ARG_REGION);
         return new Database(new AstraApiEndpoint(databaseId, region,
                 getAstraEnvironment()).getApiEndPoint(),
                 this.token, namespace);

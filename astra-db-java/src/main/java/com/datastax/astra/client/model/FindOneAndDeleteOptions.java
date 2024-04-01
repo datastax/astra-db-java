@@ -20,17 +20,17 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Options to find one and delete.
  */
-@Data
+@Getter
+@Setter
 public class FindOneAndDeleteOptions {
 
     /**

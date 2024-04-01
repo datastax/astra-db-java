@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Test for Token Providers
  */
-public class TokenProviderTest {
+class TokenProviderTest {
 
     @Test
     void shouldFixedTokenProviderReturnToken() {
@@ -19,7 +19,9 @@ public class TokenProviderTest {
 
     @Test
     void shouldGetMeAToken() {
-        System.out.println(new TokenProviderStargate().getToken());
+        String token = new TokenProviderStargate().getToken();
+        System.out.println(token);
+        assertThat(token).isNotNull();
     }
 
 }

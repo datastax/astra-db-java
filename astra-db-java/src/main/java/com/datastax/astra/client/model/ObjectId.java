@@ -20,6 +20,8 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.exception.DataApiException;
+
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -28,6 +30,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_RANDOM;
 import static com.datastax.astra.internal.utils.Assert.isTrue;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -118,30 +121,21 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
      */
     public static boolean isValid(final String hexString) {
         if (hexString == null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Input string is null.");
         }
-
         int len = hexString.length();
         if (len != 24) {
             return false;
         }
-
         for (int i = 0; i < len; i++) {
             char c = hexString.charAt(i);
-            if (c >= '0' && c <= '9') {
-                continue;
+            // Combine conditions for valid hex characters into a single if statement.
+            if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+                continue; // This is now the only 'continue' in the loop.
             }
-            if (c >= 'a' && c <= 'f') {
-                continue;
-            }
-            if (c >= 'A' && c <= 'F') {
-                continue;
-            }
-
-            return false;
+            return false; // Return false as soon as a non-hex character is found.
         }
-
-        return true;
+        return true; // Return true if all characters are valid hex characters.
     }
 
     /**
@@ -313,25 +307,11 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-
         ObjectId objectId = (ObjectId) o;
-
-        if (counter != objectId.counter) {
-            return false;
-        }
-        if (timestamp != objectId.timestamp) {
-            return false;
-        }
-
-        if (randomValue1 != objectId.randomValue1) {
-            return false;
-        }
-
-        if (randomValue2 != objectId.randomValue2) {
-            return false;
-        }
-
-        return true;
+        return counter == objectId.counter &&
+                timestamp == objectId.timestamp &&
+                randomValue1 == objectId.randomValue1 &&
+                randomValue2 == objectId.randomValue2;
     }
 
     @Override
@@ -411,7 +391,7 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
             RANDOM_VALUE1 = secureRandom.nextInt(0x01000000);
             RANDOM_VALUE2 = (short) secureRandom.nextInt(0x00008000);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new DataApiException(ERROR_CODE_RANDOM, "Cannot initialize ObjectId class", e);
         }
     }
 
@@ -450,13 +430,13 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
         return (((b3) << 24) |
                 ((b2 & 0xff) << 16) |
                 ((b1 & 0xff) << 8) |
-                ((b0 & 0xff)));
+                (b0 & 0xff));
         // CHECKSTYLE:ON
     }
 
     private static short makeShort(final byte b1, final byte b0) {
         // CHECKSTYLE:OFF
-        return (short) (((b1 & 0xff) << 8) | ((b0 & 0xff)));
+        return (short) (((b1 & 0xff) << 8) | (b0 & 0xff));
         // CHECKSTYLE:ON
     }
 

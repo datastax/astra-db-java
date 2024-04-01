@@ -25,7 +25,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -36,7 +37,7 @@ import java.util.Map;
 /**
  * Represent a command to be executed against the Data API.
  */
-@Data
+@Getter @Setter
 @JsonSerialize(using = Command.CommandSerializer.class)
 public class Command implements Serializable {
 
@@ -157,12 +158,12 @@ public class Command implements Serializable {
      *
      * @param documents
      *      documents for the command
-     * @param <DOC>
+     * @param <T>
      *      working clas for documents
      * @return
      *      self-reference
      */
-    public <DOC> Command withDocuments(List<DOC> documents) {
+    public <T> Command withDocuments(List<T> documents) {
         payload.appendIfNotNull("documents", documents);
         return this;
     }

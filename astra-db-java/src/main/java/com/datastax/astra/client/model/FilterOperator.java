@@ -36,11 +36,14 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import lombok.Getter;
+
 /**
  * Ease process of creating a where clause.
  *
  * @author Cedrick LUNVEN (@clunven)
  */
+@Getter
 public enum FilterOperator {
 
     /**
@@ -115,16 +118,6 @@ public enum FilterOperator {
      */
     private FilterOperator(String op) {
         this.operator = op;
-    }
-
-    /**
-     * Getter for the operator.
-     *
-     * @return
-     *      operator value
-     */
-    public String getOperator() {
-        return operator;
     }
 
 }

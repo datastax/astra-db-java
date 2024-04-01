@@ -46,17 +46,17 @@ import java.util.Optional;
  * the flexibility to access the entire result set.
  * </p>
  *
- * @param <DOC> The type of documents contained in the collection. This generic type allows {@code FindIterable}
+ * @param <T> The type of documents contained in the collection. This generic type allows {@code FindIterable}
  *              to be used with any type of document, making it a flexible solution for a wide variety of data models.
  */
 @Slf4j
 @Getter
-public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable<DOC> {
+public class FindIterable<T> extends PageableIterable<T> implements Iterable<T> {
 
     /**
      * Iterator on documents.
      */
-    protected FindIterator<DOC> currentPageIterator;
+    protected FindIterator<T> currentPageIterator;
 
     /**
      * Constructor for a cursor over the elements of the find.
@@ -67,7 +67,7 @@ public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable
      * @param options
      *      list of options like the pageState, limit of skip
      */
-    public FindIterable(Collection<DOC> collection, Filter filter, FindOptions options) {
+    public FindIterable(Collection<T> collection, Filter filter, FindOptions options) {
         this.collection  = collection;
         this.filter       = filter;
         this.options      = options;
@@ -81,14 +81,15 @@ public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable
      * @return
      *     tem if it exists
      */
-    public Optional<DOC> getItem(int offset) {
+    public Optional<T> getItem(int offset) {
         FindOptions options = FindOptions.Builder.skip(offset).limit(1);
         if (options.getIncludeSimilarity()) {
             options.includeSimilarity();
         }
-        FindIterable<DOC> sub = new FindIterable<>(collection, filter, options);
-        if (sub.fetchNextPage() && sub.getCurrentPage() != null && !sub.getCurrentPage().getResults().isEmpty()) {
-            return Optional.ofNullable(sub.getCurrentPage().getResults().get(0));
+        try(FindIterable<T> sub = new FindIterable<>(collection, filter, options)) {
+            if (sub.fetchNextPage() && sub.getCurrentPage() != null && !sub.getCurrentPage().getResults().isEmpty()) {
+                return Optional.ofNullable(sub.getCurrentPage().getResults().get(0));
+            }
         }
         return Optional.empty();
     }
@@ -98,13 +99,13 @@ public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable
      *
      * @return T the first item or null.
      */
-     public Optional<DOC> first() {
+     public Optional<T> first() {
          return getItem(0);
      }
 
     /** {@inheritDoc} */
     @Override @NonNull
-    public FindIterator<DOC> iterator() {
+    public FindIterator<T> iterator() {
         if (currentPageIterator == null) {
             active = fetchNextPage();
             this.currentPageIterator = new FindIterator<>(this);
@@ -118,11 +119,11 @@ public class FindIterable<DOC> extends PageableIterable<DOC> implements Iterable
      * @return
      *      all values of the iterable
      */
-     public List<DOC> all() {
+     public List<T> all() {
          if (exhausted) throw new IllegalStateException("Iterable is already exhauted.");
          if (active)    throw new IllegalStateException("Iterable has already been started");
-         List<DOC> results = new ArrayList<>();
-         for (DOC doc : this) results.add(doc);
+         List<T> results = new ArrayList<>();
+         for (T t : this) results.add(t);
          return results;
      }
 

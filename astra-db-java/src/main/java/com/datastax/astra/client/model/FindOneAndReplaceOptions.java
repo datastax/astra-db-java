@@ -22,14 +22,16 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
 /**
  * Options used in the `findAndReplace` command.
  */
-@Data
+@Getter
+@Setter
 public class FindOneAndReplaceOptions {
 
     /**

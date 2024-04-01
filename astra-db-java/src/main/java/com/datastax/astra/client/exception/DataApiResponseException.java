@@ -71,7 +71,7 @@ public class DataApiResponseException extends DataApiException {
     /**
      * Trace the execution results information.
      */
-    List<ExecutionInfos> commandsList;
+    private final transient List<ExecutionInfos> commandsList;
 
     /**
      * Constructor with list of constructors.

@@ -100,7 +100,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     /**
      * Reference to working DataApiNamespace
      */
-    public static Database database;
+    protected static Database database;
 
     /**
      * Initialization of the DataApiNamespace.
@@ -116,14 +116,14 @@ abstract class AbstractCollectionITTest implements TestConstants {
      * @return
      *      current Namespace
      */
-    public Database getDatabase() {
+    protected Database getDatabase() {
         if (database == null) {
             AbstractCollectionITTest.database = initDatabase();
         }
         return database;
     }
 
-    public void deleteAllCollections() {
+    protected void deleteAllCollections() {
         getDatabase().dropCollection(COLLECTION_SIMPLE);
         getDatabase().dropCollection(COLLECTION_VECTOR);
         getDatabase().dropCollection(COLLECTION_ALLOW);
@@ -146,7 +146,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
      * @return
      *      the database instance
      */
-    public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
+    protected static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
         AstraDBAdmin client = getAstraDBClient(env);
         DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
@@ -163,7 +163,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
      * @return
      *      instance of AstraDBAdmin
      */
-    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
+    protected static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
                 return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
@@ -244,7 +244,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
                     CollectionOptions
                             .builder()
                             .vectorDimension(14)
-                            .vectorSimilarity(SimilarityMetric.cosine)
+                            .vectorSimilarity(SimilarityMetric.COSINE)
                             .build(), ProductString.class);
             collectionVector.registerListener("logger", new LoggingCommandObserver(Collection.class));
         }
@@ -254,7 +254,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
     @Test
     @Order(1)
-    public void shouldPopulateGeneralInformation() {
+    protected void shouldPopulateGeneralInformation() {
         assertThat(getCollectionSimple().getOptions()).isNotNull();
         assertThat(getCollectionSimple().getName()).isNotNull();
         assertThat(getCollectionSimple().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
@@ -267,7 +267,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
     @Test
     @Order(2)
-    public void testInsertOne() {
+    protected void testInsertOne() {
         // Given
         InsertOneResult res1 = getCollectionSimple()
                 .insertOne(new Document().append("hello", "world"));
@@ -284,7 +284,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     }
 
     @Test
-    public void testFindOne() {
+    protected void testFindOne() {
         getCollectionVector().deleteAll();
         ProductString product = new ProductString();
         product.setId("1");
@@ -307,7 +307,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     }
 
     @Test
-    public void testRunCommand() {
+    protected void testRunCommand() {
         getCollectionSimple().deleteAll();
 
         ApiResponse res = getCollectionSimple().runCommand(Command
@@ -333,16 +333,19 @@ abstract class AbstractCollectionITTest implements TestConstants {
     }
 
     @Test
-    public void testCountDocument() throws TooManyDocumentsToCountException {
+    protected void testCountDocument() throws TooManyDocumentsToCountException {
         InsertManyOptions.Builder.ordered(false)
                 .concurrency(5) // recommended
                 .chunkSize(20)  // maximum chunk size is 20
                 .timeout(100);  // global timeout
 
-        assertThatThrownBy(() -> getCollectionSimple().countDocuments(-1))
+        final Collection<Document> collectionSimple =  getCollectionSimple();
+        assertThatThrownBy(() -> collectionSimple
+                .countDocuments(-1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("UpperBound");
-        assertThatThrownBy(() -> getCollectionSimple().countDocuments(2000))
+        assertThatThrownBy(() -> collectionSimple
+                .countDocuments(2000))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("UpperBound");
 
@@ -387,7 +390,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
         for (Document document : findIterable) assertThat(document).isNotNull();
 
         List<Document> documents = getCollectionSimple().find().all();
-        assertThat(documents.size()).isEqualTo(25);
+        assertThat(documents).hasSize(25);
     }
 
     @Test
@@ -399,7 +402,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
         // Sort = no paging
         FindOptions options = sort(ascending("indice")).skip(11).limit(2);
         List<Document> documents = getCollectionSimple().find(options).all();
-        assertThat(documents.size()).isEqualTo(2);
+        assertThat(documents).hasSize(2);
         assertThat(documents.get(0).getInteger("indice")).isEqualTo(11);
         assertThat(documents.get(1).getInteger("indice")).isEqualTo(12);
     }
@@ -487,10 +490,11 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .find().all()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
-        assertThat(results).hasSize(2);
-        assertThat(results).containsKey(0);
-        assertThat(results).containsKey(2);
-        assertThat(results).doesNotContainKey(1);
+        assertThat(results)
+                .hasSize(2)
+                .containsKey(0)
+                .containsKey(2)
+                .doesNotContainKey(1);
 
         // Delete one with a filter as 3 matches
         // Insert 3 items
@@ -523,20 +527,20 @@ abstract class AbstractCollectionITTest implements TestConstants {
         // Matched 1, modified 1, document is present
         Optional<Document> opt1 = getCollectionSimple()
                 .findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
-        assertThat(opt1.isPresent()).isTrue();
-        assertThat(opt1.get().get("hello")).isEqualTo("world2");
+        assertThat(opt1).isPresent();
+        assertThat(opt1.get()).containsEntry("hello", "world2");
 
         // Matched 1, modified 0, document is present
         Optional<Document> opt2 = getCollectionSimple()
                 .findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
-        assertThat(opt2.isPresent()).isTrue();
-        assertThat(opt2.get().get("hello")).isEqualTo("world2");
+        assertThat(opt2).isPresent();
+        assertThat(opt2.get()).containsEntry("hello", "world2");
 
         // Matched 0, modified 0, no document returned
         Optional<Document> opt3 = getCollectionSimple()
                 .findOneAndReplace(eq(3), new Document().id(3).append("hello", "world2"),
                         new FindOneAndReplaceOptions().upsert(false));
-        assertThat(opt3.isPresent()).isFalse();
+        assertThat(opt3).isEmpty();
     }
 
     @Test
@@ -553,8 +557,8 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         UpdateResult u2 = getCollectionSimple()
                 .replaceOne(eq(3), new Document().id(3).append("hello", "world2"));
-        assertThat(u2.getMatchedCount()).isEqualTo(0);
-        assertThat(u2.getModifiedCount()).isEqualTo(0);
+        assertThat(u2.getMatchedCount()).isZero();
+        assertThat(u2.getModifiedCount()).isZero();
         assertThat(u2.getUpsertedId()).isNull();
     }
 
@@ -595,7 +599,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         // Find the retrieved object
         Optional<ProductString> optRes = collectionVector.findById("p1");
-        assertThat(optRes.isPresent()).isTrue();
+        assertThat(optRes).isPresent();
         assertThat(optRes.get().getId()).isEqualTo("p1");
     }
 

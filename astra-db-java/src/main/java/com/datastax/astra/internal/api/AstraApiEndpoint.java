@@ -23,15 +23,17 @@ package com.datastax.astra.internal.api;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.Assert;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.UUID;
 
 /**
  * Create an endpoint to connect to a database.
  */
-@Data @NoArgsConstructor
+@Getter
+@Setter
 public class AstraApiEndpoint {
 
     /**
@@ -48,6 +50,13 @@ public class AstraApiEndpoint {
      * Database Region
      */
     String databaseRegion;
+
+    /**
+     * Default constructor.
+     */
+    public AstraApiEndpoint() {
+        // left blank intentionally
+    }
 
     /**
      * Parse an endpoint URL to know information on the DB.
@@ -73,7 +82,7 @@ public class AstraApiEndpoint {
         } else {
             throw new IllegalArgumentException("Unable to detect environment from endpoint");
         }
-        tmpUrl = tmpUrl.replaceAll("https://", "");
+        tmpUrl = tmpUrl.replace("https://", "");
         endpoint.databaseId = UUID.fromString(tmpUrl.substring(0,36));
         endpoint.databaseRegion = tmpUrl.substring(37);
         return endpoint;
@@ -112,7 +121,7 @@ public class AstraApiEndpoint {
      *      endpoint URL.
      */
     public String getOriginalEndPoint() {
-        return getApiEndPoint().replaceAll("/api/json", "");
+        return getApiEndPoint().replace("/api/json", "");
     }
 
 }

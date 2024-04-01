@@ -20,17 +20,16 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.OptionsUtils;
-import lombok.Data;
-
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Options for the updateOne operation
 
  */
-@Data
+@Getter
+@Setter
 public class UpdateOneOptions {
 
     /**
@@ -47,6 +46,7 @@ public class UpdateOneOptions {
      * Default constructor.
      */
     public UpdateOneOptions() {
+        // left blank as fields are populated by builder
     }
 
     /**
