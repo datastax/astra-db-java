@@ -25,6 +25,16 @@ public class CsvLoader {
      * @throws Exception
      *      exception in processing CSV
      */
+    public static void load(String fileName, Collection<Document> collection, CsvRowMapper processor) throws Exception {
+        load(fileName, CsvLoaderSettings.builder().build(), collection, processor);
+    }
+
+    /**
+     * Distributed import of CSV file into Astra.
+     *
+     * @throws Exception
+     *      exception in processing CSV
+     */
     public static void load(String fileName, CsvLoaderSettings settings, Collection<Document> collection) throws Exception {
         load(fileName, settings, collection, doc -> doc);
     }
