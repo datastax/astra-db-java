@@ -23,6 +23,7 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -144,11 +145,10 @@ public class ExecutionInfos implements Serializable {
          * @param httpResponse http response
          */
         public void withHttpResponse(ApiResponseHttp httpResponse) {
-            if (httpResponse != null) {
-                this.executionTime       = System.currentTimeMillis() - 1000 * executionDate.getEpochSecond();
-                this.responseHttpCode    = httpResponse.getCode();
-                this.responseHttpHeaders = httpResponse.getHeaders();
-            }
+            Assert.notNull(httpResponse, "httpResponse");
+            this.executionTime       = System.currentTimeMillis() - 1000 * executionDate.getEpochSecond();
+            this.responseHttpCode    = httpResponse.getCode();
+            this.responseHttpHeaders = httpResponse.getHeaders();
         }
 
         /**

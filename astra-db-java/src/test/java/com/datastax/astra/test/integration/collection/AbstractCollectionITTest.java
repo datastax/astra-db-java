@@ -510,10 +510,10 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .find().all()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
-        assertThat(results).hasSize(2);
-        assertThat(results).containsKey(0);
-        assertThat(results).containsKey(1);
-        assertThat(results).doesNotContainKey(2);
+        assertThat(results).hasSize(2)
+                .containsKey(0)
+                .containsKey(1)
+                .doesNotContainKey(2);
 
     }
 

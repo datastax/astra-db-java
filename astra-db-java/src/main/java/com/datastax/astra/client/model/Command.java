@@ -48,6 +48,13 @@ public class Command implements Serializable {
     protected Document payload = new Document();
 
     /**
+     * Default constructor.
+     */
+    public Command() {
+        // left blank and initialize with Jackson
+    }
+
+    /**
      * Create an empty command from its name.
      *
      * @param name
@@ -58,11 +65,6 @@ public class Command implements Serializable {
     public static Command create(String name) {
         return new Command(name);
     }
-
-    /**
-     * Default constructor.
-     */
-    public Command() {}
 
     /**
      * Constructor with a name.

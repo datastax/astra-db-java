@@ -55,7 +55,7 @@ import java.util.UUID;
 
 
 /**
- * Represents a document without schema contraints as a Map&lt;String, Object&gt;.(key/value)
+ * Represents a document without schema constraints as a Map&lt;String, Object&gt;.(key/value)
  */
 public class Document implements Map<String, Object>, Serializable {
 
@@ -117,17 +117,6 @@ public class Document implements Map<String, Object>, Serializable {
      */
     public <T> T map(Class<T> clazz) {
         return JsonUtils.convertValue(documentMap, clazz);
-    }
-
-    /**
-     * Create a Document instance initialized with the given key/value pair.
-     *
-     * @param key   key
-     * @param value value
-     */
-    public Document(final String key, final Object value) {
-        documentMap = new LinkedHashMap<>();
-        documentMap.put(key, value);
     }
 
     /**
@@ -198,23 +187,7 @@ public class Document implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Gets the value of the given key, casting it to {@code Class<T>} or returning the default value if null.
-     * This is useful to avoid having casts in client code, though the effect is the same.
-     *
-     * @param key   the key
-     * @param defaultValue what to return if the value is null
-     * @param <T>   the type of the class
-     * @return the value of the given key, or null if the instance does not contain this key.
-     * @throws ClassCastException if the value of the given key is not of type T
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(@NonNull final String key, @NonNull  final T defaultValue) {
-        Object value = JsonUtils.convertValue(documentMap.get(key), defaultValue.getClass());
-        return value == null ? defaultValue : (T) value;
-    }
-
-    /**
-     * Access the document identiifir
+     * Access the document identifier
      * @param clazz
      *      can be different type
      * @return
@@ -245,7 +218,7 @@ public class Document implements Map<String, Object>, Serializable {
      * Add a vectorize attribute to the document.
      *
      * @param text
-     *      value for the vctorize attribute
+     *      value for the vectorize attribute
      * @return
      *      self reference
      */
@@ -307,23 +280,11 @@ public class Document implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Gets the value of the given key as a primitive int.
-     *
-     * @param key          the key
-     * @param defaultValue what to return if the value is null
-     * @return the value as an integer, which may be null
-     * @throws ClassCastException if the value is not an integer
-     */
-    public int getInteger(final String key, final int defaultValue) {
-        return get(key, defaultValue);
-    }
-
-    /**
      * Gets the value of the given key as a Long.
      *
      * @param key the key
      * @return the value as a long, which may be null
-     * @throws ClassCastException if the value is not an long
+     * @throws ClassCastException if the value is not a long
      */
     public Long getLong(final String key) {
         Object o = get(key);
@@ -338,7 +299,7 @@ public class Document implements Map<String, Object>, Serializable {
      *
      * @param key the key
      * @return the value as a double, which may be null
-     * @throws ClassCastException if the value is not an double
+     * @throws ClassCastException if the value is not a double
      */
     public Double getDouble(final String key) {
         return (Double) get(key);
@@ -360,24 +321,11 @@ public class Document implements Map<String, Object>, Serializable {
      *
      * @param key the key
      * @return the value as a Boolean, which may be null
-     * @throws ClassCastException if the value is not an boolean
+     * @throws ClassCastException if the value is not a boolean
      */
     public Boolean getBoolean(final String key) {
         return (Boolean) get(key);
     }
-
-    /**
-     * Gets the value of the given key as a primitive boolean.
-     *
-     * @param key          the key
-     * @param defaultValue what to return if the value is null
-     * @return the value as a primitive boolean
-     * @throws ClassCastException if the value is not a boolean
-     */
-    public boolean getBoolean(final String key, final boolean defaultValue) {
-        return get(key, defaultValue);
-    }
-
 
     /**
      * Gets the value of the given key as a Date.

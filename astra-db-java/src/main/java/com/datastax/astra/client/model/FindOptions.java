@@ -68,7 +68,7 @@ public class FindOptions {
      * Default constructor.
      */
     public FindOptions() {
-        // left blank, jackson serialization
+        // left blank as populated by Jackson
     }
 
     /**
@@ -176,8 +176,6 @@ public class FindOptions {
         this.limit = limit;
         return this;
     }
-
-
 
     /**
      * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.

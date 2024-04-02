@@ -22,6 +22,7 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.internal.utils.JsonUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -89,19 +90,6 @@ public class Update extends Document {
     /**
      * Builder pattern
      *
-     * @param fields
-     *      fields map to inccrement which each time the value
-     * @return
-     *      reference to self
-     */
-    public Update inc(Map<String, Double> fields) {
-        if (fields !=null) fields.forEach(this::inc);
-        return this;
-    }
-
-    /**
-     * Builder pattern
-     *
      * @param fieldName
      *      field name
      * @return
@@ -109,19 +97,6 @@ public class Update extends Document {
      */
     public Update unset(String fieldName) {
         return update("$unset", fieldName, "");
-    }
-
-    /**
-     * Builder pattern
-     *
-     * @param fieldNames
-     *      list of fields to unset
-     * @return
-     *      reference to self
-     */
-    public Update unset(List<String> fieldNames) {
-        if (fieldNames != null) fieldNames.forEach(this::unset);
-        return this;
     }
 
     /**
@@ -169,19 +144,6 @@ public class Update extends Document {
     /**
      * Builder pattern
      *
-     * @param fields
-     *      map of fields
-     * @return
-     *      reference to self
-     */
-    public Update min(Map<String, Integer> fields) {
-        if (fields !=null) fields.forEach(this::min);
-        return this;
-    }
-
-    /**
-     * Builder pattern
-     *
      * @param key
      *      field name
      * @param value
@@ -191,20 +153,6 @@ public class Update extends Document {
      */
     public Update push(String key, Object value) {
         return update("$push", key, value);
-    }
-
-
-    /**
-     * Builder pattern
-     *
-     * @param fields
-     *      map of fields
-     * @return
-     *      reference to self
-     */
-    public Update push(Map<String, Integer> fields) {
-        if (fields !=null) fields.forEach(this::push);
-        return this;
     }
 
     /**
@@ -219,19 +167,6 @@ public class Update extends Document {
      */
     public Update pop(String key, Object value) {
         return update("$pop", key, value);
-    }
-
-    /**
-     * Builder pattern
-     *
-     * @param fields
-     *      map of fields
-     * @return
-     *      reference to self
-     */
-    public Update pop(Map<String, Integer> fields) {
-        if (fields !=null) fields.forEach(this::pop);
-        return this;
     }
 
     /**
@@ -292,21 +227,8 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update rename(Map<String, String> fields) {
-        if (fields !=null) fields.forEach(this::rename);
-        return this;
-    }
-
-    /**
-     * Builder pattern
-     *
-     * @param fields
-     *      fields to rename
-     * @return
-     *      reference to self
-     */
-    public Update updateCurrentDate(List<String> fields) {
-        fields.stream().forEach(key -> update("$currentDate", key, true));
+    public Update updateCurrentDate(String... fields) {
+        Arrays.stream(fields).forEach(key -> update("$currentDate", key, true));
         return this;
     }
 

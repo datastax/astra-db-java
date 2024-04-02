@@ -1,11 +1,14 @@
 package com.datastax.astra.test.integration.admin;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.DatabaseInfo;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import com.dtsx.astra.sdk.utils.Utils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -22,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
 
     private static final String TMP_VECTOR_DB = "astra_db_admin_test";
+    private static final String TMP_VECTOR_DB2 = "astra_db_admin_test2";
 
     @Override
     protected AstraEnvironment pickAstraEnvironment() {
@@ -55,8 +59,26 @@ class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
         assertThat(getAstraDbAdmin().databaseExists(databaseId)).isTrue();
 
         // Delete DB
-        boolean deleted = getAstraDbAdmin().dropDatabase(databaseId);
-
+        getAstraDbAdmin().dropDatabase(databaseId);
     }
+
+    @Test
+    @Order(2)
+    void shouldCreateOtherDatabase() {
+        Assertions.assertFalse(getAstraDbAdmin().databaseExists(TMP_VECTOR_DB2));
+        DatabaseAdmin dbAdmin = getAstraDbAdmin().createDatabase(TMP_VECTOR_DB2);
+        AstraDBDatabaseAdmin dbAmin2 = (AstraDBDatabaseAdmin) dbAdmin;
+        UUID databaseId = UUID.fromString(dbAmin2.getDatabaseInformations().getId());
+
+        Optional<String> oToken = Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN");
+        assertThat(oToken).isPresent();
+        DataAPIClient client = new DataAPIClient(oToken.get());
+        assertThat(client.getDatabase(databaseId)).isNotNull();
+        assertThat(client.getDatabase(databaseId, "default_keyspace")).isNotNull();
+
+        Assertions.assertTrue(getAstraDbAdmin().databaseExists(TMP_VECTOR_DB2));
+        getAstraDbAdmin().dropDatabase(TMP_VECTOR_DB2);
+    }
+
 
 }

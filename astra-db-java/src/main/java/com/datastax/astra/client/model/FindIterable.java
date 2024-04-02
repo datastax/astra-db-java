@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Represents the result of a 'find' command executed on a collection, providing an iterable interface to navigate
@@ -72,36 +71,6 @@ public class FindIterable<T> extends PageableIterable<T> implements Iterable<T> 
         this.filter       = filter;
         this.options      = options;
     }
-
-    /**
-     * Trigger a specialized Api call with proper 'skip' and 'limit' to only collect the item that is missing.
-     *
-     * @param offset
-     *      offset of the required items
-     * @return
-     *     tem if it exists
-     */
-    public Optional<T> getItem(int offset) {
-        FindOptions options = FindOptions.Builder.skip(offset).limit(1);
-        if (options.getIncludeSimilarity()) {
-            options.includeSimilarity();
-        }
-        try(FindIterable<T> sub = new FindIterable<>(collection, filter, options)) {
-            if (sub.fetchNextPage() && sub.getCurrentPage() != null && !sub.getCurrentPage().getResults().isEmpty()) {
-                return Optional.ofNullable(sub.getCurrentPage().getResults().get(0));
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Helper to return the first item in the iterator or null.
-     *
-     * @return T the first item or null.
-     */
-     public Optional<T> first() {
-         return getItem(0);
-     }
 
     /** {@inheritDoc} */
     @Override @NonNull

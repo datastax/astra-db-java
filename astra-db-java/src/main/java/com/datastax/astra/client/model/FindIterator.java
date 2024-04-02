@@ -78,6 +78,7 @@ public class FindIterator<T> implements Iterator<T> {
     public T next() {
         if (resultsIterator.hasNext()) {
             availableWithoutFetch--;
+            parentIterable.active = true;
             parentIterable.getTotalItemProcessed().incrementAndGet();
             return resultsIterator.next();
         } else if (parentIterable.getCurrentPage().getPageState().isPresent()) {

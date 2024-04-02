@@ -19,10 +19,10 @@ package com.datastax.astra.client;
  * limitations under the License.
  * #L%
  */
+
 import com.datastax.astra.internal.utils.Assert;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.net.http.HttpClient;
 
@@ -143,7 +143,7 @@ public class DataAPIOptions {
     /**
      * Options to set up http Client.
      */
-    @Data
+    @Getter @Setter
     public static class HttpClientOptions {
 
         /** Default user agent. */
@@ -201,7 +201,7 @@ public class DataAPIOptions {
     /**
      * Subclass to represent an http proxy.
      */
-    @Data
+    @Getter @Setter
     public static class HttpProxy {
 
         /** hostname of the proxy. */
@@ -255,7 +255,7 @@ public class DataAPIOptions {
         private HttpProxy httpProxy;
 
         /** Moving to HTTP/2. */
-        private HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
+        private HttpClient.Version httpVersion = HttpClient.Version.HTTP_1_1;
 
         /** Redirect  */
         private HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;

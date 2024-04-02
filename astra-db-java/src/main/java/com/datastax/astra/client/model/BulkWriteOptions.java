@@ -21,13 +21,12 @@ package com.datastax.astra.client.model;
  */
 
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  *
  * Options used in the `bulkWrite` command.
  */
-@Getter @Setter
+@Getter
 public final class BulkWriteOptions {
 
     /**

@@ -20,6 +20,9 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Helper for Syntax with updates.
  */
@@ -52,7 +55,7 @@ public class Updates {
      * @return
      *      update object
      */
-    public static Update min(String field, Object value) {
+    public static Update min(String field, Double value) {
         return new Update().min(field, value);
     }
 
@@ -68,4 +71,112 @@ public class Updates {
     public static Update inc(String field, Double value) {
         return new Update().inc(field, value);
     }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     * @param field
+     *      field name
+     * @param newName
+     *      new name
+     * @return
+     *      update object
+     */
+    public static Update rename(String field, String newName) {
+        return new Update().rename(field, newName);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param field
+     *      field name
+     * @return
+     *      update object
+     */
+    public static Update unset(String field) {
+        return new Update().unset(field);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param fields
+     *      map of fields
+     * @return
+     *      update object
+     */
+    public static Update updateSetOnInsert( Map<String, Double> fields) {
+        return new Update().updateSetOnInsert(fields);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param fields
+     *      map of fields
+     * @return
+     *      update object
+     */
+    public static Update updateCurrentDate(String... fields) {
+        return new Update().updateCurrentDate(fields);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param key
+     *      field name
+     * @param value
+     *      field value
+     * @return
+     *      update object
+     */
+    public static Update addToSet(String key, Object value) {
+        return new Update().addToSet(key, value);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param key
+     *      field name
+     * @param value
+     *      field value
+     * @return
+     *      update object
+     */
+    public static Update push(String key, Object value) {
+        return new Update().push(key, value);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param key
+     *      field name
+     * @param value
+     *      field value
+     * @return
+     *      update object
+     */
+    public static Update pop(String key, Object value) {
+        return new Update().pop(key, value);
+    }
+
+    /**
+     * Initialize an {@link Update with the key and value.}
+     *
+     * @param key
+     *      field name
+     * @param values
+     *      list of field values
+     * @param position
+     *      position to insert
+     * @return
+     *      update object
+     */
+    public static Update pushEach(String key, List<Object> values, Integer position) {
+        return new Update().pushEach(key, values, position);
+    }
+
 }

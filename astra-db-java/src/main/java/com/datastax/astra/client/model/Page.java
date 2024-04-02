@@ -51,44 +51,22 @@ import java.util.Optional;
  */
 @Getter
 public class Page<R> {
- 
-    /** Size of the page */
-    private final int pageSize;
-    
+
     /** Of present there is a next page. */
     private final String pageState;
     
     /** list of results matching the request. */
     private final List< R > results;
-    
-    /**
-     * Default Constructor.
-     */
-    public Page() {
-        this(0, null, null);
-    }
 
     /**
      * Default constructor.
      *
-     * @param pageSize int
-     * @param pageState String
-     */
-    public Page(int pageSize, String pageState) {
-        this(pageSize, pageState, null);
-    }
-
-    /**
-     * Default constructor.
-     * 
-     * @param pageSize int
      * @param pageState String
      * @param results List
      */
-    public Page(int pageSize, String pageState, List<R> results) {
+    public Page(String pageState, List<R> results) {
         this.pageState = pageState;
         this.results   = results;
-        this.pageSize  = pageSize;
     }
 
     /**
@@ -100,7 +78,6 @@ public class Page<R> {
     public boolean isEmpty() {
         return results== null || results.isEmpty();
     }
-
 
     /**
      * Expected from a stream of result.

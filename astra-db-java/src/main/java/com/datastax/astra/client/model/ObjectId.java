@@ -21,6 +21,7 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.exception.DataApiException;
+import lombok.Getter;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
@@ -75,6 +76,7 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
     /**
      * The timestamp
      */
+    @Getter
     private final int timestamp;
     /**
      * The counter.
@@ -90,55 +92,6 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
     private final short randomValue2;
 
     /**
-     * Gets a new object id.
-     *
-     * @return the new id
-     */
-    public static ObjectId get() {
-        return new ObjectId();
-    }
-
-    /**
-     * Gets a new object id with the given date value and all other bits zeroed.
-     * <p>
-     * The returned object id will compare as less than or equal to any other object id within the same second as the given date, and
-     * less than any later date.
-     * </p>
-     *
-     * @param date the date
-     * @return the ObjectId
-     */
-    public static ObjectId getSmallestWithDate(final Date date) {
-        return new ObjectId(dateToTimestampSeconds(date), 0, (short) 0, 0, false);
-    }
-
-    /**
-     * Checks if a string could be an {@code ObjectId}.
-     *
-     * @param hexString a potential ObjectId as a String.
-     * @return whether the string could be an object id
-     * @throws IllegalArgumentException if hexString is null
-     */
-    public static boolean isValid(final String hexString) {
-        if (hexString == null) {
-            throw new IllegalArgumentException("Input string is null.");
-        }
-        int len = hexString.length();
-        if (len != 24) {
-            return false;
-        }
-        for (int i = 0; i < len; i++) {
-            char c = hexString.charAt(i);
-            // Combine conditions for valid hex characters into a single if statement.
-            if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
-                continue; // This is now the only 'continue' in the loop.
-            }
-            return false; // Return false as soon as a non-hex character is found.
-        }
-        return true; // Return true if all characters are valid hex characters.
-    }
-
-    /**
      * Create a new object id.
      */
     public ObjectId() {
@@ -152,28 +105,6 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
      */
     public ObjectId(final Date date) {
         this(dateToTimestampSeconds(date), NEXT_COUNTER.getAndIncrement() & LOW_ORDER_THREE_BYTES, false);
-    }
-
-    /**
-     * Constructs a new instances using the given date and counter.
-     *
-     * @param date    the date
-     * @param counter the counter
-     * @throws IllegalArgumentException if the high order byte of counter is not zero
-     */
-    public ObjectId(final Date date, final int counter) {
-        this(dateToTimestampSeconds(date), counter, true);
-    }
-
-    /**
-     * Creates an ObjectId using the given time and counter.
-     *
-     * @param timestamp the time in seconds
-     * @param counter   the counter
-     * @throws IllegalArgumentException if the high order byte of counter is not zero
-     */
-    public ObjectId(final int timestamp, final int counter) {
-        this(timestamp, counter, true);
     }
 
     private ObjectId(final int timestamp, final int counter, final boolean checkCounter) {
@@ -264,15 +195,6 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
         buffer.put(int2(counter));
         buffer.put(int1(counter));
         buffer.put(int0(counter));
-    }
-
-    /**
-     * Gets the timestamp (number of seconds since the Unix epoch).
-     *
-     * @return the timestamp
-     */
-    public int getTimestamp() {
-        return timestamp;
     }
 
     /**

@@ -91,7 +91,7 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
     void shouldListAvailableNamespace() {
         assertThat(getDatabaseAdmin()).isNotNull();
         // Sync
-        assertThat(getDatabaseAdmin().listNamespaceNames().size()).isPositive();
+        assertThat(getDatabaseAdmin().listNamespaceNames()).isNotEmpty();
 
         // Async
         getDatabaseAdmin().listNamespaceNamesAsync()
@@ -130,7 +130,6 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         while (!getDatabaseAdmin().namespaceExists("tmp")) {
             log.warn("Waiting for namespace 'tmp' to be created");
         }
-
         assertThat( getDatabaseAdmin().listNamespaceNames())
                 .as("Check if 'ns2' is present in the namespace names")
                 .anyMatch("tmp"::equals);
@@ -138,9 +137,10 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         Database ns2 =  getDatabaseAdmin().getDatabase("tmp");
         assertThat(ns2).isNotNull();
         ns2.drop();
+        while (getDatabaseAdmin().namespaceExists("tmp")) {
+            log.warn("Waiting for namespace 'tmp' to be delete");
+        }
         assertThat(getDatabaseAdmin().namespaceExists("tmp")).isFalse();
     }
-
-
 
 }

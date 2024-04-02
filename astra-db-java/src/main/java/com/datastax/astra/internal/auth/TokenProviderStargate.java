@@ -56,7 +56,7 @@ public class TokenProviderStargate implements TokenProvider {
 
 
     /** Authentication token, time to live. */
-    private final static Duration tokenTtl = DEFAULT_TIMEOUT_TOKEN;
+    private static final Duration tokenTtl = DEFAULT_TIMEOUT_TOKEN;
 
     /** Credentials. */
     private final String username;

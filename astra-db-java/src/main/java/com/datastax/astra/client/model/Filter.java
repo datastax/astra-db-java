@@ -41,29 +41,6 @@ public class Filter extends Document {
     }
 
     /**
-     * Default constructor.
-     *
-     * @param json
-     *      filter expression as JSON
-     */
-    @SuppressWarnings("unchecked")
-    public Filter(String json) {
-        super();
-        this.documentMap.putAll(JsonUtils.unMarshallBean(json, Map.class));
-    }
-
-    /**
-     * Default constructor.
-     *
-     * @param obj
-     *      filter expression as JSON
-     */
-    public Filter(Map<String, Object> obj) {
-        super();
-        this.documentMap.putAll(obj);
-    }
-
-    /**
      * Create a filter from a where clause.
      *
      * @param fieldName

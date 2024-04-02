@@ -144,6 +144,10 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /** {@inheritDoc} */
     @Override
     public void dropNamespace(String namespace) {
-        devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
+        try {
+            devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
+        } catch(NullPointerException e) {
+            // Left blank to parse output from a delete
+        }
     }
 }

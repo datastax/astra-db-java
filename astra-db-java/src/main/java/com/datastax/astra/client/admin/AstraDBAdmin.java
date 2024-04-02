@@ -19,6 +19,7 @@ package com.datastax.astra.client.admin;
  * limitations under the License.
  * #L%
  */
+
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.DatabaseInfo;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
@@ -30,17 +31,12 @@ import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.DatabaseCreationRequest;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
-import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
 import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -226,20 +222,9 @@ public class AstraDBAdmin {
                 case INITIALIZING:
                 case PENDING:
                 case RESUMING:
-                    log.info("Database {} already exists and is in {} state, waiting for it to be ACTIVE", name, db.getStatus());
-                    if (waitForDb) {
-                        waitForDatabase(devopsDbClient.database(db.getId()));
-                    }
-                    return getDatabaseAdmin(UUID.fromString(db.getId()));
                 case HIBERNATED:
-                    log.info("Database {} is in {} state, resuming...", name, db.getStatus());
-                    resumeDb(db);
-                    if (waitForDb) {
-                        waitForDatabase(devopsDbClient.database(db.getId()));
-                    }
-                    return getDatabaseAdmin(UUID.fromString(db.getId()));
                 default:
-                    throw new IllegalStateException("Database already exist but cannot be activate");
+                    throw new IllegalStateException("Database already exists but is not in expected state.");
             }
         }
         // Database is not present, creating and waiting for it to be active.
@@ -408,35 +393,6 @@ public class AstraDBAdmin {
      */
     private DatabaseStatusType getStatus(DbOpsClient dbc) {
         return dbc.find().orElseThrow(() -> new DatabaseNotFoundException(dbc.getDatabaseId())).getStatus();
-    }
-
-    /**
-     * Database name.
-     *
-     * @param db
-     *      database name
-     */
-    private void resumeDb(Database db) {
-        try {
-            // Compute Endpoint for the Keyspace
-            String endpoint = ApiLocator.getApiRestEndpoint(db.getId(), db.getInfo().getRegion()) + "/v2/schemas/keyspace";
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
-                    .timeout(Duration.ofSeconds(20))
-                    .header("Content-Type", "application/json")
-                    .header(TOKEN_HEADER_PARAM, token)
-                    .GET()
-                    .build();
-            HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-            if (response.statusCode() == 500) {
-                throw new IllegalStateException("Cannot resume database, please check your account");
-            }
-        } catch (InterruptedException e) {
-            log.warn("Interrupted {}",e.getMessage());
-            Thread.currentThread().interrupt();
-        } catch (Exception e) {
-            log.warn("Resuming request might have failed, please check {}}",e.getMessage());
-        }
     }
 
 }

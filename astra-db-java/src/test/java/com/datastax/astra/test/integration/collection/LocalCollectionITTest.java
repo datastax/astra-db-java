@@ -10,13 +10,21 @@ import com.datastax.astra.client.model.BulkWriteResult;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
+import com.datastax.astra.client.model.Filters;
+import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.model.FindOneAndDeleteOptions;
+import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyResult;
+import com.datastax.astra.client.model.Page;
+import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.UpdateResult;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.datastax.astra.client.model.Filters.and;
 import static com.datastax.astra.client.model.Filters.eq;
@@ -33,6 +41,7 @@ import static com.datastax.astra.client.model.InsertManyOptions.Builder.ordered;
 import static com.datastax.astra.client.model.UpdateManyOptions.Builder.upsert;
 import static com.datastax.astra.client.model.Updates.set;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Allow to test Collection information.
@@ -176,7 +185,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         assertThat(getCollectionSimple().find(new Filter()
                 .where("metadata_string")
-                .isInArray(new String[]{"hello", "world"})).all().size()).isEqualTo(1);
+                .isInArray(new String[]{"hello", "world"})).all())
+                .hasSize(1);
         assertThat(getCollectionSimple().find(in("metadata_string", "hello", "world"))
                 .all()).hasSize(1);
 
@@ -241,15 +251,55 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         BulkWriteOptions options1 = BulkWriteOptions.Builder.ordered(false).concurrency(1);
         BulkWriteResult res = getCollectionSimple().bulkWrite(List.of(cmd1, cmd2), options1);
         assertThat(res).isNotNull();
-        assertThat(res.getResponses().size()).isEqualTo(2);
+        assertThat(res.getResponses()).hasSize(2);
         assertThat(res.getResponses().get(0).getStatus().getList("insertedIds", Integer.class).get(0)).isEqualTo(1);
 
         BulkWriteOptions options2 = BulkWriteOptions.Builder.concurrency(1).ordered(false);
         Command cmd3 = Command.create("insertOne").withDocument(new Document().id(3).append("name", "hello"));
         Command cmd4 = Command.create("insertOne").withDocument(new Document().id(4).append("name", "hello"));
         getCollectionSimple().bulkWrite(List.of(cmd3, cmd4), options2);
+    }
 
+    @Test
+    void shouldFindOneAndDelete() {
+        getCollectionSimple().deleteAll();
+        getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
+        Optional<Document> doc = getCollectionSimple().findOneAndDelete(eq("1"));
+        assertThat(doc).isPresent();
 
+        getCollectionSimple().insertOneAsync(COMPLETE_DOCUMENT).thenApply(doc1 -> {
+            Optional<Document> doc2 = getCollectionSimple().findOneAndDeleteAsync(eq("1")).join();
+            assertThat(doc2).isPresent();
+            return doc1;
+        });
+    }
+
+    @Test
+    void shouldFindPage() {
+        getCollectionSimple().deleteAll();
+        getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
+        Page<Document> p1 = getCollectionSimple().findPage(eq("1"), new FindOptions());
+        assertThat(p1).isNotNull();
+        assertThat(p1.one()).isNotNull();
+        Page<Document> p2 = getCollectionSimple().findPage(eq("1"), new FindOptions());
+        assertThat(p2).isNotNull();
+        assertThat(p2.findFirst()).isPresent();
+    }
+
+    @Test
+    void shouldFindIterable() {
+        getCollectionSimple().deleteAll();
+        Document doc1 = new Document().id(1).append("a", "a").append("b", "c");
+        Document doc2 = new Document().id(2).append("a", "a").append("b", "b");
+        getCollectionSimple().insertMany(List.of(doc1, doc2));
+
+        FindIterable<Document> iter = getCollectionSimple().find();;
+        iter.all();
+        assertThatThrownBy(iter::all).isInstanceOf(IllegalStateException.class);
+
+        FindIterable<Document> iter2 = getCollectionSimple().find();;
+        iter2.iterator().next();
+        assertThatThrownBy(iter2::all).isInstanceOf(IllegalStateException.class);
     }
 
 }

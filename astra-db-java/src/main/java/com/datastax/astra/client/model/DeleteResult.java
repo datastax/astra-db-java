@@ -26,13 +26,13 @@ import lombok.Setter;
 /**
  * Hold the result of delete commands (deleteOne, deleteMany).
  */
-@Getter @Setter
+@Getter
 public class DeleteResult {
 
     /**
      * NUmber of documents deleted.
      */
-    int deletedCount;
+    private final int deletedCount;
 
     /**
      * Default constructor.

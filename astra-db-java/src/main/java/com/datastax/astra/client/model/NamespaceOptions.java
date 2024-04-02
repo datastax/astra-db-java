@@ -33,13 +33,12 @@ import static com.datastax.astra.client.model.NamespaceInformation.ReplicationSt
  * Options to create a Namespace.
  */
 @Getter
-@Setter
 public class NamespaceOptions {
 
     /**
      * The replication of the namespace.
      */
-    private Map<String, Object> replication;
+    private final Map<String, Object> replication;
 
     /**
      * Default Constructor.

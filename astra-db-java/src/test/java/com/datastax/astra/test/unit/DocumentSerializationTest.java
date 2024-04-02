@@ -36,4 +36,14 @@ class DocumentSerializationTest {
     void shouldSerializeCommand2() {
         assertThat(JsonUtils.marshall(new Object())).isEqualTo("{}");
     }
+
+    @Test
+    void shouldSerializeDocument() {
+        Document doc1 = new Document().append("hello", "world")
+                .vector(new float[] {1.0f, 2.0f})
+                .vectorize("hello");
+        assertThat(doc1.getVector()).isPresent();
+        assertThat(doc1.getVectorize()).isPresent();
+        assertThat(doc1.getSimilarity()).isEmpty();
+    }
 }

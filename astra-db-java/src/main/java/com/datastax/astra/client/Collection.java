@@ -1240,10 +1240,8 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull("limit", options.getLimit())
                         .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
-
         ApiResponse apiResponse = runCommand(findCommand);
-
-        return new Page<>(DataAPIOptions.getMaxPageSize(),
+        return new Page<>(
                 apiResponse.getData().getNextPageState(),
                 apiResponse.getData().getDocuments()
                         .stream()
@@ -1804,6 +1802,18 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public Optional<T> findOneAndDelete(Filter filter) {
         return findOneAndDelete(filter, new FindOneAndDeleteOptions());
+    }
+
+    /**
+     * Delete and return a document asynchronous.
+     *
+     * @param filter
+     *      filter to delete
+     * @return
+     *      the document that was removed.  If no documents matched the query filter, then null will be returned
+     */
+    public CompletableFuture<Optional<T>> findOneAndDeleteAsync(Filter filter) {
+        return CompletableFuture.supplyAsync(() -> findOneAndDelete(filter));
     }
 
     /**

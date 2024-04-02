@@ -21,6 +21,7 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
@@ -79,25 +80,8 @@ public class ApiResponse implements Serializable {
      */
     @SuppressWarnings("unchecked")
     public Stream<String> getStatusKeyAsStringStream(@NonNull String key) {
-        if (status.containsKey(key)) {
-            return ((ArrayList<String>) status.get(key)).stream();
-        }
-        return Stream.empty();
-    }
-
-    /**
-     * Retrieves a specific object from the 'status' map based on the provided key, casting it to the specified class.
-     *
-     * @param key The key for which to retrieve the object.
-     * @param targetClass The class to which the object should be cast.
-     * @param <T> The type of the object to be returned.
-     * @return The object associated with the specified key, cast to the specified class; {@code null} if the key does not exist.
-     */
-    public <T> T getStatusKeyAsObject(@NonNull String key, @NonNull Class<T> targetClass) {
-        if (status.containsKey(key)) {
-            return JsonUtils.convertValue(status.get(key), targetClass);
-        }
-        return null;
+        Assert.isTrue(status.containsKey(key), "Key not found in status map");
+        return ((ArrayList<String>) status.get(key)).stream();
     }
 
     /**
@@ -110,26 +94,10 @@ public class ApiResponse implements Serializable {
      * @return The list of objects associated with the specified key, cast to the specified class; {@code null} if the key does not exist.
      */
     public <T> List<T> getStatusKeyAsList(@NonNull String key, Class<T> targetClass) {
-        if (status.containsKey(key)) {
-            return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
-                    JsonUtils.getDataApiObjectMapper().getTypeFactory()
-                            .constructCollectionType(List.class, targetClass));
-        }
-        return new ArrayList<>();
-    }
-
-    /**
-     * Retrieves an integer value from the 'status' map based on the provided key.
-     *
-     * @param key The key for which to retrieve the integer value.
-     * @return The integer value associated with the specified key.
-     * @throws IllegalArgumentException if the key does not exist in the status map.
-     */
-    public Integer getStatusKeyAsInteger(@NonNull String key) {
-        if (status.containsKey(key)) {
-            return (Integer) status.get(key);
-        }
-        throw new IllegalArgumentException("Key '" + key + "' does not exist in status");
+        Assert.isTrue(status.containsKey(key), "Key not found in status map");
+        return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
+               JsonUtils.getDataApiObjectMapper().getTypeFactory()
+                        .constructCollectionType(List.class, targetClass));
     }
 
 }

@@ -22,7 +22,6 @@ package com.datastax.astra.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -63,7 +62,7 @@ public class CollectionOptions {
     /**
      * Subclass representing the indexing options.
      */
-    @Data
+    @Getter @Setter
     public static class DefaultIdOptions {
 
         /** Type for the default id. */
@@ -90,7 +89,7 @@ public class CollectionOptions {
     /**
      * Subclass representing the indexing options.
      */
-    @Data
+    @Getter @Setter
     public static class IndexingOptions {
 
         /**
@@ -114,7 +113,7 @@ public class CollectionOptions {
     /**
      * Subclass representing the vector options.
      */
-    @Data
+    @Getter @Setter
     public static class VectorOptions {
 
         /**
@@ -152,7 +151,7 @@ public class CollectionOptions {
     /**
      * Subclass representing the services options.
      */
-    @Data
+    @Getter @Setter
     public static class Service {
 
         /** LLM provider. */
@@ -177,7 +176,7 @@ public class CollectionOptions {
     /**
      * Subclass representing the Authentication options.
      */
-    @Data
+    @Getter @Setter
     public static class Authentication {
 
         /** Type of authentication: Oauth, API Key, etc. */
@@ -195,7 +194,7 @@ public class CollectionOptions {
     /**
      * Subclass representing a parameters for LLM Services
      */
-    @Data
+    @Getter @Setter
     public static class Parameters {
 
         /** Type for the parameters. */

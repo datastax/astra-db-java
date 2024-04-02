@@ -32,8 +32,36 @@ import lombok.Setter;
 public class NamespaceInformation {
 
     /**
+     * The name of the namespace.
+     */
+    private String name;
+
+    /**
+     * The options of the namespace.
+     */
+    private NamespaceOptions options;
+
+    /**
+     * Default Constructor.
+     */
+    public NamespaceInformation() {
+        // Left Blank for Jackson
+    }
+
+    /**
+     * Default Constructor.
+     *
+     * @param name
+     *      create namespace information with name
+     */
+    public NamespaceInformation(String name) {
+        this.name = name;
+    }
+
+    /**
      * Replication strategies
      */
+    @Getter
     public enum ReplicationStrategy {
 
         /**
@@ -49,7 +77,7 @@ public class NamespaceInformation {
         /**
          * Enum value
          */
-        @Getter
+
         private final String value;
 
         /**
@@ -61,49 +89,9 @@ public class NamespaceInformation {
         ReplicationStrategy(String value) {
             this.value = value;
         }
-
-        /**
-         * Creates a ReplicationStrategy from its string value.
-         *
-         * @param value The string value to look for.
-         * @return The corresponding ReplicationStrategy enum constant.
-         * @throws IllegalArgumentException if the value does not correspond to any ReplicationStrategy.
-         */
-        public static ReplicationStrategy fromValue(String value) {
-            for (ReplicationStrategy type : values()) {
-                if (type.getValue().equals(value)) {
-                    return type;
-                }
-            }
-            throw new IllegalArgumentException("Unknown value: " + value);
-        }
     }
 
-    /**
-     * The name of the namespace.
-     */
-    private String name;
 
-    /**
-     * The options of the namespace.
-     */
-    private NamespaceOptions options;
-
-    /**
-     * Default Constructor.
-     */
-    public NamespaceInformation() {
-    }
-
-    /**
-     * Default Constructor.
-     *
-     * @param name
-     *      create namespace information with name
-     */
-    public NamespaceInformation(String name) {
-        this.name = name;
-    }
 
     /** {@inheritDoc} */
     @Override

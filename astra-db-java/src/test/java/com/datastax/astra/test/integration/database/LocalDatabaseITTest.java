@@ -8,23 +8,16 @@ import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.api.ApiResponse;
-import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.auth.TokenProviderStargate;
-import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.test.unit.MockCommandObserver;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.net.ProxySelector;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 import static com.datastax.astra.internal.auth.TokenProviderStargate.DEFAULT_AUTH_URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
