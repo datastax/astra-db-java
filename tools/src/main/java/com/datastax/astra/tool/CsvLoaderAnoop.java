@@ -17,11 +17,11 @@ public class CsvLoaderAnoop {
 
     public static void main(String[] args) throws Exception {
         DataAPIClient client =
-                new DataAPIClient("AstraCS:rhZhqUkdzcYSlRNUfZjiZApq:c36d4c0575d4e471a93618a1586bf7b6be970fc3a5442f711fd79a932f98fb09");
+                new DataAPIClient("replace_me");
         Database db =
-                client.getDatabase("https://07cae943-ea78-4d65-ac2a-a9e819e2d5d3-us-east1.apps.astra.datastax.com");
+                client.getDatabase("replace_me");
         Collection<Document> collection =
-                db.createCollection("best_buy2");
+                db.createCollection("best_buy");
         collection.deleteAll();
         CsvLoader.load(
                 "/Users/cedricklunven/Downloads/anoop.csv",
