@@ -4,6 +4,7 @@ import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.tool.csv.CsvLoader;
 import com.datastax.astra.tool.csv.CsvLoaderSettings;
@@ -13,21 +14,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.datastax.astra.client.model.Filters.and;
+import static com.datastax.astra.client.model.Filters.eq;
+
 public class CsvLoaderAnoop {
 
     public static void main(String[] args) throws Exception {
-        DataAPIClient client =
-                new DataAPIClient("replace_me");
-        Database db =
-                client.getDatabase("replace_me");
-        Collection<Document> collection =
-                db.createCollection("best_buy");
+        DataAPIClient client = new DataAPIClient("<replace_me>");
+        Database db = client.getDatabase("<replace_me>");
+        Collection<Document> collection = db.createCollection("best_buy");
+        collection.registerListener("logger", new LoggingCommandObserver(CsvLoaderAnoop.class));
+
         collection.deleteAll();
         CsvLoader.load(
-                "/Users/cedricklunven/Downloads/anoop.csv",
+                "/Users/cedricklunven/Downloads/best_buy.csv",
                 CsvLoaderSettings.builder().timeoutSeconds(300).batchSize(1).build(),
                 collection,
                 new AnoopRowMapper());
+
+         System.out.println(collection.find(and(
+                 eq("origin", "55426"),
+                 eq("destination", "61701"))).all());
+
     }
 
     /**

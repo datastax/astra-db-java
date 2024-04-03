@@ -17,6 +17,8 @@ public class QuickStart {
     // Create collection with vector search
     Collection<Document> col = db.createCollection("demo", 14, COSINE);
     // Insert vectors
+
+
     col.insertMany(List.of(
        new Document("doc1")
            .vector(new float[]{1f, 0f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f})
@@ -36,7 +38,7 @@ public class QuickStart {
 
     // Perform a similarity search
     float[] embeddings = new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
-    FindIterable<Document> docs = col.find(eq("product_price", 9.99), embeddings, 10);
+    FindIterable<Document> docs = col.find(embeddings, 10);
 
     // Print result
     for (Document doc : docs) System.out.println(doc);

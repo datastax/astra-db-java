@@ -20,7 +20,10 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import java.time.Instant;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Helper to create Filter
@@ -89,6 +92,48 @@ public class Filters {
     }
 
     /**
+     * Creates a filter that matches all documents where the value of the given field is greater than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gt(final String fieldName, final Instant value) {
+        return new Filter().where(fieldName).isGreaterThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is greater than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gt(final String fieldName, final Date value) {
+        return new Filter().where(fieldName).isGreaterThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is greater than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gt(final String fieldName, final Calendar value) {
+        return new Filter().where(fieldName).isGreaterThan(value);
+    }
+
+    /**
      * Creates a filter that matches all documents where the value of the given field is greater than or equal to the specified value.
      *
      * @param fieldName
@@ -99,6 +144,48 @@ public class Filters {
      * @return the filter
      */
     public static Filter gte(final String fieldName, final Number value) {
+        return new Filter().where(fieldName).isGreaterOrEqualsThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is greater than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gte(final String fieldName, final Instant value) {
+        return new Filter().where(fieldName).isGreaterOrEqualsThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is greater than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gte(final String fieldName, final Calendar value) {
+        return new Filter().where(fieldName).isGreaterOrEqualsThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is greater than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter gte(final String fieldName, final Date value) {
         return new Filter().where(fieldName).isGreaterOrEqualsThan(value);
     }
 
@@ -117,6 +204,48 @@ public class Filters {
     }
 
     /**
+     * Creates a filter that matches all documents where the value of the given field is less than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lt(final String fieldName, final Date value) {
+        return new Filter().where(fieldName).isLessThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is less than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lt(final String fieldName, final Instant value) {
+        return new Filter().where(fieldName).isLessThan(value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is less than the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lt(final String fieldName, final Calendar value) {
+        return new Filter().where(fieldName).isLessThan(value);
+    }
+
+    /**
      * Creates a filter that matches all documents where the value of the given field is less than or equal to the specified value.
      *
      * @param fieldName
@@ -127,6 +256,48 @@ public class Filters {
      * @return the filter
      */
     public static Filter lte(final String fieldName, final Number value) {
+        return new Filter().where(fieldName, FilterOperator.LESS_THAN_OR_EQUALS_TO, value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is less than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lte(final String fieldName, final Instant value) {
+        return new Filter().where(fieldName, FilterOperator.LESS_THAN_OR_EQUALS_TO, value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is less than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lte(final String fieldName, final Date value) {
+        return new Filter().where(fieldName, FilterOperator.LESS_THAN_OR_EQUALS_TO, value);
+    }
+
+    /**
+     * Creates a filter that matches all documents where the value of the given field is less than or equal to the specified value.
+     *
+     * @param fieldName
+     *      the field name
+     * @param value
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter lte(final String fieldName, final Calendar value) {
         return new Filter().where(fieldName, FilterOperator.LESS_THAN_OR_EQUALS_TO, value);
     }
 

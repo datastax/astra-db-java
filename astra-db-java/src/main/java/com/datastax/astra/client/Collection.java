@@ -1180,6 +1180,23 @@ public class Collection<T> extends AbstractCommandRunner {
      * Finds documents in the collection that match the specified filter and sorts them based on their similarity
      * to a provided vector, limiting the number of results returned.
      * <p>
+     * This method is particularly useful for vector-based search operations where documents are ranked according
+     * to their distance from a reference vector. The {@code limit} parameter controls the maximum number of documents
+     * to return, allowing for efficient retrieval of the most relevant documents.
+     * </p>
+     *
+     * @param vector A float array representing the vector used to sort the documents.
+     * @param limit The maximum number of documents to return.
+     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
+     */
+    public FindIterable<T> find(float[] vector, int limit) {
+        return find(null, FindOptions.Builder.vector(vector).limit(limit));
+    }
+
+    /**
+     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
+     * to a provided vector, limiting the number of results returned.
+     * <p>
      * This method leverage the 'vectorization' to compute the embeddings on the fly in order to execute the search.
      * </p>
      *

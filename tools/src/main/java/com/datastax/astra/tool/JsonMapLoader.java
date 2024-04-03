@@ -13,8 +13,8 @@ import java.util.Map;
 
 public class JsonMapLoader {
 
-    public static final String TOKEN = "AstraCS:iLPiNPxSSIdefoRdkTWCfWXt:2b360d096e0e6cb732371925ffcc6485541ff78067759a2a1130390e231c2c7a";
-    public static final String API_ENDPOINT = "https://a7843732-ee9b-4535-80d6-dbe6c1169783-us-east1.apps.astra.datastax.com";
+    public static final String TOKEN = "<replace_me>";
+    public static final String API_ENDPOINT = "<replace_me>";
     public static final String COLLECTION = "airbnb";
     public static final String JSON_FILE = "/Users/cedricklunven/Downloads/AllIdentifiers.json";
     private static final int BATCH_SIZE = 20;

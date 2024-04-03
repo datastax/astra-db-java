@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.datastax.astra.tool" level="INFO" additivity="false">
+    <logger name="com.datastax.astra.tool" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
