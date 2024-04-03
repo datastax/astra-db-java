@@ -70,8 +70,8 @@ class DataApiOptionsTest {
         assertThat(FindOneAndDeleteOptions.Builder.vectorize("OK")
                 .sort(Sorts.ascending("test"))
                 .projection(Projections.include("test"))
-                .vectorize("ok")
-                .vector(new float[]{}))
+                .sort("ok")
+                .sort(new float[]{}))
                 .isNotNull();
     }
 
@@ -136,8 +136,8 @@ class DataApiOptionsTest {
                 .sort(Sorts.ascending("test"))
                 .includeSimilarity()
                 .projection(Projections.include("ok"))
-                .vectorize("ok")
-                .vector(new float[]{}))
+                .sort("ok")
+                .sort(new float[]{}))
                 .isNotNull();
     }
 

@@ -75,7 +75,7 @@ public class FindOneOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneOptions vectorize(String vectorize, Sort ... sorts) {
+    public FindOneOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -90,7 +90,7 @@ public class FindOneOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneOptions vector(float[] vector, Sort... sorts) {
+    public FindOneOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -144,6 +144,28 @@ public class FindOneOptions {
         }
 
         /**
+         * Initializes the building process with sorting options.
+         *
+         * @param vector string to be vectorized in the findOne operation.
+         * @param sort The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
+         */
+        public static FindOneOptions sort(float[] vector, Sort... sort) {
+            return new FindOneOptions().sort(vector, sort);
+        }
+
+        /**
+         * Initializes the building process with sorting options.
+         *
+         * @param vectorize string to be vectorized in the findOne operation.
+         * @param sort The sort criteria to be applied to the findOne operation.
+         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
+         */
+        public static FindOneOptions sort(String vectorize, Sort... sort) {
+            return new FindOneOptions().sort(vectorize, sort);
+        }
+
+        /**
          * Initializes the building process with projection options.
          *
          * @param projection The projection criteria to be applied to the findOne operation.
@@ -170,7 +192,7 @@ public class FindOneOptions {
          * @return A new {@link FindOneOptions} instance configured with the provided vectorize criteria.
          */
         public static FindOneOptions vectorize(String vectorize, Sort... sorts) {
-            return new FindOneOptions().vectorize(vectorize, sorts);
+            return new FindOneOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -181,7 +203,7 @@ public class FindOneOptions {
          * @return A new {@link FindOneOptions} instance configured with the provided vector criteria.
          */
         public static FindOneOptions vector(float[] vector, Sort... sorts) {
-            return new FindOneOptions().vector(vector, sorts);
+            return new FindOneOptions().sort(vector, sorts);
         }
     }
 }

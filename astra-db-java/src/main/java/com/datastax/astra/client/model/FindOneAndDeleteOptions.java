@@ -70,7 +70,7 @@ public class FindOneAndDeleteOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndDeleteOptions vectorize(String vectorize, Sort ... sorts) {
+    public FindOneAndDeleteOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -85,7 +85,7 @@ public class FindOneAndDeleteOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndDeleteOptions vector(float[] vector, Sort... sorts) {
+    public FindOneAndDeleteOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -145,7 +145,7 @@ public class FindOneAndDeleteOptions {
          * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vectorize criteria.
          */
         public static FindOneAndDeleteOptions vectorize(String vectorize, Sort... sorts) {
-            return new FindOneAndDeleteOptions().vectorize(vectorize, sorts);
+            return new FindOneAndDeleteOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -156,7 +156,7 @@ public class FindOneAndDeleteOptions {
          * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vector criteria.
          */
         public static FindOneAndDeleteOptions vector(float[] vector, Sort... sorts) {
-            return new FindOneAndDeleteOptions().vector(vector, sorts);
+            return new FindOneAndDeleteOptions().sort(vector, sorts);
         }
     }
 

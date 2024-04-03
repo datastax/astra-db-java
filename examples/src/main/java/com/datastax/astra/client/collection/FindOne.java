@@ -6,7 +6,6 @@ import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindOneOptions;
-import com.datastax.astra.client.model.Projections;
 
 import java.util.Optional;
 
@@ -15,6 +14,8 @@ import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
 import static com.datastax.astra.client.model.Filters.lt;
 import static com.datastax.astra.client.model.FindOneOptions.Builder.vector;
+import static com.datastax.astra.client.model.Projections.exclude;
+import static com.datastax.astra.client.model.Projections.include;
 
 public class FindOne {
     public static void main(String[] args) {
@@ -29,21 +30,20 @@ public class FindOne {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
         FindOneOptions options = new FindOneOptions()
-                .projection(Projections.include("field", "field2", "field3"))
-                .projection(Projections.exclude("_id"))
-                .vector(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
+                .projection(include("field", "field2", "field3"))
+                .projection(exclude("_id"))
+                .sort(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
                 .includeSimilarity();
         Optional<Document> result = collection.findOne(filter, options);
 
         // with the import Static Magic
         collection.findOne(and(
-               gt("field2", 10),
-               lt("field3", 20),
-               eq("field4", "value")),
-
-                vector(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
-                .projection(Projections.include("field", "field2", "field3"))
-                .projection(Projections.exclude("_id"))
+                gt("field2", 10),
+                lt("field3", 20),
+                eq("field4", "value")),
+               vector(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
+                .projection(include("field", "field2", "field3"))
+                .projection(exclude("_id"))
                 .includeSimilarity()
         );
 
