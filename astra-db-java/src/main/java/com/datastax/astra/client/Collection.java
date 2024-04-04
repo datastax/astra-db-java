@@ -66,6 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -532,6 +533,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * directly within the document. This is achieved through a specified expression, which the service translates
      * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
      * vector similarity.
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * <p><b>Note:</b> As with the base {@code insertOne} method, providing an {@code _id} field that matches an existing
      * document's {@code _id} in the collection will cause the insertion to fail with an error. If the {@code _id} field
@@ -573,6 +575,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * provides an asynchronous counterpart to {@link #insertOne(T document, String vectorize)}, allowing for
      * non-blocking operations while a document, along with its vectorization based on the provided string, is
      * inserted into the collection.
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * <p>Utilizing this method facilitates the insertion of documents in scenarios where application responsiveness
      * is crucial. It allows the application to continue with other tasks while the document insertion, including
@@ -843,6 +846,39 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public InsertManyResult insertMany(List<? extends T> documents) {
         return insertMany(documents, new InsertManyOptions());
+    }
+
+    /**
+     * Inserts a batch of documents into the collection using default insertion options. This method is a
+     * simplified version of {@link #insertMany(List, InsertManyOptions)}, intended for use cases where
+     * default settings for concurrency, chunk size, and insertion order are sufficient. It provides an
+     * efficient way to insert multiple documents concurrently, optimizing the insertion process with
+     * predefined settings.
+     *
+     * <p>The default {@link InsertManyOptions} used by this method assumes non-concurrent (sequential)
+     * insertion, with no specific chunk size or timeout constraints. This is suitable for general use
+     * cases where the simplicity of invocation is prioritized over the customization of insertion
+     * parameters. For more advanced control over the insertion process, including the ability to specify
+     * concurrency levels, chunk sizes, and operation timeouts, use the overloaded
+     * {@link #insertMany(List, InsertManyOptions)} method.</p>
+     *
+     * <p>This method leverages the same underlying insertion logic as its overloaded counterpart,
+     * ensuring consistent behavior and error handling. It automatically handles validation of the
+     * input documents list, chunking of documents based on default settings, and aggregation of
+     * insertion results into a single {@link InsertManyResult}.</p>
+     *
+     * <p><b>Usage:</b> Ideal for inserting a collection of documents without the need for custom
+     * insertion options. Simplifies the insertion process for basic use cases.</p>
+     *
+     * @param documents A list of documents to be inserted. Must not be null or empty, and no document should
+     *                  be null.
+     * @return An {@link InsertManyResult} object containing the IDs of all successfully inserted documents.
+     * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
+     * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
+     */
+    @SafeVarargs
+    public final InsertManyResult insertMany(T... documents) {
+        return insertMany(Arrays.asList(documents), new InsertManyOptions());
     }
 
     /**
@@ -1196,6 +1232,7 @@ public class Collection<T> extends AbstractCommandRunner {
     /**
      * Finds documents in the collection that match the specified filter and sorts them based on their similarity
      * to a provided vector, limiting the number of results returned.
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      * <p>
      * This method leverage the 'vectorization' to compute the embeddings on the fly in order to execute the search.
      * </p>
@@ -1206,7 +1243,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, String vectorize, int limit) {
-        return find(filter, FindOptions.Builder.vectorize(vectorize).limit(limit));
+        return find(filter, FindOptions.Builder.sort(vectorize).limit(limit));
     }
 
     /**

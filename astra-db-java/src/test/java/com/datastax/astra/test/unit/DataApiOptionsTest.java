@@ -66,8 +66,8 @@ class DataApiOptionsTest {
     void shouldInitializeFindOneAndDeleteOptions() {
         assertThat(FindOneAndDeleteOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
         assertThat(FindOneAndDeleteOptions.Builder.projection(Projections.include("test"))).isNotNull();
-        assertThat(FindOneAndDeleteOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(FindOneAndDeleteOptions.Builder.vectorize("OK")
+        assertThat(FindOneAndDeleteOptions.Builder.sort(new float[]{})).isNotNull();
+        assertThat(FindOneAndDeleteOptions.Builder.sort("OK")
                 .sort(Sorts.ascending("test"))
                 .projection(Projections.include("test"))
                 .sort("ok")
@@ -95,15 +95,15 @@ class DataApiOptionsTest {
         assertThat(FindOneAndReplaceOptions.Builder.returnDocumentBefore()).isNotNull();
         assertThat(FindOneAndReplaceOptions.Builder.projection(Projections.include("ok"))).isNotNull();
         assertThat(FindOneAndReplaceOptions.Builder.upsert(true)).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.vectorize("OK")
+        assertThat(FindOneAndReplaceOptions.Builder.sort(new float[]{})).isNotNull();
+        assertThat(FindOneAndReplaceOptions.Builder.sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
                 .returnDocumentAfter()
                 .returnDocumentBefore()
-                .vectorize("ok")
-                .vector(new float[]{}))
+                .sort("ok")
+                .sort(new float[]{}))
                 .isNotNull();
     }
 
@@ -114,15 +114,15 @@ class DataApiOptionsTest {
         assertThat(FindOneAndUpdateOptions.Builder.returnDocumentBefore()).isNotNull();
         assertThat(FindOneAndUpdateOptions.Builder.projection(Projections.include("ok"))).isNotNull();
         assertThat(FindOneAndUpdateOptions.Builder.upsert(true)).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.vectorize("OK")
+        assertThat(FindOneAndUpdateOptions.Builder.sort(new float[]{})).isNotNull();
+        assertThat(FindOneAndUpdateOptions.Builder.sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
                 .returnDocumentAfter()
                 .returnDocumentBefore()
-                .vectorize("ok")
-                .vector(new float[]{}))
+                .sort("ok")
+                .sort(new float[]{}))
                 .isNotNull();
     }
 
@@ -263,7 +263,7 @@ class DataApiOptionsTest {
         FindOptions fo = new FindOptions();
         assertThatThrownBy(() -> fo.limit(-1)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> fo.skip(-1)).isInstanceOf(IllegalArgumentException.class);
-        assertThat(FindOptions.Builder.vectorize("ok").includeSimilarity().pageState("ok")).isNotNull();
+        assertThat(FindOptions.Builder.sort("ok").includeSimilarity().pageState("ok")).isNotNull();
         assertThat(FindOptions.Builder.includeSimilarity()).isNotNull();
         assertThat(FindOptions.Builder.limit(10)).isNotNull();
         assertThat(FindOptions.Builder.skip(10)).isNotNull();

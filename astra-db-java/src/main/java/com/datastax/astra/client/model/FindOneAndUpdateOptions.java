@@ -82,7 +82,7 @@ public class FindOneAndUpdateOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndUpdateOptions vectorize(String vectorize, Sort ... sorts) {
+    public FindOneAndUpdateOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -97,7 +97,7 @@ public class FindOneAndUpdateOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndUpdateOptions vector(float[] vector, Sort... sorts) {
+    public FindOneAndUpdateOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -220,8 +220,8 @@ public class FindOneAndUpdateOptions {
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided vectorize criteria.
          */
-        public static FindOneAndUpdateOptions vectorize(String vectorize, Sort... sorts) {
-            return new FindOneAndUpdateOptions().vectorize(vectorize, sorts);
+        public static FindOneAndUpdateOptions sort(String vectorize, Sort... sorts) {
+            return new FindOneAndUpdateOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -231,8 +231,8 @@ public class FindOneAndUpdateOptions {
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndUpdateOptions} instance configured with the provided vector criteria.
          */
-        public static FindOneAndUpdateOptions vector(float[] vector, Sort... sorts) {
-            return new FindOneAndUpdateOptions().vector(vector, sorts);
+        public static FindOneAndUpdateOptions sort(float[] vector, Sort... sorts) {
+            return new FindOneAndUpdateOptions().sort(vector, sorts);
         }
     }
 

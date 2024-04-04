@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.model.FindOptions.Builder.vectorize;
+import static com.datastax.astra.client.model.FindOptions.Builder.sort;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -69,7 +69,7 @@ class VectorizePreviewITTest {
     @Test
     void testFindVectorize() {
         List<Document> doclist = collectionVectorize
-                .find(vectorize("Life is too short for Javascript"))
+                .find(sort("Life is too short for Javascript"))
                 .all();
         assertThat(doclist).isNotNull().isNotEmpty();
     }

@@ -64,7 +64,8 @@ public class FindOneAndDeleteOptions {
     }
 
     /**
-     * Add a criteria with $vectorize in the sort clause
+     * Add a criteria with $vectorize in the sort clause.
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
@@ -139,12 +140,13 @@ public class FindOneAndDeleteOptions {
 
         /**
          * Initializes the building process with vectorize options.
+         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
          *
          * @param vectorize The vectorize criteria to be applied to the findOne operation
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vectorize criteria.
          */
-        public static FindOneAndDeleteOptions vectorize(String vectorize, Sort... sorts) {
+        public static FindOneAndDeleteOptions sort(String vectorize, Sort... sorts) {
             return new FindOneAndDeleteOptions().sort(vectorize, sorts);
         }
 
@@ -155,7 +157,7 @@ public class FindOneAndDeleteOptions {
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vector criteria.
          */
-        public static FindOneAndDeleteOptions vector(float[] vector, Sort... sorts) {
+        public static FindOneAndDeleteOptions sort(float[] vector, Sort... sorts) {
             return new FindOneAndDeleteOptions().sort(vector, sorts);
         }
     }

@@ -70,6 +70,7 @@ public class FindOneOptions {
 
     /**
      * Add a criteria with $vectorize in the sort clause
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
@@ -156,6 +157,7 @@ public class FindOneOptions {
 
         /**
          * Initializes the building process with sorting options.
+         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
          *
          * @param vectorize string to be vectorized in the findOne operation.
          * @param sort The sort criteria to be applied to the findOne operation.
@@ -184,26 +186,5 @@ public class FindOneOptions {
             return new FindOneOptions().includeSimilarity();
         }
 
-        /**
-         * Initializes the building process with vectorize options.
-         *
-         * @param vectorize The vectorize criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided vectorize criteria.
-         */
-        public static FindOneOptions vectorize(String vectorize, Sort... sorts) {
-            return new FindOneOptions().sort(vectorize, sorts);
-        }
-
-        /**
-         * Initializes the building process with vector options.
-         *
-         * @param vector The vector criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided vector criteria.
-         */
-        public static FindOneOptions vector(float[] vector, Sort... sorts) {
-            return new FindOneOptions().sort(vector, sorts);
-        }
     }
 }

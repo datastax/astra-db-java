@@ -76,12 +76,13 @@ public class FindOneAndReplaceOptions {
 
     /**
      * Add a criteria with $vectorize in the sort clause
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndReplaceOptions vectorize(String vectorize, Sort ... sorts) {
+    public FindOneAndReplaceOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -96,7 +97,7 @@ public class FindOneAndReplaceOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public FindOneAndReplaceOptions vector(float[] vector, Sort... sorts) {
+    public FindOneAndReplaceOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -215,13 +216,14 @@ public class FindOneAndReplaceOptions {
 
         /**
          * Initializes the building process with vectorize options.
+         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
          *
          * @param vectorize The vectorize criteria to be applied to the findOne operation
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided vectorize criteria.
          */
-        public static FindOneAndReplaceOptions vectorize(String vectorize, Sort... sorts) {
-            return new FindOneAndReplaceOptions().vectorize(vectorize, sorts);
+        public static FindOneAndReplaceOptions sort(String vectorize, Sort... sorts) {
+            return new FindOneAndReplaceOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -231,8 +233,8 @@ public class FindOneAndReplaceOptions {
          * @param sorts The sort criteria to be applied to the findOne operation.
          * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided vector criteria.
          */
-        public static FindOneAndReplaceOptions vector(float[] vector, Sort... sorts) {
-            return new FindOneAndReplaceOptions().vector(vector, sorts);
+        public static FindOneAndReplaceOptions sort(float[] vector, Sort... sorts) {
+            return new FindOneAndReplaceOptions().sort(vector, sorts);
         }
     }
 
