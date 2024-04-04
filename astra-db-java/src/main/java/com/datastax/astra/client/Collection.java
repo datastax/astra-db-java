@@ -1209,7 +1209,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, float[] vector, int limit) {
-        return find(filter, FindOptions.Builder.vector(vector).limit(limit));
+        return find(filter, FindOptions.Builder.sort(vector).limit(limit));
     }
 
     /**
@@ -1226,7 +1226,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(float[] vector, int limit) {
-        return find(null, FindOptions.Builder.vector(vector).limit(limit));
+        return find(null, FindOptions.Builder.sort(vector).limit(limit));
     }
 
     /**

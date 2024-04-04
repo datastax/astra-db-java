@@ -19,3 +19,15 @@ mvn clean test jacoco:report
 mvn clean test jacoco:report  verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=clun_astra-db-java
 ```
 
+- [x] Start the `ssh-agent`
+
+```console
+eval "$(ssh-agent -s)"
+```
+- [x] Add the ssh key to the agent
+
+```console
+cd ~/.ssh
+ssh-add githubff4j
+```
+
