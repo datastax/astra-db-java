@@ -13,7 +13,7 @@ import static com.datastax.astra.client.model.Filters.and;
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
 import static com.datastax.astra.client.model.Filters.lt;
-import static com.datastax.astra.client.model.FindOneOptions.Builder.vector;
+import static com.datastax.astra.client.model.FindOneOptions.Builder.sort;
 import static com.datastax.astra.client.model.Projections.exclude;
 import static com.datastax.astra.client.model.Projections.include;
 
@@ -41,7 +41,7 @@ public class FindOne {
                 gt("field2", 10),
                 lt("field3", 20),
                 eq("field4", "value")),
-               vector(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
+               sort(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f})
                 .projection(include("field", "field2", "field3"))
                 .projection(exclude("_id"))
                 .includeSimilarity()

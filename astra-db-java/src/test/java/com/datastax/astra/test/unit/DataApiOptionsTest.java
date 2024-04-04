@@ -131,8 +131,8 @@ class DataApiOptionsTest {
         assertThat(FindOneOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
         assertThat(FindOneOptions.Builder.projection(Projections.include("ok"))).isNotNull();
         assertThat(FindOneOptions.Builder.includeSimilarity()).isNotNull();
-        assertThat(FindOneOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(FindOneOptions.Builder.vectorize("OK")
+        assertThat(FindOneOptions.Builder.sort(new float[]{})).isNotNull();
+        assertThat(FindOneOptions.Builder.sort("OK")
                 .sort(Sorts.ascending("test"))
                 .includeSimilarity()
                 .projection(Projections.include("ok"))
