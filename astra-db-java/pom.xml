@@ -4,7 +4,7 @@
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java</artifactId>
     <name>Java Client Library for Data API</name>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <description>Implementation of a client to the Astra/Stargate Data API written in Java</description>
     <url>https://github.com/datastax/astra-db-java</url>
     <inceptionYear>2024</inceptionYear>
@@ -380,7 +380,7 @@
         <connection>scm:git:git@github.com:datastax/astra-db-java.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/astra-db-java.git</developerConnection>
         <url>https://github.com/datastax/astra-db-java</url>
-        <tag>1.0.0</tag>
+        <tag>1.0.0-beta1</tag>
     </scm>
 
     <developers>
