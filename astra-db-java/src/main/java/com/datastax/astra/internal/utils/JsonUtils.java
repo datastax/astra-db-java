@@ -154,7 +154,11 @@ public class JsonUtils {
      * @param <T>
      *     current type
      */
+    @SuppressWarnings("unchecked")
     public static <T> T convertValue(Object bean, Class<T> clazz) {
+        if (bean.getClass() == clazz) {
+            return (T) bean;
+        }
         return  getDataApiObjectMapper().convertValue(bean, clazz);
     }
 

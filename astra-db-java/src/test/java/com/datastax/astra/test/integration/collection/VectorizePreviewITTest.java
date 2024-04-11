@@ -29,7 +29,7 @@ class VectorizePreviewITTest {
     static final String COLLECTION_VECTORIZE = "collection_vectorize";
     static final String NVIDIA_PROVIDER = "nvidia";
     static final String NVIDIA_MODEL = "NV-Embed-QA";
-    static final Integer NVIDIA_DIMENSION= 1024;
+    static final Integer NVIDIA_DIMENSION = 1024;
     private static Database db;
     private static Collection<Document> collectionVectorize;
 
@@ -46,11 +46,10 @@ class VectorizePreviewITTest {
     void shouldCreateACollectionWithNvidia() {
         Collection<Document> collection = db.createCollection(COLLECTION_VECTORIZE,
                 CollectionOptions.builder()
-                .vectorDimension(NVIDIA_DIMENSION)
-                .vectorSimilarity(SimilarityMetric.COSINE)
-                .vectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
-                .build());
-
+                        .vectorDimension(NVIDIA_DIMENSION)
+                        .vectorSimilarity(SimilarityMetric.COSINE)
+                        .vectorize(NVIDIA_PROVIDER, NVIDIA_MODEL)
+                        .build());
         assertThat(collection).isNotNull();
         assertThat(db.listCollectionNames().collect(Collectors.toList())).contains(COLLECTION_VECTORIZE);
     }
@@ -68,8 +67,9 @@ class VectorizePreviewITTest {
 
     @Test
     void testFindVectorize() {
-        List<Document> doclist = collectionVectorize
-                .find(sort("Life is too short for Javascript"))
+        List<Document> doclist = collectionVectorize.find(
+                        // FindOptions.Builder.sort(...), some options
+                        sort("Life is too short for Javascript"))
                 .all();
         assertThat(doclist).isNotNull().isNotEmpty();
     }
