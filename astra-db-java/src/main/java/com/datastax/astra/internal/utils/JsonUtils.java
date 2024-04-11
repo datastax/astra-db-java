@@ -156,6 +156,9 @@ public class JsonUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T convertValue(Object bean, Class<T> clazz) {
+        if (bean == null) {
+            return null;
+        }
         if (bean.getClass() == clazz) {
             return (T) bean;
         }
