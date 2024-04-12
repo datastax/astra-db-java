@@ -41,8 +41,12 @@ import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.UUIDv6;
 import com.datastax.astra.client.model.UUIDv7;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadFeature;
+import com.fasterxml.jackson.core.StreamWriteFeature;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,9 +83,14 @@ public class JsonUtils {
      */
     public static synchronized ObjectMapper getDataApiObjectMapper() {
         if (dataApiObjectMapper == null) {
-            dataApiObjectMapper = new ObjectMapper()
-                    .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
-                    .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
+            JsonFactory jsonFactory = JsonFactory.builder()
+                    .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
+                    .enable(JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES)
+                    .enable(StreamReadFeature.USE_FAST_BIG_NUMBER_PARSER)
+                    .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
+                    .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
+                    .build();
+            dataApiObjectMapper = new ObjectMapper(jsonFactory)
                     .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
