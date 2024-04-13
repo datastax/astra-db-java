@@ -21,14 +21,14 @@ This client library provides a simplified way to interact with Data API for Astr
 - [`astra-db-ts`](https://github.com/datastax/astra-db-ts) is the equivalent for typescript
 - [`astrapy`](https://github.com/datastax/astrapy) is the equivalent in python
 
-This library is under development and not yet available in Maven Central. You can build it locally and install it in your local repository.
-
+This library is under development and is available in Maven Central.
+You can build it locally and install it in your local repository.
 
 ## 1. Local Installation
 
 ### 1.1 Prerequisites
 
-#### 📦 Java Development Kit (JDK) 8
+#### 📦 Java Development Kit (JDK) 11
 - Use the [reference documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) to install a **Java Development Kit**
 - Validate your installation with
 
@@ -64,7 +64,7 @@ git clone git@github.com:datastax/astra-db-java.git
 > - A running Data API locally with docker (see the `docker-compose.yml` in the root of the project)
 
 ```console
-mvn clean install -DskipTests=true
+mvn clean install -Dtest.skipped=true
 ```
 
 ### 1.3 Installation
@@ -76,7 +76,7 @@ Add the following dependency to your `pom.xml` file:
 <dependency>
   <groupId>com.datastax.astra</groupId>
   <artifactId>astra-db-java</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
