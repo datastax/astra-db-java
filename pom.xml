@@ -7,7 +7,7 @@
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
     <name>Data API Client</name>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
