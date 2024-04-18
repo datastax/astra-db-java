@@ -76,7 +76,7 @@ public interface DatabaseAdmin {
      * }
      * </pre>
      *
-     * @return A {@link Stream<String>} containing the names of all namespaces within the current database. The stream
+     * @return A {@link Set} containing the names of all namespaces within the current database. The stream
      *         provides a flexible and efficient means to process the namespace names according to the application's needs.
      */
     Set<String> listNamespaceNames();

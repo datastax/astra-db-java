@@ -415,7 +415,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a single document into the collection. This method provides the same functionality as
-     * {@link #insertOne(T document)}, but it operates asynchronously, returning a {@link CompletableFuture} that
+     * {@link #insertOne(Object)}, but it operates asynchronously, returning a {@link CompletableFuture} that
      * will be completed with the insertion result. Utilizing this method is beneficial for non-blocking operations,
      * allowing other tasks to proceed while the document insertion is being processed.
      *
@@ -423,11 +423,11 @@ public class Collection<T> extends AbstractCommandRunner {
      * applications requiring high throughput or for operations that do not need immediate completion confirmation.</p>
      *
      * <p>For details on the behavior, parameters, and return type, refer to the documentation of the synchronous
-     * {@link #insertOne(T document)} method. This method inherits all the properties and behaviors of its synchronous
+     * {@link #insertOne(Object)} method. This method inherits all the properties and behaviors of its synchronous
      * counterpart, including error handling and the generation or requirement of the {@code _id} field.</p>
      *
      * @param document The document to be inserted into the collection. The specifications regarding the document
-     *                 structure and the {@code _id} field are the same as described in {@link #insertOne(T document)}.
+     *                 structure and the {@code _id} field are the same as described in {@link #insertOne(Object)}.
      * @return A {@link CompletableFuture} that, upon completion, contains the result of the insert operation as an
      *         {@link InsertOneResult}. The completion may occur with a result in case of success or with an exception
      *         in case of failure.
@@ -448,7 +448,7 @@ public class Collection<T> extends AbstractCommandRunner {
     }
 
     /**
-     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(T document)}
+     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(Object)}
      * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
      * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
      * of the insertion, maintaining the integrity and consistency of the collection.
@@ -489,7 +489,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a single document into the collection with vector embeddings. This method mirrors the
-     * functionality of {@link #insertOne(T document, float[] embeddings)}, operating asynchronously to return a
+     * functionality of {@link #insertOne(Object,float[])}, operating asynchronously to return a
      * {@link CompletableFuture} that completes with the insertion result. It is designed for use cases where
      * non-blocking operations are essential, enabling other processes to continue while the document insertion
      * is executed in the background.
@@ -500,7 +500,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * critical.</p>
      *
      * <p>For a comprehensive understanding of the behavior, parameters, including the purpose and use of vector
-     * embeddings, refer to the synchronous {@link #insertOne(T document, float[] embeddings)} method. This
+     * embeddings, refer to the synchronous {@link #insertOne(Object,float[] embeddings)} method. This
      * asynchronous variant adopts all the behaviors and properties of its synchronous counterpart.</p>
      *
      * @param document   The document to be inserted, potentially without an {@code _id} field which, if omitted,
@@ -529,7 +529,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Inserts a single document into the collection in an atomic operation, extending the base functionality of
-     * the {@link #insertOne(T document)} method by adding the capability to compute and include a vector of embeddings
+     * the {@link #insertOne(Object)} method by adding the capability to compute and include a vector of embeddings
      * directly within the document. This is achieved through a specified expression, which the service translates
      * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
      * vector similarity.
@@ -572,7 +572,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a single document into the collection with a vectorization expression. This method
-     * provides an asynchronous counterpart to {@link #insertOne(T document, String vectorize)}, allowing for
+     * provides an asynchronous counterpart to {@link #insertOne(Object,String)}, allowing for
      * non-blocking operations while a document, along with its vectorization based on the provided string, is
      * inserted into the collection.
      * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
@@ -584,7 +584,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * <p>For detailed information on the behavior and parameters, especially the purpose and processing of the
      * {@code vectorize} string, refer to the documentation of the synchronous
-     * {@link #insertOne(T document, String vectorize)} method. This asynchronous method inherits all functionalities
+     * {@link #insertOne(Object,String)} method. This asynchronous method inherits all functionalities
      * and behaviors from its synchronous counterpart, ensuring consistency across the API.</p>
      *
      * @param document  The document to be inserted into the collection. The requirements and options regarding the
@@ -987,7 +987,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter The {@link Filter} instance encapsulating the search criteria used to pinpoint the desired document.
      *               This object specifies the exact conditions that must be met for a document to be selected as a match.
-     * @return An {@link java.util.Optional< T >} encapsulating the found document, if any, that meets the filter criteria.
+     * @return An {@link java.util.Optional} encapsulating the found document, if any, that meets the filter criteria.
      *         If no document matches the specified conditions, an empty {@link java.util.Optional} is returned, ensuring
      *         that retrieval operations can be performed safely without the concern of {@link java.util.NoSuchElementException}.
      */
@@ -1024,7 +1024,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
      *               It specifies the conditions that a document must meet to be considered a match.
      * @param options The {@link FindOneOptions} instance containing additional options for the find operation,
-     * @return An {@link Optional< T >} that contains the found document if one exists that matches
+     * @return An {@link Optional} that contains the found document if one exists that matches
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
@@ -1085,7 +1085,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *                It defines the conditions that a document must meet to be considered a match.
      * @param options The {@link FindOneOptions} providing additional query configurations such as projection
      *                and sort criteria to tailor the search operation.
-     * @return A {@link CompletableFuture<Optional< T >>} that, upon completion, contains an {@link Optional< T >}
+     * @return A {@link CompletableFuture} that, upon completion, contains an {@link Optional}
      *         with the found document if one exists matching the filter criteria. If no matching document is found,
      *         a completed future with an empty {@link Optional} is returned, facilitating safe asynchronous retrieval.
      *
@@ -1136,7 +1136,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param id The unique identifier of the document to retrieve. This can be of any type that the database
      *           recognizes as a valid identifier format (e.g., String, Integer).
-     * @return A {@link CompletableFuture<Optional< T >>} that, upon completion, contains an {@link Optional< T >}
+     * @return A {@link CompletableFuture} that, upon completion, contains an {@link Optional}
      *         with the document if found. If no document matches the specified identifier, a completed future
      *         with an empty {@link Optional} is returned.
      *
