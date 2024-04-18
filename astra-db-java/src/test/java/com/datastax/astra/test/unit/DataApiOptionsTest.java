@@ -17,6 +17,7 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.NamespaceInformation;
 import com.datastax.astra.client.model.NamespaceOptions;
+import com.datastax.astra.client.model.Projection;
 import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.ReplaceOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
@@ -275,6 +276,13 @@ class DataApiOptionsTest {
         DataAPIOptions options = DataAPIOptions.builder()
                 .withMaxDocumentsInInsert(100)
                 .build();
+
+        Projection p1 = new Projection("field1", true);
+        Projection p2 = new Projection("field2", true);
+        FindOptions options1 = FindOptions.Builder.projection(p1,p2);
+        FindOptions options2 = FindOptions.Builder.projection(Projections.include("field1", "field2"));
+
+        InsertManyOptions insertManyOptions = InsertManyOptions.Builder.chunkSize(100);
         //DataAPIClient client = new DataAPIClient("token", options);
 
     }
