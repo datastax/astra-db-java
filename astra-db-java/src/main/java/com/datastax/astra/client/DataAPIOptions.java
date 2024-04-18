@@ -23,23 +23,25 @@ package com.datastax.astra.client;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 
 /**
  * Options to set up the client for DataApiClient.
  */
+@Slf4j
 @Getter
 public class DataAPIOptions {
 
     /** Number of documents for a count. */
-    static final int MAX_DOCUMENTS_COUNT = 1000;
+    public static final int DEFAULT_MAX_DOCUMENTS_COUNT = 1000;
 
     /** Maximum number of documents in a page. */
-    static final  int MAX_PAGE_SIZE = 20;
+    public static final  int DEFAULT_MAX_PAGE_SIZE = 20;
 
     /** Maximum number of documents when you insert. */
-    static final int MAX_DOCUMENTS_IN_INSERT = 20;
+    public static final int DEFAULT_MAX_CHUNKSIZE = 20;
 
     /** Default user agent. */
     public static final String DEFAULT_CALLER_NAME = "astra-db-java";
@@ -73,6 +75,15 @@ public class DataAPIOptions {
     /** Set the API version like 'v1' */
     final String apiVersion;
 
+    /** When operating a count operation, the maximum number of documents that can be returned. */
+    final int maxDocumentCount;
+
+    /** The maximum number of documents that can be returned in a single page. */
+    final int maxPageSize;
+
+    /** The maximum number of documents that can be inserted in a single operation. */
+    final int maxDocumentsInInsert;
+
     /**
      * Initializer for the builder.
      *
@@ -90,9 +101,12 @@ public class DataAPIOptions {
      *      current builder
      */
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
-        this.apiVersion  = builder.apiVersion;
-        this.destination = builder.destination;
-        this.httpClientOptions = new HttpClientOptions();
+        this.apiVersion           = builder.apiVersion;
+        this.destination          = builder.destination;
+        this.maxDocumentCount     = builder.maxDocumentCount;
+        this.maxPageSize          = builder.maxPageSize;
+        this.maxDocumentsInInsert = builder.maxDocumentsInInsert;
+        this.httpClientOptions    = new HttpClientOptions();
         httpClientOptions.setHttpVersion(builder.httpVersion);
         httpClientOptions.setHttpRedirect(builder.httpRedirect);
         httpClientOptions.setRetryCount(builder.retryCount);
@@ -263,6 +277,15 @@ public class DataAPIOptions {
         /** Default is to use Astra in Production. */
         private DataAPIDestination destination = DataAPIDestination.ASTRA;
 
+        /** When operating a count operation, the maximum number of documents that can be returned. */
+        private int maxDocumentCount = DEFAULT_MAX_DOCUMENTS_COUNT;
+
+        /** The maximum number of documents that can be returned in a single page. */
+        private int maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+
+        /** The maximum number of documents that can be inserted in a single operation. */
+        private int maxDocumentsInInsert = DEFAULT_MAX_CHUNKSIZE;
+
         /**
          * Default constructor.
          */
@@ -426,6 +449,98 @@ public class DataAPIOptions {
         }
 
         /**
+         * Sets the maximum number of documents that can be returned by the count function.
+         * <p>
+         * If not explicitly set, the default value is defined by {@code MAX_DOCUMENTS_COUNT},
+         * which is 1000 documents.
+         * </p>
+         *
+         * @param maxDocumentCount the maximum number of documents that can be returned by the count function.
+         *                         Must be a positive number.
+         * @return a reference to this builder, allowing for method chaining.
+         *
+         * Example usage:
+         * <pre>
+         * {@code
+         * DataAPIClientOptions
+         *   .builder()
+         *   .withMaxDocumentCount(2000); // Sets the maximum number of documents to 2000.
+         * }</pre>
+         */
+        public DataAPIClientOptionsBuilder withMaxDocumentCount(int maxDocumentCount) {
+            if (maxDocumentCount <= 0) {
+                throw new IllegalArgumentException("Max document count must be a positive number");
+            }
+            if (maxDocumentCount > DEFAULT_MAX_DOCUMENTS_COUNT) {
+                log.warn("Setting the maximum document count to a value greater than the default value of {} may impact performance.", DEFAULT_MAX_DOCUMENTS_COUNT);
+            }
+            this.maxDocumentCount = maxDocumentCount;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of documents that can be returned in a single page.
+         * <p>
+         * If not explicitly set, the default value is defined by {@code MAX_PAGE_SIZE},
+         * which is 20 documents.
+         * </p>
+         *
+         * @param maxPageSize the maximum number of documents that can be returned in a single page.
+         *                    Must be a positive number.
+         * @return a reference to this builder, allowing for method chaining.
+         *
+         * Example usage:
+         * <pre>
+         * {@code
+         * DataAPIClientOptions
+         *   .builder()
+         *   .withMaxPageSize(50); // Sets the maximum page size to 50 documents.
+         * }</pre>
+         */
+        public DataAPIClientOptionsBuilder withMaxPageSize(int maxPageSize) {
+            if (maxPageSize <= 0) {
+                throw new IllegalArgumentException("Max page size must be a positive number");
+            }
+            if (maxPageSize > DEFAULT_MAX_PAGE_SIZE) {
+                log.warn("Setting the maximum page size to a value greater than the " +
+                        "default value of {} may impact performance or result in error at server level", DEFAULT_MAX_PAGE_SIZE);
+            }
+            this.maxPageSize = maxPageSize;
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of documents that can be inserted in a single operation.
+         * <p>
+         * If not explicitly set, the default value is defined by {@code MAX_DOCUMENTS_IN_INSERT},
+         * which is 20 documents.
+         * </p>
+         *
+         * @param maxDocumentsInInsert the maximum number of documents that can be inserted in a single operation.
+         *                             Must be a positive number.
+         * @return a reference to this builder, allowing for method chaining.
+         *
+         * Example usage:
+         * <pre>
+         * {@code
+         * DataAPIClientOptions
+         *   .builder()
+         *   .withMaxDocumentsInInsert(50); // Sets the maximum number of documents to insert to 50.
+         * }</pre>
+         */
+        public DataAPIClientOptionsBuilder withMaxDocumentsInInsert(int maxDocumentsInInsert) {
+            if (maxDocumentsInInsert <= 0) {
+                throw new IllegalArgumentException("Max documents in insert must be a positive number");
+            }
+            if (maxDocumentsInInsert > DEFAULT_MAX_CHUNKSIZE) {
+                log.warn("Setting the maximum number of documents in insert to a value greater than the " +
+                        "default value of {} may impact performance or result in error at server level", DEFAULT_MAX_CHUNKSIZE);
+            }
+            this.maxDocumentsInInsert = maxDocumentsInInsert;
+            return this;
+        }
+
+        /**
          * Build the options.
          *
          * @return
@@ -434,38 +549,6 @@ public class DataAPIOptions {
         public DataAPIOptions build() {
             return new DataAPIOptions(this);
         }
-
-    }
-
-
-    /**
-     * Retrieve the maximum number of documents that the count function can return.
-     *
-     * @return
-     *      maximum number of document returned
-     */
-    public static int getMaxDocumentCount() {
-        return MAX_DOCUMENTS_COUNT;
-    }
-
-    /**
-     * Retrieve the maximum number of documents for a page and also the maximum you can set for a limit.
-     *
-     * @return
-     *      maximum page size.
-     */
-    public static int getMaxPageSize() {
-        return MAX_PAGE_SIZE;
-    }
-
-    /**
-     * Retrieve the maximum number of documents allows for a insertMany() below this point the list is split and chunked are processed in parallel.
-     *
-     * @return
-     *      maximum page size.
-     */
-    public static int getMaxDocumentsInInsert() {
-        return MAX_DOCUMENTS_IN_INSERT;
     }
 
 }

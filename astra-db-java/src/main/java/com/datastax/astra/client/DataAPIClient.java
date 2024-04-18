@@ -100,15 +100,6 @@ public class DataAPIClient {
      */
     private final String token;
 
-    static {
-        DataAPIOptions.builder()
-                .withHttpRequestTimeout(1000)
-                .withHttpConnectTimeout(10)
-                .withHtpVersion(HttpClient.Version.HTTP_2)
-                .withDestination(ASTRA)
-                .build();
-    }
-
     /**
      * Represents the advanced configuration settings for the client, encapsulating various HTTP-related properties.
      * This includes settings such as the HTTP version, request and connection timeouts, and the user agent among others.
@@ -229,7 +220,6 @@ public class DataAPIClient {
         return getAdmin(this.token);
     }
 
-
     /**
      * Retrieves an administration client capable of performing CRUD operations on databases, requiring a token with
      * advanced privileges. This method is designed for scenarios where administrative access is necessary beyond the
@@ -339,7 +329,7 @@ public class DataAPIClient {
         return new Database(new AstraApiEndpoint(databaseId,
                 getAdmin().getDatabaseInfo(databaseId).getRegion(),
                 getAstraEnvironment()).getApiEndPoint(),
-                this.token, namespace);
+                this.token, namespace, options);
     }
 
     /**
@@ -360,7 +350,7 @@ public class DataAPIClient {
         Assert.hasLength(region, ARG_REGION);
         return new Database(new AstraApiEndpoint(databaseId, region,
                 getAstraEnvironment()).getApiEndPoint(),
-                this.token, namespace);
+                this.token, namespace, options);
     }
 
     /**

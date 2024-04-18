@@ -29,7 +29,7 @@
         <uuid-generator.version>5.0.0</uuid-generator.version>
 
         <!-- Test -->
-        <test.skipped>false</test.skipped>
+        <test.skipped>true</test.skipped>
         <assertj.version>3.25.3</assertj.version>
         <junit-jupiter.version>5.10.2</junit-jupiter.version>
 

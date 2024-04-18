@@ -42,7 +42,7 @@ public class InsertManyOptions {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private int chunkSize = DataAPIOptions.getMaxDocumentsInInsert();
+    private int chunkSize = DataAPIOptions.DEFAULT_MAX_CHUNKSIZE;
 
     /**
      * If the flag is set to true the command is failing on first error

@@ -1,5 +1,6 @@
 package com.datastax.astra.test.unit;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
@@ -267,6 +268,15 @@ class DataApiOptionsTest {
         assertThat(FindOptions.Builder.includeSimilarity()).isNotNull();
         assertThat(FindOptions.Builder.limit(10)).isNotNull();
         assertThat(FindOptions.Builder.skip(10)).isNotNull();
+    }
+
+    @Test
+    void shouldTOverrideMaximumLimits() {
+        DataAPIOptions options = DataAPIOptions.builder()
+                .withMaxDocumentsInInsert(100)
+                .build();
+        //DataAPIClient client = new DataAPIClient("token", options);
+
     }
 
 

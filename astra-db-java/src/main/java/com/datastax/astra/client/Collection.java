@@ -188,6 +188,12 @@ public class Collection<T> extends AbstractCommandRunner {
     @Getter
     private final Database database;
 
+    /**
+     * Get global Settings for the client.
+     */
+    @Getter
+    private final DataAPIOptions dataAPIOptions;
+
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
 
@@ -237,6 +243,7 @@ public class Collection<T> extends AbstractCommandRunner {
         hasLength(collectionName, ARG_COLLECTION_NAME);
         this.collectionName        = collectionName;
         this.database              = db;
+        this.dataAPIOptions        = db.getOptions();
         this.documentClass         = clazz;
         this.apiEndpoint = db.getApiEndpoint() + "/" + collectionName;
     }
@@ -735,8 +742,8 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > DataAPIOptions.getMaxDocumentsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + DataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
+        if (options.getChunkSize() > dataAPIOptions.getMaxDocumentsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
@@ -1401,8 +1408,8 @@ public class Collection<T> extends AbstractCommandRunner {
     public int countDocuments(Filter filter, int upperBound)
     throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> DataAPIOptions.getMaxDocumentCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + DataAPIOptions.getMaxDocumentCount());
+        if (upperBound<1 || upperBound> dataAPIOptions.getMaxDocumentCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxDocumentCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);
@@ -1422,8 +1429,6 @@ public class Collection<T> extends AbstractCommandRunner {
     // ----------------------------
     // ---   Delete            ----
     // ----------------------------
-
-
 
     /**
      * Removes at most one document from the collection that matches the given filter.

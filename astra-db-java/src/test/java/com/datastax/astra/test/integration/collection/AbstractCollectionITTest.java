@@ -361,7 +361,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         // Add a filter
         assertThat(getCollectionSimple()
-                .countDocuments(gt("indice", 3), DataAPIOptions.getMaxDocumentCount()))
+                .countDocuments(gt("indice", 3), getCollectionSimple().getDataAPIOptions().getMaxDocumentCount())    )
                 .isEqualTo(6);
 
         // Filter + limit
@@ -375,7 +375,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         // More than 1000 items
         assertThatThrownBy(() -> getCollectionSimple()
-                .countDocuments(DataAPIOptions.getMaxDocumentCount()))
+                .countDocuments(getCollectionSimple().getDataAPIOptions().getMaxDocumentCount()))
                 .isInstanceOf(TooManyDocumentsToCountException.class)
                 .hasMessageContaining("server");
     }
