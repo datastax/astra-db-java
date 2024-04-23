@@ -82,6 +82,11 @@ public enum DataAPIKeywords {
     /**
      * SIMILARITY.
      */
+    SLICE("$slice"),
+
+    /**
+     * SIMILARITY.
+     */
     SIMILARITY("$similarity"),
 
     /**

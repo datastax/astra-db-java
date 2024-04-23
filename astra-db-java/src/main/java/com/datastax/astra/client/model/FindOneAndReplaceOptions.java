@@ -42,7 +42,7 @@ public class FindOneAndReplaceOptions {
     /**
      * Options to project (select) the result.
      */
-    private Map<String, Integer> projection;
+    private Map<String, Object> projection;
 
     /**
      * Flag to enforce the replacement

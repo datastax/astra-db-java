@@ -111,7 +111,7 @@ public class Command implements Serializable {
      * @return
      *      self-reference
      */
-    public Command withProjection(Map<String, Integer> projection) {
+    public Command withProjection(Map<String, Object> projection) {
         payload.appendIfNotNull("projection", projection);
         return this;
     }

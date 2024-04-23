@@ -1310,6 +1310,32 @@ public class Collection<T> extends AbstractCommandRunner {
                         .collect(Collectors.toList()));
     }
 
+    /**
+     * Executes a paginated 'find' query on the collection using the specified filter and find options asynchronously.
+     * <p>
+     * This method constructs and executes a command to fetch a specific page of documents from the collection that match
+     * the provided filter criteria. It allows for detailed control over the query through {@code FindOptions}, such as sorting,
+     * projection, pagination, and more. The result is wrapped in a {@link Page} object, which includes the documents found,
+     * the page size, and the state for fetching subsequent pages.
+     * </p>
+     * <p>
+     * Pagination is facilitated by the {@code skip}, {@code limit}, and {@code pageState} parameters within {@code FindOptions},
+     * enabling efficient data retrieval in scenarios where the total dataset is too large to be fetched in a single request.
+     * Optionally, similarity scoring can be included if {@code includeSimilarity} is set, which is useful for vector-based search queries.
+     * </p>
+     * <p>
+     * The method processes the command's response, mapping each document to the specified document class and collecting them into a list.
+     * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
+     * </p>
+     *
+     * @param filter The filter criteria used to select documents from the collection.
+     * @param options The {@link FindOptions} providing additional query parameters, such as sorting and pagination.
+     * @return A {@link Page} object containing the documents that match the query, along with pagination information.
+     */
+    public CompletableFuture<Page<T>> findPageASync(Filter filter, FindOptions options) {
+        return CompletableFuture.supplyAsync(() -> findPage(filter, options));
+    }
+
     // --------------------------
     // ---   Distinct        ----
     // --------------------------
@@ -1378,6 +1404,25 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public int countDocuments(int upperBound) throws TooManyDocumentsToCountException {
         return countDocuments(null, upperBound);
+    }
+
+    /**
+     * Executes the "estimatedDocumentCount" command to estimate the number of documents
+     * in a collection.
+     * <p>
+     * This method sends a command to estimate the document count and parses the count
+     * from the command's response. It handles the execution of the command and the extraction
+     * of the document count from the response.
+     * </p>
+     * @return the estimated number of documents in the collection.
+     * @throws IllegalStateException if the command response does not contain the expected result count.
+     */
+    public long estimatedDocumentCount() {
+        Command command = new Command("estimatedDocumentCount");
+        // Run command
+        ApiResponse response = runCommand(command);
+        // Build Result
+        return response.getStatus().getInteger(RESULT_COUNT);
     }
 
     /**

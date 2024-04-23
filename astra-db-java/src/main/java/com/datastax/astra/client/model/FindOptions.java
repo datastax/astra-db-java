@@ -41,7 +41,7 @@ public class FindOptions {
     /**
      * Projection for return document (select)
      */
-    private Map<String, Integer> projection;
+    private Map<String, Object> projection;
 
     /**
      * Skip a few result in the beginning

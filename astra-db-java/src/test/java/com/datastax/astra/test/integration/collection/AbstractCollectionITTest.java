@@ -19,6 +19,8 @@ import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
+import com.datastax.astra.client.model.Projection;
+import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateResult;
@@ -42,6 +44,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -58,7 +61,9 @@ import static com.datastax.astra.client.model.Filters.gt;
 import static com.datastax.astra.client.model.FindOneOptions.Builder.projection;
 import static com.datastax.astra.client.model.FindOptions.Builder.sort;
 import static com.datastax.astra.client.model.InsertManyOptions.Builder.concurrency;
+import static com.datastax.astra.client.model.Projections.exclude;
 import static com.datastax.astra.client.model.Projections.include;
+import static com.datastax.astra.client.model.Projections.slice;
 import static com.datastax.astra.client.model.Sorts.ascending;
 import static com.datastax.astra.client.model.Sorts.descending;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -333,13 +338,50 @@ abstract class AbstractCollectionITTest implements TestConstants {
     }
 
     @Test
+    protected void testEstimatedCount() throws TooManyDocumentsToCountException {
+        getCollectionSimple().deleteAll();
+        assertThat(getCollectionSimple().estimatedDocumentCount()).isZero();
+        getCollectionSimple().insertMany(generateDocList(21));
+        assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(21);
+        getCollectionSimple().estimatedDocumentCount();
+    }
+
+    @Test
+    protected void testFindWithProjectionSlide() {
+        getCollectionSimple().deleteAll();
+        getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
+
+        // Should return document projecting only metadata_instant
+        //Document doc1 = getCollectionSimple().find(null, FindOptions.Builder
+        //        .projection(include("metadata_instant")))
+        //        .all().get(0);
+        //assertThat(doc1.getInstant("metadata_instant")).isNotNull();
+
+        // Should return document projecting only metadata_instant
+        //Document doc2 = getCollectionSimple().find(null, FindOptions.Builder
+        //                .projection(exclude("_id")))
+        //        .all().get(0);
+        //assertThat(doc2.getInstant("metadata_instant")).isNotNull();
+
+        Projection[] ps = Projections.include("metadata_float_array");
+
+        // Should return a slice for an array
+        Document doc3 = getCollectionSimple().find(null, FindOptions.Builder
+                        .projection(ps[0], slice("metadata_string_array", 1, 2)))
+                        .all().get(0);
+        String[] strings = doc3.getArray("metadata_string_array", String.class);
+        assertThat(strings).hasSize(2);
+
+    }
+
+    @Test
     protected void testCountDocument() throws TooManyDocumentsToCountException {
         InsertManyOptions.Builder.ordered(false)
                 .concurrency(5) // recommended
                 .chunkSize(20)  // maximum chunk size is 20
                 .timeout(100);  // global timeout
 
-        final Collection<Document> collectionSimple =  getCollectionSimple();
+        final Collection<Document> collectionSimple = getCollectionSimple();
         assertThatThrownBy(() -> collectionSimple
                 .countDocuments(-1))
                 .isInstanceOf(IllegalArgumentException.class)

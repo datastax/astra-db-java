@@ -20,6 +20,7 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Projection;
 import com.datastax.astra.client.model.Sort;
@@ -64,15 +65,31 @@ public class OptionsUtils {
      * @return
      *      Self reference
      */
-    public static Map<String, Integer> projection(Projection... pProjections) {
+    public static Map<String, Object> projection(Projection... pProjections) {
         Assert.notNull(pProjections, "sort");
-        return Arrays.stream(pProjections).collect(Collectors.toMap(
-                  Projection::getField, // keyMapper
-                  p -> p.isPresent() ? 1 : 0, // valueMapper
-                  (oldValue, newValue) -> oldValue, // mergeFunction, in case of key collision
-                  LinkedHashMap::new // Map supplier, to maintain insertion order
-               ));
+        Map<String, Object> finalProjection = new LinkedHashMap<>();
+        for (Projection p : pProjections) {
+            if (p.getPresent() != null && p.getSliceStart() != null) {
+                throw new IllegalArgumentException("A projection cannot be include/exclude and a slide at same time");
+            }
+            if (p.getPresent() == null && p.getSliceStart() == null) {
+                throw new IllegalArgumentException("A projection must be include/exclude or a slide");
+            }
+            if (p.getPresent() != null) {
+                finalProjection.put(p.getField(),  p.getPresent() ? 1 : 0);
+            } else {
+                // SLICE
+                int start = p.getSliceStart();
+                Map<String, Object> slice = new LinkedHashMap<>();
+                if (p.getSliceEnd() != null) {
+                    slice.put(DataAPIKeywords.SLICE.getKeyword(), new Integer[] {start, p.getSliceEnd()});
+                } else {
+                    slice.put(DataAPIKeywords.SLICE.getKeyword(), start);
+                }
+                finalProjection.put(p.getField(), slice);
+            }
+        }
+        return finalProjection;
     }
-
 
 }

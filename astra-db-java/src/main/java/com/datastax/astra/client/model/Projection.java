@@ -33,17 +33,42 @@ public class Projection {
     private final String field;
 
     /** Is the field present in the result. */
-    private final boolean present;
+    private final Boolean present;
+
+    /** Mutually exclusive with 'present', provide a slice */
+    private final Integer sliceStart;
+
+    /** Mutually exclusive with 'present', provide a slice end */
+    private final Integer sliceEnd;
 
     /**
      * Default constructor.
+     *
      * @param field
      *      field value
      * @param present
      *      tell if field is present
      */
     public Projection(String field, boolean present) {
-        this.field = field;
-        this.present = present;
+        this(field, present, null, null);
+    }
+
+    /**
+     * Default constructor.
+     *
+     * @param field
+     *      field value
+     * @param present
+     *      tell if field is present
+     * @param sliceStart
+     *     start of slice (mutually exclusive with 'present')
+     * @param sliceEnd
+     *     end of slice (mutually exclusive with 'present'), optional
+     */
+    public Projection(String field, Boolean present, Integer sliceStart, Integer sliceEnd) {
+        this.field      = field;
+        this.present    = present;
+        this.sliceStart = sliceStart;
+        this.sliceEnd   = sliceEnd;
     }
 }

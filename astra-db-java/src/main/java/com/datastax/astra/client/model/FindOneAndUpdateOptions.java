@@ -43,7 +43,7 @@ public class FindOneAndUpdateOptions {
     /**
      * Select.
      */
-    private Map<String, Integer> projection;
+    private Map<String, Object> projection;
 
     /**
      * Upsert flag.

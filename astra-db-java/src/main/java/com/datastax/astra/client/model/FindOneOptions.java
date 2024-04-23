@@ -41,7 +41,7 @@ public class FindOneOptions {
     /**
      * Select.
      */
-    private Map<String, Integer> projection;
+    private Map<String, Object> projection;
 
     /**
      * Options.

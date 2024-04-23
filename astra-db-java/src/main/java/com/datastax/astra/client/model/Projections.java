@@ -42,8 +42,39 @@ public class Projections {
      */
     public static Projection[] include(String... field) {
         return Arrays.stream(field)
-                .map(f -> new Projection(f, true))
+                .map(f -> new Projection(f, true, null, null))
                 .toArray(Projection[]::new);
+    }
+
+    /**
+     * Specifies the number of elements in an array to return in the query result.
+     * <pre>
+     * {@code
+     * // Return the first two elements
+     * { $slice: 2 }
+     *
+     * // Return the last two elements
+     * { $slice: -2 }
+     *
+     * // Skip 4 elements (from 0th index), return the next 2
+     * { $slice: [4, 2] }
+     *
+     * // Skip backward 4 elements, return next 2 elements (forward)
+     * { $slice: [-4, 2] }
+     * }
+     * </pre>
+     *
+     * @param field
+     *      field name for slice
+     * @param start
+     *      start index of slice
+     * @param end
+     *     end index of slice
+     * @return
+     *      a projection for the slide
+     */
+    public static Projection slice(String field, Integer start, Integer end) {
+        return new Projection(field, null, start, end);
     }
 
     /**
@@ -56,7 +87,7 @@ public class Projections {
      */
     public static Projection[] exclude(String... field) {
         return Arrays.stream(field)
-                .map(f -> new Projection(f, false))
+                .map(f -> new Projection(f, false, null, null))
                 .toArray(Projection[]::new);
     }
 }

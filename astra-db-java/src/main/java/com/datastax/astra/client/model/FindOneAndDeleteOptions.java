@@ -41,7 +41,7 @@ public class FindOneAndDeleteOptions {
     /**
      * Select.
      */
-    private Map<String, Integer> projection;
+    private Map<String, Object> projection;
 
     /**
      * Default constructor.
