@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
 
-public class DataApiClient {
+public class DataApiClientDemo {
     public static void main(String[] args) {
         DataAPIClient client = new DataAPIClient("TOKEN");
         Database database0 = client.getDatabase("API_ENDPOINT");

@@ -24,7 +24,7 @@ This client library provides a simplified way to interact with Data API for Astr
 This library is under development and is available in Maven Central.
 You can build it locally and install it in your local repository.
 
-## 1. Local Installation
+## 1. Installation
 
 ### 1.1 Prerequisites
 
@@ -67,22 +67,58 @@ git clone git@github.com:datastax/astra-db-java.git
 mvn clean install -Dtest.skipped=true
 ```
 
-### 1.3 Installation
+## 2. QuickStart with Astra DB
+
+### 2.1. Sign up for Astra DB
+
+- Access [https://astra.datastax.com](https://astra.datastax.com) and register with `Google` or `Github` account. It is free to use. There is free forever tiers of up to 25$ of consumption every month.
+
+![](https://awesome-astra.github.io/docs/img/astra/astra-signin-github-0.png)
+
+### 2.2. Create a Database
+
+> If you are creating a new account, you will be brought to the DB-creation form directly.
+
+- Get to the databases dashboard (by clicking on Databases in the left-hand navigation bar, expanding it if necessary), and click the `[Create Database]` button on the right.
+
+![](https://datastaxdevs.github.io/langchain4j/langchain4j-1.png)
+
+- **ℹ️ Fields Description**
+
+| Field                                      | Description                                                                                                                                                                                                                                   |
+|--------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Vector Database vs Serverless Database** | Choose `Vector Database` In june 2023, Cassandra introduced the support of vector search to enable Generative AI use cases.                                                                                                                   |
+| **Database name**                          | It does not need to be unique, is not used to initialize a connection, and is only a label (keep it between 2 and 50 characters). It is recommended to have a database for each of your applications. The free tier is limited to 5 databases. |
+| **Cloud Provider**                         | Choose whatever you like. Click a cloud provider logo, pick an Area in the list and finally pick a region. We recommend choosing a region that is closest to you to reduce latency. In free tier, there is very little difference.            |
+| **Cloud Region**                           | Pick region close to you available for selected cloud provider and your plan.                                                                                                                                                                 |
+
+If all fields are filled properly, clicking the "Create Database" button will start the process.
+
+![](https://datastaxdevs.github.io/langchain4j/langchain4j-2.png)
+
+It should take a couple of minutes for your database to become `Active`.
+
+![](https://datastaxdevs.github.io/langchain4j/langchain4j-3.png)
+
+### 2.3. Get your credentials
+
+To connect to your database, you need the API Endpoint and a token. The api endpoint is available on the database screen, there is a little icon to copy the URL in your clipboard. (it should look like `https://<db-id>-<db-region>.apps.astra.datastax.com`).
+
+![](https://datastaxdevs.github.io/langchain4j/langchain4j-4.png)
+
+To get a token click the `[Generate Token]` button on the right. It will generate a token that you can copy to your clipboard.
+
+### 2.4 Create a new project and add the dependency
 
 Add the following dependency to your `pom.xml` file:
 
 ```xml
-
 <dependency>
   <groupId>com.datastax.astra</groupId>
   <artifactId>astra-db-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 </dependency>
 ```
-
-## 2. QuickStart
-
-After creating a new java Project and adding the dependency to your `pom.xml` file, you can start using the library.
 
 Here is a sample class that demonstrates how to use the library:
 
@@ -126,7 +162,88 @@ public class GettingStarted {
 }
 ```
 
-### 3. What's Next
+## 3. QuickStart with Local Instance
+
+### 3.1. Start Data Api.
+
+- Start the 2 containers with the following command:
+
+```console
+docker-compose up -d
+```
+
+- Check the status of the containers with the following command:
+
+```console
+docker-compose ps
+```
+
+> _Output_
+> ```console
+> NAME                          IMAGE                                           COMMAND                
+> astra-db-java-coordinator-1   stargateio/coordinator-dse-next:v2.1.0-BETA-9   "./starctl"             
+> astra-db-java-jsonapi-1       stargateio/jsonapi:v1.0.6         
+> ```
+
+- Here are the information to connect to the local instance:
+
+| Field                                      | Description                                                                             |
+|--------------------------------------------|-----------------------------------------------------------------------------------------|
+| **Data API Spec**                          | http://localhost:8181/swagger-ui/#/                                                     |
+| **Data API Endpoint**                      | http://localhost:8181                                                                   |
+| **Token Header Key**                       | `Token`                                                                                      |
+| **Token Header Value**               | `Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh` (aka `Cassandra:Base64(userName):Base64(password)`) |
+| **Authentication API Spec (before 1.0.6)** | http://localhost:8081/swagger-ui/#/                                                     |
+
+- The API will have 3 resources
+
+| Field                 | Url                            | Description                                       |
+|-----------------------|--------------------------------|---------------------------------------------------|
+| **Namespace**         | `/v1/`                         | Interact with namespaces (not available in Astra) |
+| **Data API Endpoint** | `/v1/{namespace}`              | Interact with collections of a namespace |
+| **Token Header Key**  | `/v1/{namespace}/{collection}` |Interact with documents of a collection  |
+
+- Sample curl to create a namespace:
+
+```console
+curl -X 'POST' \
+  'http://localhost:8181/v1' \
+  -H 'accept: application/json' \
+  -H 'Token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "createNamespace": {
+    "name": "cycling"
+  }
+}'
+```
+
+### 3.2. Using Java client with local instance
+
+```java
+public class QuickStartLocal {
+
+    public static void main(String[] args) {
+
+        // Create a token
+        String token = new TokenProviderStargateV2("cassandra", "cassandra").getToken();
+        System.out.println("Token: " + token);
+
+        // Initialize the client
+        DataAPIClient client = new DataAPIClient(token, builder().withDestination(CASSANDRA).build());
+        System.out.println("Connected to Data API");
+
+        Database db = client.getDatabase("http://localhost:8181", "default_keyspace");
+        System.out.println("Connected to Database");
+
+        // Create a collection. The default similarity metric is cosine.
+        Collection<Document> collection = db.createCollection("vector_test", 5, COSINE);
+        System.out.println("Created a Collection");
+    }
+}
+```
+
+## 4. What's Next
 
 This is an the organization of the different classes of the framework.
 
