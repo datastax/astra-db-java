@@ -213,7 +213,7 @@ curl -X 'POST' \
   -H 'Content-Type: application/json' \
   -d '{
   "createNamespace": {
-    "name": "cycling"
+    "name": "default_keyspace"
   }
 }'
 ```
