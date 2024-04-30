@@ -21,22 +21,38 @@ package com.datastax.astra.internal.command;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.internal.http.RetryHttpClient;
-import com.datastax.astra.internal.api.ApiResponse;
-import com.datastax.astra.internal.api.ApiResponseHttp;
-import com.datastax.astra.internal.utils.JsonUtils;
-import com.datastax.astra.client.model.CommandRunner;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.CommandRunner;
+import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.ApiResponseHttp;
+import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.utils.CompletableFutures;
+import com.datastax.astra.internal.utils.JsonUtils;
+import com.evanlennick.retry4j.Status;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.datastax.astra.internal.http.RetryHttpClient.CONTENT_TYPE_JSON;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_ACCEPT;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_AUTHORIZATION;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CASSANDRA;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CONTENT_TYPE;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUESTED_WITH;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUEST_ID;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT;
 
 /**
  * Execute the command and parse results throwing DataApiResponseException when needed.
@@ -92,7 +108,32 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         try {
             // (Custom) Serialization
             String jsonCommand = JsonUtils.marshall(command);
-            ApiResponseHttp httpRes = getHttpClient().post(getApiEndpoint(), getToken(), jsonCommand);
+
+            HttpRequest.Builder builder=  HttpRequest.newBuilder()
+                        .uri(new URI(getApiEndpoint()))
+                        .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
+                        .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
+                        .header(HEADER_USER_AGENT, getHttpClient().getUserAgentHeader())
+                        .header(HEADER_REQUESTED_WITH, getHttpClient().getUserAgentHeader())
+                        .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
+                        .header(HEADER_CASSANDRA, getToken())
+                        .header(HEADER_AUTHORIZATION, "Bearer " + getToken())
+                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand));
+
+            // Add the timeout to the query
+            if (command.getMaxTimeMS() != null) {
+                builder.timeout(Duration.ofMillis(command.getMaxTimeMS()));
+            } else {
+                builder.timeout(Duration.ofSeconds(getHttpClient().getResponseTimeoutInSeconds()));
+            }
+
+            // Add the header to the query
+            if (command.getHeaders() != null) {
+                command.getHeaders().forEach(builder::header);
+            }
+
+            Status<HttpResponse<String>> status = getHttpClient().executeHttpRequest(builder.build());
+            ApiResponseHttp httpRes = getHttpClient().parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
             ApiResponse jsonRes = JsonUtils.unMarshallBean(httpRes.getBody(), ApiResponse.class);
             executionInfo.withApiResponse(jsonRes);
@@ -101,6 +142,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
             return jsonRes;
+        } catch(URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);
         } finally {
             // Notify the observers
             CompletableFuture.runAsync(()-> notifyASync(l -> l.onCommand(executionInfo.build())));

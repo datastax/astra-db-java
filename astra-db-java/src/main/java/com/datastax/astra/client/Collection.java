@@ -84,6 +84,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_EMBEDDING_SERVICE_API_KEY;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -949,6 +950,12 @@ public class Collection<T> extends AbstractCommandRunner {
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document().append(INPUT_ORDERED, options.isOrdered()));
+            if (options.getMaxTimeMS() != null) {
+                insertMany.setMaxTimeMS(options.getMaxTimeMS());
+            }
+            if (options.getEmbeddingServiceApiKey() != null) {
+                insertMany.withHeader(HEADER_EMBEDDING_SERVICE_API_KEY, options.getEmbeddingServiceApiKey());
+            }
             return new InsertManyResult(runCommand(insertMany)
                     .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                     .stream()
@@ -1044,6 +1051,12 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withProjection(options.getProjection())
                 .withOptions(new Document()
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
+        if (options.getMaxTimeMS() != null) {
+            findOne.setMaxTimeMS(options.getMaxTimeMS());
+        }
+        if (options.getEmbeddingServiceApiKey() != null) {
+            findOne.withHeader(HEADER_EMBEDDING_SERVICE_API_KEY, options.getEmbeddingServiceApiKey());
+        }
         return Optional.ofNullable(
                 runCommand(findOne)
                         .getData().getDocument()

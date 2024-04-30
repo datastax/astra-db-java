@@ -2,23 +2,12 @@ package com.datastax.astra.tool;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.CollectionIdTypes;
-import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindOptions;
-import com.datastax.astra.client.model.Projections;
-import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.tool.csv.CsvLoader;
 import com.datastax.astra.tool.csv.CsvRowMapper;
 import lombok.extern.slf4j.Slf4j;
-
-import static com.datastax.astra.client.model.CollectionIdTypes.OBJECT_ID;
-import static com.datastax.astra.client.model.Filters.and;
-import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.Projections.include;
 
 /**
  * Load a CSV to Astra
@@ -31,10 +20,8 @@ public class CsvLoaderListing {
 
     public static void main(String[] args) throws Exception {
         // Get an empty Collection
-        DataAPIClient        client      = new DataAPIClient(ASTRA_TOKEN);
-
-        Database             db         = client.getDatabase(API_ENDPOINT);
-
+        DataAPIClient        client = new DataAPIClient(ASTRA_TOKEN);
+        Database             db = client.getDatabase(API_ENDPOINT);
         Collection<Document> collection = db.createCollection("airbnb");
 
         db.getCollection("airbnb").deleteAll();

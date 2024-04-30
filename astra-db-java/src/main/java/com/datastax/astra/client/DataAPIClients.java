@@ -20,9 +20,9 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.internal.auth.TokenProviderStargate;
+import com.datastax.astra.internal.auth.TokenProviderStargateV2;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
@@ -75,7 +75,7 @@ public class DataAPIClients {
      */
     public static DataAPIClient createForLocal() {
         return new DataAPIClient(
-                new TokenProviderStargate().getToken(),
+                new TokenProviderStargateV2().getToken(),
                 DataAPIOptions.builder().withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA).build());
     }
 

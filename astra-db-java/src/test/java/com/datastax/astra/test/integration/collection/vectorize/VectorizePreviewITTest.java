@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection;
+package com.datastax.astra.test.integration.collection.vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -9,7 +9,6 @@ import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,13 +16,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.model.FindOptions.Builder.sort;
+import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * This class is used to test the vectorize feature. It is in a dedicated clas
  * to target a specific environment and disable if not available
  */
-@Disabled
 class VectorizePreviewITTest {
 
     static final String COLLECTION_VECTORIZE = "collection_vectorize";
@@ -36,8 +35,9 @@ class VectorizePreviewITTest {
     @BeforeAll
     static void setup() {
         // Dev KUBERNETES, aws, us-west-2
-        db = DataAPIClients.createForAstraDev("<redacted>").getDatabase(UUID.fromString("<redacted>"));
-
+        db = DataAPIClients.createForAstraDev(readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
+                .orElseThrow()).getDatabase(UUID.fromString("5190d945-71de-4659-9a49-c0cf77ce80ed"));
+        db.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
         collectionVectorize = db.getCollection(COLLECTION_VECTORIZE);
         collectionVectorize.registerListener("logger", new LoggingCommandObserver(VectorizePreviewITTest.class));
     }
@@ -71,6 +71,7 @@ class VectorizePreviewITTest {
                         // FindOptions.Builder.sort(...), some options
                         sort("Life is too short for Javascript"))
                 .all();
+        System.out.println(doclist);
         assertThat(doclist).isNotNull().isNotEmpty();
     }
 }

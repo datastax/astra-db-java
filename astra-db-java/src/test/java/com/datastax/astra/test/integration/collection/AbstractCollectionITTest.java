@@ -347,7 +347,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     }
 
     @Test
-    protected void testFindWithProjectionSlide() {
+    protected void testFindWithProjectionSlice() {
         getCollectionSimple().deleteAll();
         getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
 
@@ -364,6 +364,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
         //assertThat(doc2.getInstant("metadata_instant")).isNotNull();
 
         Projection[] ps = Projections.include("metadata_float_array");
+
 
         // Should return a slice for an array
         Document doc3 = getCollectionSimple().find(null, FindOptions.Builder

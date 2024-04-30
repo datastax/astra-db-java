@@ -26,7 +26,7 @@ services:
       retries: 10
 
   jsonapi:
-    image: stargateio/jsonapi:v1.0.4
+    image: stargateio/jsonapi:v1.0.6
     depends_on:
       coordinator:
         condition: service_healthy
@@ -39,6 +39,8 @@ services:
       #- QUARKUS_GRPC_CLIENTS_BRIDGE_HOST=coordinator
       #- QUARKUS_GRPC_CLIENTS_BRIDGE_PORT=8091
       - STARGATE_DATA_STORE_SAI_ENABLED=true
+      - STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true
+      - STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true
       - STARGATE_DATA_STORE_IGNORE_BRIDGE=true
       - STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=coordinator
       - QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE

@@ -83,6 +83,9 @@ public class RetryHttpClient {
     /** Headers param to insert the user agent identifying the client. */
     public static final String HEADER_REQUESTED_WITH    = "X-Requested-With";
 
+    /** Headers param with the embedding ApiKey when dealing with a embedding service provider. */
+    public static final String HEADER_EMBEDDING_SERVICE_API_KEY = "x-embedding-api-key";
+
     /** Value for the requested with. */
     public static final String REQUEST_WITH = "data-api-client-java";
 
@@ -161,6 +164,16 @@ public class RetryHttpClient {
         return sb.toString();
     }
 
+    /**
+     * Return value for default response time.
+     *
+     * @return
+     *      default response time
+     */
+    public long getResponseTimeoutInSeconds() {
+        return httpClientOptions.getResponseTimeoutInSeconds();
+    }
+
     // -------------------------------------------
     // ---------- Working with HTTP --------------
     // -------------------------------------------
@@ -181,7 +194,7 @@ public class RetryHttpClient {
         return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON);
     }
 
-    private HttpRequest builtHttpRequest(final String method,
+    public HttpRequest builtHttpRequest(final String method,
                                          final String url,
                                          final String token,
                                          String body,

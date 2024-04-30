@@ -164,7 +164,7 @@ public class CollectionOptions {
         private Authentication authentication;
 
         /** Free form parameters. */
-        private Map<String, Parameters> parameters;
+        private Map<String, Object> parameters;
 
         /** Default constructor. */
         public Service() {
@@ -369,6 +369,24 @@ public class CollectionOptions {
             embeddingService.setProvider(provider);
             embeddingService.setModelName(modeName);
             getVector().setService(embeddingService);
+            return this;
+        }
+
+        /**
+         * Enable Vectorization within the collection.
+         *
+         * @param provider
+         *      provider Name (LLM)
+         * @param modeName
+         *      mode name
+         * @param parameters
+         *      expected parameters for vectorize
+         * @return
+         *      self reference
+         */
+        public CollectionOptionsBuilder vectorize(String provider, String modeName, Map<String, Object> parameters) {
+            vectorize(provider, modeName);
+            getVector().getService().setParameters(parameters);
             return this;
         }
 

@@ -47,6 +47,12 @@ public class Command implements Serializable {
     /** Command payload.*/
     protected Document payload = new Document();
 
+    /** Extra headers. */
+    protected Map<String, String> headers;
+
+    /** Maximum response time in milliseconds. */
+    protected Long maxTimeMS;
+
     /**
      * Default constructor.
      */
@@ -87,6 +93,37 @@ public class Command implements Serializable {
      */
     public Command withFilter(Filter filter) {
         payload.appendIfNotNull("filter", filter);
+        return this;
+    }
+
+    /**
+     * Builder pattern, update filter.
+     *
+     * @param maxTimeMS
+     *      maximum response time in milliseconds
+     * @return
+     *      self-reference
+     */
+    public Command withMaxTimeMS(long maxTimeMS) {
+        this.maxTimeMS = maxTimeMS;
+        return this;
+    }
+
+    /**
+     * Builder pattern, update filter.
+     *
+     * @param key
+     *      name of the extra header
+     * @param value
+     *     value of the extra header
+     * @return
+     *      self-reference
+     */
+    public Command withHeader(String key, String value) {
+        if (headers == null) {
+            headers = new LinkedHashMap<>();
+        }
+        headers.put(key, value);
         return this;
     }
 
