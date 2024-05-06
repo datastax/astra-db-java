@@ -75,10 +75,7 @@ public class QuickStartOpenAI {
 
         // Find the document
         Optional<Document> doc = collection.findOne(new FindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like tha")
-                        .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
-                        .embeddingAPIKey(embeddingApiKey)
-                        .includeSimilarity());
+                .sort("You shouldn't come around here singing up at people like tha"));
 
        log.info("A document has found been : " + doc);
 
