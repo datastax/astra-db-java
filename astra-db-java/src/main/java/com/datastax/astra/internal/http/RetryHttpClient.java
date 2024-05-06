@@ -23,6 +23,7 @@ package com.datastax.astra.internal.http;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
@@ -93,7 +94,7 @@ public class RetryHttpClient {
     protected final HttpClient httpClient;
 
     /** Http Options. */
-    protected final DataAPIOptions.HttpClientOptions httpClientOptions;
+    protected final HttpClientOptions httpClientOptions;
 
     /** Default retry configuration. */
     protected final RetryConfig retryConfig;
@@ -114,7 +115,7 @@ public class RetryHttpClient {
      * @param config
      *      configuration of the HTTP CLIENT.
      */
-    public RetryHttpClient(DataAPIOptions.HttpClientOptions config) {
+    public RetryHttpClient(HttpClientOptions config) {
         this.httpClientOptions = config;
 
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
@@ -171,7 +172,7 @@ public class RetryHttpClient {
      *      default response time
      */
     public long getResponseTimeoutInSeconds() {
-        return httpClientOptions.getResponseTimeoutInSeconds();
+        return httpClientOptions.getMaxTimeMS();
     }
 
     // -------------------------------------------
@@ -194,6 +195,22 @@ public class RetryHttpClient {
         return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON);
     }
 
+    /**
+     * Help to build the HTTP request.
+     *
+     * @param method
+     *      http method name
+     * @param url
+     *      http url
+     * @param token
+     *      token for authorization header
+     * @param body
+     *     body of the request
+     * @param contentType
+     *      content type for the request
+     * @return
+     *      the http request.
+     */
     public HttpRequest builtHttpRequest(final String method,
                                          final String url,
                                          final String token,
@@ -209,7 +226,7 @@ public class RetryHttpClient {
                 .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
                 .header(HEADER_CASSANDRA, token)
                 .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                .timeout(Duration.ofSeconds(httpClientOptions.getResponseTimeoutInSeconds()))
+                .timeout(Duration.ofSeconds(httpClientOptions.getMaxTimeMS()))
                 .method(method, HttpRequest.BodyPublishers.ofString(body))
                 .build();
         } catch(URISyntaxException e) {

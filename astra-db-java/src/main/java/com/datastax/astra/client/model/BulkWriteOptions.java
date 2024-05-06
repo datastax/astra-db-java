@@ -27,7 +27,7 @@ import lombok.Getter;
  * Options used in the `bulkWrite` command.
  */
 @Getter
-public final class BulkWriteOptions {
+public final class BulkWriteOptions extends CommandOptions<BulkWriteOptions> {
 
     /**
      * Flag to enforcer the ordering of the operations. If set to false the operations will be executed in parallel and put in an Execution Queue.

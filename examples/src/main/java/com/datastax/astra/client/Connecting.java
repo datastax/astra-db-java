@@ -1,8 +1,5 @@
 package com.datastax.astra.client;
 
-
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-
 import java.util.UUID;
 
 public class Connecting {
@@ -13,8 +10,8 @@ public class Connecting {
         // Overriding the default options
         DataAPIClient client1 = new DataAPIClient("TOKEN", DataAPIOptions
                 .builder()
+                .withMaxTimeMS(10)
                 .withHttpConnectTimeout(10)
-                .withHttpRequestTimeout(10)
                 .build());
 
         // Access the Database from its endpoint

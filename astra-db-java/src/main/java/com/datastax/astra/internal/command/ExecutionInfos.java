@@ -20,6 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
+import com.datastax.astra.client.model.InsertOneOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.model.Command;
@@ -28,6 +29,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,6 +45,16 @@ public class ExecutionInfos implements Serializable {
      * command that triggered the execution, allowing observers to understand what operation was performed.
      */
     private final Command command;
+
+    /**
+     * A map containing the HTTP headers from the request.
+     */
+    private final Map<String, List<String>> requestHttpHeaders;
+
+    /**
+     * Request URL
+     */
+    private final String requestUrl;
 
     /**
      * The raw {@link ApiResponse} received in response to the command execution. This field contains the
@@ -74,6 +86,8 @@ public class ExecutionInfos implements Serializable {
      */
     private final Instant executionDate;
 
+
+
     /**
      * Constructor with the builder.
      *
@@ -82,11 +96,13 @@ public class ExecutionInfos implements Serializable {
      */
     private ExecutionInfos(DataApiExecutionInfoBuilder builder) {
         this.command             = builder.command;
+        this.requestHttpHeaders  = builder.requestHttpHeaders;
         this.response            = builder.response;
         this.responseHttpHeaders = builder.responseHttpHeaders;
         this.responseHttpCode    = builder.responseHttpCode;
         this.executionTime       = builder.executionTime;
         this.executionDate       = builder.executionDate;
+        this.requestUrl          = builder.requestUrl;
     }
 
     /**
@@ -107,8 +123,10 @@ public class ExecutionInfos implements Serializable {
         private ApiResponse response;
         private long executionTime;
         private int responseHttpCode;
+        private Map<String, List<String>> requestHttpHeaders;
         private Map<String, String> responseHttpHeaders;
         private final Instant executionDate;
+        private String requestUrl;
 
         /**
          * Default constructor.
@@ -127,6 +145,32 @@ public class ExecutionInfos implements Serializable {
          */
         public DataApiExecutionInfoBuilder withCommand(Command command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Populate after http call.
+         *
+         * @param url
+         *     target url
+         * @return
+         *      current reference
+         */
+        public DataApiExecutionInfoBuilder withRequestUrl(String url) {
+            this.requestUrl = url;
+            return this;
+        }
+
+        /**
+         * Populate after http call.
+         *
+         * @param headers
+         *      request headers
+         * @return
+         *      current reference
+         */
+        public DataApiExecutionInfoBuilder withRequestHeaders(Map<String, List<String>> headers) {
+            this.requestHttpHeaders = headers;
             return this;
         }
 

@@ -105,7 +105,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         AstraDBAdmin client = getAstraDBClient(env);
         DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
         Database db = databaseAdmin.getDatabase();
-        db.registerListener("logger", new LoggingCommandObserver(Database.class));
+        //db.registerListener("logger", new LoggingCommandObserver(Database.class));
         return db;
     }
 
@@ -248,7 +248,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
     public void shouldRunCommandTyped() {
         // Given
         Command listCollectionNames = Command.create("findCollections");
-        Document doc = getDatabase().runCommand(listCollectionNames, Document.class);
+        Document doc = getDatabase().runCommand(listCollectionNames, null, Document.class);
         assertThat(doc).isNotNull();
         assertThat(doc.getList("collections", String.class)).isNotNull();
     }
@@ -311,7 +311,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID, CollectionOptions.builder()
                 .defaultIdType(CollectionIdTypes.UUID)
-                .build()).enableLogging();
+                .build());
         collectionUUID.deleteAll();
         UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
@@ -343,7 +343,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
                         .defaultIdType(OBJECT_ID)
-                        .build()).enableLogging();
+                        .build());
         collectionUUID.deleteAll();
 
         // Insert One
@@ -374,7 +374,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<ProductObjectId> collectionObjectId = getDatabase()
                 .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
                         .defaultIdType(OBJECT_ID)
-                        .build(), ProductObjectId.class).enableLogging();
+                        .build(), ProductObjectId.class);
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
         Optional<ProductObjectId> productObjectId = collectionObjectId.findOne(eq(product.getId()));
@@ -388,7 +388,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID_V6, CollectionOptions.builder()
                         .defaultIdType(UUIDV6)
-                        .build()).enableLogging();
+                        .build());
         collectionUUID.deleteAll();
 
         // Insert One
@@ -418,7 +418,7 @@ abstract class AbstractDatabaseTest implements TestConstants {
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID_V7, CollectionOptions.builder()
                         .defaultIdType(UUIDV7)
-                        .build()).enableLogging();
+                        .build());
         collectionUUID.deleteAll();
 
         // Insert One

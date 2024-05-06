@@ -30,7 +30,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class UpdateOneOptions {
+public class UpdateOneOptions extends CommandOptions<UpdateOneOptions> {
 
     /**
      * if upsert is selected
@@ -107,6 +107,7 @@ public class UpdateOneOptions {
     /**
      * Builder for creating {@link UpdateOneOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

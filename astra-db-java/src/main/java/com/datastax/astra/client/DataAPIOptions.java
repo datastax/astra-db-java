@@ -20,12 +20,17 @@ package com.datastax.astra.client;
  * #L%
  */
 
+import com.datastax.astra.client.model.HttpClientOptions;
+import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Options to set up the client for DataApiClient.
@@ -52,10 +57,10 @@ public class DataAPIOptions {
             DataAPIOptions.class.getPackage().getImplementationVersion() : "dev";
 
     /** Default timeout for initiating connection. */
-    public static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 20;
+    public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS_SECONDS = 20;
 
     /** Default timeout for initiating connection. */
-    public static final int DEFAULT_REQUEST_TIMEOUT_SECONDS = 20;
+    public static final int DEFAULT_REQUEST_TIMEOUT_MILLIS_SECONDS = 20000;
 
     /** Default retry count. */
     public static final int DEFAULT_RETRY_COUNT = 3;
@@ -84,6 +89,11 @@ public class DataAPIOptions {
     /** The maximum number of documents that can be inserted in a single operation. */
     final int maxDocumentsInInsert;
 
+    /** The maximum number of documents that can be inserted in a single operation. */
+    final String embeddingAPIKey;
+
+    final Map<String, CommandObserver> observers;
+
     /**
      * Initializer for the builder.
      *
@@ -106,15 +116,17 @@ public class DataAPIOptions {
         this.maxDocumentCount     = builder.maxDocumentCount;
         this.maxPageSize          = builder.maxPageSize;
         this.maxDocumentsInInsert = builder.maxDocumentsInInsert;
+        this.embeddingAPIKey      = builder.embeddingAPIKey;
         this.httpClientOptions    = new HttpClientOptions();
+        this.observers            = builder.observers;
         httpClientOptions.setHttpVersion(builder.httpVersion);
         httpClientOptions.setHttpRedirect(builder.httpRedirect);
         httpClientOptions.setRetryCount(builder.retryCount);
         httpClientOptions.setRetryDelay(builder.retryDelay);
         httpClientOptions.setUserAgentCallerName(builder.userAgentCallerName);
         httpClientOptions.setUserAgentCallerVersion(builder.userAgentCallerVersion);
-        httpClientOptions.setConnectionRequestTimeoutInSeconds(builder.httpRequestTimeout);
-        httpClientOptions.setResponseTimeoutInSeconds(builder.httpConnectTimeout);
+        httpClientOptions.setConnectionRequestTimeoutInSeconds(builder.httpConnectTimeout);
+        httpClientOptions.setMaxTimeMS(builder.maxTimeMS);
         httpClientOptions.setProxy(builder.httpProxy);
     }
 
@@ -152,64 +164,6 @@ public class DataAPIOptions {
          * Extra local installation .
          */
         OTHERS
-    }
-
-    /**
-     * Options to set up http Client.
-     */
-    @Getter @Setter
-    public static class HttpClientOptions {
-
-        /** Default user agent. */
-        public static final String DEFAULT_USER_AGENT = "stargate-sdk";
-
-        /** Default timeout for initiating connection. */
-        public static final int DEFAULT_CONNECT_TIMEOUT_SECONDS = 20;
-
-        /** Default timeout for initiating connection. */
-        public static final int DEFAULT_REQUEST_TIMEOUT_SECONDS = 20;
-
-        /** Default retry count. */
-        public static final int DEFAULT_RETRY_COUNT = 3;
-
-        /** Default retry delay. */
-        public static final int DEFAULT_RETRY_DELAY_MILLIS  = 100;
-
-        /** Caller name in User agent. */
-        String userAgentCallerName = DEFAULT_USER_AGENT;
-
-        /** Caller version in User agent. */
-        String userAgentCallerVersion = HttpClientOptions.class.getPackage().getImplementationVersion() != null ?
-                HttpClientOptions.class.getPackage().getImplementationVersion() : "dev";
-
-        /** Http Connection timeout. */
-        long connectionRequestTimeoutInSeconds = DEFAULT_CONNECT_TIMEOUT_SECONDS;
-
-        /** Http Connection timeout. */
-        long responseTimeoutInSeconds = DEFAULT_REQUEST_TIMEOUT_SECONDS;
-
-        /** Enable retry count. */
-        int retryCount = DEFAULT_RETRY_COUNT;
-
-        /** How much to wait in between 2 calls. */
-        int retryDelay = DEFAULT_RETRY_DELAY_MILLIS;
-
-        /** The http client could work through a proxy. */
-        HttpProxy proxy;
-
-        /** Moving to HTTP/2. */
-        HttpClient.Version httpVersion = HttpClient.Version.HTTP_2;
-
-        /** Redirect  */
-        HttpClient.Redirect httpRedirect = HttpClient.Redirect.NORMAL;
-
-        /**
-         * Default constructor.
-         */
-        public HttpClientOptions() {
-            // left blanks as default values are set
-        }
-
     }
 
     /**
@@ -254,10 +208,10 @@ public class DataAPIOptions {
         private String userAgentCallerVersion = DEFAULT_CALLER_VERSION;
 
         /** Http Connection timeout. */
-        private long httpRequestTimeout = DEFAULT_CONNECT_TIMEOUT_SECONDS;
+        private long maxTimeMS = DEFAULT_CONNECT_TIMEOUT_MILLIS_SECONDS;
 
         /** Http Connection timeout. */
-        private long httpConnectTimeout = DEFAULT_REQUEST_TIMEOUT_SECONDS;
+        private long httpConnectTimeout = DEFAULT_REQUEST_TIMEOUT_MILLIS_SECONDS;
 
         /** Enable retry count. */
         private int retryCount = DEFAULT_RETRY_COUNT;
@@ -286,6 +240,12 @@ public class DataAPIOptions {
         /** The maximum number of documents that can be inserted in a single operation. */
         private int maxDocumentsInInsert = DEFAULT_MAX_CHUNKSIZE;
 
+        /** The embedding service API key can be provided at top level. */
+        private String embeddingAPIKey;
+
+        /** Observers for the commands. */
+        private final Map<String, CommandObserver> observers = new TreeMap<>();
+
         /**
          * Default constructor.
          */
@@ -295,7 +255,7 @@ public class DataAPIOptions {
 
         /**
          * Builder pattern, update caller information.
-         *
+         *o
          * @param callerName
          *      caller name in the user agent
          * @param callerVersion
@@ -376,15 +336,28 @@ public class DataAPIOptions {
         }
 
         /**
-         * Builder pattern, update http connection Timeout
+         * Builder pattern, update http request Timeout in millis
          *
          * @param connectTimeout
-         *      http connection timeout
+         *      http request timeout in millis
          * @return
          *      self reference
          */
-        public DataAPIClientOptionsBuilder withHttpConnectTimeout(int connectTimeout) {
-            this.httpRequestTimeout = connectTimeout;
+        public DataAPIClientOptionsBuilder withMaxTimeMS(long connectTimeout) {
+            this.maxTimeMS = connectTimeout;
+            return this;
+        }
+
+        /**
+         * Builder pattern, update http connection Timeout
+         *
+         * @param embeddingAPIKey
+         *      embedding API Key
+         * @return
+         *      self reference
+         */
+        public DataAPIClientOptionsBuilder withEmbeddingAPIKey(String embeddingAPIKey) {
+            this.embeddingAPIKey = embeddingAPIKey;
             return this;
         }
 
@@ -396,7 +369,7 @@ public class DataAPIOptions {
          * @return
          *      self reference
          */
-        public DataAPIClientOptionsBuilder withHttpRequestTimeout(int requestTimeout) {
+        public DataAPIClientOptionsBuilder withHttpConnectTimeout(int requestTimeout) {
             this.httpConnectTimeout = requestTimeout;
             return this;
         }
@@ -538,6 +511,42 @@ public class DataAPIOptions {
             }
             this.maxDocumentsInInsert = maxDocumentsInInsert;
             return this;
+        }
+
+        /**
+         * Allow to register a listener for the command.
+         * @param name
+         *      name of the observer
+         * @param observer
+         *     observer to register
+         * @return
+         *    instance of the command options
+         */
+        public DataAPIClientOptionsBuilder withObserver(String name, CommandObserver observer) {
+            observers.put(name, observer);
+            return this;
+        }
+
+        /**
+         * Register an observer with its className.
+         *
+         * @param observer
+         *      command observer
+         * @return
+         *      instance of the command options
+         */
+        public DataAPIClientOptionsBuilder withObserver(CommandObserver observer) {
+            return withObserver(observer.getClass().getSimpleName(), observer);
+        }
+
+        /**
+         * Help to enable loggin requests.
+         *
+         * @return      current reference
+         *
+         */
+        public DataAPIClientOptionsBuilder logRequests() {
+            return withObserver(new LoggingCommandObserver(DataAPIClient.class));
         }
 
         /**

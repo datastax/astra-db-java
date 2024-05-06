@@ -1,14 +1,11 @@
 package com.datastax.astra.client.database_admin;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 public class ListNamespaces {
     public static void main(String[] args) {

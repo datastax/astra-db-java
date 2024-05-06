@@ -24,7 +24,7 @@ public class DeleteOne {
                 Filters.eq("field4", "value"));
 
         // Delete one options
-        DeleteOneOptions options = DeleteOneOptions.Builder
+        DeleteOneOptions options = new DeleteOneOptions()
                 .sort(Sorts.ascending("field2"));
         DeleteResult result = collection.deleteOne(filter, options);
         System.out.println("Deleted Count:" + result.getDeletedCount());

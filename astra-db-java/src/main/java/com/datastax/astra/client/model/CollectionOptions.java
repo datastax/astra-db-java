@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
+import java.beans.Transient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -171,7 +172,6 @@ public class CollectionOptions {
             // left blank, serialization with jackson
         }
     }
-
 
     /**
      * Subclass representing the Authentication options.

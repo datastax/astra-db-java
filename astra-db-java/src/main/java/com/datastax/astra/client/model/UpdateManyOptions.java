@@ -28,7 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class UpdateManyOptions {
+public class UpdateManyOptions extends CommandOptions<UpdateManyOptions> {
 
     /**
      * if upsert is selected
@@ -56,6 +56,7 @@ public class UpdateManyOptions {
     /**
      * Builder for creating {@link UpdateManyOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

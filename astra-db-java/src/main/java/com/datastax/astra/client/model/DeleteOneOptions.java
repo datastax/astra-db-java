@@ -29,7 +29,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class DeleteOneOptions {
+public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
 
     /**
      * Order by.
@@ -63,7 +63,7 @@ public class DeleteOneOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public DeleteOneOptions vectorize(String vectorize, Sort ... sorts) {
+    public DeleteOneOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -78,7 +78,7 @@ public class DeleteOneOptions {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public DeleteOneOptions vector(float[] vector, Sort... sorts) {
+    public DeleteOneOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -89,6 +89,7 @@ public class DeleteOneOptions {
     /**
      * Builder for creating {@link DeleteOneOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**
@@ -114,7 +115,7 @@ public class DeleteOneOptions {
          * @return A new {@link DeleteOneOptions} instance configured with the provided vectorize criteria.
          */
         public static DeleteOneOptions vectorize(String vectorize, Sort... sorts) {
-            return new DeleteOneOptions().vectorize(vectorize, sorts);
+            return new DeleteOneOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -125,7 +126,7 @@ public class DeleteOneOptions {
          * @return A new {@link DeleteOneOptions} instance configured with the provided vector criteria.
          */
         public static DeleteOneOptions vector(float[] vector, Sort... sorts) {
-            return new DeleteOneOptions().vector(vector, sorts);
+            return new DeleteOneOptions().sort(vector, sorts);
         }
     }
 

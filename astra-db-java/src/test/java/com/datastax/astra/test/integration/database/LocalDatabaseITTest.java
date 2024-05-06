@@ -9,6 +9,7 @@ import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.internal.auth.TokenProviderStargate;
+import com.datastax.astra.internal.auth.TokenProviderStargateV2;
 import com.datastax.astra.test.unit.MockCommandObserver;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -47,9 +48,9 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Test
     void shouldRunInvalidCommand() {
         try {
-            getDatabase().registerListener("demo", new MockCommandObserver());
+            //getDatabase().registerListener("demo", new MockCommandObserver());
             getDatabase().runCommand(new Command("invalid", new Document()));
-            getDatabase().deleteListener("demo");
+            //getDatabase().deleteListener("demo");
         } catch(DataApiResponseException dat) {
             assertThat(dat.getMessage()).contains("No \"invalid\" command found ");
             assertThat(dat.getApiErrors()).isNotEmpty();
@@ -96,7 +97,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Test
     void shouldInitializeHttpClientWithCallerAndProxy() {
         DataAPIClient otherCallerClient = new DataAPIClient(
-                new TokenProviderStargate().getToken(),
+                new TokenProviderStargateV2().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
                         .withCaller("Cedrick", "1.0")

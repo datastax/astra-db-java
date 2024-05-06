@@ -56,7 +56,7 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
         AstraDBAdmin client = getAstraDBClient(env);
         DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
         Database db = databaseAdmin.getDatabase();
-        db.registerListener("logger", new LoggingCommandObserver(Database.class));
+        //db.registerListener("logger", new LoggingCommandObserver(Database.class));
         return db;
     }
 

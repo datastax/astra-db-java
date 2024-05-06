@@ -1,10 +1,7 @@
 package com.datastax.astra.client.admin;
 
-import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.DataAPIClient;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-
-import java.util.UUID;
 
 public class CreateDatabase {
   public static void main(String[] args) {

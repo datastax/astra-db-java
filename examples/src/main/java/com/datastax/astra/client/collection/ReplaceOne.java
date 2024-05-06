@@ -27,8 +27,7 @@ public class ReplaceOne {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        ReplaceOneOptions options = ReplaceOneOptions.Builder
-                .upsert(true);
+        ReplaceOneOptions options = new ReplaceOneOptions().upsert(true);
 
         Document docForReplacement = new Document()
                 .append("field1", "value1")

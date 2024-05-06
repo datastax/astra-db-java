@@ -25,7 +25,7 @@ class FiltersTest {
 
     @Test
     void shouldBuilderProjections() {
-        FindOptions options = FindOptions.Builder.projection(
+        FindOptions options = new FindOptions().projection(
                 Projections.exclude(
                         DataAPIKeywords.ID.getKeyword(),
                         DataAPIKeywords.VECTOR.getKeyword()));

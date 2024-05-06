@@ -1,9 +1,9 @@
-package com.datastax.astra.test.integration.collection.vectorize;
+package com.datastax.astra.genai;
 
 /**
  * Group Embeddings Models
  */
-public enum EmbeddingModel {
+public enum EmbeddingModelType {
 
     // OpenAI models
     OPENAI_ADA002("openai", "text-embedding-ada-002", 1536),
@@ -44,7 +44,7 @@ public enum EmbeddingModel {
 
     private final int dimension;
 
-    EmbeddingModel(String provider, String name, int dimension) {
+    EmbeddingModelType(String provider, String name, int dimension) {
         this.provider = provider;
         this.name = name;
         this.dimension = dimension;

@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class FindOneOptions {
+public class FindOneOptions extends CommandOptions<FindOneOptions> {
 
     /**
      * Order by.
@@ -47,16 +47,6 @@ public class FindOneOptions {
      * Options.
      */
     private Boolean includeSimilarity;
-
-    /**
-     * When use some form of vectorization, the key to use for embedding
-     */
-    private String embeddingServiceApiKey;
-
-    /**
-     * Maximum amount of time to execute a query
-     */
-    private Long maxTimeMS;
 
     /**
      * Default constructor.
@@ -134,34 +124,9 @@ public class FindOneOptions {
     }
 
     /**
-     * Setter for timeout.
-     *
-     * @param maxTimeMS
-     *      timeout value
-     * @return
-     *      insert many options
-     */
-    public FindOneOptions maxTimeMS(long maxTimeMS) {
-        this.maxTimeMS = maxTimeMS;
-        return this;
-    }
-
-    /**
-     * Setter for timeout.
-     *
-     * @param apiKey
-     *      embedding service Api keu
-     * @return
-     *      insert many options
-     */
-    public FindOneOptions embeddingServiceApiKey(String apiKey) {
-        this.embeddingServiceApiKey = apiKey;
-        return this;
-    }
-
-    /**
      * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**
@@ -223,18 +188,6 @@ public class FindOneOptions {
         }
 
         /**
-         * Setter maxTimeMS
-         *
-         * @param maxTimeMS
-         *      timeout value
-         * @return
-         *      insert many options
-         */
-        public static InsertManyOptions maxTimeMS(long maxTimeMS) {
-            return new InsertManyOptions().maxTimeMS(maxTimeMS);
-        }
-
-        /**
          * Setter for Api Key
          *
          * @param apiKey
@@ -243,7 +196,7 @@ public class FindOneOptions {
          *      insert many options
          */
         public static InsertManyOptions embeddingServiceApiKey(String apiKey) {
-            return new InsertManyOptions().embeddingServiceApiKey(apiKey);
+            return new InsertManyOptions().embeddingAPIKey(apiKey);
         }
 
     }

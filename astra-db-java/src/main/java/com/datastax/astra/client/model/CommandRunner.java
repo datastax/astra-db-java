@@ -22,7 +22,6 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.internal.api.ApiResponse;
-import com.datastax.astra.internal.command.CommandObserver;
 
 /**
  * Use to initialize the HTTPClient.
@@ -43,7 +42,23 @@ public interface CommandRunner {
      * @return
      *     result as a document map
      */
-    ApiResponse runCommand(Command command)
+    default ApiResponse runCommand(Command command) {
+        return runCommand(command, new CommandOptions<>());
+    }
+
+    /**
+     * Command to return the payload as a Map.
+     *
+     * @param command
+     *     command to execute
+     * @param options
+     *      options when running the command
+     * @throws DataApiResponseException
+     *     if the returned object contains error response is encapsulated in a DataApiResponseException.
+     * @return
+     *     result as a document map
+     */
+    ApiResponse runCommand(Command command, CommandOptions<?> options)
     throws DataApiResponseException;
 
     /**
@@ -59,25 +74,25 @@ public interface CommandRunner {
      * @param <T>
      *      document type to use
      */
-    <T> T runCommand(Command command, Class<T> documentClass)
+    default <T> T runCommand(Command command, Class<T> documentClass) {
+        return runCommand(command, new CommandOptions<>(), documentClass);
+    }
+
+    /**
+     * Extension point to run any command with typing constraints.
+     * @param command
+     *      command as a json Payload
+     * @param documentClass
+     *      document class to use for marshalling
+     * @param options
+     *      options when running the command
+     * @throws DataApiResponseException
+     *     if the returned object contains error response is encapsulated in a DataApiResponseException.
+     * @return
+     *      instance of expecting type.
+     * @param <T>
+     *      document type to use
+     */
+    <T> T runCommand(Command command, CommandOptions<?> options, Class<T> documentClass)
     throws DataApiResponseException;
-
-    /**
-     * Register an observer to execute code.
-     *
-     * @param name
-     *      identifier for the listener
-     * @param observer
-     *      observer
-     */
-    void registerListener(String name, CommandObserver observer);
-
-    /**
-     * Delete a listener of it exists.
-     *
-     * @param name
-     *      name of the listener.
-     */
-    void deleteListener(String name);
-
 }

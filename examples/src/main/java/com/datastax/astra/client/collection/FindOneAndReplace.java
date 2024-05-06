@@ -25,7 +25,7 @@ public class FindOneAndReplace {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        FindOneAndReplaceOptions options = FindOneAndReplaceOptions.Builder
+        FindOneAndReplaceOptions options = new FindOneAndReplaceOptions()
                 .projection(Projections.include("field1"))
                 .sort(Sorts.ascending("field1"))
                 .upsert(true)

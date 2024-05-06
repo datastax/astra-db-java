@@ -3,6 +3,7 @@ package com.datastax.astra.client.collection;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.Projections;
 
 import java.time.Instant;
@@ -11,7 +12,6 @@ import java.util.Date;
 
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.lt;
-import static com.datastax.astra.client.model.FindOneOptions.Builder.projection;
 import static com.datastax.astra.client.model.Updates.set;
 
 public class WorkingWithDates {
@@ -32,6 +32,6 @@ public class WorkingWithDates {
 
         collection.findOne(
                 lt("date_of_birth", new Date(System.currentTimeMillis() - 1000 * 1000)),
-                projection(Projections.exclude("_id")));
+                new FindOneOptions().projection(Projections.exclude("_id")));
     }
 }

@@ -3,6 +3,7 @@ package com.datastax.astra.test.integration.collection.vectorize;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,11 @@ abstract class AbstractVectorizeITTest {
         return database;
     }
 
+    protected void dropCollection(String name) {
+        getDatabase().dropCollection(name);
+        log.info("Collection {} dropped", name);
+    }
+
     protected void dropAllCollections() {
         getDatabase().listCollections().forEach(collection -> {
             getDatabase().dropCollection(collection.getName());
@@ -57,16 +63,18 @@ abstract class AbstractVectorizeITTest {
         log.info("Collection {} dropped", model.name().toLowerCase());
     }
 
-    protected Collection<Document> createCollection(EmbeddingModel model) {
-        return getDatabase().createCollection(model.name().toLowerCase(),
-                CollectionOptions.builder()
-                        .vectorDimension(model.getDimension())
-                        .vectorSimilarity(SimilarityMetric.COSINE)
-                        .vectorize(model.getProvider(), model.getName())
-                        .build());
-    }
-
     protected Collection<Document> createCollectionVertex(EmbeddingModel model, String projectID) {
+
+        getDatabase().createCollection("collection",
+                // Create Collection Payload
+                CollectionOptions.builder()
+                .vectorDimension(model.getDimension())
+                .vectorSimilarity(SimilarityMetric.COSINE)
+                .vectorize(model.getProvider(), model.getName(), Map.of("PROJECT_ID", projectID))
+                .build(),
+                // Will be use to shape all commands
+                new CommandOptions<>().embeddingAPIKey("aaa")
+        );
         return getDatabase().createCollection(model.name().toLowerCase(),
                 CollectionOptions.builder()
                         .vectorDimension(model.getDimension())

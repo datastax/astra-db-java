@@ -27,7 +27,7 @@ import lombok.Getter;
  * Options for InsertMany
  */
 @Getter
-public class InsertManyOptions {
+public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -47,17 +47,7 @@ public class InsertManyOptions {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_SECONDS * 1000;
-
-    /**
-     * When use some form of vectorization, the key to use for embedding
-     */
-    private String embeddingServiceApiKey;
-
-    /**
-     * Maximum amount of time to execute a query
-     */
-    private Long maxTimeMS;
+    private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_MILLIS_SECONDS * 1000;
 
     /**
      * Populate insertMany options
@@ -119,35 +109,11 @@ public class InsertManyOptions {
         return this;
     }
 
-    /**
-     * Setter for timeout.
-     *
-     * @param maxTimeMS
-     *      timeout value
-     * @return
-     *      insert many options
-     */
-    public InsertManyOptions maxTimeMS(long maxTimeMS) {
-        this.maxTimeMS = maxTimeMS;
-        return this;
-    }
-
-    /**
-     * Setter for timeout.
-     *
-     * @param apiKey
-     *      embedding service Api keu
-     * @return
-     *      insert many options
-     */
-    public InsertManyOptions embeddingServiceApiKey(String apiKey) {
-        this.embeddingServiceApiKey = apiKey;
-        return this;
-    }
 
     /**
      * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**
@@ -195,30 +161,6 @@ public class InsertManyOptions {
          */
         public static InsertManyOptions timeout(int timeout) {
             return new InsertManyOptions().timeout(timeout);
-        }
-
-        /**
-         * Setter maxTimeMS
-         *
-         * @param maxTimeMS
-         *      timeout value
-         * @return
-         *      insert many options
-         */
-        public static InsertManyOptions maxTimeMS(long maxTimeMS) {
-            return new InsertManyOptions().maxTimeMS(maxTimeMS);
-        }
-
-        /**
-         * Setter for Api Key
-         *
-         * @param apiKey
-         *      embedding service Api keu
-         * @return
-         *      insert many options
-         */
-        public static InsertManyOptions embeddingServiceApiKey(String apiKey) {
-            return new InsertManyOptions().embeddingServiceApiKey(apiKey);
         }
 
     }

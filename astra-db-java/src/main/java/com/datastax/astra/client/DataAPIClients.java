@@ -55,7 +55,7 @@ import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
  */
 public class DataAPIClients {
 
-    /** Default Http endpoint for local deployment (http://localhost:8181). */
+    /** Default Http endpoint for local deployment. */
     public static final String DEFAULT_ENDPOINT_LOCAL = "http://localhost:8181";
 
     /**
@@ -76,7 +76,10 @@ public class DataAPIClients {
     public static DataAPIClient createForLocal() {
         return new DataAPIClient(
                 new TokenProviderStargateV2().getToken(),
-                DataAPIOptions.builder().withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA).build());
+                DataAPIOptions.builder()
+                        .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
+                        .withObserver(new LoggingCommandObserver(DataAPIClient.class))
+                        .build());
     }
 
     /**
@@ -92,9 +95,7 @@ public class DataAPIClients {
      */
     public static Database createDefaultLocalDatabase() {
         Database db = createForLocal().getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
-        db.registerListener("logger", new LoggingCommandObserver(Database.class));
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
-        dbAdmin.registerListener("logger", new LoggingCommandObserver(Database.class));
         dbAdmin.createNamespace(DEFAULT_NAMESPACE);
         return db;
     }
@@ -153,6 +154,7 @@ public class DataAPIClients {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_DEV)
+                .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                 .build());
     }
 

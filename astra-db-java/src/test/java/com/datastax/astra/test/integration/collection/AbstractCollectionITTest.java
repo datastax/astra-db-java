@@ -2,7 +2,6 @@ package com.datastax.astra.test.integration.collection;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
@@ -15,6 +14,7 @@ import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
 import com.datastax.astra.client.model.FindOneAndUpdateOptions;
+import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
@@ -36,7 +36,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -58,10 +56,6 @@ import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.model.Filters.eq;
 import static com.datastax.astra.client.model.Filters.gt;
-import static com.datastax.astra.client.model.FindOneOptions.Builder.projection;
-import static com.datastax.astra.client.model.FindOptions.Builder.sort;
-import static com.datastax.astra.client.model.InsertManyOptions.Builder.concurrency;
-import static com.datastax.astra.client.model.Projections.exclude;
 import static com.datastax.astra.client.model.Projections.include;
 import static com.datastax.astra.client.model.Projections.slice;
 import static com.datastax.astra.client.model.Sorts.ascending;
@@ -71,7 +65,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-abstract class AbstractCollectionITTest implements TestConstants {
+public abstract class AbstractCollectionITTest implements TestConstants {
 
     static Document COMPLETE_DOCUMENT = new Document().id("1")
             .append("metadata_instant", Instant.now())
@@ -153,11 +147,9 @@ abstract class AbstractCollectionITTest implements TestConstants {
      */
     protected static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         log.info("Working in environment '{}'", env.name());
-        AstraDBAdmin client = getAstraDBClient(env);
-        DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
-        Database db = databaseAdmin.getDatabase();
-        db.registerListener("logger", new LoggingCommandObserver(Database.class));
-        return db;
+        return  getAstraDBClient(env)
+                .createDatabase(DATABASE_NAME, cloud, region)
+                .getDatabase();
     }
 
     /**
@@ -168,7 +160,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
      * @return
      *      instance of AstraDBAdmin
      */
-    protected static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
+    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
         switch (env) {
             case DEV:
                 return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
@@ -238,7 +230,6 @@ abstract class AbstractCollectionITTest implements TestConstants {
     protected Collection<Document> getCollectionSimple() {
         if (collectionSimple == null) {
             collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
-            collectionSimple.registerListener("logger", new LoggingCommandObserver(Collection.class));
         }
         return collectionSimple;
     }
@@ -251,7 +242,6 @@ abstract class AbstractCollectionITTest implements TestConstants {
                             .vectorDimension(14)
                             .vectorSimilarity(SimilarityMetric.COSINE)
                             .build(), ProductString.class);
-            collectionVector.registerListener("logger", new LoggingCommandObserver(Collection.class));
         }
 
         return collectionVector;
@@ -304,11 +294,11 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
         Optional<ProductString> doc2 = getCollectionVector().findOne(
                 eq("1"),
-                projection(include("name")));
+               new FindOneOptions().projection(include("name")));
 
         // Find One with a projection only
         Optional<ProductString> doc3 = getCollectionVector().findOne(null,
-                projection(include("name")));
+                new FindOneOptions().projection(include("name")));
     }
 
     @Test
@@ -367,7 +357,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
 
         // Should return a slice for an array
-        Document doc3 = getCollectionSimple().find(null, FindOptions.Builder
+        Document doc3 = getCollectionSimple().find(null, new FindOptions()
                         .projection(ps[0], slice("metadata_string_array", 1, 2)))
                         .all().get(0);
         String[] strings = doc3.getArray("metadata_string_array", String.class);
@@ -377,7 +367,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
 
     @Test
     protected void testCountDocument() throws TooManyDocumentsToCountException {
-        InsertManyOptions.Builder.ordered(false)
+        new InsertManyOptions().ordered(false)
                 .concurrency(5) // recommended
                 .chunkSize(20)  // maximum chunk size is 20
                 .timeout(100);  // global timeout
@@ -443,7 +433,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
         // Sort = no paging
-        FindOptions options = sort(ascending("indice")).skip(11).limit(2);
+        FindOptions options = new FindOptions().sort(ascending("indice")).skip(11).limit(2);
         List<Document> documents = getCollectionSimple().find(options).all();
         assertThat(documents).hasSize(2);
         assertThat(documents.get(0).getInteger("indice")).isEqualTo(11);
@@ -470,7 +460,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        getCollectionSimple().insertMany(docList, concurrency(5));
+        getCollectionSimple().insertMany(docList, new InsertManyOptions().concurrency(5));
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 
@@ -548,7 +538,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
                 .collect(Collectors.toList()));
         getCollectionSimple().deleteOne(
                 eq("test", "test"),
-                DeleteOneOptions.Builder.sort(descending("indice")));;
+                new DeleteOneOptions().sort(descending("indice")));;
         results = getCollectionSimple()
                 .find().all()
                 .stream().collect(Collectors
@@ -710,7 +700,7 @@ abstract class AbstractCollectionITTest implements TestConstants {
                         .inc("test", 1d)
                         .rename("field1", "field2")
                         .updateMul(Map.of("price", 1.1d)),
-                FindOneAndUpdateOptions.Builder.returnDocumentAfter());
+                new FindOneAndUpdateOptions().returnDocumentAfter());
         assertThat(doc).isPresent();
         assertThat(doc.get().getDouble("test")).isEqualTo(11.1d);
         assertThat(doc.get().getDouble("price")).isEqualTo(11.11d);

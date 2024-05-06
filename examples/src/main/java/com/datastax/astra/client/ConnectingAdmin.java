@@ -2,9 +2,6 @@ package com.datastax.astra.client;
 
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.DataAPIClient;
-
-import java.util.UUID;
 
 import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
 

@@ -3,11 +3,15 @@ package com.datastax.astra.test.integration.collection.vectorize;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.FindOneOptions;
+import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Projections;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.client.model.SimilarityMetric;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -15,8 +19,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Optional;
 
-import static com.datastax.astra.client.model.FindOneOptions.Builder.sort;
-import static com.datastax.astra.client.model.InsertManyOptions.Builder.embeddingServiceApiKey;
 import static com.datastax.astra.test.integration.collection.vectorize.EmbeddingModel.COHERE_EMBED_ENGLISH_V2;
 import static com.datastax.astra.test.integration.collection.vectorize.EmbeddingModel.COHERE_EMBED_ENGLISH_V3;
 import static com.datastax.astra.test.integration.collection.vectorize.EmbeddingModel.HF_MINI_LM_L6;
@@ -65,12 +67,13 @@ public class LocalVectorizeITTest extends AbstractVectorizeITTest {
     }
 
     @Test
-    public void shouldTestEmbeddingsCohere() {
-        dropAllCollections();
+    public void xshouldTestEmbeddingsCohere() {
+        //dropAllCollections();
+        //dropCollection(COHERE_EMBED_ENGLISH_V2);
         testEmbeddingModel(COHERE_EMBED_ENGLISH_V2, System.getenv("COHERE_API_KEY"));
         testEmbeddingModel(COHERE_EMBED_ENGLISH_V3, System.getenv("COHERE_API_KEY"));
-        dropCollection(COHERE_EMBED_ENGLISH_V2);
-        dropCollection(COHERE_EMBED_ENGLISH_V3);
+        //dropCollection(COHERE_EMBED_ENGLISH_V2);
+        //dropCollection(COHERE_EMBED_ENGLISH_V3);
     }
 
     @Test
@@ -134,8 +137,16 @@ public class LocalVectorizeITTest extends AbstractVectorizeITTest {
 
     private void testEmbeddingModel(EmbeddingModel model, String apiKey) {
         log.info("Testing model {}", model);
-        Collection<Document> collection = createCollection(model);
-        collection.registerListener("logger", new LoggingCommandObserver(LocalVectorizeITTest.class));
+        Collection<Document> collection = getDatabase().createCollection(
+                model.name().toLowerCase(),
+                // Create collection with a Service in vectorize
+                CollectionOptions.builder()
+                        .vectorDimension(model.getDimension())
+                        .vectorSimilarity(SimilarityMetric.COSINE)
+                        .vectorize(model.getProvider(), model.getName())
+                        .build(),
+                // Save API Key at collection level
+                new CommandOptions<>().embeddingAPIKey(apiKey));
         log.info("Collection created {}", collection.getName());
         testCollection(collection, apiKey);
     }
@@ -152,14 +163,16 @@ public class LocalVectorizeITTest extends AbstractVectorizeITTest {
                 new Document(8).vectorize("Anyway, what you gonna do about it?")
         );
 
+
         // Ingestion
-        InsertManyResult res = collection.insertMany(entries, embeddingServiceApiKey(apiKey));
+        InsertManyResult res = collection.insertMany(entries, new InsertManyOptions().embeddingAPIKey(apiKey));
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
-                sort("You shouldn't come around here singing up at people like tha")
+                new FindOneOptions()
+                        .sort("You shouldn't come around here singing up at people like tha")
                         .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
-                        .embeddingServiceApiKey(apiKey)
+                        .embeddingAPIKey(apiKey)
                         .includeSimilarity());
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();

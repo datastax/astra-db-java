@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class FindOneAndUpdateOptions {
+public class FindOneAndUpdateOptions extends CommandOptions<FindOneAndUpdateOptions> {
 
     /**
      * Order by.
@@ -157,6 +157,7 @@ public class FindOneAndUpdateOptions {
     /**
      * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

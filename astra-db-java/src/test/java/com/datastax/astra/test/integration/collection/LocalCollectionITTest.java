@@ -10,15 +10,13 @@ import com.datastax.astra.client.model.BulkWriteResult;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
-import com.datastax.astra.client.model.FindOneAndDeleteOptions;
 import com.datastax.astra.client.model.FindOptions;
+import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Page;
-import com.datastax.astra.client.model.Projections;
+import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateResult;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -37,8 +35,6 @@ import static com.datastax.astra.client.model.Filters.lt;
 import static com.datastax.astra.client.model.Filters.lte;
 import static com.datastax.astra.client.model.Filters.ne;
 import static com.datastax.astra.client.model.Filters.nin;
-import static com.datastax.astra.client.model.InsertManyOptions.Builder.ordered;
-import static com.datastax.astra.client.model.UpdateManyOptions.Builder.upsert;
 import static com.datastax.astra.client.model.Updates.set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -90,7 +86,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         // When updated many
         UpdateResult updateResult = getCollectionSimple()
-                .updateMany(eq("a", "a"), set("b", "updated"), upsert(true));
+                .updateMany(eq("a", "a"), set("b", "updated"),
+                        new UpdateManyOptions().upsert(true));
 
         // Should update 2 documents
         assertThat(updateResult.getMatchedCount()).isEqualTo(2);
@@ -101,7 +98,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Test
     void shouldTestInsertMany() {
         getCollectionSimple().deleteAll();
-        InsertManyResult res = getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM, ordered(true));
+        InsertManyResult res = getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM,
+                new InsertManyOptions().ordered(true));
         assertThat(res.getInsertedIds()).hasSize(FRENCH_SOCCER_TEAM.size());
         assertThat(res.getInsertedIds().get(0)).isEqualTo(1);
     }
@@ -115,7 +113,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         players.addAll(FRENCH_SOCCER_TEAM.subList(5,7));
 
         try {
-            InsertManyResult res = getCollectionSimple().insertMany(players, ordered(true));
+            InsertManyResult res = getCollectionSimple().insertMany(players,
+                    new InsertManyOptions().ordered(true));
         } catch (DataApiResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -125,7 +124,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         try {
             getCollectionSimple().deleteAll();
-            InsertManyResult res = getCollectionSimple().insertMany(players, ordered(false));
+            InsertManyResult res = getCollectionSimple().insertMany(players, new InsertManyOptions().ordered(false));
         } catch (DataApiResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -136,7 +135,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         try {
             getCollectionSimple().deleteAll();
             InsertManyResult res = getCollectionSimple().insertMany(players,
-                    ordered(false).timeout(10000).chunkSize(10).concurrency(1));
+                    new InsertManyOptions().ordered(false).timeout(10000).chunkSize(10).concurrency(1));
         } catch (DataApiResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -154,7 +153,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
             documents.add(new Document().id(i).append("idx", i));
         }
         getCollectionSimple().deleteAll();
-        getCollectionSimple().insertMany(documents, ordered(false).concurrency(5));
+        getCollectionSimple().insertMany(documents, new InsertManyOptions().ordered(false).concurrency(5));
         assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(nbDocs);
 
         getCollectionSimple().deleteMany(gt("idx", 500));

@@ -24,10 +24,10 @@ public class WorkingWithSorts {
         Sort s2 = Sorts.descending("field2");
 
         // Build the sort clause
-        FindOptions.Builder.sort(s1, s2);
+        new FindOptions().sort(s1, s2);
 
         // Adding vector
-        FindOptions.Builder.sort(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f}, s1, s2);
+        new FindOptions().sort(new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f}, s1, s2);
 
     }
 }

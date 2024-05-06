@@ -31,7 +31,7 @@ public class UpdateMany {
                 .unset("field3");
 
         UpdateManyOptions options =
-                UpdateManyOptions.Builder.upsert(true);
+                new UpdateManyOptions().upsert(true);
 
         UpdateResult result = collection.updateMany(filter, update, options);
     }

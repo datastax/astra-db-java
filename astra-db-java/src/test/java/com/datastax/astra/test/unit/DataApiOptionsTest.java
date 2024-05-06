@@ -1,6 +1,5 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
@@ -52,10 +51,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeInsertManyOptions() {
-        assertThat(InsertManyOptions.Builder.chunkSize(10)).isNotNull();
-        assertThat(InsertManyOptions.Builder.timeout(10)).isNotNull();
-        assertThat(InsertManyOptions.Builder.ordered(true).timeout(10)).isNotNull();
-        assertThat(InsertManyOptions.Builder.concurrency(2).timeout(10)).isNotNull();
+        assertThat(new InsertManyOptions().chunkSize(10)).isNotNull();
+        assertThat(new InsertManyOptions().timeout(10)).isNotNull();
+        assertThat(new InsertManyOptions().ordered(true).timeout(10)).isNotNull();
+        assertThat(new InsertManyOptions().concurrency(2).timeout(10)).isNotNull();
     }
 
     @Test
@@ -66,10 +65,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeFindOneAndDeleteOptions() {
-        assertThat(FindOneAndDeleteOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(FindOneAndDeleteOptions.Builder.projection(Projections.include("test"))).isNotNull();
-        assertThat(FindOneAndDeleteOptions.Builder.sort(new float[]{})).isNotNull();
-        assertThat(FindOneAndDeleteOptions.Builder.sort("OK")
+        assertThat(new FindOneAndDeleteOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new FindOneAndDeleteOptions().projection(Projections.include("test"))).isNotNull();
+        assertThat(new FindOneAndDeleteOptions().sort(new float[]{})).isNotNull();
+        assertThat(new FindOneAndDeleteOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .projection(Projections.include("test"))
                 .sort("ok")
@@ -79,10 +78,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeUpdateOne() {
-        assertThat(UpdateOneOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(UpdateOneOptions.Builder.upsert(true)).isNotNull();
-        assertThat(UpdateOneOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(UpdateOneOptions.Builder.vectorize("OK")
+        assertThat(new UpdateOneOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new UpdateOneOptions().upsert(true)).isNotNull();
+        assertThat(new UpdateOneOptions().vector(new float[]{})).isNotNull();
+        assertThat(new UpdateOneOptions().vectorize("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .vectorize("ok")
@@ -92,13 +91,13 @@ class DataApiOptionsTest {
 
     @Test
     void shouldFindOneAndReplaceOptions() {
-        assertThat(FindOneAndReplaceOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.returnDocumentAfter()).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.returnDocumentBefore()).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.projection(Projections.include("ok"))).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.upsert(true)).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.sort(new float[]{})).isNotNull();
-        assertThat(FindOneAndReplaceOptions.Builder.sort("OK")
+        assertThat(new FindOneAndReplaceOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().returnDocumentAfter()).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().returnDocumentBefore()).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().upsert(true)).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().sort(new float[]{})).isNotNull();
+        assertThat(new FindOneAndReplaceOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
@@ -111,13 +110,13 @@ class DataApiOptionsTest {
 
     @Test
     void shouldFindOneAndUpdateOptions() {
-        assertThat(FindOneAndUpdateOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.returnDocumentAfter()).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.returnDocumentBefore()).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.projection(Projections.include("ok"))).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.upsert(true)).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.sort(new float[]{})).isNotNull();
-        assertThat(FindOneAndUpdateOptions.Builder.sort("OK")
+        assertThat(new FindOneAndUpdateOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().returnDocumentAfter()).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().returnDocumentBefore()).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().upsert(true)).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().sort(new float[]{})).isNotNull();
+        assertThat(new FindOneAndUpdateOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
@@ -130,11 +129,11 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestFindOneOptions() {
-        assertThat(FindOneOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(FindOneOptions.Builder.projection(Projections.include("ok"))).isNotNull();
-        assertThat(FindOneOptions.Builder.includeSimilarity()).isNotNull();
-        assertThat(FindOneOptions.Builder.sort(new float[]{})).isNotNull();
-        assertThat(FindOneOptions.Builder.sort("OK")
+        assertThat(new FindOneOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new FindOneOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new FindOneOptions().includeSimilarity()).isNotNull();
+        assertThat(new FindOneOptions().sort(new float[]{})).isNotNull();
+        assertThat(new FindOneOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .includeSimilarity()
                 .projection(Projections.include("ok"))
@@ -145,18 +144,18 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestDeleteOneOptions() {
-        assertThat(DeleteOneOptions.Builder.sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(DeleteOneOptions.Builder.vector(new float[]{})).isNotNull();
-        assertThat(DeleteOneOptions.Builder.vectorize("OK")
+        assertThat(new DeleteOneOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new DeleteOneOptions().sort(new float[]{})).isNotNull();
+        assertThat(new DeleteOneOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
-                .vectorize("ok")
-                .vector(new float[]{}))
+                .sort("ok")
+                .sort(new float[]{}))
                 .isNotNull();
     }
 
     @Test
     void shouldTestReplaceOneOptions() {
-        assertThat(ReplaceOneOptions.Builder.upsert(true)).isNotNull();
+        assertThat(new ReplaceOneOptions().upsert(true)).isNotNull();
     }
 
     @Test
@@ -265,10 +264,10 @@ class DataApiOptionsTest {
         FindOptions fo = new FindOptions();
         assertThatThrownBy(() -> fo.limit(-1)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> fo.skip(-1)).isInstanceOf(IllegalArgumentException.class);
-        assertThat(FindOptions.Builder.sort("ok").includeSimilarity().pageState("ok")).isNotNull();
-        assertThat(FindOptions.Builder.includeSimilarity()).isNotNull();
-        assertThat(FindOptions.Builder.limit(10)).isNotNull();
-        assertThat(FindOptions.Builder.skip(10)).isNotNull();
+        assertThat(new FindOptions().sort("ok").includeSimilarity().pageState("ok")).isNotNull();
+        assertThat(new FindOptions().includeSimilarity()).isNotNull();
+        assertThat(new FindOptions().limit(10)).isNotNull();
+        assertThat(new FindOptions().skip(10)).isNotNull();
     }
 
     @Test
@@ -279,10 +278,10 @@ class DataApiOptionsTest {
 
         Projection p1 = new Projection("field1", true);
         Projection p2 = new Projection("field2", true);
-        FindOptions options1 = FindOptions.Builder.projection(p1,p2);
-        FindOptions options2 = FindOptions.Builder.projection(Projections.include("field1", "field2"));
+        FindOptions options1 = new FindOptions().projection(p1,p2);
+        FindOptions options2 = new FindOptions().projection(Projections.include("field1", "field2"));
 
-        InsertManyOptions insertManyOptions = InsertManyOptions.Builder.chunkSize(100);
+        InsertManyOptions insertManyOptions = new InsertManyOptions().chunkSize(100);
         //DataAPIClient client = new DataAPIClient("token", options);
 
     }

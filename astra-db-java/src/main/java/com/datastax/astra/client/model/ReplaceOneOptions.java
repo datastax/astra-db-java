@@ -28,7 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ReplaceOneOptions {
+public class ReplaceOneOptions extends CommandOptions<ReplaceOneOptions> {
 
     /**
      * if upsert is selected
@@ -56,6 +56,7 @@ public class ReplaceOneOptions {
     /**
      * Builder for creating {@link ReplaceOneOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

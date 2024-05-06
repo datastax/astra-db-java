@@ -84,6 +84,8 @@ public class LoggingCommandObserver implements CommandObserver {
             String req = UUID.randomUUID().toString().substring(30);
             // Log Command
             log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
+            log(AnsiUtils.magenta("[" + req + "][url]") + "=" +
+                    AnsiUtils.yellow("{}"), executionInfo.getRequestUrl());
             log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),
                     JsonUtils.marshall(executionInfo.getCommand()));
             log(AnsiUtils.magenta("[" + req + "][response-code]") + "=" + AnsiUtils.yellow("{}"),

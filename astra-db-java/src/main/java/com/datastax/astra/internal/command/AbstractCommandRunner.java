@@ -20,16 +20,18 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.CommandRunner;
+import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.utils.CompletableFutures;
 import com.datastax.astra.internal.utils.JsonUtils;
 import com.evanlennick.retry4j.Status;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -37,11 +39,11 @@ import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -50,6 +52,7 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_ACCEPT;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_AUTHORIZATION;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CASSANDRA;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CONTENT_TYPE;
+import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_EMBEDDING_SERVICE_API_KEY;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUESTED_WITH;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUEST_ID;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT;
@@ -58,13 +61,16 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT
  * Execute the command and parse results throwing DataApiResponseException when needed.
  */
 @Slf4j
+@Getter
 public abstract class AbstractCommandRunner implements CommandRunner {
 
-    /** Static Http Client for the Client. */
-    protected static RetryHttpClient httpClient;
+    /** Http client reused when properties not override. */
+    protected RetryHttpClient httpClient;
 
-    /** Could be useful to capture the interactions at client side. */
-    protected Map<String, CommandObserver> observers = new ConcurrentHashMap<>();
+    /**
+     * Default command options when not override
+     */
+    protected CommandOptions<?> commandOptions;
 
     /**
      * Default constructor.
@@ -74,32 +80,31 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public void registerListener(String name, CommandObserver observer) {
-        observers.put(name, observer);
-    }
+    public ApiResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
 
-    /** {@inheritDoc} */
-    @Override
-    public void deleteListener(String name) {
-        observers.remove(name);
-    }
-
-    /**
-     * Access to the HttpClient.
-     *
-     * @return
-     *      instance of http client support of retries.
-     */
-    protected synchronized RetryHttpClient getHttpClient() {
-        if (httpClient == null) {
-            httpClient = new RetryHttpClient(getHttpClientOptions());
+        // === HTTP CLIENT ===
+        if (httpClient == null && (overridingOptions == null || overridingOptions.getHttpClientOptions().isEmpty())) {
+            if (commandOptions.getHttpClientOptions().isEmpty()) {
+                throw new IllegalStateException("HttpClientOptions is required in collection level options");
+            }
+            httpClient = new RetryHttpClient(this.commandOptions.getHttpClientOptions().get());
         }
-        return httpClient;
-    }
+        RetryHttpClient requestHttpClient = this.httpClient;
+        if (overridingOptions != null && overridingOptions.getHttpClientOptions().isPresent()) {
+            requestHttpClient = new RetryHttpClient(overridingOptions.getHttpClientOptions().get());
+        }
 
-    /** {@inheritDoc} */
-    @Override
-    public ApiResponse runCommand(Command command) {
+        // === OBSERVERS ===
+        List<CommandObserver> observers = new ArrayList<>(commandOptions.getObservers().values());
+        if (overridingOptions != null && overridingOptions.getObservers() != null) {
+            observers.addAll(overridingOptions.getObservers().values());
+        }
+
+        // === TOKEN ===
+        String token = commandOptions.getToken().get();
+        if (overridingOptions != null && overridingOptions.getToken().isPresent()) {
+            token = overridingOptions.getToken().get();
+        }
 
         // Initializing the Execution infos (could be pushed to 3rd parties)
         ExecutionInfos.DataApiExecutionInfoBuilder executionInfo =
@@ -108,32 +113,34 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         try {
             // (Custom) Serialization
             String jsonCommand = JsonUtils.marshall(command);
-
             HttpRequest.Builder builder=  HttpRequest.newBuilder()
                         .uri(new URI(getApiEndpoint()))
                         .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
                         .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
-                        .header(HEADER_USER_AGENT, getHttpClient().getUserAgentHeader())
-                        .header(HEADER_REQUESTED_WITH, getHttpClient().getUserAgentHeader())
+                        .header(HEADER_USER_AGENT, requestHttpClient.getUserAgentHeader())
+                        .header(HEADER_REQUESTED_WITH, requestHttpClient.getUserAgentHeader())
                         .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
-                        .header(HEADER_CASSANDRA, getToken())
-                        .header(HEADER_AUTHORIZATION, "Bearer " + getToken())
+                        .header(HEADER_CASSANDRA, token)
+                        .header(HEADER_AUTHORIZATION, "Bearer " + token)
                         .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand));
+            builder.timeout(Duration.ofSeconds(requestHttpClient.getResponseTimeoutInSeconds()));
 
-            // Add the timeout to the query
-            if (command.getMaxTimeMS() != null) {
-                builder.timeout(Duration.ofMillis(command.getMaxTimeMS()));
-            } else {
-                builder.timeout(Duration.ofSeconds(getHttpClient().getResponseTimeoutInSeconds()));
+            // === Embedding KEY ===
+            commandOptions
+                    .getEmbeddingAPIKey()
+                    .ifPresent(key -> builder.header(HEADER_EMBEDDING_SERVICE_API_KEY, key));
+            if (overridingOptions != null) {
+                overridingOptions
+                        .getEmbeddingAPIKey()
+                        .ifPresent(key -> builder.header(HEADER_EMBEDDING_SERVICE_API_KEY, key));
             }
 
-            // Add the header to the query
-            if (command.getHeaders() != null) {
-                command.getHeaders().forEach(builder::header);
-            }
+            HttpRequest request = builder.build();
+            executionInfo.withRequestHeaders(request.headers().map());
+            executionInfo.withRequestUrl(getApiEndpoint());
 
-            Status<HttpResponse<String>> status = getHttpClient().executeHttpRequest(builder.build());
-            ApiResponseHttp httpRes = getHttpClient().parseHttpResponse(status.getResult());
+            Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
+            ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
             ApiResponse jsonRes = JsonUtils.unMarshallBean(httpRes.getBody(), ApiResponse.class);
             executionInfo.withApiResponse(jsonRes);
@@ -146,25 +153,31 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);
         } finally {
             // Notify the observers
-            CompletableFuture.runAsync(()-> notifyASync(l -> l.onCommand(executionInfo.build())));
+            CompletableFuture.runAsync(()-> notifyASync(l -> l.onCommand(executionInfo.build()), observers));
         }
     }
 
     /**
      * Asynchronously send calls to listener for tracing.
      *
-     * @param lambda operations to execute
+     * @param lambda
+     *      operations to execute
+     * @param observers
+     *      list of observers to check
+     *
      */
-    private void notifyASync(Consumer<CommandObserver> lambda) {
-        CompletableFutures.allDone(observers.values().stream()
-                .map(l -> CompletableFuture.runAsync(() -> lambda.accept(l)))
-                .collect(Collectors.toList()));
+    private void notifyASync(Consumer<CommandObserver> lambda, List<CommandObserver> observers) {
+        if (observers != null) {
+            CompletableFutures.allDone(observers.stream()
+                    .map(l -> CompletableFuture.runAsync(() -> lambda.accept(l)))
+                    .collect(Collectors.toList()));
+        }
     }
 
     /** {@inheritDoc} */
     @Override
-    public <T> T runCommand(Command command, Class<T> documentClass) {
-        return mapAsDocument(runCommand(command), documentClass);
+    public <T> T runCommand(Command command, CommandOptions<?> options, Class<T> documentClass) {
+        return mapAsDocument(runCommand(command, options), documentClass);
     }
 
     /**
@@ -203,20 +216,5 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      */
     protected abstract String getApiEndpoint();
 
-    /**
-     * Authentication token provided by subclass.
-     *
-     * @return
-     *      authentication token
-     */
-    protected abstract String getToken();
-
-    /**
-     * Options to initialize the HTTP client.
-     *
-     * @return
-     *      options for the http client.
-     */
-    protected abstract DataAPIOptions.HttpClientOptions getHttpClientOptions();
 
 }

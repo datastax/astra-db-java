@@ -39,7 +39,7 @@ public class InsertMany {
                 .getCollection("COLLECTION2_NAME", Product.class);
 
         // Insert a document with embeddings
-        InsertManyOptions options = InsertManyOptions.Builder
+        InsertManyOptions options = new InsertManyOptions()
                 .chunkSize(20)  // how many process per request
                 .concurrency(1) // parallel processing
                 .ordered(false) // allows parallel processing

@@ -7,8 +7,6 @@ import com.datastax.astra.client.admin.DatabaseAdmin;
 
 import java.util.UUID;
 
-import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
-
 public class GetDatabaseAdmin {
     public static void main(String[] args) {
         // Default Initialization

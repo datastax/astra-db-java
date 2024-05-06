@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class FindOptions {
+public class FindOptions extends CommandOptions<FindOneOptions> {
 
     /**
      * Order by.
@@ -128,7 +128,6 @@ public class FindOptions {
         return this;
     }
 
-
     /**
      * Fluent api.
      *
@@ -181,6 +180,7 @@ public class FindOptions {
     /**
      * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

@@ -29,11 +29,15 @@ import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.CommandOptions;
+import com.datastax.astra.client.model.CountDocumentsOptions;
 import com.datastax.astra.client.model.DataAPIKeywords;
+import com.datastax.astra.client.model.DeleteManyOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.DistinctIterable;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.EstimatedCountDocumentsOptions;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
@@ -45,6 +49,7 @@ import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
+import com.datastax.astra.client.model.InsertOneOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.Page;
@@ -58,6 +63,7 @@ import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
+import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.JsonUtils;
@@ -84,7 +90,6 @@ import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
-import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_EMBEDDING_SERVICE_API_KEY;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -189,9 +194,7 @@ public class Collection<T> extends AbstractCommandRunner {
     @Getter
     private final Database database;
 
-    /**
-     * Get global Settings for the client.
-     */
+    /** Get global Settings for the client. */
     @Getter
     private final DataAPIOptions dataAPIOptions;
 
@@ -225,6 +228,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *              this collection. This class is used for serialization and deserialization of
      *              documents to and from the database. It ensures type safety and facilitates
      *              the mapping of database documents to Java objects.
+     * @param commandOptions the options to apply to the command operation. If left blank the default collection
      *
      * <p>Example usage:</p>
      * <pre>
@@ -238,15 +242,16 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    protected Collection(Database db, String collectionName, Class<T> clazz) {
+    protected Collection(Database db, String collectionName, CommandOptions<?> commandOptions, Class<T> clazz) {
         notNull(db, ARG_DATABASE);
         notNull(clazz, ARG_CLAZZ);
         hasLength(collectionName, ARG_COLLECTION_NAME);
-        this.collectionName        = collectionName;
-        this.database              = db;
-        this.dataAPIOptions        = db.getOptions();
-        this.documentClass         = clazz;
-        this.apiEndpoint = db.getApiEndpoint() + "/" + collectionName;
+        this.collectionName = collectionName;
+        this.database       = db;
+        this.dataAPIOptions = db.getOptions();
+        this.documentClass  = clazz;
+        this.commandOptions = commandOptions;
+        this.apiEndpoint    = db.getApiEndpoint() + "/" + collectionName;
     }
 
     // ----------------------------
@@ -417,8 +422,68 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final InsertOneResult insertOne(T document) {
+        return insertOne(document, (InsertOneOptions) null);
+    }
+
+
+    /**
+     * Inserts a single document into the collection as an atomic operation, ensuring that the
+     * document is added in a single, indivisible step.
+     *
+     * <p><b>Note:</b> The document can optionally include an {@code _id} property, which serves as
+     * its unique identifier within the collection. If the {@code _id} property is provided and it
+     * matches the {@code _id} of an existing document in the collection, the insertion will fail
+     * and an error will be raised. This behavior ensures that each document in the collection has
+     * a unique identifier. If the {@code _id} property is not provided, the server will
+     * automatically generate a unique {@code _id} for the document, ensuring its uniqueness within
+     * the collection.</p>
+     *
+     * <p>The `_id` can be of multiple types, by default it can be any json scalar String, Number, $date. But
+     * at the collection definition level you can enforce property `defaultId` to work with specialize ids.</p>
+     * <ul>
+     * <li>If {@code defaultId} is set to  {@code uuid}, ids will be uuid v4 {@link java.util.UUID}</li>
+     * <li>If {@code defaultId} is set to  {@code objectId}, ids will be an {@link com.datastax.astra.client.model.ObjectId}</li>
+     * <li>If {@code defaultId} is set to  {@code uuidv6}, ids will be an {@link com.datastax.astra.client.model.UUIDv6}</li>
+     * <li>If {@code defaultId} is set to {@code uuidv7}, ids will be an {@link com.datastax.astra.client.model.UUIDv7}</li>
+     * </ul>
+     *
+     * <p>The method returns an {@code InsertOneResult} object, which provides details about the
+     * outcome of the insertion operation. This object can be used to verify the success of the
+     * operation and to access the {@code _id} of the inserted document, whether it was provided
+     * explicitly or generated automatically.</p>
+     *
+     * @param document the document to be inserted into the collection. This parameter should represent
+     *                 the document in its entirety. The {@code _id} field is optional and, if omitted,
+     *                 will be automatically generated.
+     * @param insertOneOptions
+     *                 the options to apply to the insert operation. If left blank the default collection
+     *                 options will be used. If collection option is blank DataAPIOptions will be used.
+     * @return An {@code InsertOneResult} object that contains information about the result of the
+     *         insertion operation, including the {@code _id} of the newly inserted document.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Create a document without id.
+     * Document newDocument = new Document("name", "John Doe").append("age", 30);
+     * InsertOneResult result = collection.insertOne(newDocument);
+     * System.out.println("(generated) document id: " + result.getInsertedId());
+     *
+     * // Provide a document id
+     * Document doc2 = Document.create("doc2").append("name", "John Doe").append("age", 30);
+     * InsertOneResult result = collection.insertOne(doc2);
+     * result.getInsertedId(); // will be "doc2"
+     *
+     * // More way to provide to populate ids.
+     * Document doc3 = new Document("doc3");
+     * Document doc4 = new Document().id("doc4");
+     * Document doc5 = new Document().append("_id", "doc5");
+     * }
+     * </pre>
+     */
+    public final InsertOneResult insertOne(T document, InsertOneOptions insertOneOptions) {
         Assert.notNull(document, DOCUMENT);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class));
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class), insertOneOptions);
     }
 
     /**
@@ -456,6 +521,21 @@ public class Collection<T> extends AbstractCommandRunner {
     }
 
     /**
+     * Asynchronous implementation of {@link #insertOne(Object, InsertOneOptions)}.
+     *
+     * @param document
+     *      document to insert
+     * @param options
+     *      the options to apply to the insert operation. If left blank the default collection
+     *      options will be used. If collection option is blank DataAPIOptions will be used.
+     * @return
+     *      result for insertion
+     */
+    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, InsertOneOptions options) {
+        return CompletableFuture.supplyAsync(() -> insertOne(document, options));
+    }
+
+    /**
      * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(Object)}
      * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
      * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
@@ -490,9 +570,50 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final InsertOneResult insertOne(T document, float[] embeddings) {
+        return insertOne(document, embeddings, null);
+    }
+
+    /**
+     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(Object)}
+     * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
+     * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
+     * of the insertion, maintaining the integrity and consistency of the collection.
+     *
+     * <p><b>Note:</b> Like the base {@code insertOne} method, if the {@code _id} field is explicitly provided and matches
+     * an existing document's {@code _id} in the collection, the insertion will fail with an error. If the {@code _id} field
+     * is not provided, it will be automatically generated by the server, ensuring the document's uniqueness within the
+     * collection. This variant of the method allows for the explicit addition of a "$vector" property to the document,
+     * storing the provided embeddings.</p>
+     *
+     * <p>The embeddings should be a float array representing the vector to be associated with the document. This vector
+     * can be utilized by the database for operations that require vector space computations. An array containing only
+     * zero is not valid as it would lead to computation error with division by zero.</p>
+     *
+     * @param document   The document to be inserted. This can include or omit the {@code _id} field. If omitted,
+     *                   an {@code _id} will be automatically generated.
+     * @param embeddings The vector embeddings to be associated with the document, expressed as an array of floats.
+     *                   This array populates the "$vector" property of the document, enabling vector-based operations.
+     * @param options
+     *                   the options to apply to the insert operation. If left blank the default collection
+     *                   options will be used. If collection option is blank DataAPIOptions will be used.
+     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
+     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Document without an explicit _id and embeddings for vector-based operations
+     * Document newDocument = new Document().append("name", "Jane Doe").append("age", 25);
+     * float[] embeddings = new float[]{0.12f, 0.34f, 0.56f, 0.78f};
+     * InsertOneResult result = collection.insertOne(newDocument, embeddings);
+     * System.out.println("Inserted document id: " + result.getInsertedId());
+     * }
+     * </pre>
+     */
+    public final InsertOneResult insertOne(T document, float[] embeddings,  InsertOneOptions options) {
         Assert.notNull(document, DOCUMENT);
         Assert.notNull(embeddings, ARG_EMBEDDINGS);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings));
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings), options);
     }
 
     /**
@@ -554,10 +675,57 @@ public class Collection<T> extends AbstractCommandRunner {
      * is especially useful for enabling semantic searches or clustering documents based on their content similarity.</p>
      *
      * @param document  The document to be inserted. It can optionally include the {@code _id} field. If omitted,
+     *            an {@code _id} will be automatically generated.
+     * @param vectorize The expression to be translated into a vector of embeddings. This string is processed by
+     *            the service to generate vector embeddings that are stored in the document under the "$vectorize"
+     *            property.
+     * @param options
+     *            the options to apply to the insert operation. If left blank the default collection
+     *            options will be used. If collection option is blank DataAPIOptions will be used.
+     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
+     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Document without an explicit _id and a string to be vectorized
+     * Document newDocument = new Document().append("title", "How to Use Vectorization");
+     * String vectorizeExpression = "This is a guide on vectorization.";
+     * InsertOneResult result = collection.insertOne(newDocument, vectorizeExpression);
+     * System.out.println("Inserted document id: " + result.getInsertedId());
+     * }
+     * </pre>
+     */
+    public final InsertOneResult insertOne(T document, String vectorize, InsertOneOptions options) {
+        Assert.notNull(document, DOCUMENT);
+        Assert.hasLength(vectorize, ARG_VECTORIZE);
+        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize), options);
+    }
+
+    /**
+     * Inserts a single document into the collection in an atomic operation, extending the base functionality of
+     * the {@link #insertOne(Object)} method by adding the capability to compute and include a vector of embeddings
+     * directly within the document. This is achieved through a specified expression, which the service translates
+     * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
+     * vector similarity.
+     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
+     *
+     * <p><b>Note:</b> As with the base {@code insertOne} method, providing an {@code _id} field that matches an existing
+     * document's {@code _id} in the collection will cause the insertion to fail with an error. If the {@code _id} field
+     * is not present, it will be automatically generated, ensuring the document's uniqueness. This method variant
+     * introduces the ability to automatically compute embeddings based on the provided {@code vectorize} string,
+     * populating the "$vectorize" property of the document for later use in vector-based operations.</p>
+     *
+     * <p>The {@code vectorize} parameter should be a string that conveys meaningful information about the document,
+     * which will be converted into a vector representation by the database's embedding service. This functionality
+     * is especially useful for enabling semantic searches or clustering documents based on their content similarity.</p>
+     *
+     * @param document  The document to be inserted. It can optionally include the {@code _id} field. If omitted,
      *                  an {@code _id} will be automatically generated.
      * @param vectorize The expression to be translated into a vector of embeddings. This string is processed by
      *                  the service to generate vector embeddings that are stored in the document under the "$vectorize"
      *                  property.
+     *
      * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
      *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
      *
@@ -575,7 +743,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, String vectorize) {
         Assert.notNull(document, DOCUMENT);
         Assert.hasLength(vectorize, ARG_VECTORIZE);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize));
+        return insertOne(document, vectorize, null);
     }
 
     /**
@@ -626,13 +794,15 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param document
      *      the document to be inserted.
+     * @param insertOneOptions
+     *      override default configuration for the insert operation.
      * @return
      *      object wrapping the returned identifier
      */
-    private InsertOneResult internalInsertOne(Document document) {
+    private InsertOneResult internalInsertOne(Document document, InsertOneOptions insertOneOptions) {
         Assert.notNull(document, DOCUMENT);
         Command insertOne = Command.create("insertOne").withDocument(document);
-        Object documentId = runCommand(insertOne)
+        Object documentId = runCommand(insertOne, insertOneOptions)
                 .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                 .get(0);
         return new InsertOneResult(unmarshallDocumentId(documentId));
@@ -740,6 +910,7 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public InsertManyResult insertMany(List<? extends T> documents, InsertManyOptions options) {
         Assert.isTrue(documents != null && !documents.isEmpty(), "documents list cannot be null or empty");
+        Assert.notNull(options, "insertMany options cannot be null");
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
@@ -936,27 +1107,23 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param documents
      *      list of documents to be inserted
-     * @param options
+     * @param insertManyOptions
      *      options for insert many (chunk size and insertion order).
      * @param start
      *      offset in global list
      * @return
      *      insert many result for a paged call
      */
-    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends T> documents, InsertManyOptions options, int start) {
-        int end = Math.min(start + options.getChunkSize(), documents.size());
+    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends T> documents, InsertManyOptions insertManyOptions, int start) {
+        int end = Math.min(start + insertManyOptions.getChunkSize(), documents.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
+
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
-                    .withOptions(new Document().append(INPUT_ORDERED, options.isOrdered()));
-            if (options.getMaxTimeMS() != null) {
-                insertMany.setMaxTimeMS(options.getMaxTimeMS());
-            }
-            if (options.getEmbeddingServiceApiKey() != null) {
-                insertMany.withHeader(HEADER_EMBEDDING_SERVICE_API_KEY, options.getEmbeddingServiceApiKey());
-            }
-            return new InsertManyResult(runCommand(insertMany)
+                    .withOptions(new Document().append(INPUT_ORDERED, insertManyOptions.isOrdered()));
+
+            return new InsertManyResult(runCommand(insertMany, insertManyOptions)
                     .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                     .stream()
                     .map(this::unmarshallDocumentId)
@@ -1037,30 +1204,37 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
      *               It specifies the conditions that a document must meet to be considered a match.
-     * @param options The {@link FindOneOptions} instance containing additional options for the find operation,
+     * @param findOneOptions The {@link FindOneOptions} instance containing additional options for the find operation,
      * @return An {@link Optional} that contains the found document if one exists that matches
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
-    public Optional<T> findOne(Filter filter, FindOneOptions options) {
-        notNull(options, ARG_OPTIONS);
+    public Optional<T> findOne(Filter filter, FindOneOptions findOneOptions) {
+        notNull(findOneOptions, ARG_OPTIONS);
         Command findOne = Command
                 .create("findOne")
                 .withFilter(filter)
-                .withSort(options.getSort())
-                .withProjection(options.getProjection())
-                .withOptions(new Document()
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
-        if (options.getMaxTimeMS() != null) {
-            findOne.setMaxTimeMS(options.getMaxTimeMS());
-        }
-        if (options.getEmbeddingServiceApiKey() != null) {
-            findOne.withHeader(HEADER_EMBEDDING_SERVICE_API_KEY, options.getEmbeddingServiceApiKey());
-        }
+                .withSort(findOneOptions.getSort())
+                .withProjection(findOneOptions.getProjection())
+                .withOptions(new Document().appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity()));
+
         return Optional.ofNullable(
-                runCommand(findOne)
+                runCommand(findOne, findOneOptions)
                         .getData().getDocument()
                         .map(getDocumentClass()));
+    }
+
+    /**
+     * Syntax sugar to provide a findOne command without a filter @see {@link #findOne(Filter, FindOneOptions)}.
+     *
+     * @param findOneOptions
+     *      find one without a filter
+     * @return An {@link Optional} that contains the found document if one exists that matches
+     *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
+     *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
+     */
+    public Optional<T> findOne(FindOneOptions findOneOptions) {
+        return findOne(null, findOneOptions);
     }
 
     /**
@@ -1084,7 +1258,6 @@ public class Collection<T> extends AbstractCommandRunner {
         return CompletableFuture.supplyAsync(() -> findOne(filter));
     }
 
-
     /**
      * Asynchronously attempts to find a single document within the collection that matches the given filter criteria,
      * utilizing the specified {@link FindOneOptions} for the query. This method offers a non-blocking approach to
@@ -1103,7 +1276,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter  The {@link Filter} instance encapsulating the criteria used to identify the desired document.
      *                It defines the conditions that a document must meet to be considered a match.
-     * @param options The {@link FindOneOptions} providing additional query configurations such as projection
+     * @param findOneOptions The {@link FindOneOptions} providing additional query configurations such as projection
      *                and sort criteria to tailor the search operation.
      * @return A {@link CompletableFuture} that, upon completion, contains an {@link Optional}
      *         with the found document if one exists matching the filter criteria. If no matching document is found,
@@ -1119,8 +1292,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter, FindOneOptions options) {
-        return CompletableFuture.supplyAsync(() -> findOne(filter, options));
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter, FindOneOptions findOneOptions) {
+        return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
     /**
@@ -1137,40 +1310,6 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public Optional<T> findById(Object id) {
         return findOne(Filters.eq(id));
-    }
-
-    /**
-     * Asynchronously retrieves a document from the collection by its unique identifier. This method wraps
-     * the synchronous {@code findById} operation in a {@link CompletableFuture}, enabling non-blocking
-     * database queries that improve application responsiveness and efficiency. The method is ideal for
-     * applications that require the retrieval of specific documents without impacting the performance
-     * of the user interface or other concurrent operations.
-     *
-     * <p>The unique identifier used to locate the document is typically the primary key or a unique field
-     * within the collection. This method abstracts the complexity of asynchronous programming, providing
-     * a straightforward way to execute and handle database queries within a non-blocking model.</p>
-     *
-     * <p>If the document with the specified identifier exists, it is wrapped in an {@link Optional} and
-     * returned within the completed future. Otherwise, the future is completed with an empty {@link Optional},
-     * neatly handling cases where no matching document is found without throwing exceptions.</p>
-     *
-     * @param id The unique identifier of the document to retrieve. This can be of any type that the database
-     *           recognizes as a valid identifier format (e.g., String, Integer).
-     * @return A {@link CompletableFuture} that, upon completion, contains an {@link Optional}
-     *         with the document if found. If no document matches the specified identifier, a completed future
-     *         with an empty {@link Optional} is returned.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * Object documentId = "uniqueDocumentId123";
-     * CompletableFuture<Optional<Document>> futureDocument = collection.findByIdASync(documentId);
-     * futureDocument.thenAccept(document -> document.ifPresent(System.out::println));
-     * }
-     * </pre>
-     */
-    public CompletableFuture<Optional<T>> findByIdASync(Object id) {
-        return CompletableFuture.supplyAsync(() -> findById(id));
     }
 
     /**
@@ -1229,7 +1368,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, float[] vector, int limit) {
-        return find(filter, FindOptions.Builder.sort(vector).limit(limit));
+        return find(filter, new FindOptions().sort(vector).limit(limit));
     }
 
     /**
@@ -1246,7 +1385,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(float[] vector, int limit) {
-        return find(null, FindOptions.Builder.sort(vector).limit(limit));
+        return find(null, new FindOptions().sort(vector).limit(limit));
     }
 
     /**
@@ -1263,7 +1402,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return A {@link FindIterable} for iterating over the sorted and limited documents.
      */
     public FindIterable<T> find(Filter filter, String vectorize, int limit) {
-        return find(filter, FindOptions.Builder.sort(vectorize).limit(limit));
+        return find(filter, new FindOptions().sort(vectorize).limit(limit));
     }
 
     /**
@@ -1314,7 +1453,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull("limit", options.getLimit())
                         .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
-        ApiResponse apiResponse = runCommand(findCommand);
+        ApiResponse apiResponse = runCommand(findCommand, options);
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
                 apiResponse.getData().getDocuments()
@@ -1420,6 +1559,15 @@ public class Collection<T> extends AbstractCommandRunner {
     }
 
     /**
+     * Calling an estimatedDocumentCount with default options. @see {@link #estimatedDocumentCount(EstimatedCountDocumentsOptions)}
+     *
+     * @return the estimated number of documents in the collection.
+     */
+    public long estimatedDocumentCount() {
+       return estimatedDocumentCount(new EstimatedCountDocumentsOptions());
+    }
+
+    /**
      * Executes the "estimatedDocumentCount" command to estimate the number of documents
      * in a collection.
      * <p>
@@ -1427,13 +1575,14 @@ public class Collection<T> extends AbstractCommandRunner {
      * from the command's response. It handles the execution of the command and the extraction
      * of the document count from the response.
      * </p>
+     * @param options
+     *     the options to apply to the operation
      * @return the estimated number of documents in the collection.
-     * @throws IllegalStateException if the command response does not contain the expected result count.
      */
-    public long estimatedDocumentCount() {
+    public long estimatedDocumentCount(EstimatedCountDocumentsOptions options) {
         Command command = new Command("estimatedDocumentCount");
         // Run command
-        ApiResponse response = runCommand(command);
+        ApiResponse response = runCommand(command, options);
         // Build Result
         return response.getStatus().getInteger(RESULT_COUNT);
     }
@@ -1458,12 +1607,14 @@ public class Collection<T> extends AbstractCommandRunner {
      *      A filter to select the documents to count. If not provided, all documents will be counted.
      * @param upperBound
      *      The maximum number of documents to count.
+     * @param options
+     *      overriding options for the count operation.
      * @return
      *      The number of documents in the collection.
      * @throws TooManyDocumentsToCountException
      *      If the number of documents counted exceeds the provided limit.
      */
-    public int countDocuments(Filter filter, int upperBound)
+    public int countDocuments(Filter filter, int upperBound, CountDocumentsOptions options)
     throws TooManyDocumentsToCountException {
         // Argument Validation
         if (upperBound<1 || upperBound> dataAPIOptions.getMaxDocumentCount()) {
@@ -1472,7 +1623,7 @@ public class Collection<T> extends AbstractCommandRunner {
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);
         // Run command
-        ApiResponse response = runCommand(command);
+        ApiResponse response = runCommand(command, options);
         // Build Result
         Boolean moreData = response.getStatus().getBoolean(RESULT_MORE_DATA);
         Integer count    = response.getStatus().getInteger(RESULT_COUNT);
@@ -1482,6 +1633,22 @@ public class Collection<T> extends AbstractCommandRunner {
             throw new TooManyDocumentsToCountException(upperBound);
         }
         return count;
+    }
+
+    /**
+     * Implementation of the @see {@link #countDocuments(Filter, int, CountDocumentsOptions)} method with default options.
+     * @param filter
+     *      filter to count
+     * @param upperBound
+     *      The maximum number of documents to count. It must be lower than the maximum limit accepted by the Data API.
+     * @return
+     *      The number of documents in the collection.
+     * @throws TooManyDocumentsToCountException
+     *      If the number of documents counted exceeds the provided limit.
+     */
+    public int countDocuments(Filter filter, int upperBound)
+    throws TooManyDocumentsToCountException {
+        return countDocuments(filter, upperBound, new CountDocumentsOptions());
     }
 
     // ----------------------------
@@ -1520,9 +1687,40 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withFilter(filter)
                 .withSort(deleteOneOptions.getSort());
 
-        ApiResponse apiResponse = runCommand(deleteOne);
+        ApiResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
         return new DeleteResult(deletedCount);
+    }
+
+    /**
+     * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
+     *
+     * @param filter
+     *      the query filter to apply the delete operation
+     * @param options
+     *      the options to apply to the operation
+     * @return
+     *      the result of the remove many operation
+     */
+    public DeleteResult deleteMany(Filter filter, DeleteManyOptions options) {
+        Assert.notNull(filter, ARG_FILTER);
+        AtomicInteger totalCount = new AtomicInteger(0);
+        boolean moreData = false;
+        do {
+            Command deleteMany = Command
+                    .create("deleteMany")
+                    .withFilter(filter);
+
+            ApiResponse apiResponse = runCommand(deleteMany, options);
+            Document status = apiResponse.getStatus();
+            if (status != null) {
+                if (status.containsKey(RESULT_DELETED_COUNT)) {
+                    totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
+                }
+                moreData = status.containsKey(RESULT_MORE_DATA);
+            }
+        } while(moreData);
+        return new DeleteResult(totalCount.get());
     }
 
     /**
@@ -1534,24 +1732,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the remove many operation
      */
     public DeleteResult deleteMany(Filter filter) {
-        Assert.notNull(filter, ARG_FILTER);
-        AtomicInteger totalCount = new AtomicInteger(0);
-        boolean moreData = false;
-        do {
-            Command deleteMany = Command
-                    .create("deleteMany")
-                    .withFilter(filter);
-
-            ApiResponse apiResponse = runCommand(deleteMany);
-            Document status = apiResponse.getStatus();
-            if (status != null) {
-                if (status.containsKey(RESULT_DELETED_COUNT)) {
-                    totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
-                }
-                moreData = status.containsKey(RESULT_MORE_DATA);
-            }
-        } while(moreData);
-        return new DeleteResult(totalCount.get());
+        return deleteMany(filter, new DeleteManyOptions());
     }
 
     /**
@@ -1631,7 +1812,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
-        ApiResponse res = runCommand(findOneAndReplace);
+        ApiResponse res = runCommand(findOneAndReplace, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()
@@ -1680,7 +1861,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 );
 
         // Execute the `findOneAndReplace`
-        FindOneAndReplaceResult<T> res = executeFindOneAndReplace(findOneAndReplace);
+        FindOneAndReplaceResult<T> res = executeFindOneAndReplace(findOneAndReplace, replaceOneOptions);
 
         // Parse the result for a replace one
         UpdateResult result = new UpdateResult();
@@ -1703,9 +1884,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      command result
      */
-    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd) {
+    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, CommandOptions options) {
         // Run Command
-        ApiResponse apiResponse = runCommand(cmd);
+        ApiResponse apiResponse = runCommand(cmd, options);
         // Parse Command Result
         FindOneAndReplaceResult<T> result = new FindOneAndReplaceResult<>();
         if (apiResponse.getData() == null) {
@@ -1773,7 +1954,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .append(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
-        ApiResponse res = runCommand(cmd);
+        ApiResponse res = runCommand(cmd, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()
@@ -1820,7 +2001,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withOptions(new Document()
                         .appendIfNotNull(INPUT_UPSERT, updateOptions.getUpsert())
                 );
-        return getUpdateResult(runCommand(cmd));
+        return getUpdateResult(runCommand(cmd, updateOptions));
     }
 
     /**
@@ -1889,7 +2070,7 @@ public class Collection<T> extends AbstractCommandRunner {
                     .withOptions(new Document()
                             .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
                             .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
-            ApiResponse res = runCommand(cmd);
+            ApiResponse res = runCommand(cmd, options);
             // Data
             if (res.getData() != null) {
                 nextPageState = res.getData().getNextPageState();
@@ -1950,7 +2131,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withSort(options.getSort())
                 .withProjection(options.getProjection());
 
-        ApiResponse res = runCommand(findOneAndReplace);
+        ApiResponse res = runCommand(findOneAndReplace, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()
@@ -1996,13 +2177,13 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.isOrdered()) {
             result.setResponses(commands
                     .stream()
-                    .map(this::runCommand)
+                    .map(cmd -> runCommand(cmd, options))
                     .collect(Collectors.toList()));
         } else {
             try {
                 ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
                 List<Future<ApiResponse>> futures = new ArrayList<>();
-                commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req))));
+                commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req, options))));
                 executor.shutdown();
                 for (Future<ApiResponse> future : futures) {
                     result.getResponses().add(future.get());
@@ -2019,35 +2200,34 @@ public class Collection<T> extends AbstractCommandRunner {
         return result;
     }
 
-    // --- Required for the Command Runner ---
+    /**
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     *
+     * @param logger
+     *      name for the logger
+     * @param commandObserver
+     *      class for the logger
+     */
+    @Deprecated
+    public void registerListener(String logger, CommandObserver commandObserver) {
+        this.commandOptions.registerObserver(logger, commandObserver);
+    }
 
     /**
-     * Register the logging listener to the collection.
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
      *
-     * @return
-     *      self reference
+     * @param name
+     *      name for the observer
      */
-    public Collection<T> enableLogging() {
-        registerListener("logger", new LoggingCommandObserver(Collection.class));
-        return this;
+    @Deprecated
+    public void deleteListener(String name) {
+        this.commandOptions.unregisterObserver(name);
     }
 
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
         return apiEndpoint;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getToken() {
-        return database.getToken();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPIOptions.HttpClientOptions getHttpClientOptions() {
-        return database.getOptions().getHttpClientOptions();
     }
 
 }

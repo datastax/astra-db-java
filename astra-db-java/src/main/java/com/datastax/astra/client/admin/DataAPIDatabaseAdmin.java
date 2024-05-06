@@ -22,16 +22,18 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.model.CommandOptions;
+import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.NamespaceOptions;
+import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
@@ -67,9 +69,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      list of options for the admin
      */
     public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
-        this.apiEndPoint = apiEndpoint;
-        this.token = token;
-        this.options = options;
+        this.apiEndPoint    = apiEndpoint;
+        this.token          = token;
+        this.options        = options;
+        this.commandOptions = new CommandOptions<>()
+                .token(token)
+                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .httpClientOptions(options.getHttpClientOptions());
+        options.getObservers().forEach(this.commandOptions::registerObserver);
     }
 
     // ------------------------------------------
@@ -141,9 +148,29 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         return apiEndPoint;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPIOptions.HttpClientOptions getHttpClientOptions() {
-        return options.getHttpClientOptions();
+
+    /**
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     *
+     * @param logger
+     *      name for the logger
+     * @param commandObserver
+     *      class for the logger
+     */
+    @Deprecated
+    public void registerListener(String logger, CommandObserver commandObserver) {
+        this.commandOptions.registerObserver(logger, commandObserver);
     }
+
+    /**
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     *
+     * @param name
+     *      name for the observer
+     */
+    @Deprecated
+    public void deleteListener(String name) {
+        this.commandOptions.unregisterObserver(name);
+    }
+
 }

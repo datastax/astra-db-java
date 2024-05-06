@@ -32,7 +32,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class FindOneAndReplaceOptions {
+public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOptions> {
 
     /**
      * Option to order the result.
@@ -158,6 +158,7 @@ public class FindOneAndReplaceOptions {
     /**
      * Builder for creating {@link FindOneAndReplaceOptions} instances with a fluent API.
      */
+    @Deprecated
     public static class Builder {
 
         /**

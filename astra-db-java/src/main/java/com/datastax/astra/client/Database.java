@@ -24,14 +24,17 @@ import com.datastax.astra.client.DataAPIOptions.DataAPIDestination;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
@@ -147,6 +150,12 @@ public class Database extends AbstractCommandRunner {
                 .append("/")
                 .append(namespaceName)
                 .toString();
+        // Build Command
+        this.commandOptions = new CommandOptions<>()
+                .token(token)
+                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .httpClientOptions(options.getHttpClientOptions());
+        options.getObservers().forEach(this.commandOptions::registerObserver);
     }
 
     // ------------------------------------------
@@ -189,8 +198,7 @@ public class Database extends AbstractCommandRunner {
      */
     public Stream<String> listCollectionNames() {
 
-        Command findCollections = Command
-                .create("findCollections");
+        Command findCollections = Command.create("findCollections");
 
         return runCommand(findCollections)
                 .getStatusKeyAsList("collections", String.class)
@@ -252,9 +260,40 @@ public class Database extends AbstractCommandRunner {
      *      the collection
      */
     public <T> Collection<T> getCollection(String collectionName, @NonNull Class<T> documentClass) {
+        return getCollection(collectionName, null, documentClass);
+    }
+
+    /**
+     * Gets a collection, with a specific default document class.
+     *
+     * @param collectionName
+     *      the name of the collection to return
+     * @param documentClass
+     *      the default class to cast any documents returned from the database into.
+     * @param commandOptions
+     *      options to use when using this collection
+     * @param <T>
+     *      the type of the class to use instead of {@code Document}.
+     * @return
+     *      the collection
+     */
+    public <T> Collection<T> getCollection(String collectionName, CommandOptions<?> commandOptions, @NonNull Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
-        return new Collection<>(this, collectionName, documentClass);
+        CommandOptions<?> collectionCollectionOptions = new CommandOptions<>()
+                .token(token)
+                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .httpClientOptions(options.getHttpClientOptions());
+        this.commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
+
+        // Override with the commandOptions if any for a collection
+        if (commandOptions != null) {
+            commandOptions.getToken().ifPresent(collectionCollectionOptions::token);
+            commandOptions.getEmbeddingAPIKey().ifPresent(collectionCollectionOptions::embeddingAPIKey);
+            commandOptions.getHttpClientOptions().ifPresent(collectionCollectionOptions::httpClientOptions);
+            commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
+        }
+        return new Collection<>(this, collectionName, collectionCollectionOptions, documentClass);
     }
 
     /**
@@ -273,7 +312,7 @@ public class Database extends AbstractCommandRunner {
      *      the instance of collection
      */
     public Collection<Document> createCollection(String collectionName) {
-        return createCollection(collectionName, null, Document.class);
+        return createCollection(collectionName, null, null, Document.class);
     }
 
     /**
@@ -310,7 +349,7 @@ public class Database extends AbstractCommandRunner {
             return createCollection(collectionName, CollectionOptions.builder()
                     .vectorDimension(dimension)
                     .vectorSimilarity(metric)
-                    .build(), documentClass);
+                    .build(), commandOptions, documentClass);
     }
 
     /**
@@ -325,7 +364,7 @@ public class Database extends AbstractCommandRunner {
      * @return the collection
      */
     public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
-        return createCollection(collectionName, null, documentClass);
+        return createCollection(collectionName, null, commandOptions, documentClass);
     }
 
     /**
@@ -338,7 +377,40 @@ public class Database extends AbstractCommandRunner {
      * @return the collection
      */
     public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
-        return createCollection(collectionName, collectionOptions, Document.class);
+        return createCollection(collectionName, collectionOptions, commandOptions, Document.class);
+    }
+
+    /**
+     * Create a new collection with the given name.
+     *
+     * @param collectionName
+     *      collection name
+     * @param collectionOptions
+     *      collection options
+     * @param documentClass
+     *      document class
+     * @return
+     *      the collection created
+     * @param <T>
+     *      working object for the document
+     */
+    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions,  Class<T> documentClass) {
+        return createCollection(collectionName, collectionOptions, commandOptions, documentClass);
+    }
+
+    /**
+     * Create a new collection with the given name.
+     *
+     * @param collectionName
+     *      the name for the new collection to create
+     * @param collectionOptions
+     *      various options for creating the collection
+     * @param commandOptions
+     *      options to use when using this collection
+     * @return the collection
+     */
+    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> commandOptions) {
+        return createCollection(collectionName, collectionOptions, commandOptions, Document.class);
     }
 
     /**
@@ -350,20 +422,24 @@ public class Database extends AbstractCommandRunner {
      *      various options for creating the collection
      * @param documentClass
      *     the default class to cast any documents returned from the database into.
+     * @param commandOptions
+     *      options to use when using this collection
      * @param <T>
      *          working class for the document
      * @return the collection
      */
-    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, Class<T> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> commandOptions, Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
         Command createCollection = Command
                 .create("createCollection")
-                .append("name", collectionName)
-                .withOptions(JsonUtils.convertValue(collectionOptions, Document.class));
-        runCommand(createCollection);
+                .append("name", collectionName);
+        if (collectionOptions != null) {
+            createCollection.withOptions(JsonUtils.convertValue(collectionOptions, Document.class));
+        }
+        runCommand(createCollection, commandOptions);
         log.info("Collection  '" + green("{}") + "' has been created", collectionName);
-        return getCollection(collectionName, documentClass);
+        return getCollection(collectionName, commandOptions, documentClass);
     }
 
     /**
@@ -375,21 +451,8 @@ public class Database extends AbstractCommandRunner {
     public void dropCollection(String collectionName) {
         runCommand(Command
                 .create("deleteCollection")
-                .append("name", collectionName));
+                .append("name", collectionName), new CommandOptions());
         log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
-    }
-
-    // --- Required for the Command Runner ---
-
-    /**
-     * Register the logging listener to the collection.
-     *
-     * @return
-     *      self reference
-     */
-    public Database enableLogging() {
-        registerListener("logger", new LoggingCommandObserver(Database.class));
-        return this;
     }
 
     /** {@inheritDoc} */
@@ -398,15 +461,27 @@ public class Database extends AbstractCommandRunner {
         return apiEndpoint;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected String getToken() {
-        return token;
+    /**
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     *
+     * @param logger
+     *      name for the logger
+     * @param commandObserver
+     *      class for the logger
+     */
+    @Deprecated
+    public void registerListener(String logger, CommandObserver commandObserver) {
+        this.commandOptions.registerObserver(logger, commandObserver);
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPIOptions.HttpClientOptions getHttpClientOptions() {
-        return options.getHttpClientOptions();
+    /**
+     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     *
+     * @param name
+     *      name for the observer
+     */
+    @Deprecated
+    public void deleteListener(String name) {
+        this.commandOptions.unregisterObserver(name);
     }
 }
