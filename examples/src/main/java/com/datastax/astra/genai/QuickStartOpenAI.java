@@ -43,11 +43,13 @@ public class QuickStartOpenAI {
               .build());
 
         // Access to the database
-        Database localDb = localDataAPI.getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
+        Database localDb = localDataAPI
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
 
         // Create a Namespace if Needed
-        DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) localDb.getDatabaseAdmin();
-        dbAdmin.createNamespace(DEFAULT_NAMESPACE);
+        ((DataAPIDatabaseAdmin) localDb
+                .getDatabaseAdmin())
+                .createNamespace(DEFAULT_NAMESPACE);
 
         // Create a collection for the provider
         Collection<Document> collection = localDb.createCollection(
@@ -57,9 +59,7 @@ public class QuickStartOpenAI {
                         .vectorDimension(embeddingModel.getDimension())
                         .vectorSimilarity(SimilarityMetric.COSINE)
                         .vectorize(embeddingModel.getProvider(), embeddingModel.getName())
-                        .build(),
-                // Save API Key at collection level
-                new CommandOptions<>().embeddingAPIKey(embeddingApiKey));
+                        .build());
 
         // Insert documents
         collection.deleteAll();
