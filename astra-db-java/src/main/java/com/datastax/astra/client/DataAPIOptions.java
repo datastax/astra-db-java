@@ -46,7 +46,7 @@ public class DataAPIOptions {
     public static final  int DEFAULT_MAX_PAGE_SIZE = 20;
 
     /** Maximum number of documents when you insert. */
-    public static final int DEFAULT_MAX_CHUNKSIZE = 20;
+    public static final int DEFAULT_MAX_CHUNK_SIZE = 100;
 
     /** Default user agent. */
     public static final String DEFAULT_CALLER_NAME = "astra-db-java";
@@ -238,7 +238,7 @@ public class DataAPIOptions {
         private int maxPageSize = DEFAULT_MAX_PAGE_SIZE;
 
         /** The maximum number of documents that can be inserted in a single operation. */
-        private int maxDocumentsInInsert = DEFAULT_MAX_CHUNKSIZE;
+        private int maxDocumentsInInsert = DEFAULT_MAX_CHUNK_SIZE;
 
         /** The embedding service API key can be provided at top level. */
         private String embeddingAPIKey;
@@ -505,9 +505,9 @@ public class DataAPIOptions {
             if (maxDocumentsInInsert <= 0) {
                 throw new IllegalArgumentException("Max documents in insert must be a positive number");
             }
-            if (maxDocumentsInInsert > DEFAULT_MAX_CHUNKSIZE) {
+            if (maxDocumentsInInsert > DEFAULT_MAX_CHUNK_SIZE) {
                 log.warn("Setting the maximum number of documents in insert to a value greater than the " +
-                        "default value of {} may impact performance or result in error at server level", DEFAULT_MAX_CHUNKSIZE);
+                        "default value of {} may impact performance or result in error at server level", DEFAULT_MAX_CHUNK_SIZE);
             }
             this.maxDocumentsInInsert = maxDocumentsInInsert;
             return this;

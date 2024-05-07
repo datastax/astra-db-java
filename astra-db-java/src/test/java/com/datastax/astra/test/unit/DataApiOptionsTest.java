@@ -5,6 +5,7 @@ import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
+import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.FilterOperator;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -28,6 +29,7 @@ import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpClient;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -192,9 +194,12 @@ class DataApiOptionsTest {
         s.setModelName("OK");
 
         CollectionOptions.Authentication a = new CollectionOptions.Authentication();
-        a.setSecretName("secret");
+        a.setSecrets(Map.of("secretName", "secret"));
         a.setType(List.of("type"));
-        s.setAuthentication(a);
+        Map<String, Object> authentication = new HashMap<>();
+        authentication.put("type", new String[] {"type"});
+        authentication.put("secretName", "secret");
+        s.setAuthentication(authentication);
 
         CollectionOptions.Parameters p1 = new CollectionOptions.Parameters();
         p1.setHelp("sample parama");
@@ -205,6 +210,7 @@ class DataApiOptionsTest {
 
         v.setService(s);
         c.setVector(v);
+        System.out.println(JsonUtils.marshall(c));
         assertThat(JsonUtils.marshall(c)).isNotNull();
     }
 

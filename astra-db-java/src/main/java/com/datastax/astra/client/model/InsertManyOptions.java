@@ -42,7 +42,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private int chunkSize = DataAPIOptions.DEFAULT_MAX_CHUNKSIZE;
+    private int chunkSize = DataAPIOptions.DEFAULT_MAX_CHUNK_SIZE;
 
     /**
      * If the flag is set to true the command is failing on first error

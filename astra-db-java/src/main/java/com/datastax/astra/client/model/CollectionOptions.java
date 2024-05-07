@@ -22,6 +22,7 @@ package com.datastax.astra.client.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -162,31 +163,13 @@ public class CollectionOptions {
         private String modelName;
 
         /** Authentication information like keys and secrets. */
-        private Authentication authentication;
+        private Map<String, Object> authentication;
 
         /** Free form parameters. */
         private Map<String, Object> parameters;
 
         /** Default constructor. */
         public Service() {
-            // left blank, serialization with jackson
-        }
-    }
-
-    /**
-     * Subclass representing the Authentication options.
-     */
-    @Getter @Setter
-    public static class Authentication {
-
-        /** Type of authentication: Oauth, API Key, etc. */
-        private List<String> type;
-
-        /** Name of the secret if sstored in Astra. */
-        private String secretName;
-
-        /** Default constructor. */
-        public Authentication() {
             // left blank, serialization with jackson
         }
     }
