@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection.vectorize;
+package com.datastax.astra.test.integration.collection_vectorize;
 
 /**
  * Group Embeddings Models
@@ -10,11 +10,19 @@ public enum EmbeddingModel {
     OPENAI_3_SMALL("openai", "text-embedding-3-small", 1536),
     OPENAI_3_LARGE("openai", "text-embedding-3-large", 3072),
 
+    AZURE_OPENAI_SMALL("azureOpenAI", "text-embedding-3-small", 512),
+    AZURE_OPENAI_SMALL_SHARED("azureOpenAI", "text-embedding-3-small", 512),
+    AZURE_OPENAI_LARGE("azureOpenAI", "text-embedding-3-large", 1024),
+    AZURE_OPENAI_ADA002("azureOpenAI", "text-embedding-ada-002", 1536),
+
     NVIDIA_NEMO("nvidia", "NV-Embed-QA", 1024),
+
     HF_MINI_LM_L6("huggingface", "sentence-transformers/all-MiniLM-L6-v2", 384),
-    //HF_SNOWFLAKE_ARCTIC("huggingface", "Snowflake/snowflake-arctic-embed-m", 768),
-    //HF_ALL_MPNET("huggingface", "sentence-transformers/all-mpnet-base-v2", 768),
-    //HF_MINI_LM_L12("huggingface", "paraphrase-multilingual-MiniLM-L12-v2", 384),
+    HF_E5_LARGE("huggingface", "intfloat/multilingual-e5-large", 1024),
+    HF_E5_LARGE_INSTRUCT("huggingface", "multilingual-e5-large-instruct", 1024),
+    HF_BGE_SMALL("huggingface", "bge-small-en-v1.5", 384),
+    HF_BGE_BASE("huggingface", "BAAI/bge-base-en-v1.5", 768),
+    HF_BGE_LARGE("huggingface", "BAAI/bge-large-en-v1.5", 1024),
 
     VERTEX_AI_GECKO_003("vertexai", "textembedding-gecko@003", 768),
 
@@ -24,7 +32,7 @@ public enum EmbeddingModel {
     JINA_AI_EMBEDDINGS_V2_ZH("jinaai", "jina-embeddings-v2-base-zh", 768),
     JINA_AI_EMBEDDINGS_V2_CODE("jinaai", "jina-embeddings-v2-base-code", 768),
 
-    MISTRAL_AI("mistralai", "mistral-embed", 1024),
+    MISTRAL_AI("mistral", "mistral-embed", 1024),
 
     VOYAGE_AI_2("voyageai", " voyage-2", 1024),
     VOYAGE_AI_LAW_2("voyageai", " voyage-law-2", 1024),
@@ -32,8 +40,7 @@ public enum EmbeddingModel {
     VOYAGE_AI_LARGE_2("voyageai", " voyage-large-2", 1536),
     VOYAGE_AI_LITE_INSTRUCT("voyageai", "voyage-lite-02-instruct", 1024),
 
-    UPSTAGE_AI_SOLAR_MINI_1_QUERY("upstageai", "solar-1-mini-embedding-query", 4096),
-    UPSTAGE_AI_SOLAR_MINI_1_PASSAGE("upstageai", "solar-1-mini-embedding-passage", 4096),
+    UPSTAGE_AI_SOLAR_MINI_1_QUERY("upstageAI", "solar-1-mini-embedding", 4096),
 
     COHERE_EMBED_ENGLISH_V2("cohere", "embed-english-v2.0", 4096),
     COHERE_EMBED_ENGLISH_V3("cohere", "embed-english-v3.0", 1024);

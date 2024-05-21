@@ -23,6 +23,7 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CommandOptions;
+import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.client.model.Command;
@@ -32,6 +33,7 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -90,6 +92,13 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         return runCommand(cmd)
                 .getStatusKeyAsStringStream("namespaces")
                 .collect(Collectors.toSet());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<String, EmbeddingProvider> listEmbeddingProviders() {
+        return runCommand(Command.create("findEmbeddingProviders"))
+                .getStatusKeyAsMap("embeddingProviders", EmbeddingProvider.class);
     }
 
     /** {@inheritDoc} */

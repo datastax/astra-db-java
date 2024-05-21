@@ -31,6 +31,7 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -98,6 +99,22 @@ public class ApiResponse implements Serializable {
         return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
                JsonUtils.getDataApiObjectMapper().getTypeFactory()
                         .constructCollectionType(List.class, targetClass));
+    }
+
+    /**
+     * Retrieves a list of objects from the 'status' map based on the provided key, casting them to the specified class.
+     * This method is suitable for cases where the status information contains lists of objects under a single key.
+     *
+     * @param key The key for which to retrieve the list.
+     * @param targetClass The class to which the objects in the list should be cast.
+     * @param <T> The type of the objects in the list to be returned.
+     * @return The list of objects associated with the specified key, cast to the specified class; {@code null} if the key does not exist.
+     */
+    public <T> Map<String, T> getStatusKeyAsMap(@NonNull String key, Class<T> targetClass) {
+        Assert.isTrue(status.containsKey(key), "Key not found in status map");
+        return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
+                JsonUtils.getDataApiObjectMapper().getTypeFactory()
+                        .constructMapType(Map.class, String.class, targetClass));
     }
 
 }

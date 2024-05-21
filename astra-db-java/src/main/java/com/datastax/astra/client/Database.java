@@ -126,6 +126,7 @@ public class Database extends AbstractCommandRunner {
         this.namespaceName = namespace;
         this.token         = token;
         this.options       = options;
+
         // Adding version number if needed
         this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
                 apiEndpoint :
@@ -451,7 +452,7 @@ public class Database extends AbstractCommandRunner {
     public void dropCollection(String collectionName) {
         runCommand(Command
                 .create("deleteCollection")
-                .append("name", collectionName), new CommandOptions());
+                .append("name", collectionName), commandOptions);
         log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
     }
 

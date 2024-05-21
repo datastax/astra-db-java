@@ -193,14 +193,6 @@ class DataApiOptionsTest {
         s.setProvider("OK");
         s.setModelName("OK");
 
-        CollectionOptions.Authentication a = new CollectionOptions.Authentication();
-        a.setSecrets(Map.of("secretName", "secret"));
-        a.setType(List.of("type"));
-        Map<String, Object> authentication = new HashMap<>();
-        authentication.put("type", new String[] {"type"});
-        authentication.put("secretName", "secret");
-        s.setAuthentication(authentication);
-
         CollectionOptions.Parameters p1 = new CollectionOptions.Parameters();
         p1.setHelp("sample parama");
         p1.setType("String");

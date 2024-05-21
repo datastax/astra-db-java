@@ -21,12 +21,14 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -133,6 +135,12 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         return devopsDbClient
                 .database(databaseId.toString())
                 .keyspaces().findAll();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<String, EmbeddingProvider> listEmbeddingProviders() {
+        return new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + options.getApiVersion(), token, options).listEmbeddingProviders();
     }
 
     /** {@inheritDoc} */

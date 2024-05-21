@@ -3,6 +3,7 @@ package com.datastax.astra.test.integration.database_admin;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
@@ -13,6 +14,7 @@ import com.dtsx.astra.sdk.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -141,6 +143,14 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
             log.warn("Waiting for namespace 'tmp' to be delete");
         }
         assertThat(getDatabaseAdmin().namespaceExists("tmp")).isFalse();
+    }
+
+    @Test
+    void shouldListEmbeddingProvider() {
+        Map<String, EmbeddingProvider> mapOfProviders = getDatabaseAdmin().listEmbeddingProviders();
+        assertThat(mapOfProviders).isNotNull();
+        assertThat(mapOfProviders).isNotEmpty();
+        assertThat(mapOfProviders).containsKeys("openai");
     }
 
 }

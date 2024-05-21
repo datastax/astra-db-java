@@ -5,6 +5,7 @@ import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.NamespaceOptions;
 import org.junit.jupiter.api.Test;
 
@@ -13,7 +14,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-class LocalAdminITTest extends AbstractDatabaseAdminITTest {
+class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
     protected DatabaseAdmin initDatabaseAdmin() {

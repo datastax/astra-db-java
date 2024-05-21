@@ -348,9 +348,28 @@ public class CollectionOptions {
          *      self reference
          */
         public CollectionOptionsBuilder vectorize(String provider, String modeName) {
+            return vectorize(provider, modeName, null);
+        }
+
+        /**
+         * Enable Vectorization within the collection.
+         *
+         * @param provider
+         *      provider Name (LLM)
+         * @param modeName
+         *      mode name
+         * @param keyName
+         *      name of the key in the system
+         * @return
+         *      self reference
+         */
+        public CollectionOptionsBuilder vectorize(String provider, String modeName, String keyName) {
             Service embeddingService = new Service();
             embeddingService.setProvider(provider);
             embeddingService.setModelName(modeName);
+            if (keyName != null) {
+                embeddingService.setAuthentication(Map.of("providerKey", keyName + ".providerKey"));
+            }
             getVector().setService(embeddingService);
             return this;
         }
@@ -364,11 +383,13 @@ public class CollectionOptions {
          *      mode name
          * @param parameters
          *      expected parameters for vectorize
+         * @param keyName
+         *      name of the key in the system
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder vectorize(String provider, String modeName, Map<String, Object> parameters) {
-            vectorize(provider, modeName);
+        public CollectionOptionsBuilder vectorize(String provider, String modeName, String keyName, Map<String, Object> parameters) {
+            vectorize(provider, modeName, keyName);
             getVector().getService().setParameters(parameters);
             return this;
         }

@@ -5,12 +5,17 @@ package com.datastax.astra.genai;
  */
 public enum EmbeddingModelType {
 
+    NVIDIA_NEMO("nvidia", "NV-Embed-QA", 1024),
+
     // OpenAI models
     OPENAI_ADA002("openai", "text-embedding-ada-002", 1536),
     OPENAI_3_SMALL("openai", "text-embedding-3-small", 1536),
     OPENAI_3_LARGE("openai", "text-embedding-3-large", 3072),
 
-    NVIDIA_NEMO("nvidia", "NV-Embed-QA", 1024),
+    AZURE_OPENAI_SMALL("azure_openai", "text-embedding-3-small", 512),
+    AZURE_OPENAI_LARGE("azure_openai", "text-embedding-3-large", 1024),
+    AZURE_OPENAI_ADA002("azure_openai", "text-embedding-ada-002", 1536),
+
     HF_MINI_LM_L6("huggingface", "sentence-transformers/all-MiniLM-L6-v2", 384),
     //HF_SNOWFLAKE_ARCTIC("huggingface", "Snowflake/snowflake-arctic-embed-m", 768),
     //HF_ALL_MPNET("huggingface", "sentence-transformers/all-mpnet-base-v2", 768),

@@ -22,7 +22,9 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CommandRunner;
+import com.datastax.astra.client.model.EmbeddingProvider;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
@@ -80,6 +82,22 @@ public interface DatabaseAdmin {
      *         provides a flexible and efficient means to process the namespace names according to the application's needs.
      */
     Set<String> listNamespaceNames();
+
+    /**
+     * Retrieve the list of embedding providers available in the current database. Embedding providers are services
+     * that provide embeddings for text, images, or other data types. This method returns a map of provider names to
+     * {@link EmbeddingProvider} instances, allowing applications to access and utilize the embedding services.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assuming 'client' is an instance of DataApiClient
+     * Map<String, EmbeddingProvider> providers = client.listEmbeddingProviders());
+     * }
+     * </pre>
+     * @return
+     */
+    Map<String, EmbeddingProvider> listEmbeddingProviders();
 
     /**
      * Asynchronously retrieves a stream of namespace names available in the current database. This method facilitates

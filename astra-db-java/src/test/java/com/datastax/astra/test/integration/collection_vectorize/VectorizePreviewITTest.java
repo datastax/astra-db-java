@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection.vectorize;
+package com.datastax.astra.test.integration.collection_vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
@@ -8,15 +8,11 @@ import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
-import com.datastax.astra.test.integration.collection.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.model.FindOptions.Builder.sort;

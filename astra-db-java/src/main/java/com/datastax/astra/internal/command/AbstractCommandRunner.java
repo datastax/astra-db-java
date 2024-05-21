@@ -24,7 +24,6 @@ import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.CommandRunner;
-import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
@@ -42,6 +41,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -97,7 +97,11 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         // === OBSERVERS ===
         List<CommandObserver> observers = new ArrayList<>(commandOptions.getObservers().values());
         if (overridingOptions != null && overridingOptions.getObservers() != null) {
-            observers.addAll(overridingOptions.getObservers().values());
+            for (Map.Entry<String, CommandObserver> observer : overridingOptions.getObservers().entrySet()) {
+                if (!commandOptions.getObservers().containsKey(observer.getKey())) {
+                    observers.add(observer.getValue());
+                }
+            }
         }
 
         // === TOKEN ===
