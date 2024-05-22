@@ -27,8 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Class representing the Embedding Provider returned by findEmbeddingProviders command.
+ */
 @Data
-@NoArgsConstructor
 public class EmbeddingProvider {
 
    /** Keys for the supported authentication methods */
@@ -56,6 +58,12 @@ public class EmbeddingProvider {
    private List<Model> models;
 
     /**
+     * Default constructor.
+     */
+    public EmbeddingProvider() {
+    }
+
+    /**
      * Accessor for the Share Secret Authentication.
      *
      * @return
@@ -79,38 +87,63 @@ public class EmbeddingProvider {
      * Model for the service.
      */
     @Data
-    @NoArgsConstructor
     public static class Model {
+
+        /** Model name */
         private String name;
+
+        /** Model dimension. */
         private Integer vectorDimension;
+
+        /** Parameters for the model. */
         private List<Parameter> parameters;
+
+        /**
+         * Default constructor.
+         */
+        public Model() {}
     }
 
     /**
      * Authentication method.
      */
    @Data
-   @NoArgsConstructor
    public static class AuthenticationMethod {
-    private boolean enabled;
-    private List<Token> tokens;
+
+       /** If this method is enabled. */
+       private boolean enabled;
+
+       /** List of tokens. */
+       private List<Token> tokens;
+
+        /**
+         * Default constructor.
+         */
+        public AuthenticationMethod() {}
    }
 
     /**
      * Token method.
      */
     @Data
-    @NoArgsConstructor
     public static class Token {
+
+        /** If token is forwarded. */
         private String forwarded;
+
+        /** Accept token. */
         private String accepted;
+
+        /**
+         * Default constructor.
+         */
+        public Token() {}
     }
 
     /**
      * Parameters for the service.
      */
     @Data
-    @NoArgsConstructor
     public static class Parameter {
         private String name;
         private String type;
@@ -118,15 +151,22 @@ public class EmbeddingProvider {
         private String defaultValue;
         private Validation validation;
         private String help;
+        /**
+         * Default constructor.
+         */
+        public Parameter() {}
     }
 
     /**
      * Validation Component for the parameter.
      */
     @Data
-    @NoArgsConstructor
     public static class Validation {
         private List<Integer> numericRange;
+        /**
+         * Default constructor.
+         */
+        public Validation() {}
     }
 
 

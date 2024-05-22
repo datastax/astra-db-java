@@ -9,6 +9,7 @@ import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -37,10 +38,13 @@ public class AzureOpenAI_SharedSecret_AstraDev {
 
         // Create a collection
         Database db = dataAPIClient.getDatabase(UUID.fromString("2341e6dc-c6b2-4031-9c36-a93b8c1549e0"));
+        db.getCommandOptions().getObservers().put("logger", new LoggingCommandObserver(AzureOpenAI_SharedSecret_AstraDev.class));
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("deploymentId", "text-embedding-3-small-steo");
         parameters.put("resourceName", "steo-azure-openai");
+
+        db.dropCollection("collection_azure_openai");
         Collection<Document> collection = db.createCollection(
                 "collection_azure_openai",
                 // Create collection with a Service in vectorize

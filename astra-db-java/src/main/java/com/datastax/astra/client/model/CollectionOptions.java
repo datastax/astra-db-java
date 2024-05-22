@@ -121,7 +121,7 @@ public class CollectionOptions {
         /**
          * Size of the vector.
          */
-        private int dimension;
+        private Integer dimension;
 
         /**
          * Similarity metric.
