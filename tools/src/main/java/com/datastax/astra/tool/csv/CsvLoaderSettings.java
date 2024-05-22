@@ -9,7 +9,7 @@ public class CsvLoaderSettings {
 
     private static final int THREAD_POOL_SIZE = 5;
 
-    private static final int TIMEOUT = 180;
+    private static final int TIMEOUT = 1800;
 
     @Builder.Default
     int batchSize = BATCH_SIZE;;
