@@ -13,27 +13,28 @@ import java.util.Map;
 /**
  * Testing Vectorize in DEV
  */
-public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
+public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override
     protected Database initDatabase() {
         return gcpEuropeWest4();
-        //return gcpUsCentral();
+        //return gcpUsEast1();
         //return azureEastUs();
-        //return awsUSWest2();
+        //return awsUSWest1();
     }
 
-    private Database awsUSWest2() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
+    private Database gcpUsEast1() {
+        Database db = initAstraDatabase(AstraEnvironment.PROD, "gcp_us_east1", CloudProviderType.GCP, "us-east1");
+        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+        return db;
+    }
+    private Database awsUSWest1() {
+        Database db = initAstraDatabase(AstraEnvironment.PROD, "aws_us-west-1", CloudProviderType.AWS, "us-west-1");
         db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
         return db;
     }
 
-    private Database gcpUsCentral() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
+
 
     private Database gcpEuropeWest4() {
         Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");

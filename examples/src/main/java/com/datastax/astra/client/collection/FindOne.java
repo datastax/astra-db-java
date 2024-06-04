@@ -2,6 +2,7 @@ package com.datastax.astra.client.collection;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
@@ -45,6 +46,23 @@ public class FindOne {
                 .projection(exclude("_id"))
                 .includeSimilarity()
         );
+
+        // find one with a vectorize
+        collection.findOne(and(
+                        gt("field2", 10),
+                        lt("field3", 20),
+                        eq("field4", "value")),
+                new FindOneOptions().sort("Life is too short to be living somebody else's dream.")
+                        .projection(include("field", "field2", "field3"))
+                        .projection(exclude("_id"))
+                        .includeSimilarity()
+        );
+
+        collection.insertOne(new Document()
+                .append("field", "value")
+                .append("field2", 15)
+                .append("field3", 15)
+                .vectorize("Life is too short to be living somebody else's dream."));
 
     }
 }

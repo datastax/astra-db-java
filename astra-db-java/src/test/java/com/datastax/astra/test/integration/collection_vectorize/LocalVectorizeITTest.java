@@ -6,16 +6,7 @@ import com.datastax.astra.client.model.EmbeddingProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.datastax.astra.test.integration.collection_vectorize.EmbeddingModel.AZURE_OPENAI_ADA002;
-import static com.datastax.astra.test.integration.collection_vectorize.EmbeddingModel.AZURE_OPENAI_LARGE;
-import static com.datastax.astra.test.integration.collection_vectorize.EmbeddingModel.AZURE_OPENAI_SMALL;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class LocalVectorizeITTest extends AbstractVectorizeITTest {
@@ -25,8 +16,23 @@ public class LocalVectorizeITTest extends AbstractVectorizeITTest {
         return DataAPIClients.createDefaultLocalDatabase();
     }
 
+    @Test
+    public void testOneProvider() {
+        //shouldTestOneProvider("azureOpenAI");
+        //shouldTestOneProvider("jinaAI");
+        //shouldTestOneProvider("voyageAI");
+        ///shouldTestOneProvider("huggingface");
+        //shouldTestOneProvider("upstageAI");
+        shouldTestOneProvider("mistral");
+    }
 
-
-
+    @Test
+    public void shouldTestAllProviders() {
+        for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
+                .getDatabaseAdmin()
+                .listEmbeddingProviders().entrySet()) {
+            this.testEmbeddingProvider(entry.getKey(), entry.getValue());
+        }
+    }
 
 }

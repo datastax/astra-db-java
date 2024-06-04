@@ -8,6 +8,7 @@ import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.tool.csv.CsvLoader;
 import com.datastax.astra.tool.csv.CsvRowMapper;
+import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import lombok.extern.slf4j.Slf4j;
 
 /**

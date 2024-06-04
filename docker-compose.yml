@@ -26,7 +26,7 @@ services:
       retries: 10
 
   jsonapi:
-    image: stargateio/jsonapi:v1.0.8
+    image: stargateio/jsonapi:v1.0.9
     depends_on:
       coordinator:
         condition: service_healthy

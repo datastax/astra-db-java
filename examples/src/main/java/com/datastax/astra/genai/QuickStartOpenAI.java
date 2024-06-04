@@ -5,12 +5,10 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.CommandOptions;
-import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOneOptions;
-import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.auth.TokenProviderStargateV2;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -56,6 +54,7 @@ public class QuickStartOpenAI {
                 embeddingModel.name().toLowerCase(),
                 // Create collection with a Service in vectorize
                 CollectionOptions.builder()
+                        .indexingAllow()
                         .vectorDimension(embeddingModel.getDimension())
                         .vectorSimilarity(SimilarityMetric.COSINE)
                         .vectorize(embeddingModel.getProvider(), embeddingModel.getName())
