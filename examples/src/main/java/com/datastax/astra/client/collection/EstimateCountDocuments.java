@@ -21,7 +21,7 @@ public class EstimateCountDocuments {
         // Count with no filter
         long estimatedCount = collection.estimatedDocumentCount();
 
-        // Count with options (add a logger
+        // Count with options (adding a logger)
         EstimatedCountDocumentsOptions options = new EstimatedCountDocumentsOptions()
                     .registerObserver("logger", new LoggingCommandObserver(DataAPIClient.class));
         long estimateCount2 = collection.estimatedDocumentCount(options);
