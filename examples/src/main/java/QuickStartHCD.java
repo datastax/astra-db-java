@@ -36,20 +36,20 @@ public class QuickStartHCD {
 
         // Build a token in the form of Cassandra:base64(username):base64(password)
         String token = new UsernamePasswordTokenProvider(cassandraUserName, cassandraPassword).getToken();
-        System.out.println("01/12 - Creating Token: " + token);
+        System.out.println("1/7 - Creating Token: " + token);
 
         // Initialize the client
         DataAPIClient client = new DataAPIClient(token, builder().withDestination(HCD).build());
-        System.out.println("02/12 -Connected to Data API");
+        System.out.println("2/7 - Connected to Data API");
 
         // Create a default keyspace
         ((DataAPIDatabaseAdmin) client
                 .getDatabase(dataApiUrl)
                 .getDatabaseAdmin()).createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
-        System.out.println("03/12 -Keyspace '" + keyspaceName + "'created ");
+        System.out.println("3/7 - Keyspace '" + keyspaceName + "'created ");
 
         Database db = client.getDatabase(dataApiUrl, keyspaceName);
-        System.out.println("04/12 -Connected to Database");
+        System.out.println("4/7 - Connected to Database");
 
         // Create a collection with Vector embeddings OPEN AI
         Collection<Document> collectionLyrics =  db.createCollection(collectionName, CollectionOptions.builder()
@@ -58,7 +58,7 @@ public class QuickStartHCD {
                 .vectorize(openAiProvider, openAiModel)
                 .build(),
                 new CommandOptions<>().embeddingAPIKey(openAiKey));
-        System.out.println("05/12 -Collection created with OpenAI embeddings");
+        System.out.println("5/7 - Collection created with OpenAI embeddings");
 
         // Insert some documents
         collectionLyrics.insertMany(
@@ -69,7 +69,7 @@ public class QuickStartHCD {
                 new Document(6).append("band", "Dire Straits").append("song", "Romeo And Juliet").vectorize("She's singing, Hey la, my boyfriend's back"),
                 new Document(7).append("band", "Dire Straits").append("song", "Romeo And Juliet").vectorize("You shouldn't come around here singing up at people like that"),
                 new Document(8).append("band", "Dire Straits").append("song", "Romeo And Juliet").vectorize("Anyway, what you gonna do about it?"));
-        System.out.println("06/12 -Collection populated");
+        System.out.println("6/7 - Collection populated");
 
         // Find one document
         Optional<Document> doc = collectionLyrics.findOne(
@@ -77,7 +77,7 @@ public class QuickStartHCD {
                 new FindOneOptions()
                         .sort("You shouldn't come around here singing up at people like tha")
                         .includeSimilarity());
-        System.out.println("07/12 -Found document: " + doc);
+        System.out.println("7/7 - Found document: " + doc);
     }
 
 }
