@@ -61,6 +61,10 @@ public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOp
         // left blank as attributes are populated in static way
     }
 
+    // ----------------
+    // ---- Sort ------
+    // ----------------
+
     /**
      * Syntax sugar as delete option is only a sort
      *
@@ -70,24 +74,51 @@ public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOp
      *      current command.
      */
     public FindOneAndReplaceOptions sort(Sort... sort) {
-        setSort(OptionsUtils.sort(sort));
+        return sort(OptionsUtils.sort(sort));
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param rawSort
+     *      raw sort clause
+     * @return
+     *      current command.
+     */
+    public FindOneAndReplaceOptions sort(Map<String, Object> rawSort) {
+        Document doc = new Document();
+        doc.putAll(rawSort);
+        return sort(doc);
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param sorClause
+     *      sort clause as a document
+     * @return
+     *      current command.
+     */
+    public FindOneAndReplaceOptions sort(Document sorClause) {
+        setSort(sorClause);
         return this;
     }
 
     /**
-     * Add a criteria with $vectorize in the sort clause
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
+     * Add a criteria with $vectorize in the sort clause.
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
     public FindOneAndReplaceOptions sort(String vectorize, Sort ... sorts) {
-        setSort(Sorts.vectorize(vectorize));
+        Document doc = Sorts.vectorize(vectorize);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -98,11 +129,11 @@ public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOp
      * @return current command
      */
     public FindOneAndReplaceOptions sort(float[] vector, Sort... sorts) {
-        setSort(Sorts.vector(vector));
+        Document doc = Sorts.vector(vector);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -140,7 +171,6 @@ public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOp
         return this;
     }
 
-
     /**
      * Builder Pattern, update the upsert flag.
      *
@@ -154,90 +184,5 @@ public class FindOneAndReplaceOptions extends CommandOptions<FindOneAndReplaceOp
         this.upsert = upsert;
         return this;
     }
-
-    /**
-     * Builder for creating {@link FindOneAndReplaceOptions} instances with a fluent API.
-     */
-    @Deprecated
-    public static class Builder {
-
-        /**
-         * Hide constructor.
-         */
-        private Builder() {
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param sort The sort criteria to be applied to the findAndReplace operation.
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOneAndReplaceOptions sort(Sort... sort) {
-            return new FindOneAndReplaceOptions().sort(sort);
-        }
-
-        /**
-         * Initializes the building process with projection options.
-         *
-         * @param projection The projection criteria to be applied to the findAndReplace operation.
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided projection criteria.
-         */
-        public static FindOneAndReplaceOptions projection(Projection... projection) {
-            return new FindOneAndReplaceOptions().projection(projection);
-        }
-
-        /**
-         * Initializes the building process with returnDocument options.
-         *
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided returnDocument criteria.
-         */
-        public static FindOneAndReplaceOptions returnDocumentAfter() {
-            return new FindOneAndReplaceOptions().returnDocumentAfter();
-        }
-
-        /**
-         * Initializes the building process with returnDocument options.
-         *
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided returnDocument criteria.
-         */
-        public static FindOneAndReplaceOptions returnDocumentBefore() {
-            return new FindOneAndReplaceOptions().returnDocumentBefore();
-        }
-
-        /**
-         * Initializes the building process with upsert options.
-         *
-         * @param upsert The upsert criteria to be applied to the findAndReplace operation.
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided upsert criteria.
-         */
-        public static FindOneAndReplaceOptions upsert(Boolean upsert) {
-            return new FindOneAndReplaceOptions().upsert(upsert);
-        }
-
-        /**
-         * Initializes the building process with vectorize options.
-         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-         *
-         * @param vectorize The vectorize criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided vectorize criteria.
-         */
-        public static FindOneAndReplaceOptions sort(String vectorize, Sort... sorts) {
-            return new FindOneAndReplaceOptions().sort(vectorize, sorts);
-        }
-
-        /**
-         * Initializes the building process with vector options.
-         *
-         * @param vector The vector criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneAndReplaceOptions} instance configured with the provided vector criteria.
-         */
-        public static FindOneAndReplaceOptions sort(float[] vector, Sort... sorts) {
-            return new FindOneAndReplaceOptions().sort(vector, sorts);
-        }
-    }
-
 
 }

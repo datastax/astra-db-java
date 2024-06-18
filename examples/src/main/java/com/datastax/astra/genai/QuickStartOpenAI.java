@@ -5,12 +5,11 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.auth.TokenProviderStargateV2;
+import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +30,7 @@ public class QuickStartOpenAI {
         String             embeddingApiKey = System.getenv("OPENAI_API_KEY");
 
         // Token Cassandra:Base64(username):Base64(password)
-        String dataAPICassandraToken =  new TokenProviderStargateV2().getToken();
+        String dataAPICassandraToken =  new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
 
         // Create the Client, option is provided at top level and will be available
         DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIOptions.builder()
@@ -45,9 +44,7 @@ public class QuickStartOpenAI {
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
 
         // Create a Namespace if Needed
-        ((DataAPIDatabaseAdmin) localDb
-                .getDatabaseAdmin())
-                .createNamespace(DEFAULT_NAMESPACE);
+        localDb.getDatabaseAdmin().createNamespace(DEFAULT_NAMESPACE);
 
         // Create a collection for the provider
         Collection<Document> collection = localDb.createCollection(

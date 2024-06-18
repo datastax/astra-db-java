@@ -95,6 +95,11 @@ public enum DataAPIKeywords {
     VECTOR("$vector"),
 
     /**
+     * SORT VECTOR.
+     */
+    SORT_VECTOR("sortVector"),
+
+    /**
      * VECTORIZE.
      */
     VECTORIZE("$vectorize");

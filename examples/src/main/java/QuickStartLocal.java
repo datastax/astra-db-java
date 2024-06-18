@@ -3,7 +3,7 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
-import com.datastax.astra.internal.auth.TokenProviderStargateV2;
+import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
 
 import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.CASSANDRA;
 import static com.datastax.astra.client.DataAPIOptions.builder;
@@ -14,7 +14,7 @@ public class QuickStartLocal {
     public static void main(String[] args) {
 
         // Create a token
-        String token = new TokenProviderStargateV2("cassandra", "cassandra").getToken();
+        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
         System.out.println("Token: " + token);
 
         // Initialize the client

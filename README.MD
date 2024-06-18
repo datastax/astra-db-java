@@ -24,6 +24,27 @@ This client library provides a simplified way to interact with Data API for Astr
 This library is under development and is available in Maven Central.
 You can build it locally and install it in your local repository.
 
+## 📋 Table Of Content
+
+1. Installation
+   1. Prerequisites
+   2. Packaging
+2. QuickStart with Astra DB
+   1. Sign up for Astra DB
+   2. Create a Database
+   3. Get your credentials
+   4. Create a new project and add the dependency
+3. QuickStart with DSE
+    1. Start Data Api.
+    2. Connection to DSE
+    3. Create a namespace
+    4. Create a collection
+4. QuickStart with HCD
+    1. Start Data Api.
+    2. Connection to HCD
+    3. Create a namespace
+    4. Create a collection
+
 ## 1. Installation
 
 ### 1.1 Prerequisites

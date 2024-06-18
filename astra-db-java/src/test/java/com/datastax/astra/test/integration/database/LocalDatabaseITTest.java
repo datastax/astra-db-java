@@ -9,8 +9,7 @@ import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.internal.auth.TokenProviderStargate;
-import com.datastax.astra.internal.auth.TokenProviderStargateV2;
-import com.datastax.astra.test.unit.MockCommandObserver;
+import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -97,7 +96,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Test
     void shouldInitializeHttpClientWithCallerAndProxy() {
         DataAPIClient otherCallerClient = new DataAPIClient(
-                new TokenProviderStargateV2().getToken(),
+                new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
                         .withCaller("Cedrick", "1.0")

@@ -61,6 +61,9 @@ public class FindOneAndUpdateOptions extends CommandOptions<FindOneAndUpdateOpti
     public FindOneAndUpdateOptions() {
         // left blank, jackson serialization
     }
+// ----------------
+    // ---- Sort ------
+    // ----------------
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -71,23 +74,51 @@ public class FindOneAndUpdateOptions extends CommandOptions<FindOneAndUpdateOpti
      *      current command.
      */
     public FindOneAndUpdateOptions sort(Sort... sort) {
-        setSort(OptionsUtils.sort(sort));
+        return sort(OptionsUtils.sort(sort));
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param rawSort
+     *      raw sort clause
+     * @return
+     *      current command.
+     */
+    public FindOneAndUpdateOptions sort(Map<String, Object> rawSort) {
+        Document doc = new Document();
+        doc.putAll(rawSort);
+        return sort(doc);
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param sorClause
+     *      sort clause as a document
+     * @return
+     *      current command.
+     */
+    public FindOneAndUpdateOptions sort(Document sorClause) {
+        setSort(sorClause);
         return this;
     }
 
     /**
-     * Add a criteria with $vectorize in the sort clause
+     * Add a criteria with $vectorize in the sort clause.
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
     public FindOneAndUpdateOptions sort(String vectorize, Sort ... sorts) {
-        setSort(Sorts.vectorize(vectorize));
+        Document doc = Sorts.vectorize(vectorize);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -98,11 +129,11 @@ public class FindOneAndUpdateOptions extends CommandOptions<FindOneAndUpdateOpti
      * @return current command
      */
     public FindOneAndUpdateOptions sort(float[] vector, Sort... sorts) {
-        setSort(Sorts.vector(vector));
+        Document doc = Sorts.vector(vector);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**

@@ -24,6 +24,7 @@ import com.datastax.astra.client.Collection;
 import lombok.Getter;
 
 import java.io.Closeable;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -81,9 +82,23 @@ public abstract class PageableIterable<T> implements Closeable {
             if (currentPage != null && currentPage.getPageState().isPresent()) {
                 options.setPageState(currentPage.getPageState().get());
             }
-            this.currentPage  = collection.findPage(filter, options);
+            this.currentPage = collection.findPage(filter, options);
         }
         return false;
+    }
+
+    /**
+     * Get current page sort Vector When available.
+     *
+     * @return
+     *      sortVector if asked in previous request and iterator is still active.
+     */
+    public Optional<float[]> getSortVector() {
+        if (currentPage == null) {
+            throw new IllegalStateException("The iterator is not active and the 'sortVector' " +
+                    "cannot be retrieved, please use 'next()' first.");
+        }
+        return currentPage.getSortVector();
     }
 
     /**

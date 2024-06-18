@@ -4,7 +4,7 @@ services:
 
   # Development mode with latest taf
   coordinator:
-    image: stargateio/coordinator-dse-next:v2.1.0-BETA-9
+    image: stargateio/coordinator-dse-next:v2.1.0-BETA-12
     networks:
       - stargate
     ports:
@@ -25,8 +25,8 @@ services:
       timeout: 10s
       retries: 10
 
-  jsonapi:
-    image: stargateio/jsonapi:v1.0.9
+  data-api:
+    image: stargateio/data-api:v1.0.12
     depends_on:
       coordinator:
         condition: service_healthy

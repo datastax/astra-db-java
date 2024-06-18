@@ -90,6 +90,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.client.model.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -173,6 +174,8 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /** json inputs */
     public static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
+    /** json inputs */
+    public static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
     /** json inputs */
     private static final String INPUT_UPSERT = "upsert";
     /** json inputs */
@@ -1216,7 +1219,10 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withFilter(filter)
                 .withSort(findOneOptions.getSort())
                 .withProjection(findOneOptions.getProjection())
-                .withOptions(new Document().appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity()));
+                .withOptions(new Document()
+                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity())
+                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
+                );
 
         return Optional.ofNullable(
                 runCommand(findOne, findOneOptions)
@@ -1452,14 +1458,24 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull("skip", options.getSkip())
                         .appendIfNotNull("limit", options.getLimit())
                         .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
+                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.getIncludeSortVector())
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
         ApiResponse apiResponse = runCommand(findCommand, options);
+
+        // load sortVector if available
+        float[] sortVector = null;
+        if (options.getIncludeSortVector() &&
+                apiResponse.getStatus() != null &&
+                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
+            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        }
+
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
                 apiResponse.getData().getDocuments()
                         .stream()
                         .map(d -> d.map(getDocumentClass()))
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()), sortVector);
     }
 
     /**
@@ -1703,7 +1719,6 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the remove many operation
      */
     public DeleteResult deleteMany(Filter filter, DeleteManyOptions options) {
-        Assert.notNull(filter, ARG_FILTER);
         AtomicInteger totalCount = new AtomicInteger(0);
         boolean moreData = false;
         do {
@@ -2153,6 +2168,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the bulk write
      */
+    @Deprecated(since = "1.3.0", forRemoval = true)
     public BulkWriteResult bulkWrite(List<Command> commands) {
         return bulkWrite(commands, new BulkWriteOptions());
     }
@@ -2167,6 +2183,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the bulk write
      */
+    @Deprecated(since = "1.3.0", forRemoval = true)
     public BulkWriteResult bulkWrite(List<Command> commands, BulkWriteOptions options) {
         notNull(commands, ARG_COMMANDS);
         notNull(options, ARG_OPTIONS);

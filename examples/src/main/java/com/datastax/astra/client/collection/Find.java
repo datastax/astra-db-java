@@ -7,6 +7,7 @@ import com.datastax.astra.client.model.Filter;
 import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOptions;
+import com.datastax.astra.client.model.Sorts;
 
 import static com.datastax.astra.client.model.Filters.lt;
 import static com.datastax.astra.client.model.Projections.exclude;

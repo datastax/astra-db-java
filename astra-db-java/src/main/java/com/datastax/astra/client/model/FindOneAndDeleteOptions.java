@@ -50,6 +50,10 @@ public class FindOneAndDeleteOptions extends CommandOptions<FindOneAndDeleteOpti
         // left blank as sort is populated in static way
     }
 
+    // ----------------
+    // ---- Sort ------
+    // ----------------
+
     /**
      * Syntax sugar as delete option is only a sort
      *
@@ -59,24 +63,51 @@ public class FindOneAndDeleteOptions extends CommandOptions<FindOneAndDeleteOpti
      *      current command.
      */
     public FindOneAndDeleteOptions sort(Sort... sort) {
-        setSort(OptionsUtils.sort(sort));
+        return sort(OptionsUtils.sort(sort));
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param rawSort
+     *      raw sort clause
+     * @return
+     *      current command.
+     */
+    public FindOneAndDeleteOptions sort(Map<String, Object> rawSort) {
+        Document doc = new Document();
+        doc.putAll(rawSort);
+        return sort(doc);
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param sorClause
+     *      sort clause as a document
+     * @return
+     *      current command.
+     */
+    public FindOneAndDeleteOptions sort(Document sorClause) {
+        setSort(sorClause);
         return this;
     }
 
     /**
      * Add a criteria with $vectorize in the sort clause.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
     public FindOneAndDeleteOptions sort(String vectorize, Sort ... sorts) {
-        setSort(Sorts.vectorize(vectorize));
+        Document doc = Sorts.vectorize(vectorize);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -87,12 +118,16 @@ public class FindOneAndDeleteOptions extends CommandOptions<FindOneAndDeleteOpti
      * @return current command
      */
     public FindOneAndDeleteOptions sort(float[] vector, Sort... sorts) {
-        setSort(Sorts.vector(vector));
+        Document doc = Sorts.vector(vector);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
+
+    // ----------------------
+    // ---- Projection ------
+    // ----------------------
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -107,59 +142,6 @@ public class FindOneAndDeleteOptions extends CommandOptions<FindOneAndDeleteOpti
         return this;
     }
 
-    /**
-     * Builder for creating {@link FindOneAndDeleteOptions} instances with a fluent API.
-     */
-    public static class Builder {
 
-        /**
-         * Hide constructor.
-         */
-        private Builder() {
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param sort The sort criteria to be applied to the delete operation.
-         * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOneAndDeleteOptions sort(Sort... sort) {
-            return new FindOneAndDeleteOptions().sort(sort);
-        }
-
-        /**
-         * Initializes the building process with projection options.
-         *
-         * @param projection The projection criteria to be applied to the delete operation.
-         * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided projection criteria.
-         */
-        public static FindOneAndDeleteOptions projection(Projection... projection) {
-            return new FindOneAndDeleteOptions().projection(projection);
-        }
-
-        /**
-         * Initializes the building process with vectorize options.
-         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-         *
-         * @param vectorize The vectorize criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vectorize criteria.
-         */
-        public static FindOneAndDeleteOptions sort(String vectorize, Sort... sorts) {
-            return new FindOneAndDeleteOptions().sort(vectorize, sorts);
-        }
-
-        /**
-         * Initializes the building process with vector options.
-         *
-         * @param vector The vector criteria to be applied to the findOne operation
-         * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneAndDeleteOptions} instance configured with the provided vector criteria.
-         */
-        public static FindOneAndDeleteOptions sort(float[] vector, Sort... sorts) {
-            return new FindOneAndDeleteOptions().sort(vector, sorts);
-        }
-    }
 
 }

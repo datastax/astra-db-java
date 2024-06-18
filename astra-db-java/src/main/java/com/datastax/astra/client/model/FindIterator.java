@@ -104,6 +104,6 @@ public class FindIterator<T> implements Iterator<T> {
      * @since 4.4
      */
     public int available() {
-        return 0;
+        return availableWithoutFetch;
     }
 }

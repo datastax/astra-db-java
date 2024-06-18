@@ -37,6 +37,7 @@ import java.util.UUID;
  *
  * @author Cedrick LUNVEN (@clunven)
  */
+@Deprecated(since = "Data API 1.0.6", forRemoval = true)
 public class TokenProviderStargate implements TokenProvider {
 
     /** Simple Client. */

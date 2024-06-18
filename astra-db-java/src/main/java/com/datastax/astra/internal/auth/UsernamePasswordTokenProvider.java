@@ -23,7 +23,6 @@ package com.datastax.astra.internal.auth;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.utils.Assert;
 
-import java.util.Arrays;
 import java.util.Base64;
 
 /**
@@ -31,7 +30,7 @@ import java.util.Base64;
  *
  * @author Cedrick LUNVEN (@clunven)
  */
-public class TokenProviderStargateV2 implements TokenProvider {
+public class UsernamePasswordTokenProvider implements TokenProvider {
 
     /** Simple Client. */
     public static final RetryHttpClient HTTP_CLIENT = new RetryHttpClient();
@@ -46,7 +45,7 @@ public class TokenProviderStargateV2 implements TokenProvider {
     private final String token;
 
     /**  Using defaults settings. */
-    public TokenProviderStargateV2() {
+    public UsernamePasswordTokenProvider() {
         this(DEFAULT_USERNAME, DEFAULT_CREDENTIALS);
     }
 
@@ -58,13 +57,13 @@ public class TokenProviderStargateV2 implements TokenProvider {
      * @param password
      *      password
      */
-    public TokenProviderStargateV2(String username, String password) {
+    public UsernamePasswordTokenProvider(String username, String password) {
         Assert.hasLength(username, "username");
         Assert.hasLength(password, "password");
         Base64.Encoder encoder = Base64.getEncoder();
         this.token = "Cassandra:" +
                 Base64.getEncoder().encodeToString(username.getBytes()) + ":" +
-                Base64.getEncoder().encodeToString(username.getBytes());
+                Base64.getEncoder().encodeToString(password.getBytes());
     }
 
     /**

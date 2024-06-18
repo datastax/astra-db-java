@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents the result of a 'find' command executed on a collection, providing an iterable interface to navigate
@@ -89,11 +90,10 @@ public class FindIterable<T> extends PageableIterable<T> implements Iterable<T> 
      *      all values of the iterable
      */
      public List<T> all() {
-         if (exhausted) throw new IllegalStateException("Iterable is already exhauted.");
+         if (exhausted) throw new IllegalStateException("Iterable is already exhausted.");
          if (active)    throw new IllegalStateException("Iterable has already been started");
          List<T> results = new ArrayList<>();
          for (T t : this) results.add(t);
          return results;
      }
-
 }

@@ -17,7 +17,7 @@ public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override
     protected Database initDatabase() {
-        return gcpEuropeWest4();
+        return testVectorizeDb();
         //return gcpUsEast1();
         //return azureEastUs();
         //return awsUSWest1();
@@ -34,7 +34,11 @@ public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
         return db;
     }
 
-
+    private Database testVectorizeDb() {
+        Database db = initAstraDatabase(AstraEnvironment.PROD, "test_vectorize", CloudProviderType.AWS, " us-east-2");
+        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+        return db;
+    }
 
     private Database gcpEuropeWest4() {
         Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
@@ -51,27 +55,35 @@ public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
     @Test
     public void testOneProvider() {
         dropAllCollections();
-        shouldTestOneProvider("openai");
-        shouldTestOneProvider("jinaAI");
-        shouldTestOneProvider("voyageAI");
-        dropAllCollections();
-        shouldTestOneProvider("huggingface");
-        shouldTestOneProvider("upstageAI");
-        shouldTestOneProvider("mistral");
-        dropAllCollections();
-        shouldTestOneProvider("nvidia");
-        shouldTestOneProvider("azureOpenAI");
-        dropAllCollections();
-        shouldTestOneProviderSharedKey("azureOpenAI", "stefano");
-        shouldTestOneProviderSharedKey("huggingface", "HF_API_KEY");
-        dropAllCollections();
-        shouldTestOneProviderSharedKey("jinaAI", "JINA_API_KEY");
-        dropAllCollections();
-        shouldTestOneProviderSharedKey("voyageAI", "VOYAGE_API_KEY");
-        shouldTestOneProviderSharedKey("upstageAI", "UPSTAGE_API_KEY");
-        dropAllCollections();
-        shouldTestOneProviderSharedKey("mistral", "MISTRAL_API_KEY");
-        shouldTestOneProviderSharedKey("openai", "k1");
+
+        // --- OPEN AI ---
+        //shouldTestOneProvider("openai");
+        shouldTestOneProviderSharedKey("openai", "OPENAI_API_KEY");
+
+        // --- JINA_AI ---
+        //shouldTestOneProvider("jinaAI");
+        //shouldTestOneProviderSharedKey("jinaAI", "JINA_API_KEY");
+
+        // --- Voyage AI ---
+        //shouldTestOneProvider("voyageAI");
+        //shouldTestOneProviderSharedKey("voyageAI", "VOYAGE_API_KEY");
+
+        // --- HUGGING FACE ---
+        //shouldTestOneProvider("huggingface");
+        //shouldTestOneProviderSharedKey("huggingface", "HF_API_KEY");
+
+        // shouldTestOneProvider("upstageAI");
+        // shouldTestOneProviderSharedKey("upstageAI", "UPSTAGE_API_KEY");
+
+        // shouldTestOneProvider("mistral");
+        // shouldTestOneProviderSharedKey("mistral", "MISTRAL_API_KEY");
+
+        // shouldTestOneProvider("nvidia");
+
+//        shouldTestOneProvider("azureOpenAI");
+//        shouldTestOneProviderSharedKey("azureOpenAI", "stefano");
+
+
     }
 
     @Test

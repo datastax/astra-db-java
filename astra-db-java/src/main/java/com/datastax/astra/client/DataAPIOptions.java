@@ -156,6 +156,11 @@ public class DataAPIOptions {
         DSE,
 
         /**
+         * Hyper Converged Database
+         */
+        HCD,
+
+        /**
          * Local installation of Apache Cassandra
          */
         CASSANDRA,

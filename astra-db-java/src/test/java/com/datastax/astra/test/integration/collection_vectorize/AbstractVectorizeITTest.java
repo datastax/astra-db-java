@@ -10,7 +10,9 @@ import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneOptions;
+import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Projections;
@@ -187,7 +189,7 @@ abstract class AbstractVectorizeITTest {
         });
     }
 
-    private void testCollectionSharedKey(Collection<Document> collection) {
+    protected void testCollectionSharedKey(Collection<Document> collection) {
         List<Document> entries = List.of(
                 new Document(1).vectorize("A lovestruck Romeo sings the streets a serenade"),
                 new Document(2).vectorize("Finds a streetlight, steps out of the shade"),
@@ -205,13 +207,20 @@ abstract class AbstractVectorizeITTest {
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
                 new FindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like tha")
-                        .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
+                        .sort("You shouldn't come around here singing up at people like that")
+                        .includeSortVector()
                         .includeSimilarity());
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
+
+        FindIterable<Document> docs= collection.find(new FindOptions()
+                .sort("You shouldn't come around here singing up at people like that")
+                .includeSortVector()
+                .includeSimilarity());
+        assertThat(docs.iterator().next()).isNotNull();
+        assertThat(docs.getSortVector().isPresent()).isTrue();
     }
 
     protected void testCollection(Collection<Document> collection, String apiKey) {

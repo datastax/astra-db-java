@@ -54,7 +54,10 @@ public class Page<R> {
 
     /** Of present there is a next page. */
     private final String pageState;
-    
+
+    /** Sort vector retrieved in the status. */
+    protected float[] sortVector;
+
     /** list of results matching the request. */
     private final List< R > results;
 
@@ -64,9 +67,10 @@ public class Page<R> {
      * @param pageState String
      * @param results List
      */
-    public Page(String pageState, List<R> results) {
-        this.pageState = pageState;
-        this.results   = results;
+    public Page(String pageState, List<R> results, float[] sortVector) {
+        this.pageState  = pageState;
+        this.results    = results;
+        this.sortVector = sortVector;
     }
 
     /**
@@ -111,5 +115,15 @@ public class Page<R> {
      */
     public Optional<String> getPageState() {
         return Optional.ofNullable(pageState);
+    }
+
+    /**
+     * If the sort Vector has been retrieved in the status, it will be available here.
+     *
+     * @return
+     *      sort vector if available
+     */
+    public Optional<float[]> getSortVector() {
+        return Optional.ofNullable(sortVector);
     }
 }

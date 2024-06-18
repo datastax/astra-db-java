@@ -59,6 +59,11 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
     private Boolean includeSimilarity;
 
     /**
+     * Flag to include sortVector in the result when operating a semantic search.
+     */
+    private Boolean includeSortVector;
+
+    /**
      * Page state.
      */
     @Setter
@@ -71,6 +76,10 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
         // left blank as populated by Jackson
     }
 
+    // ----------------
+    // ---- Sort ------
+    // ----------------
+
     /**
      * Syntax sugar as delete option is only a sort
      *
@@ -80,24 +89,51 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
      *      current command.
      */
     public FindOptions sort(Sort... sort) {
-        setSort(OptionsUtils.sort(sort));
+       return sort(OptionsUtils.sort(sort));
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param rawSort
+     *      raw sort clause
+     * @return
+     *      current command.
+     */
+    public FindOptions sort(Map<String, Object> rawSort) {
+        Document doc = new Document();
+        doc.putAll(rawSort);
+        return sort(doc);
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param sorClause
+     *      sort clause as a document
+     * @return
+     *      current command.
+     */
+    public FindOptions sort(Document sorClause) {
+        setSort(sorClause);
         return this;
     }
 
     /**
      * Add a criteria with $vectorize in the sort clause.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
     public FindOptions sort(String vectorize, Sort ... sorts) {
-        setSort(Sorts.vectorize(vectorize));
+        Document doc = Sorts.vectorize(vectorize);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -108,12 +144,16 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
      * @return current command
      */
     public FindOptions sort(float[] vector, Sort... sorts) {
-        setSort(Sorts.vector(vector));
+        Document doc = Sorts.vector(vector);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
+
+    // ----------------------
+    // ---- Projection ------
+    // ----------------------
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -135,6 +175,16 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
      */
     public FindOptions includeSimilarity() {
         this.includeSimilarity = true;
+        return this;
+    }
+
+    /**
+     * Fluent api.
+     *
+     * @return add a filter
+     */
+    public FindOptions includeSortVector() {
+        this.includeSortVector = true;
         return this;
     }
 
@@ -177,89 +227,4 @@ public class FindOptions extends CommandOptions<FindOneOptions> {
         return this;
     }
 
-    /**
-     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
-     */
-    @Deprecated
-    public static class Builder {
-
-        /**
-         * Hide constructor.
-         */
-        private Builder() {
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOptions sort(Sort... sort) {
-            return new FindOptions().sort(sort);
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param vector string to be vectorized in the findOne operation.
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOptions sort(float[] vector, Sort... sort) {
-            return new FindOptions().sort(vector, sort);
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-         *
-         * @param vectorize string to be vectorized in the findOne operation.
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOptions sort(String vectorize, Sort... sort) {
-            return new FindOptions().sort(vectorize, sort);
-        }
-
-        /**
-         * Initializes the building process with projection options.
-         *
-         * @param projection The projection criteria to be applied to the findOne operation.
-         * @return A new {@link FindOptions} instance configured with the provided projection criteria.
-         */
-        public static FindOptions projection(Projection... projection) {
-            return new FindOptions().projection(projection);
-        }
-
-        /**
-         * Initializes the building process with includeSimilarity options.
-         *
-         * @return A new {@link FindOneOptions} instance configured with the provided includeSimilarity criteria.
-         */
-        public static FindOptions includeSimilarity() {
-            return new FindOptions().includeSimilarity();
-        }
-
-        /**
-         * Initializes the building process with skip options.
-         *
-         * @param skip The skip criteria to be applied to the findOne operation
-         * @return A new {@link FindOneOptions} instance configured with the provided skip criteria.
-         */
-        public static FindOptions skip(int skip) {
-            return new FindOptions().skip(skip);
-        }
-
-        /**
-         * Initializes the building process with limit options.
-         *
-         * @param limit The limit criteria to be applied to the findOne operation
-         * @return A new {@link FindOneOptions} instance configured with the provided limit criteria.
-         */
-        public static FindOptions limit(int limit) {
-            return new FindOptions().limit(limit);
-        }
-
-    }
 }

@@ -96,6 +96,7 @@ public interface DatabaseAdmin {
      * }
      * </pre>
      * @return
+     *      list of available providers
      */
     Map<String, EmbeddingProvider> listEmbeddingProviders();
 

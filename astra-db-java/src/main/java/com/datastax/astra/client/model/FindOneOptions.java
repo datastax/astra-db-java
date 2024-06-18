@@ -49,11 +49,20 @@ public class FindOneOptions extends CommandOptions<FindOneOptions> {
     private Boolean includeSimilarity;
 
     /**
+     * Flag to include sortVector in the result when operating a semantic search.
+     */
+    private Boolean includeSortVector;
+
+    /**
      * Default constructor.
      */
     public FindOneOptions() {
         // left blank, jackson serialization
     }
+
+    // ----------------
+    // ---- Sort ------
+    // ----------------
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -64,24 +73,51 @@ public class FindOneOptions extends CommandOptions<FindOneOptions> {
      *      current command.
      */
     public FindOneOptions sort(Sort... sort) {
-        setSort(OptionsUtils.sort(sort));
+        return sort(OptionsUtils.sort(sort));
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param rawSort
+     *      raw sort clause
+     * @return
+     *      current command.
+     */
+    public FindOneOptions sort(Map<String, Object> rawSort) {
+        Document doc = new Document();
+        doc.putAll(rawSort);
+        return sort(doc);
+    }
+
+    /**
+     * Syntax sugar as delete option is only a sort
+     * Could be like Map.of("$vectorize", "command, "field1", 1, "field2", -1);
+     *
+     * @param sorClause
+     *      sort clause as a document
+     * @return
+     *      current command.
+     */
+    public FindOneOptions sort(Document sorClause) {
+        setSort(sorClause);
         return this;
     }
 
     /**
-     * Add a criteria with $vectorize in the sort clause
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
+     * Add a criteria with $vectorize in the sort clause.
      *
      * @param vectorize an expression to look for vectorization
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
     public FindOneOptions sort(String vectorize, Sort ... sorts) {
-        setSort(Sorts.vectorize(vectorize));
+        Document doc = Sorts.vectorize(vectorize);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
 
     /**
@@ -92,12 +128,16 @@ public class FindOneOptions extends CommandOptions<FindOneOptions> {
      * @return current command
      */
     public FindOneOptions sort(float[] vector, Sort... sorts) {
-        setSort(Sorts.vector(vector));
+        Document doc = Sorts.vector(vector);
         if (sorts != null) {
-            getSort().putAll(OptionsUtils.sort(sorts));
+            doc.putAll(OptionsUtils.sort(sorts));
         }
-        return this;
+        return sort(doc);
     }
+
+    // ----------------------
+    // ---- Projection ------
+    // ----------------------
 
     /**
      * Syntax sugar as delete option is only a sort
@@ -124,80 +164,12 @@ public class FindOneOptions extends CommandOptions<FindOneOptions> {
     }
 
     /**
-     * Builder for creating {@link FindOneAndUpdateOptions} instances with a fluent API.
+     * Fluent api.
+     *
+     * @return add a filter
      */
-    @Deprecated
-    public static class Builder {
-
-        /**
-         * Hide constructor.
-         */
-        private Builder() {
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOneOptions sort(Sort... sort) {
-            return new FindOneOptions().sort(sort);
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         *
-         * @param vector string to be vectorized in the findOne operation.
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOneOptions sort(float[] vector, Sort... sort) {
-            return new FindOneOptions().sort(vector, sort);
-        }
-
-        /**
-         * Initializes the building process with sorting options.
-         * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-         *
-         * @param vectorize string to be vectorized in the findOne operation.
-         * @param sort The sort criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided sort criteria.
-         */
-        public static FindOneOptions sort(String vectorize, Sort... sort) {
-            return new FindOneOptions().sort(vectorize, sort);
-        }
-
-        /**
-         * Initializes the building process with projection options.
-         *
-         * @param projection The projection criteria to be applied to the findOne operation.
-         * @return A new {@link FindOneOptions} instance configured with the provided projection criteria.
-         */
-        public static FindOneOptions projection(Projection... projection) {
-            return new FindOneOptions().projection(projection);
-        }
-
-        /**
-         * Initializes the building process with includeSimilarity options.
-         *
-         * @return A new {@link FindOneOptions} instance configured with the provided includeSimilarity criteria.
-         */
-        public static FindOneOptions includeSimilarity() {
-            return new FindOneOptions().includeSimilarity();
-        }
-
-        /**
-         * Setter for Api Key
-         *
-         * @param apiKey
-         *      embedding service Api keu
-         * @return
-         *      insert many options
-         */
-        public static InsertManyOptions embeddingServiceApiKey(String apiKey) {
-            return new InsertManyOptions().embeddingAPIKey(apiKey);
-        }
-
+    public FindOneOptions includeSortVector() {
+        this.includeSortVector = true;
+        return this;
     }
 }
