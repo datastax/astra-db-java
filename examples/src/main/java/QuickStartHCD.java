@@ -35,7 +35,7 @@ public class QuickStartHCD {
         int openAiEmbeddingDimension = 1536;
 
         // Build a token in the form of Cassandra:base64(username):base64(password)
-        String token = new UsernamePasswordTokenProvider(cassandraUserName, cassandraPassword).getToken();
+        String token = new UsernamePasswordTokenProvider(cassandraUserName, cassandraPassword).getTokenAsString();
         System.out.println("1/7 - Creating Token: " + token);
 
         // Initialize the client

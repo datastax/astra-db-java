@@ -12,7 +12,7 @@ services:
       - DS_LICENSE=accept
       - HCD_AUTO_CONF_OFF=cassandra.yaml
     volumes:
-      - /Users/cedricklunven/dev/datastax/JAVA/astra-db-java/cassandra-hcd.yaml:/opt/hcd/resources/cassandra/conf/cassandra.yaml:rw
+      - ./cassandra-hcd.yaml:/opt/hcd/resources/cassandra/conf/cassandra.yaml:rw
     ports:
       - "9042:9042"
     healthcheck:

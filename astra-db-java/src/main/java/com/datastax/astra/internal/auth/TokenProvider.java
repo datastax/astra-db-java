@@ -44,4 +44,15 @@ public interface TokenProvider extends Supplier<String> {
      */
     String getToken();
 
+    /**
+     * Building the token.
+     *
+     * @return
+     *      current token
+     */
+    default String getTokenAsString() {
+        return getToken();
+    }
+
+
 }

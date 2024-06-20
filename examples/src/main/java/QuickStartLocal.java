@@ -13,8 +13,8 @@ public class QuickStartLocal {
 
     public static void main(String[] args) {
 
-        // Create a token
-        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
+        // Create a Token
+        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getTokenAsString();
         System.out.println("Token: " + token);
 
         // Initialize the client
