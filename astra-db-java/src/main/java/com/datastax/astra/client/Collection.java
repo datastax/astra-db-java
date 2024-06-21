@@ -1464,7 +1464,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
         // load sortVector if available
         float[] sortVector = null;
-        if (options.getIncludeSortVector() &&
+        if (options.getIncludeSortVector() != null &&
                 apiResponse.getStatus() != null &&
                 apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
             sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);

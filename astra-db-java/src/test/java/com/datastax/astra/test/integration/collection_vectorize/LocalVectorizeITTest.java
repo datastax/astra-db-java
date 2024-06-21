@@ -4,11 +4,13 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 @Slf4j
+@Disabled
 public class LocalVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override

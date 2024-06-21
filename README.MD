@@ -26,25 +26,22 @@ You can build it locally and install it in your local repository.
 
 ## 📋 Table Of Content
 
-1. Installation
-   1. Prerequisites
-   2. Packaging
-2. QuickStart with Astra DB
-   1. Sign up for Astra DB
-   2. Create a Database
-   3. Get your credentials
-   4. Create a new project and add the dependency
-3. QuickStart with DSE
-    1. Start Data Api.
-    2. Connection to DSE
-    3. Create a namespace
-    4. Create a collection
-4. QuickStart with HCD
-    1. Start Data Api.
-    2. Connection to HCD
-    3. Create a namespace
-    4. Create a collection
+1. [Installation](#1-installation)
+   1. [Prerequisites](#11-prerequisites)
+   2. [Packaging](#12-packaging)
+2. [QuickStart with Astra DB](#2-quickstart-with-astra-db)
+   1. [Sign up for Astra DB](#21-sign-up-for-astra-db)
+   2. [Create a Database](#22-create-a-database)
+   3. [Get your credentials](#23-get-your-credentials)
+   4. [Create a new project and add the dependency](#24-create-a-new-project-and-add-the-dependency)
+3. [QuickStart with Local Instances]()
+    1. [Start Data Api with DSE](#31-start-data-api-with-dse)
+    2. [Start Data Api with HCD](#32-start-data-api-with-hcd)
+    3. [Datq Api Information](#33-datq-api-information) 
+    4. [Using Java client with Local Instance](#34-using-java-client-with-local-instance) 
+4. [What's Next](#4-whats-next)
 
+   
 ## 1. Installation
 
 ### 1.1 Prerequisites
@@ -137,7 +134,7 @@ Add the following dependency to your `pom.xml` file:
 <dependency>
   <groupId>com.datastax.astra</groupId>
   <artifactId>astra-db-java</artifactId>
-  <version>1.1.0</version>
+  <version>1.3.0</version>
 </dependency>
 ```
 
@@ -183,9 +180,9 @@ public class GettingStarted {
 }
 ```
 
-## 3. QuickStart with Local Instance
+## 3. QuickStart with Local Instances
 
-### 3.1. Start Data Api.
+### 3.1. Start Data Api with DSE
 
 - Start the 2 containers with the following command:
 
@@ -193,11 +190,19 @@ public class GettingStarted {
 docker-compose up -d
 ```
 
+### 3.2. Start Data Api with HCD
+
+```
+docker-compose -f docker-compose-hcd.yml up -d
+```
+
 - Check the status of the containers with the following command:
 
 ```console
 docker-compose ps
 ```
+
+### 3.3. Datq Api Information
 
 > _Output_
 > ```console
@@ -239,7 +244,7 @@ curl -X 'POST' \
 }'
 ```
 
-### 3.2. Using Java client with local instance
+### 3.4. Using Java client with Local Instance
 
 ```java
 public class QuickStartLocal {
@@ -247,19 +252,33 @@ public class QuickStartLocal {
     public static void main(String[] args) {
 
         // Create a token
-        String token = new TokenProviderStargateV2("cassandra", "cassandra").getToken();
+        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
         System.out.println("Token: " + token);
 
         // Initialize the client
         DataAPIClient client = new DataAPIClient(token, builder().withDestination(CASSANDRA).build());
         System.out.println("Connected to Data API");
 
+       // Create a default keyspace
+       ((DataAPIDatabaseAdmin) client
+               .getDatabase(dataApiUrl)
+               .getDatabaseAdmin()).createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
+        System.out.println("Keyspace created ");
+       
         Database db = client.getDatabase("http://localhost:8181", "default_keyspace");
         System.out.println("Connected to Database");
 
         // Create a collection. The default similarity metric is cosine.
-        Collection<Document> collection = db.createCollection("vector_test", 5, COSINE);
-        System.out.println("Created a Collection");
+        Collection<Document> collection = db.createCollection("simple", 5, COSINE);
+        System.out.println("Created a Collection simple");
+
+       // Create a collection with Vector embeddings OPEN AI
+       Collection<Document> collectionLyrics =  db.createCollection("vector", CollectionOptions.builder()
+                       .vectorSimilarity(SimilarityMetric.COSINE)
+                       .vectorDimension(1536)
+                       .vectorize("openai", "text-embedding-3-small")
+                       .build(),
+               new CommandOptions<>().embeddingAPIKey("sk-....."));
     }
 }
 ```

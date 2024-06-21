@@ -64,8 +64,12 @@ public class Page<R> {
     /**
      * Default constructor.
      *
-     * @param pageState String
+     * @param pageState
+     *      page state with the offset of the page
      * @param results List
+     *     list of items for the page
+     * @param sortVector float[]
+     *     the sort vector if asked.
      */
     public Page(String pageState, List<R> results, float[] sortVector) {
         this.pageState  = pageState;
