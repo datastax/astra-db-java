@@ -1,58 +1,61 @@
-package com.datastax.astra.genai;
+package com.datastax.astra.client.collection.vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.genai.EmbeddingModelType;
+import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
+
+import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * This demo want to illustrate how to use the java client in GenAI Context
  */
 @Slf4j
-public class AzureOpenAI_SharedSecret_AstraDev {
+public class QuickStartOpenAI {
 
     public static void main(String[] args) {
 
-        String astraToken   = System.getenv("ASTRA_DB_APPLICATION_TOKEN_DEV");
-        String keyName      = "stefano";
-        String providerName = "azureOpenAI";
-        String modelName    = "text-embedding-3-small";
-        int vectorDimension = 1536;
+        EmbeddingModelType embeddingModel  = EmbeddingModelType.OPENAI_3_SMALL;
+        String             embeddingApiKey = System.getenv("OPENAI_API_KEY");
 
-        DataAPIClient dataAPIClient =  new DataAPIClient(astraToken, DataAPIOptions
-                .builder()
-                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_DEV)
-                .build());
+        // Token Cassandra:Base64(username):Base64(password)
+        String dataAPICassandraToken =  new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
 
-        // Create a collection
-        Database db = dataAPIClient.getDatabase(UUID.fromString("2341e6dc-c6b2-4031-9c36-a93b8c1549e0"));
-        db.getCommandOptions().getObservers().put("logger", new LoggingCommandObserver(AzureOpenAI_SharedSecret_AstraDev.class));
+        // Create the Client, option is provided at top level and will be available
+        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIOptions.builder()
+              .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
+              .withEmbeddingAPIKey(embeddingApiKey)
+              .withObserver(new LoggingCommandObserver(DataAPIClient.class))
+              .build());
 
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("deploymentId", "text-embedding-3-small-steo");
-        parameters.put("resourceName", "steo-azure-openai");
+        // Access to the database
+        Database localDb = localDataAPI
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
 
-        db.dropCollection("collection_azure_openai");
-        Collection<Document> collection = db.createCollection(
-                "collection_azure_openai",
+        // Create a Namespace if Needed
+        localDb.getDatabaseAdmin().createNamespace(DEFAULT_NAMESPACE);
+
+        // Create a collection for the provider
+        Collection<Document> collection = localDb.createCollection(
+                embeddingModel.name().toLowerCase(),
                 // Create collection with a Service in vectorize
                 CollectionOptions.builder()
-                        .vectorDimension(vectorDimension)
+                        .indexingAllow()
+                        .vectorDimension(embeddingModel.getDimension())
                         .vectorSimilarity(SimilarityMetric.COSINE)
-                        .vectorize(providerName, modelName, keyName, parameters)
-                        .build(), new CommandOptions<>());
+                        .vectorize(embeddingModel.getProvider(), embeddingModel.getName())
+                        .build());
 
         // Insert documents
         collection.deleteAll();

@@ -34,11 +34,11 @@ public class QuickStartAzureOpenAI {
      * https://d5rxiv0do0q3v.cloudfront.net/vector-395/astra-db-serverless/integrations/embedding-providers/azure-openai.html
      */
 
-     static final String ASTRA_DB_TOKEN  = "<change_me>";
-     static final String ASTRA_DB_URL    = "<change_me>";
-     static final String API_KEY_NAME    = "<change_me>";
-     static final String DEPLOYMENT_ID   = "<change_me>";
-     static final String RESOURCE_NAME   = "<change_me>";
+    static final String ASTRA_DB_TOKEN  = "<change_me>";
+    static final String ASTRA_DB_URL    = "<change_me>";
+    static final String API_KEY_NAME    = "<change_me>";
+    static final String DEPLOYMENT_ID   = "<change_me>";
+    static final String RESOURCE_NAME   = "<change_me>";
 
     public static void main(String[] args) {
         Database db = new DataAPIClient(ASTRA_DB_TOKEN).getDatabase(ASTRA_DB_URL);
@@ -48,11 +48,11 @@ public class QuickStartAzureOpenAI {
         params.put("resourceName", RESOURCE_NAME);
         params.put("deploymentId", DEPLOYMENT_ID);
         CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions
-         .builder()
-         .vectorSimilarity(SimilarityMetric.COSINE)
-         .vectorDimension(1536)
-         .defaultIdType(CollectionIdTypes.UUID)
-         .vectorize("azureOpenAI","text-embedding-ada-002", API_KEY_NAME,params);
+                .builder()
+                .vectorSimilarity(SimilarityMetric.COSINE)
+                .vectorDimension(1536)
+                .defaultIdType(CollectionIdTypes.UUID)
+                .vectorize("azureOpenAI","text-embedding-ada-002", API_KEY_NAME,params);
         Collection<Document> collection = db
                 .createCollection("vectorize_test", builder.build());
 

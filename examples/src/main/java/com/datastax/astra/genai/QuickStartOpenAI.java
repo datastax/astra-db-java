@@ -2,78 +2,82 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindOneOptions;
+import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.model.FindOptions;
+import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
-
-import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
- * This demo want to illustrate how to use the java client in GenAI Context
+ * This code shows how to use the DataStax Astra API to generate AI models.
  */
-@Slf4j
 public class QuickStartOpenAI {
 
+    /**
+     * Prerequisites:
+     * ------------------
+     * - Create an Astra Account
+     * - Create an Astra Database
+     * - Create a token
+     * - Create an Azure OpenAI account
+     * - Get
+     * - Create an Azure OpenAI deployment (deploymentId)
+     * - Create an Azure OpenAI resource (resourceName)
+     * Documentation
+     * https://d5rxiv0do0q3v.cloudfront.net/vector-395/astra-db-serverless/integrations/embedding-providers/openai.html
+     */
+
+    static final String ASTRA_DB_TOKEN  = "<change_me>";
+    static final String ASTRA_DB_URL    = "<change_me>";
+    static final String API_KEY_NAME     = "<change_me>";
+    static final String ORGANIZATION_ID  = "<change_me>";
+    static final String PROJECT_ID       = "<change_me>";
+
     public static void main(String[] args) {
+        Database db = new DataAPIClient(ASTRA_DB_TOKEN).getDatabase(ASTRA_DB_URL);
 
-        EmbeddingModelType embeddingModel  = EmbeddingModelType.OPENAI_3_SMALL;
-        String             embeddingApiKey = System.getenv("OPENAI_API_KEY");
+        // 1/ Create a collection programmatically (if needed)
+        Map<String, Object > params = new HashMap<>();
+        params.put("organizationId", ORGANIZATION_ID);
+        params.put("projectId", PROJECT_ID);
+        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions
+                .builder()
+                .vectorSimilarity(SimilarityMetric.COSINE)
+                .defaultIdType(CollectionIdTypes.UUID)
+                .vectorize("openai","text-embedding-ada-002", API_KEY_NAME,params);
+        Collection<Document> collection = db
+                .createCollection("vectorize_test", builder.build());
 
-        // Token Cassandra:Base64(username):Base64(password)
-        String dataAPICassandraToken =  new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
-
-        // Create the Client, option is provided at top level and will be available
-        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIOptions.builder()
-              .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
-              .withEmbeddingAPIKey(embeddingApiKey)
-              .withObserver(new LoggingCommandObserver(DataAPIClient.class))
-              .build());
-
-        // Access to the database
-        Database localDb = localDataAPI
-                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
-
-        // Create a Namespace if Needed
-        localDb.getDatabaseAdmin().createNamespace(DEFAULT_NAMESPACE);
-
-        // Create a collection for the provider
-        Collection<Document> collection = localDb.createCollection(
-                embeddingModel.name().toLowerCase(),
-                // Create collection with a Service in vectorize
-                CollectionOptions.builder()
-                        .indexingAllow()
-                        .vectorDimension(embeddingModel.getDimension())
-                        .vectorSimilarity(SimilarityMetric.COSINE)
-                        .vectorize(embeddingModel.getProvider(), embeddingModel.getName())
-                        .build());
-
-        // Insert documents
         collection.deleteAll();
-        collection.insertMany(
-            new Document(1).vectorize("A lovestruck Romeo sings the streets a serenade"),
-            new Document(2).vectorize("Finds a streetlight, steps out of the shade"),
-            new Document(3).vectorize("Says something like, You and me babe, how about it?"),
-            new Document(4).vectorize("Juliet says,Hey, it's Romeo, you nearly gimme a heart attack"),
-            new Document(5).vectorize("He's underneath the window"),
-            new Document(6).vectorize("She's singing, Hey la, my boyfriend's back"),
-            new Document(7).vectorize("You shouldn't come around here singing up at people like that"),
-            new Document(8).vectorize("Anyway, what you gonna do about it?"));
+        InsertManyResult insertResult = collection.insertMany(
+                new Document()
+                        .id(UUID.fromString("018e65c9-df45-7913-89f8-175f28bd7f74"))
+                        .vectorize("Chat bot integrated sneakers that talk to you"),
+                new Document()
+                        .id(UUID.fromString("018e65c9-e1b7-7048-a593-db452be1e4c2"))
+                        .vectorize("Finds a streetlight, steps out of the shade"),
+                new Document()
+                        .id(UUID.fromString("018e65c9-e33d-749b-9386-e848739582f0"))
+                        .vectorize("Says something like, You and me babe, how about it?")
+        );
+        System.out.println("Insert " + insertResult.getInsertedIds().size() + " items.");
 
         // Find the document
-        Optional<Document> doc = collection.findOne(new FindOneOptions()
-                .sort("You shouldn't come around here singing up at people like tha"));
-
-       log.info("A document has found been : " + doc);
-
+        FindOptions findOptions = new FindOptions()
+                .limit(2)
+                .includeSimilarity()
+                .sort("I'd like some talking shoes");
+        FindIterable<Document> results = collection.find(findOptions);
+        for (Document document : results) {
+            System.out.println("Document: " + document);
+        }
     }
+
 }
