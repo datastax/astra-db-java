@@ -26,11 +26,9 @@ public class QuickStartOpenAI {
      * - Create an Astra Account
      * - Create an Astra Database
      * - Create a token
-     * - Create an Azure OpenAI account
-     * - Get
-     * - Create an Azure OpenAI deployment (deploymentId)
-     * - Create an Azure OpenAI resource (resourceName)
-     * Documentation
+     * - Create an OpenAI account
+     * - Create an OpenAI project (projectId)
+     * - Create an OpenAI key
      * https://d5rxiv0do0q3v.cloudfront.net/vector-395/astra-db-serverless/integrations/embedding-providers/openai.html
      */
 

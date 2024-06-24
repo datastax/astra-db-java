@@ -1,4 +1,4 @@
-package com.datastax.astra.genai;
+package com.datastax.astra.client.collection.vectorize;
 
 /**
  * Group Embeddings Models
