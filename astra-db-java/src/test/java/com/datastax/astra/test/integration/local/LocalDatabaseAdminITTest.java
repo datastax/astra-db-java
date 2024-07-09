@@ -7,13 +7,17 @@ import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.model.NamespaceOptions;
 import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
@@ -57,5 +61,20 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropNamespace(""))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
+    }
+
+    @Override
+    protected AstraEnvironment getAstraEnvironment() {
+        return null;
+    }
+
+    @Override
+    protected CloudProviderType getCloudProvider() {
+        return null;
+    }
+
+    @Override
+    protected String getRegion() {
+        return "";
     }
 }

@@ -185,9 +185,13 @@ public class Database extends AbstractCommandRunner {
      * @return the database name
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
-        if (Objects.requireNonNull(options.getDestination()) == DataAPIDestination.ASTRA) {
-            AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
-            return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
+        if (options.getDestination() != null) {
+            if (options.getDestination() == DataAPIDestination.ASTRA ||
+                options.getDestination() == DataAPIDestination.ASTRA_DEV ||
+                options.getDestination() == DataAPIDestination.ASTRA_TEST) {
+                AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
+                return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
+            }
         }
         return new DataAPIDatabaseAdmin(databaseAdminEndpoint, token, options);
     }

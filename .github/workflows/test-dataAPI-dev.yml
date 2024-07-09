@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  JAVA_VERSION: 11
-  TEST_CLASS: com.example.MySpecificTest
-  PROJECT_DIRECTORY: project
-
 jobs:
   build:
     runs-on: ubuntu-latest

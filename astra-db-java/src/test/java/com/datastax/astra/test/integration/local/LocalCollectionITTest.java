@@ -19,6 +19,7 @@ import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Allow to test Collection information.
  */
+@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalCollectionITTest extends AbstractCollectionITTest {
 
     /** {@inheritDoc} */

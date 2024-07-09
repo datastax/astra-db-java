@@ -14,13 +14,14 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
+@EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
 
@@ -28,8 +29,18 @@ class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
     private static final String TMP_VECTOR_DB2 = "astra_db_admin_test2";
 
     @Override
-    protected AstraEnvironment pickAstraEnvironment() {
+    protected AstraEnvironment getAstraEnvironment() {
         return AstraEnvironment.PROD;
+    }
+
+    @Override
+    protected CloudProviderType getCloudProvider() {
+        return null;
+    }
+
+    @Override
+    protected String getRegion() {
+        return "";
     }
 
     @Test
@@ -79,6 +90,7 @@ class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
         Assertions.assertTrue(getAstraDbAdmin().databaseExists(TMP_VECTOR_DB2));
         getAstraDbAdmin().dropDatabase(TMP_VECTOR_DB2);
     }
+
 
 
 }

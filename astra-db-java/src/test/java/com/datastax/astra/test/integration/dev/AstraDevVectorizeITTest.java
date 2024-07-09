@@ -24,6 +24,7 @@ import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -36,38 +37,16 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Testing Vectorize in DEV
  */
 @Slf4j
+@EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
 public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override
     protected Database initDatabase() {
-        return gcpEuropeWest4();
-        //return gcpUsCentral();
-        //return azureEastUs();
-        //return awsUSWest2();
-    }
-
-    private Database awsUSWest2() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database gcpUsCentral() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database gcpEuropeWest4() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database azureEastUs() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "azure_eastus", CloudProviderType.AZURE, "eastus");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
+        Database usWest2     = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
+        Database usCentral1  = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
+        Database eastUs      = initAstraDatabase(AstraEnvironment.DEV, "azure_eastus", CloudProviderType.AZURE, "eastus");
+        Database europeWest4 = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
+        return europeWest4;
     }
 
     @Test

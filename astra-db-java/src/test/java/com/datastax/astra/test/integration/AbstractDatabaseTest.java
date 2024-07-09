@@ -1,26 +1,19 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.UUIDv6;
 import com.datastax.astra.client.model.UUIDv7;
-import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.api.ApiResponse;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.dtsx.astra.sdk.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-public abstract class AbstractDatabaseTest implements TestConstants {
+public abstract class AbstractDatabaseTest implements TestDataSet {
 
     /**
      * Reference to working DataApiNamespace
@@ -76,65 +69,6 @@ public abstract class AbstractDatabaseTest implements TestConstants {
         return database;
     }
 
-    private void deleteAllCollections() {
-        getDatabase().dropCollection(COLLECTION_SIMPLE);
-        getDatabase().dropCollection(COLLECTION_VECTOR);
-        getDatabase().dropCollection(COLLECTION_ALLOW);
-        getDatabase().dropCollection(COLLECTION_DENY);
-        getDatabase().dropCollection(COLLECTION_UUID);
-        getDatabase().dropCollection(COLLECTION_UUID_V6);
-        getDatabase().dropCollection(COLLECTION_UUID_V7);
-        getDatabase().dropCollection(COLLECTION_OBJECTID);
-    }
-
-    /**
-     * Initialize the Test database on an Astra Environment.
-     *
-     * @param env
-     *      target environment
-     * @param cloud
-     *      target cloud
-     * @param region
-     *      target region
-     * @return
-     *      the database instance
-     */
-    public static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
-        log.info("Working in environment '{}'", env.name());
-        AstraDBAdmin client = getAstraDBClient(env);
-        DatabaseAdmin databaseAdmin =  client.createDatabase(DATABASE_NAME, cloud, region);
-        Database db = databaseAdmin.getDatabase();
-        //db.registerListener("logger", new LoggingCommandObserver(Database.class));
-        return db;
-    }
-
-    /**
-     * Access AstraDBAdmin for different environment (to create DB).
-     *
-     * @param env
-     *      astra environment
-     * @return
-     *      instance of AstraDBAdmin
-     */
-    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
-        switch (env) {
-            case DEV:
-                return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
-                        .getAdmin();
-            case PROD:
-                return DataAPIClients.create(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
-                        .getAdmin();
-            case TEST:
-                return DataAPIClients.createForAstraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
-                        .getAdmin();
-            default:
-                throw new IllegalArgumentException("Invalid Environment");
-        }
-    }
-
     // ------------------------------------
     // --------- Collections --------------
     // ------------------------------------
@@ -142,7 +76,6 @@ public abstract class AbstractDatabaseTest implements TestConstants {
     @Test
     @Order(1)
     public void shouldCreateCollectionSimple() {
-        deleteAllCollections();
         // When
         getDatabase().createCollection(COLLECTION_SIMPLE);
         assertThat(getDatabase().collectionExists(COLLECTION_SIMPLE)).isTrue();
@@ -305,7 +238,6 @@ public abstract class AbstractDatabaseTest implements TestConstants {
     @Test
     @Order(10)
     public void shouldCollectionWorkWithUUIDs() {
-        deleteAllCollections();
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID, CollectionOptions.builder()

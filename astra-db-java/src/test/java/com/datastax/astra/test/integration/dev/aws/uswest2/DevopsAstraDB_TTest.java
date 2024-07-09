@@ -1,17 +1,22 @@
-package com.datastax.astra.test.integration.prod;
+package com.datastax.astra.test.integration.dev.aws.uswest2;
 
+import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
+import com.datastax.astra.test.integration.AbstractAstraDBAdminTest;
+import com.datastax.astra.test.integration.TestDataSet;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
-public class AstraProdDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
+public class DevopsAstraDB_TTest extends AbstractAstraDBAdminTest {
 
     @Override
     protected AstraEnvironment getAstraEnvironment() {
-        return AstraEnvironment.PROD;
+        return AstraEnvironment.DEV;
     }
 
     @Override
@@ -21,7 +26,6 @@ public class AstraProdDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
     protected String getRegion() {
-        return "eu-west-1";
+        return "us-west-2";
     }
-
 }

@@ -1,9 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
@@ -24,14 +22,6 @@ import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.api.ApiResponse;
-import com.datastax.astra.test.TestConstants;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.dtsx.astra.sdk.utils.Utils;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
@@ -61,43 +51,18 @@ import static com.datastax.astra.client.model.Sorts.descending;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-public abstract class AbstractCollectionITTest implements TestConstants {
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public abstract class AbstractCollectionITTest implements TestDataSet {
 
-    protected static Document COMPLETE_DOCUMENT = new Document().id("1")
-            .append("metadata_instant", Instant.now())
-            .append("metadata_date", new Date())
-            .append("metadata_calendar", Calendar.getInstance())
-            .append("metadata_int", 1)
-            .append("metadata_objectId", new ObjectId())
-            .append("metadata_long", 1232123323L)
-            .append("metadata_double", 1213.343243d)
-            .append("metadata_float", 1.1232434543f)
-            .append("metadata_string", "hello")
-            .append("metadata_short", Short.valueOf("1"))
-            .append("metadata_string_array", new String[]{"a", "b", "c"})
-            .append("metadata_int_array", new Integer[]{1, 2, 3})
-            .append("metadata_long_array", new Long[]{1L, 2L, 3L})
-            .append("metadata_double_array", new Double[]{1d, 2d, 3d})
-            .append("metadata_float_array", new Float[]{1f, 2f, 3f})
-            .append("metadata_short_array", new Short[]{1, 2, 3})
-            .append("metadata_boolean", true)
-            .append("metadata_boolean_array", new Boolean[]{true, false, true})
-            .append("metadata_uuid", UUID.randomUUID())
-            .append("metadata_uuid_array", new UUID[]{UUID.randomUUID(), UUID.randomUUID()})
-            .append("metadata_map", Map.of("key1", "value1", "key2", "value2"))
-            .append("metadata_list", List.of("value1", "value2"))
-            .append("metadata_byte", Byte.valueOf("1"))
-            .append("metadata_character", 'c')
-            .append("metadata_enum", AstraDBAdmin.FREE_TIER_CLOUD)
-            .append("metadata_enum_array", new CloudProviderType[]{AstraDBAdmin.FREE_TIER_CLOUD, CloudProviderType.AWS})
-            .append("metadata_object", new ProductString("p1", "name", 10.1));
-
-    /**
-     * Reference to working DataApiNamespace
-     */
+    /** Reference to working DataApiNamespace. */
     protected static Database database;
+
+    /** Tested collection1. */
+    protected static Collection<Document> collectionSimple;
+
+    /** Tested collection2. */
+    protected static Collection<ProductString> collectionVector;
 
     /**
      * Initialization of the DataApiNamespace.
@@ -119,96 +84,6 @@ public abstract class AbstractCollectionITTest implements TestConstants {
         }
         return database;
     }
-
-    protected void deleteAllCollections() {
-        getDatabase().dropCollection(COLLECTION_SIMPLE);
-        getDatabase().dropCollection(COLLECTION_VECTOR);
-        getDatabase().dropCollection(COLLECTION_ALLOW);
-        getDatabase().dropCollection(COLLECTION_DENY);
-        getDatabase().dropCollection(COLLECTION_UUID);
-        getDatabase().dropCollection(COLLECTION_UUID_V6);
-        getDatabase().dropCollection(COLLECTION_UUID_V7);
-        getDatabase().dropCollection(COLLECTION_OBJECTID);
-    }
-
-    /**
-     * Initialize the Test database on an Astra Environment.
-     *
-     * @param env
-     *      target environment
-     * @param cloud
-     *      target cloud
-     * @param region
-     *      target region
-     * @return
-     *      the database instance
-     */
-    protected static Database initAstraDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
-        log.info("Working in environment '{}'", env.name());
-        return  getAstraDBClient(env)
-                .createDatabase(DATABASE_NAME, cloud, region)
-                .getDatabase();
-    }
-
-    /**
-     * Access AstraDBAdmin for different environment (to create DB).
-     *
-     * @param env
-     *      astra environment
-     * @return
-     *      instance of AstraDBAdmin
-     */
-    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
-        switch (env) {
-            case DEV:
-                return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
-                        .getAdmin();
-            case PROD:
-                return DataAPIClients.create(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
-                        .getAdmin();
-            case TEST:
-                return DataAPIClients.createForAstraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
-                        .getAdmin();
-            default:
-                throw new IllegalArgumentException("Invalid Environment");
-        }
-    }
-
-    /** Tested collection1. */
-    protected static Collection<Document> collectionSimple;
-
-    /** Tested collection2. */
-    protected static Collection<ProductString> collectionVector;
-
-    /**
-     * Bean to be used for the test suite
-     */
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class Product<ID> {
-        @JsonProperty("_id")
-        protected ID     id;
-        protected String name;
-        protected Double price;
-        protected UUID code;
-    }
-
-    @NoArgsConstructor
-    static class ProductString extends Product<String> {
-        public ProductString(String id, String name, Double price) {
-            this.id = id;
-            this.name = name;
-            this.price = price;
-        }
-    }
-    @NoArgsConstructor
-    static class ProductObjectId extends Product<ObjectId> {}
-    @NoArgsConstructor
-    static class ProductObjectUUID extends Product<UUID> {}
 
     /**
      * Generating sample document to insert.

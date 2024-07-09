@@ -21,8 +21,11 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
+import com.dtsx.astra.sdk.db.domain.DatabaseCreationBuilder;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
 import java.net.http.HttpClient;
@@ -30,6 +33,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA;
+import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA_DEV;
+import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA_TEST;
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
@@ -326,6 +331,13 @@ public class DataAPIClient {
     public Database getDatabase(UUID databaseId, String namespace) {
         Assert.notNull(databaseId, ARG_DATABASE_ID);
         Assert.hasLength(namespace, ARG_NAMESPACE);
+        if (options.getDestination() != ASTRA &&
+            options.getDestination() != ASTRA_DEV &&
+            options.getDestination() != ASTRA_TEST) {
+            throw new IllegalArgumentException("DataAPIOptions.destination " +
+                    "should be set to one of ASTRA* " +
+                    "to retrieve a database from an id.");
+        }
         return new Database(new AstraApiEndpoint(databaseId,
                 getAdmin().getDatabaseInfo(databaseId).getRegion(),
                 getAstraEnvironment()).getApiEndPoint(),
@@ -414,6 +426,30 @@ public class DataAPIClient {
      */
     public Database getDatabase(String apiEndpoint, String namespace) {
         return new Database(apiEndpoint, token, namespace, options);
+    }
+
+    /**
+     * Retrieves a client for interacting with a specified database using its unique identifier.
+     *
+     * @param apiEndpoint
+     *      apiEndpoint for the database.
+     * @return
+     *      an instance of Database admin
+     */
+    public DatabaseAdmin getDatabaseAdmin(String apiEndpoint) {
+        return getDatabase(apiEndpoint).getDatabaseAdmin();
+    }
+
+    /**
+     * Retrieves a client for interacting with a specified database using its unique identifier.
+     *
+     * @param databaseId
+     *      database identifier
+     * @return
+     *      the database admin if exists
+     */
+    public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
+        return (AstraDBDatabaseAdmin) getDatabase(databaseId).getDatabaseAdmin();
     }
 
     /**

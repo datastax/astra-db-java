@@ -7,11 +7,12 @@ import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.Map;
 
 @Slf4j
-@Disabled
+@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 public class LocalVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override

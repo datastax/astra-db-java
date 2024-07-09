@@ -13,6 +13,7 @@ import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.IOException;
 import java.util.Set;
@@ -24,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Integration tests against a Local Instance of Stargate.
  */
+@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalDatabaseITTest extends AbstractDatabaseTest {
 
     /** {@inheritDoc} */

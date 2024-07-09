@@ -183,6 +183,7 @@ public class DataAPIClients {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
                 .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_TEST)
+                .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                 .build());
     }
 

@@ -45,14 +45,15 @@ public class QuickStartHCD {
         // Create a default keyspace
         ((DataAPIDatabaseAdmin) client
                 .getDatabase(dataApiUrl)
-                .getDatabaseAdmin()).createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
+                .getDatabaseAdmin())
+                .createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
         System.out.println("3/7 - Keyspace '" + keyspaceName + "'created ");
 
         Database db = client.getDatabase(dataApiUrl, keyspaceName);
         System.out.println("4/7 - Connected to Database");
 
         // Create a collection with Vector embeddings OPEN AI
-        Collection<Document> collectionLyrics =  db.createCollection(collectionName, CollectionOptions.builder()
+        Collection<Document> collectionLyrics = db.createCollection(collectionName, CollectionOptions.builder()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(openAiEmbeddingDimension)
                 .vectorize(openAiProvider, openAiModel)

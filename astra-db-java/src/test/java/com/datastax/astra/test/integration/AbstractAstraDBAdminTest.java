@@ -1,49 +1,53 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.db.domain.DatabaseInfo;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
-public abstract class AbstractAstraDBAdminTest {
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
 
-
-    /**
-     * Access AstraDBAdmin for different environment (to create DB).
-     *
-     * @param env
-     *      astra environment
-     * @return
-     *      instance of AstraDBAdmin
-     */
-    private AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
-        switch (env) {
-            case DEV:
-                return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
-                        .getAdmin();
-            case PROD:
-                return DataAPIClients.create(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
-                        .getAdmin();
-            case TEST:
-                return DataAPIClients.createForAstraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
-                        .getAdmin();
-            default:
-                throw new IllegalArgumentException("Invalid Environment");
-        }
-    }
+@Slf4j
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public abstract class AbstractAstraDBAdminTest implements TestDataSet {
 
     protected AstraDBAdmin astraDbAdmin;
 
     protected AstraDBAdmin getAstraDbAdmin() {
         if (astraDbAdmin == null) {
-            astraDbAdmin = getAstraDBClient(pickAstraEnvironment());
+            astraDbAdmin = getAstraDBAdmin(getAstraEnvironment());
         }
         return astraDbAdmin;
     }
 
-    protected abstract AstraEnvironment pickAstraEnvironment();
+    protected abstract AstraEnvironment getAstraEnvironment();
+    protected abstract CloudProviderType getCloudProvider();
+    protected abstract String getRegion();
+
+    protected static com.dtsx.astra.sdk.db.domain.Database devopsDb;
+
+
+    @Test
+    @Order(1)
+    public void should_create_database() {
+        Database db = initializeDatabase(getAstraEnvironment(), getCloudProvider(), getRegion());
+        devopsDb = ((AstraDBDatabaseAdmin)db.getDatabaseAdmin()).getDatabaseInformations();
+        assertThat(devopsDb).isNotNull();
+        assertThat(devopsDb.getInfo()).isNotNull();
+        assertThat(getAstraDbAdmin().databaseExists(devopsDb.getId())).isTrue();
+        assertThat(getAstraDbAdmin().databaseExists(devopsDb.getInfo().getName())).isTrue();
+        assertThat(getAstraDbAdmin().listDatabaseNames()).contains(devopsDb.getInfo().getName());
+    }
+
 
 }
