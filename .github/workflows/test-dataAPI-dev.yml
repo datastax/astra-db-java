@@ -1,0 +1,30 @@
+name: Java CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: 11
+  TEST_CLASS: com.example.MySpecificTest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Build with Maven
+        run: mvn install
+
+      - name: Run specific test
+        run: mvn test -Dtest=${{ env.TEST_CLASS }}

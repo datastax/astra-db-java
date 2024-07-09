@@ -1,12 +1,12 @@
-package com.datastax.astra.tool;
+package com.datastax.astra.samples;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
-import com.datastax.astra.tool.csv.CsvLoader;
-import com.datastax.astra.tool.csv.CsvRowMapper;
+import com.datastax.astra.tool.loader.csv.CsvLoader;
+import com.datastax.astra.tool.loader.csv.CsvRowMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**

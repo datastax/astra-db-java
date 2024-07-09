@@ -1,4 +1,4 @@
-package com.datastax.astra.tool.csv;
+package com.datastax.astra.tool.loader.csv;
 
 import com.datastax.astra.client.model.Document;
 

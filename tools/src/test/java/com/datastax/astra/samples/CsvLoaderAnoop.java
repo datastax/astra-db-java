@@ -1,18 +1,15 @@
-package com.datastax.astra.tool;
+package com.datastax.astra.samples;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.JsonUtils;
-import com.datastax.astra.tool.csv.CsvLoader;
-import com.datastax.astra.tool.csv.CsvLoaderSettings;
-import com.datastax.astra.tool.csv.CsvRowMapper;
+import com.datastax.astra.tool.loader.csv.CsvLoader;
+import com.datastax.astra.tool.loader.csv.CsvLoaderSettings;
+import com.datastax.astra.tool.loader.csv.CsvRowMapper;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.datastax.astra.client.model.Filters.and;
 import static com.datastax.astra.client.model.Filters.eq;
@@ -23,8 +20,6 @@ public class CsvLoaderAnoop {
         DataAPIClient client = new DataAPIClient("<replace_me>");
         Database db = client.getDatabase("<replace_me>");
         Collection<Document> collection = db.createCollection("best_buy");
-        collection.registerListener("logger", new LoggingCommandObserver(CsvLoaderAnoop.class));
-
         collection.deleteAll();
         CsvLoader.load(
                 "/Users/cedricklunven/Downloads/best_buy.csv",
