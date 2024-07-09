@@ -10,6 +10,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
  * Integration tests against a Local Instance of Stargate.
  */
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
+@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER", matches = "GCP")
+@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION", matches = "europe-west4")
 class Database_Gcp_europewest4_ITTest extends AbstractDatabaseTest {
 
     /** {@inheritDoc} */
