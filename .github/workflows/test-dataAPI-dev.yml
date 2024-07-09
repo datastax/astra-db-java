@@ -1,4 +1,4 @@
-name: Java CI
+name: Data API Astra DEV
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 env:
   JAVA_VERSION: 11
   TEST_CLASS: com.example.MySpecificTest
+  PROJECT_DIRECTORY: project
 
 jobs:
   build:
@@ -21,10 +22,13 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
-          java-version: ${{ env.JAVA_VERSION }}
+          java-version: 11
 
       - name: Build with Maven
-        run: mvn install
+        run: |
+          mvn install
 
-      - name: Run specific test
-        run: mvn test -Dtest=${{ env.TEST_CLASS }}
+      - name: Run test for DEV
+        run: |
+          cd astra-db-java
+          run: mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test

@@ -1,8 +1,9 @@
-package com.datastax.astra.test.integration.collection_vectorize;
+package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

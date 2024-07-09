@@ -1,11 +1,11 @@
-package com.datastax.astra.test.integration.admin;
+package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
 
-abstract class AbstractAstraDBAdminTest {
+public abstract class AbstractAstraDBAdminTest {
 
 
     /**

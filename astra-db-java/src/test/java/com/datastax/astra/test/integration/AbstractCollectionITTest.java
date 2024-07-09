@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection;
+package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -65,7 +65,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Slf4j
 public abstract class AbstractCollectionITTest implements TestConstants {
 
-    static Document COMPLETE_DOCUMENT = new Document().id("1")
+    protected static Document COMPLETE_DOCUMENT = new Document().id("1")
             .append("metadata_instant", Instant.now())
             .append("metadata_date", new Date())
             .append("metadata_calendar", Calendar.getInstance())

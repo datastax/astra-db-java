@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection_vectorize;
+package com.datastax.astra.test.integration.dev;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
@@ -19,6 +19,7 @@ import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.auth.AWSEmbeddingHeadersProvider;
 import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +113,7 @@ public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
         Database db = initDatabase();
 
         String providerName   = "huggingfaceDedicated";
-        String huggingFaceKey = "HF_DEDICATED_API_KEY";
+        String huggingFaceKey = System.getenv("HF_DEDICATED_API_KEY");
         String collectionName = "collection_hf_dedicated";
 
         FindEmbeddingProvidersResult result =  db.getDatabaseAdmin().findEmbeddingProviders();

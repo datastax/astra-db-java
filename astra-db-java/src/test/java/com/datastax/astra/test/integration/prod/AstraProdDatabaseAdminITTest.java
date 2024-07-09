@@ -1,6 +1,7 @@
-package com.datastax.astra.test.integration.database_admin;
+package com.datastax.astra.test.integration.prod;
 
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 

@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection;
+package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -17,6 +17,7 @@ import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Page;
 import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateResult;
+import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;

@@ -1,9 +1,10 @@
-package com.datastax.astra.test.integration.collection_vectorize;
+package com.datastax.astra.test.integration.prod;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;

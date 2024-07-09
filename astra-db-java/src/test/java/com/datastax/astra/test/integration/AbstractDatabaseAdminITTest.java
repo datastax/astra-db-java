@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.database_admin;
+package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * Test connectivity to API
  */
 @Slf4j
-abstract class AbstractDatabaseAdminITTest implements TestConstants {
+public abstract class AbstractDatabaseAdminITTest implements TestConstants {
 
     protected abstract DatabaseAdmin initDatabaseAdmin();
 

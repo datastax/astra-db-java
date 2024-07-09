@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.database;
+package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
@@ -9,6 +9,7 @@ import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;

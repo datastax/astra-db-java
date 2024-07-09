@@ -1,12 +1,12 @@
-package com.datastax.astra.test.integration.database_admin;
+package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.NamespaceOptions;
+import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

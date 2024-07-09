@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.database;
+package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.CollectionIdTypes;
@@ -18,7 +18,6 @@ import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.api.ApiResponse;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
@@ -49,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-abstract class AbstractDatabaseTest implements TestConstants {
+public abstract class AbstractDatabaseTest implements TestConstants {
 
     /**
      * Reference to working DataApiNamespace

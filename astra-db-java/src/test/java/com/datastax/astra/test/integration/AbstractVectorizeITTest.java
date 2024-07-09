@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.collection_vectorize;
+package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClients;
@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-abstract class AbstractVectorizeITTest {
+public abstract class AbstractVectorizeITTest {
 
     /**
      * Reference to working DataApiNamespace
