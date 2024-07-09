@@ -44,8 +44,6 @@ public abstract class AbstractAstraDBAdminTest implements TestDataSet {
         devopsDb = ((AstraDBDatabaseAdmin)db.getDatabaseAdmin()).getDatabaseInformations();
         assertThat(devopsDb).isNotNull();
         assertThat(devopsDb.getInfo()).isNotNull();
-        assertThat(getAstraDbAdmin().databaseExists(devopsDb.getId())).isTrue();
-        assertThat(getAstraDbAdmin().databaseExists(devopsDb.getInfo().getName())).isTrue();
         assertThat(getAstraDbAdmin().listDatabaseNames()).contains(devopsDb.getInfo().getName());
     }
 

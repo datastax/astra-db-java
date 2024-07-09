@@ -90,7 +90,9 @@ public abstract class AbstractDatabaseAdminITTest implements TestDataSet {
         // When
         if (!getDatabaseAdmin().namespaceExists("nsx")) {
             getDatabaseAdmin().createNamespace("nsx");
-            Thread.sleep(5000);
+            while (!getDatabaseAdmin().namespaceExists("nsx")) {
+                Thread.sleep(1000);
+            }
         }
         // Then
         assertThat(getDatabaseAdmin().namespaceExists("nsx")).isTrue();
@@ -119,8 +121,8 @@ public abstract class AbstractDatabaseAdminITTest implements TestDataSet {
         Database ns2 =  getDatabaseAdmin().getDatabase("nsx");
         assertThat("nsx").isNotNull();
         ns2.drop();
-        while (getDatabaseAdmin().namespaceExists("tmp2")) {
-            log.warn("Waiting for namespace 'tmp2' to be delete");
+        while (getDatabaseAdmin().namespaceExists("nsx")) {
+            log.warn("Waiting for namespace 'nsx' to be delete");
             Thread.sleep(1000);
         }
         assertThat(getDatabaseAdmin().namespaceExists("nsx")).isFalse();

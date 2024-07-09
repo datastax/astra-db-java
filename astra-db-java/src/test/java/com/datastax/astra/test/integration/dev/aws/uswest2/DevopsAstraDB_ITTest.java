@@ -8,8 +8,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
-@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER", matches = "AWS")
-@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION", matches = "us-west-2")
+//@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER", matches = "AWS")
+//@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION", matches = "us-west-2")
 public class DevopsAstraDB_ITTest extends AbstractAstraDBAdminTest {
 
     @Override
