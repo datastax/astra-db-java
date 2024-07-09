@@ -14,9 +14,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # Setup Java    
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
+          distribution: 'adopt'
           java-version: 11
 
       - name: Build with Maven
@@ -26,4 +28,4 @@ jobs:
       - name: Run test for DEV
         run: |
           cd astra-db-java
-          run: mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test
+          mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test
