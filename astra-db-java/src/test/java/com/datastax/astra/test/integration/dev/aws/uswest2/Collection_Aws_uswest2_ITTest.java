@@ -9,6 +9,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 /**
  * Allow to test Collection information.
  */
+@EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
 class Collection_Aws_uswest2_ITTest extends AbstractCollectionITTest {
 
     /** {@inheritDoc} */
