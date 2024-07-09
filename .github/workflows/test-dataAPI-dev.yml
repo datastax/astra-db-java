@@ -19,9 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      # Setup Java    
       - name: Set up JDK
         uses: actions/setup-java@v2
         with:
+          distribution: 'adopt'
           java-version: 11
 
       - name: Build with Maven
