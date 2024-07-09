@@ -1,4 +1,4 @@
-name: Test Integration DEV/AWS/US-WEST2
+name: CI against DEV/AWS/US-WEST2
 
 on:
   push:
@@ -28,6 +28,7 @@ jobs:
       - name: Run test for DEV
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           cd astra-db-java
