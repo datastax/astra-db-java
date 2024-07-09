@@ -28,4 +28,4 @@ jobs:
       - name: Run test for DEV
         run: |
           cd astra-db-java
-          mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test
+          mvn -Dtest=com.datastax.astra.test.integration.dev.aws.uswest2.*Test test
