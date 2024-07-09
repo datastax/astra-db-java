@@ -6,11 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-env:
-  JAVA_VERSION: 11
-  TEST_CLASS: com.example.MySpecificTest
-  PROJECT_DIRECTORY: project
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -33,4 +28,4 @@ jobs:
       - name: Run test for DEV
         run: |
           cd astra-db-java
-          run: mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test
+          mvn -Dtest=com.datastax.astra.test.integration.dev.*Test test
