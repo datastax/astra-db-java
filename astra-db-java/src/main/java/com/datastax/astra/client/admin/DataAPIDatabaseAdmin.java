@@ -22,12 +22,13 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.EmbeddingProvider;
-import com.datastax.astra.client.model.HttpClientOptions;
-import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.model.NamespaceOptions;
+import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
@@ -76,7 +77,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         this.options        = options;
         this.commandOptions = new CommandOptions<>()
                 .token(token)
-                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
                 .httpClientOptions(options.getHttpClientOptions());
         options.getObservers().forEach(this.commandOptions::registerObserver);
     }
@@ -96,9 +97,11 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
-    public Map<String, EmbeddingProvider> listEmbeddingProviders() {
-        return runCommand(Command.create("findEmbeddingProviders"))
-                .getStatusKeyAsMap("embeddingProviders", EmbeddingProvider.class);
+    public FindEmbeddingProvidersResult findEmbeddingProviders() {
+        ApiResponse res = runCommand(Command.create("findEmbeddingProviders"));
+        return new FindEmbeddingProvidersResult(
+                res.getStatusKeyAsMap("embeddingProviders",
+                EmbeddingProvider.class));
     }
 
     /** {@inheritDoc} */
@@ -157,7 +160,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
         return apiEndPoint;
     }
 
-
     /**
      * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
      *
@@ -166,20 +168,8 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      * @param commandObserver
      *      class for the logger
      */
-    @Deprecated
     public void registerListener(String logger, CommandObserver commandObserver) {
         this.commandOptions.registerObserver(logger, commandObserver);
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
-     *
-     * @param name
-     *      name for the observer
-     */
-    @Deprecated
-    public void deleteListener(String name) {
-        this.commandOptions.unregisterObserver(name);
     }
 
 }

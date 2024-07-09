@@ -1,7 +1,7 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.internal.auth.TokenProviderFixed;
-import com.datastax.astra.internal.auth.TokenProviderStargate;
+import com.datastax.astra.client.auth.StaticTokenProvider;
+import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,13 +13,13 @@ class TokenProviderTest {
 
     @Test
     void shouldFixedTokenProviderReturnToken() {
-        assertThat(new TokenProviderFixed("token").getToken()).isEqualTo("token");
-        assertThat(new TokenProviderFixed("token").get()).isEqualTo("token");
+        assertThat(new StaticTokenProvider("token").getToken()).isEqualTo("token");
+        assertThat(new StaticTokenProvider("token").get()).isEqualTo("token");
     }
 
     @Test
     void shouldGetMeAToken() {
-        String token = new TokenProviderStargate().getToken();
+        String token = new UsernamePasswordTokenProvider().getToken();
         System.out.println(token);
         assertThat(token).isNotNull();
     }

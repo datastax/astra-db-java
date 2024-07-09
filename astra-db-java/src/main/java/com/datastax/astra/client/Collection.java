@@ -2225,7 +2225,6 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param commandObserver
      *      class for the logger
      */
-    @Deprecated
     public void registerListener(String logger, CommandObserver commandObserver) {
         this.commandOptions.registerObserver(logger, commandObserver);
     }
@@ -2236,7 +2235,6 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param name
      *      name for the observer
      */
-    @Deprecated
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }

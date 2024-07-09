@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.auth;
+package com.datastax.astra.client.auth;
 
 /*-
  * #%L

@@ -20,6 +20,8 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.internal.command.CommandObserver;
 import lombok.Getter;
 
@@ -52,9 +54,9 @@ public class CommandOptions<T extends CommandOptions<T>>{
     protected HttpClientOptions httpClientOptions;
 
     /**
-     * Header for embeddings when that make sense
+     * Embedding auth provider
      */
-    protected String embeddingAPIKey;
+    protected EmbeddingHeadersProvider embeddingAuthProvider;
 
     /**
      * Provide the token.
@@ -87,14 +89,31 @@ public class CommandOptions<T extends CommandOptions<T>>{
     /**
      * Provide the embedding service API key.
      *
-     * @param embeddingServiceApiKey
-     *      embedding service key
+     * @param embeddingAuthProvider
+     *      authentication provider
      * @return
      *      service key
      */
     @SuppressWarnings("unchecked")
+    public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
+        this.embeddingAuthProvider = embeddingAuthProvider;
+        return (T) this;
+    }
+
+    /**
+     * Provide the embedding service API key.
+     *
+     * @param embeddingServiceApiKey
+     *      embedding service key
+     * @return
+     *      service key
+     * @deprecated
+     *      has been replace by {@link #embeddingAuthProvider(EmbeddingHeadersProvider)}
+     */
+    @Deprecated
+    @SuppressWarnings("unchecked")
     public T embeddingAPIKey(String embeddingServiceApiKey) {
-        this.embeddingAPIKey = embeddingServiceApiKey;
+        this.embeddingAuthProvider = new EmbeddingAPIKeyHeaderProvider(embeddingServiceApiKey);
         return (T) this;
     }
 
@@ -154,12 +173,12 @@ public class CommandOptions<T extends CommandOptions<T>>{
     }
 
     /**
-     * Gets embeddinAPIKey
+     * Return the @EmbeddingAuthProvider if present in the configuration.
      *
-     * @return value of embeddingAPIKey
+     * @return value of token
      */
-    public Optional<String> getEmbeddingAPIKey() {
-        return Optional.ofNullable(embeddingAPIKey);
+    public Optional<EmbeddingHeadersProvider> getEmbeddingAuthProvider() {
+        return Optional.ofNullable(embeddingAuthProvider);
     }
 
     /**
@@ -170,6 +189,7 @@ public class CommandOptions<T extends CommandOptions<T>>{
     public Optional<String> getToken() {
         return Optional.ofNullable(token);
     }
+
     /**
      * Gets httpClientOptions
      *
@@ -185,6 +205,5 @@ public class CommandOptions<T extends CommandOptions<T>>{
     public CommandOptions() {
         // left blank, jackson serialization
     }
-
 
 }

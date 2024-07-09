@@ -52,7 +52,6 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_ACCEPT;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_AUTHORIZATION;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CASSANDRA;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_CONTENT_TYPE;
-import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_EMBEDDING_SERVICE_API_KEY;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUESTED_WITH;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_REQUEST_ID;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT;
@@ -105,7 +104,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         }
 
         // === TOKEN ===
-        String token = commandOptions.getToken().get();
+        String token = null;
+        if (commandOptions.getToken().isPresent()) {
+            token = commandOptions.getToken().get();
+        }
         if (overridingOptions != null && overridingOptions.getToken().isPresent()) {
             token = overridingOptions.getToken().get();
         }
@@ -130,13 +132,16 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             builder.timeout(Duration.ofSeconds(requestHttpClient.getResponseTimeoutInSeconds()));
 
             // === Embedding KEY ===
-            commandOptions
-                    .getEmbeddingAPIKey()
-                    .ifPresent(key -> builder.header(HEADER_EMBEDDING_SERVICE_API_KEY, key));
-            if (overridingOptions != null) {
-                overridingOptions
-                        .getEmbeddingAPIKey()
-                        .ifPresent(key -> builder.header(HEADER_EMBEDDING_SERVICE_API_KEY, key));
+            // FIX ME EMBEDDING AUTHENTICATION PROVIDER
+            if (commandOptions.getEmbeddingAuthProvider().isPresent()) {
+                commandOptions.getEmbeddingAuthProvider()
+                        .get().getHeaders()
+                        .forEach(builder::header);
+            }
+            if (overridingOptions != null && overridingOptions.getEmbeddingAuthProvider().isPresent()) {
+                overridingOptions.getEmbeddingAuthProvider()
+                        .get().getHeaders()
+                        .forEach(builder::header);
             }
 
             HttpRequest request = builder.build();

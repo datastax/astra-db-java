@@ -84,9 +84,6 @@ public class RetryHttpClient {
     /** Headers param to insert the user agent identifying the client. */
     public static final String HEADER_REQUESTED_WITH    = "X-Requested-With";
 
-    /** Headers param with the embedding ApiKey when dealing with a embedding service provider. */
-    public static final String HEADER_EMBEDDING_SERVICE_API_KEY = "x-embedding-api-key";
-
     /** Value for the requested with. */
     public static final String REQUEST_WITH = "data-api-client-java";
 

@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.auth;
+package com.datastax.astra.client.auth;
 
 /*-
  * #%L
@@ -40,6 +40,9 @@ public class UsernamePasswordTokenProvider implements TokenProvider {
 
     /** Default password for Cassandra. */
     public static final String DEFAULT_CREDENTIALS = "cassandra";
+
+    /** Default URL for local deployments. */
+    public static final String DEFAULT_URL = "http://localhost:8181";
 
     /** Storing an authentication token to speed up queries. */
     private final String token;

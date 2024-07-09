@@ -4,12 +4,11 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.internal.auth.TokenProviderStargate;
-import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -18,7 +17,6 @@ import java.io.IOException;
 import java.util.Set;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.internal.auth.TokenProviderStargate.DEFAULT_AUTH_URL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -35,12 +33,12 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
 
     @Test
     void shouldGetATokenFromAuthenticationEndpoint() {
-        assertThat(new TokenProviderStargate().getToken()).isNotNull();
+        assertThat(new UsernamePasswordTokenProvider().getToken()).isNotNull();
     }
 
     @Test
     void shouldThrowAuthenticationCode() {
-        TokenProviderStargate tokenProvider = new TokenProviderStargate("invalid", "invalid", DEFAULT_AUTH_URL);
+        UsernamePasswordTokenProvider tokenProvider = new UsernamePasswordTokenProvider("invalid", "invalid");
         assertThatThrownBy(tokenProvider::getToken).isInstanceOf(AuthenticationException.class);
     }
 
@@ -78,7 +76,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
         mockWebServer.start();
 
         DataAPIClient otherCallerClient = new DataAPIClient(
-                new TokenProviderStargate().getToken(),
+                new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
                         .withHttpProxy(new DataAPIOptions.HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))

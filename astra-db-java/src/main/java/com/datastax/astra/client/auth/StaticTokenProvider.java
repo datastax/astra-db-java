@@ -1,7 +1,5 @@
-/**
- * Internal technical classes to authenticate against API endpoint.
- */
-package com.datastax.astra.internal.auth;
+package com.datastax.astra.client.auth;
+
 /*-
  * #%L
  * Data API Java Client
@@ -21,3 +19,31 @@ package com.datastax.astra.internal.auth;
  * limitations under the License.
  * #L%
  */
+
+/**
+ * Static token, never expires..
+ *
+ * @author Cedrick LUNVEN (@clunven)
+ */
+public class StaticTokenProvider implements TokenProvider {
+
+    /** Reference to token. */
+    private String token;
+
+    /**
+     * Constructor with all parameters.
+     *
+     * @param token
+     *      static token to be used
+     */
+    public StaticTokenProvider(String token) {
+        this.token = token;
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public String getToken() {
+        return token;
+    }
+
+}

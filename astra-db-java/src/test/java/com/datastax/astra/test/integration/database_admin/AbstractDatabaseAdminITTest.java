@@ -4,6 +4,7 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.test.TestConstants;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
@@ -147,7 +148,9 @@ abstract class AbstractDatabaseAdminITTest implements TestConstants {
 
     @Test
     void shouldListEmbeddingProvider() {
-        Map<String, EmbeddingProvider> mapOfProviders = getDatabaseAdmin().listEmbeddingProviders();
+        FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
+        assertThat(result).isNotNull();
+        Map<String, EmbeddingProvider> mapOfProviders = result.getEmbeddingProviders();
         assertThat(mapOfProviders).isNotNull();
         assertThat(mapOfProviders).isNotEmpty();
         assertThat(mapOfProviders).containsKeys("openai");

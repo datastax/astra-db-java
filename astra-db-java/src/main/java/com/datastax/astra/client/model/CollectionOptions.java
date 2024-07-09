@@ -358,17 +358,20 @@ public class CollectionOptions {
          *      provider Name (LLM)
          * @param modeName
          *      mode name
-         * @param keyName
+         * @param sharedSecretKey
          *      name of the key in the system
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder vectorize(String provider, String modeName, String keyName) {
+        public CollectionOptionsBuilder vectorize(String provider, String modeName, String sharedSecretKey) {
             Service embeddingService = new Service();
             embeddingService.setProvider(provider);
             embeddingService.setModelName(modeName);
-            if (keyName != null) {
-                embeddingService.setAuthentication(Map.of("providerKey", keyName + ".providerKey"));
+            if (sharedSecretKey != null) {
+                // --> Since 1.3.1 the suffix is not needed anymore
+                //embeddingService.setAuthentication(Map.of("providerKey", keyName + ".providerKey"));
+                embeddingService.setAuthentication(Map.of("providerKey", sharedSecretKey));
+                // <--- Since 1.3.1 the suffix is not needed anymore
             }
             getVector().setService(embeddingService);
             return this;
@@ -383,13 +386,13 @@ public class CollectionOptions {
          *      mode name
          * @param parameters
          *      expected parameters for vectorize
-         * @param keyName
+         * @param sharedSecretKey
          *      name of the key in the system
          * @return
          *      self reference
          */
-        public CollectionOptionsBuilder vectorize(String provider, String modeName, String keyName, Map<String, Object> parameters) {
-            vectorize(provider, modeName, keyName);
+        public CollectionOptionsBuilder vectorize(String provider, String modeName, String sharedSecretKey, Map<String, Object> parameters) {
+            vectorize(provider, modeName, sharedSecretKey);
             getVector().getService().setParameters(parameters);
             return this;
         }

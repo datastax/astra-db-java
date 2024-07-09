@@ -22,6 +22,7 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
@@ -126,7 +127,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.Database getDatabase(String namespaceName, String tokenUser) {
-        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName);
+        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName, options);
     }
 
     /** {@inheritDoc} */
@@ -139,8 +140,9 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /** {@inheritDoc} */
     @Override
-    public Map<String, EmbeddingProvider> listEmbeddingProviders() {
-        return new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + options.getApiVersion(), token, options).listEmbeddingProviders();
+    public FindEmbeddingProvidersResult findEmbeddingProviders() {
+        DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + options.getApiVersion(), token, options);
+        return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 
     /** {@inheritDoc} */

@@ -90,7 +90,9 @@ public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
     public void shouldTestAllProviders() {
         for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
                 .getDatabaseAdmin()
-                .listEmbeddingProviders().entrySet()) {
+                .findEmbeddingProviders()
+                .getEmbeddingProviders()
+                .entrySet()) {
             //this.testEmbeddingProvider(entry.getKey(), entry.getValue());
             System.out.println("Provider: " + entry.getKey());
         }

@@ -22,25 +22,24 @@ package com.datastax.astra.client;
 
 import com.datastax.astra.client.DataAPIOptions.DataAPIDestination;
 import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.model.CollectionInfo;
+import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.CollectionInfo;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.HttpClientOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
-import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
+import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -61,19 +60,21 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 @Slf4j
 public class Database extends AbstractCommandRunner {
 
-    /** Current Namespace information.*/
-    @Getter
-    private final String namespaceName;
 
     /** Token to be used with the Database. */
     private final String token;
 
     /** Api Endpoint for the API. */
-    private final String apiEndpoint;
+    @Getter
+    private final String dbApiEndpoint;
 
     /** Options to set up the client. */
     @Getter
     private final DataAPIOptions options;
+
+    /** Current Namespace information.*/
+    @Getter
+    private String namespaceName;
 
     /**
      * This core endpoint could be used for admin operations.
@@ -126,37 +127,41 @@ public class Database extends AbstractCommandRunner {
         this.namespaceName = namespace;
         this.token         = token;
         this.options       = options;
+        this.dbApiEndpoint = apiEndpoint;
 
         // Adding version number if needed
         this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
                 apiEndpoint :
                 apiEndpoint + "/" + options.getApiVersion();
-        StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
-        // Adding /api/json if needed for Astra.
-        switch(options.destination) {
-            case ASTRA:
-            case ASTRA_TEST:
-            case ASTRA_DEV:
-                if (apiEndpoint.endsWith(".com")) {
-                    dbApiEndPointBuilder.append("/api/json");
-                }
-            break;
-            default:
-                // left blank as local deployments does not require any change
-            break;
-        }
-        this.apiEndpoint = dbApiEndPointBuilder
-                .append("/")
-                .append(options.getApiVersion())
-                .append("/")
-                .append(namespaceName)
-                .toString();
+
         // Build Command
         this.commandOptions = new CommandOptions<>()
                 .token(token)
-                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
                 .httpClientOptions(options.getHttpClientOptions());
-        options.getObservers().forEach(this.commandOptions::registerObserver);
+        for(Map.Entry<String, CommandObserver> entry : options.getObservers().entrySet()) {
+            // Avoid observers Duplication
+            if (!commandOptions.getObservers().containsKey(entry.getKey())) {
+                this.commandOptions.registerObserver(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    // ------------------------------------------
+    // ----       Mutate Namespace           ----
+    // ------------------------------------------
+
+    /**
+     * This mutates the namespace to be used.
+     *
+     * @param namespace
+     *      current namespace
+     * @return
+     *      the database
+     */
+    public Database useNamespace(String namespace) {
+        this.namespaceName = namespace;
+        return this;
     }
 
     // ------------------------------------------
@@ -181,7 +186,7 @@ public class Database extends AbstractCommandRunner {
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
         if (Objects.requireNonNull(options.getDestination()) == DataAPIDestination.ASTRA) {
-            AstraApiEndpoint endpoint = AstraApiEndpoint.parse(apiEndpoint);
+            AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
             return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
         }
         return new DataAPIDatabaseAdmin(databaseAdminEndpoint, token, options);
@@ -283,14 +288,14 @@ public class Database extends AbstractCommandRunner {
         notNull(documentClass, "documentClass");
         CommandOptions<?> collectionCollectionOptions = new CommandOptions<>()
                 .token(token)
-                .embeddingAPIKey(options.getEmbeddingAPIKey())
+                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
                 .httpClientOptions(options.getHttpClientOptions());
         this.commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
 
         // Override with the commandOptions if any for a collection
         if (commandOptions != null) {
             commandOptions.getToken().ifPresent(collectionCollectionOptions::token);
-            commandOptions.getEmbeddingAPIKey().ifPresent(collectionCollectionOptions::embeddingAPIKey);
+            commandOptions.getEmbeddingAuthProvider().ifPresent(collectionCollectionOptions::embeddingAuthProvider);
             commandOptions.getHttpClientOptions().ifPresent(collectionCollectionOptions::httpClientOptions);
             commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
         }
@@ -459,7 +464,26 @@ public class Database extends AbstractCommandRunner {
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndpoint;
+        StringBuilder dbApiEndPointBuilder = new StringBuilder(dbApiEndpoint);
+        // Adding /api/json if needed for Astra.
+        switch(options.destination) {
+            case ASTRA:
+            case ASTRA_TEST:
+            case ASTRA_DEV:
+                if (dbApiEndpoint.endsWith(".com")) {
+                    dbApiEndPointBuilder.append("/api/json");
+                }
+                break;
+            default:
+                // left blank as local deployments does not require any change
+                break;
+        }
+        return dbApiEndPointBuilder
+                .append("/")
+                .append(options.getApiVersion())
+                .append("/")
+                .append(namespaceName)
+                .toString();
     }
 
     /**
@@ -470,7 +494,6 @@ public class Database extends AbstractCommandRunner {
      * @param commandObserver
      *      class for the logger
      */
-    @Deprecated
     public void registerListener(String logger, CommandObserver commandObserver) {
         this.commandOptions.registerObserver(logger, commandObserver);
     }
@@ -481,7 +504,6 @@ public class Database extends AbstractCommandRunner {
      * @param name
      *      name for the observer
      */
-    @Deprecated
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }

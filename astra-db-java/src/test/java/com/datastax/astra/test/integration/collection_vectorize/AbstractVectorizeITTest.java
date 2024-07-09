@@ -17,6 +17,8 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;
@@ -162,7 +164,7 @@ abstract class AbstractVectorizeITTest {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionHeader(key, model, apiKey, params);
                 log.info("Collection created {}", collection.getName());
-                testCollection(collection, apiKey);
+                testCollection(collection, new EmbeddingAPIKeyHeaderProvider(apiKey));
                 collection.drop();
 
             } catch(Exception e) {
@@ -223,7 +225,7 @@ abstract class AbstractVectorizeITTest {
         assertThat(docs.getSortVector().isPresent()).isTrue();
     }
 
-    protected void testCollection(Collection<Document> collection, String apiKey) {
+    protected void testCollection(Collection<Document> collection, EmbeddingHeadersProvider authProvider) {
         List<Document> entries = List.of(
                 new Document(1).vectorize("A lovestruck Romeo sings the streets a serenade"),
                 new Document(2).vectorize("Finds a streetlight, steps out of the shade"),
@@ -236,14 +238,14 @@ abstract class AbstractVectorizeITTest {
         );
 
         // Ingestion
-        InsertManyResult res = collection.insertMany(entries, new InsertManyOptions().embeddingAPIKey(apiKey));
+        InsertManyResult res = collection.insertMany(entries, new InsertManyOptions().embeddingAuthProvider(authProvider));
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
                 new FindOneOptions()
                         .sort("You shouldn't come around here singing up at people like tha")
                         .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
-                        .embeddingAPIKey(apiKey)
+                        .embeddingAuthProvider(authProvider)
                         .includeSimilarity());
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();
@@ -298,11 +300,12 @@ abstract class AbstractVectorizeITTest {
         testCollection(collection, null);
     }
 
-
     public void shouldTestOneProvider(String provider) {
         for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
                 .getDatabaseAdmin()
-                .listEmbeddingProviders().entrySet()) {
+                .findEmbeddingProviders()
+                .getEmbeddingProviders()
+                .entrySet()) {
             if (entry.getKey().equals(provider)) {
                 this.testEmbeddingProvider(entry.getKey(), entry.getValue());
             }
@@ -312,12 +315,13 @@ abstract class AbstractVectorizeITTest {
     public void shouldTestOneProviderSharedKey(String provider, String keyName) {
         for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
                 .getDatabaseAdmin()
-                .listEmbeddingProviders().entrySet()) {
+                .findEmbeddingProviders()
+                .getEmbeddingProviders()
+                .entrySet()) {
             if (entry.getKey().equals(provider)) {
                 this.testEmbeddingProviderSharedKey(entry.getKey(), entry.getValue(), keyName);
             }
         }
     }
-
 
 }

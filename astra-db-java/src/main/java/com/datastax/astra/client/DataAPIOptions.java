@@ -21,6 +21,8 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.model.HttpClientOptions;
+import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -89,9 +91,10 @@ public class DataAPIOptions {
     /** The maximum number of documents that can be inserted in a single operation. */
     final int maxDocumentsInInsert;
 
-    /** The maximum number of documents that can be inserted in a single operation. */
-    final String embeddingAPIKey;
+    /** Embedding auth provider. */
+    final EmbeddingHeadersProvider embeddingAuthProvider;
 
+    /** Observers for the commands. */
     final Map<String, CommandObserver> observers;
 
     /**
@@ -111,14 +114,14 @@ public class DataAPIOptions {
      *      current builder
      */
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
-        this.apiVersion           = builder.apiVersion;
-        this.destination          = builder.destination;
-        this.maxDocumentCount     = builder.maxDocumentCount;
-        this.maxPageSize          = builder.maxPageSize;
-        this.maxDocumentsInInsert = builder.maxDocumentsInInsert;
-        this.embeddingAPIKey      = builder.embeddingAPIKey;
-        this.httpClientOptions    = new HttpClientOptions();
-        this.observers            = builder.observers;
+        this.apiVersion            = builder.apiVersion;
+        this.destination           = builder.destination;
+        this.maxDocumentCount      = builder.maxDocumentCount;
+        this.maxPageSize           = builder.maxPageSize;
+        this.maxDocumentsInInsert  = builder.maxDocumentsInInsert;
+        this.embeddingAuthProvider = builder.embeddingAuthProvider;
+        this.httpClientOptions     = new HttpClientOptions();
+        this.observers             = builder.observers;
         httpClientOptions.setHttpVersion(builder.httpVersion);
         httpClientOptions.setHttpRedirect(builder.httpRedirect);
         httpClientOptions.setRetryCount(builder.retryCount);
@@ -246,7 +249,7 @@ public class DataAPIOptions {
         private int maxDocumentsInInsert = DEFAULT_MAX_CHUNK_SIZE;
 
         /** The embedding service API key can be provided at top level. */
-        private String embeddingAPIKey;
+        private EmbeddingHeadersProvider embeddingAuthProvider;
 
         /** Observers for the commands. */
         private final Map<String, CommandObserver> observers = new TreeMap<>();
@@ -362,7 +365,19 @@ public class DataAPIOptions {
          *      self reference
          */
         public DataAPIClientOptionsBuilder withEmbeddingAPIKey(String embeddingAPIKey) {
-            this.embeddingAPIKey = embeddingAPIKey;
+            return withEmbeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(embeddingAPIKey));
+        }
+
+        /**
+         * Builder pattern, update authentication provider for vectorize.
+         *
+         * @param embeddingAuthProvider
+         *      embedding authentication provider
+         * @return
+         *      self reference
+         */
+        public DataAPIClientOptionsBuilder withEmbeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
+            this.embeddingAuthProvider = embeddingAuthProvider;
             return this;
         }
 

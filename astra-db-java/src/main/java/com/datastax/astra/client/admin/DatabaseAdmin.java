@@ -23,11 +23,13 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CommandRunner;
 import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
@@ -92,13 +94,13 @@ public interface DatabaseAdmin {
      * <pre>
      * {@code
      * // Assuming 'client' is an instance of DataApiClient
-     * Map<String, EmbeddingProvider> providers = client.listEmbeddingProviders());
+     * Map<String, EmbeddingProvider> providers = client.findEmbeddingProvidersAsMap());
      * }
      * </pre>
      * @return
      *      list of available providers
      */
-    Map<String, EmbeddingProvider> listEmbeddingProviders();
+    FindEmbeddingProvidersResult findEmbeddingProviders();
 
     /**
      * Asynchronously retrieves a stream of namespace names available in the current database. This method facilitates
