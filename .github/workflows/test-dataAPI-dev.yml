@@ -1,4 +1,4 @@
-name: Data API Astra DEV
+name: Test Integration DEV/AWS/US-WEST2
 
 on:
   push:
@@ -26,6 +26,9 @@ jobs:
           mvn install
 
       - name: Run test for DEV
+        env:
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev.aws.uswest2.*Test -DskipTests=false
