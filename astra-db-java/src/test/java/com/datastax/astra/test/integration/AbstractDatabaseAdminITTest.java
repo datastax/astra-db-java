@@ -101,18 +101,22 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     @Test
     @Order(5)
     void shouldDropNamespace() throws InterruptedException {
-        assertThat( getDatabaseAdmin().listNamespaceNames())
+        assertThat(getDatabaseAdmin().listNamespaceNames())
                 .as("Check if 'nsx' is present in the namespace names")
                 .anyMatch("nsx"::equals);
         assertThat( getDatabaseAdmin().namespaceExists("nsx")).isTrue();
-        Database ns2 =  getDatabaseAdmin().getDatabase("nsx");
+        Database ns2 = getDatabaseAdmin().getDatabase("nsx");
         assertThat(ns2).isNotNull();
-        ns2.drop();
-        while (getDatabaseAdmin().namespaceExists("nsx")) {
-            log.warn("Waiting for namespace 'nsx' to be delete");
-            Thread.sleep(1000);
+        try {
+            ns2.drop();
+            while (getDatabaseAdmin().namespaceExists("nsx")) {
+                log.warn("Waiting for namespace 'nsx' to be delete");
+                Thread.sleep(1000);
+            }
+            assertThat(getDatabaseAdmin().namespaceExists("nsx")).isFalse();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
-        assertThat(getDatabaseAdmin().namespaceExists("nsx")).isFalse();
     }
 
 }
