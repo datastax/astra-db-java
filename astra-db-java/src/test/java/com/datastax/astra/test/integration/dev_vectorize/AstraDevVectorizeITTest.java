@@ -44,12 +44,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION_DEV", matches = ".*")
 public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
 
-    @Override
+
     protected Database initDatabase() {
-        Database usWest2     = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
-        Database usCentral1  = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
-        Database europeWest4 = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
-        return europeWest4;
+        //Database usWest2     = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
+        //Database usCentral1  = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
+        //Database europeWest4 = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
+        //return europeWest4;
+        return null;
     }
 
     @Test
@@ -202,4 +203,18 @@ public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
     }
 
 
+    @Override
+    public AstraEnvironment getAstraEnvironment() {
+        return AstraEnvironment.DEV;
+    }
+
+    @Override
+    public CloudProviderType getCloudProvider() {
+        return CloudProviderType.valueOf(System.getenv("ASTRA_CLOUD_PROVIDER_DEV"));
+    }
+
+    @Override
+    public String getRegion() {
+        return System.getenv("ASTRA_CLOUD_REGION_DEV");
+    }
 }

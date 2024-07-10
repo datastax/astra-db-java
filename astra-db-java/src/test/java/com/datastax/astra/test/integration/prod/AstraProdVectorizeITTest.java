@@ -18,42 +18,42 @@ import java.util.Map;
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
 public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
 
-    @Override
-    protected Database initDatabase() {
-        return testVectorizeDb();
-        //return gcpUsEast1();
-        //return azureEastUs();
-        //return awsUSWest1();
-    }
-
-    private Database gcpUsEast1() {
-        Database db = initAstraDatabase(AstraEnvironment.PROD, "gcp_us_east1", CloudProviderType.GCP, "us-east1");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-    private Database awsUSWest1() {
-        Database db = initAstraDatabase(AstraEnvironment.PROD, "aws_us-west-1", CloudProviderType.AWS, "us-west-1");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database testVectorizeDb() {
-        Database db = initAstraDatabase(AstraEnvironment.PROD, "test_vectorize", CloudProviderType.AWS, " us-east-2");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database gcpEuropeWest4() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
-
-    private Database azureEastUs() {
-        Database db = initAstraDatabase(AstraEnvironment.DEV, "azure_eastus", CloudProviderType.AZURE, "eastus");
-        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
-        return db;
-    }
+//    @Override
+//    protected Database initDatabase() {
+//        return testVectorizeDb();
+//        //return gcpUsEast1();
+//        //return azureEastUs();
+//        //return awsUSWest1();
+//    }
+//
+//    private Database gcpUsEast1() {
+//        Database db = initAstraDatabase(AstraEnvironment.PROD, "gcp_us_east1", CloudProviderType.GCP, "us-east1");
+//        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+//        return db;
+//    }
+//    private Database awsUSWest1() {
+//        Database db = initAstraDatabase(AstraEnvironment.PROD, "aws_us-west-1", CloudProviderType.AWS, "us-west-1");
+//        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+//        return db;
+//    }
+//
+//    private Database testVectorizeDb() {
+//        Database db = initAstraDatabase(AstraEnvironment.PROD, "test_vectorize", CloudProviderType.AWS, " us-east-2");
+//        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+//        return db;
+//    }
+//
+//    private Database gcpEuropeWest4() {
+//        Database db = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
+//        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+//        return db;
+//    }
+//
+//    private Database azureEastUs() {
+//        Database db = initAstraDatabase(AstraEnvironment.DEV, "azure_eastus", CloudProviderType.AZURE, "eastus");
+//        db.getCommandOptions().getObservers().put("logging", new LoggingCommandObserver(DataAPIClient.class));
+//        return db;
+//    }
 
     @Test
     public void testOneProvider() {
@@ -99,5 +99,20 @@ public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
             //this.testEmbeddingProvider(entry.getKey(), entry.getValue());
             System.out.println("Provider: " + entry.getKey());
         }
+    }
+
+    @Override
+    protected AstraEnvironment getAstraEnvironment() {
+        return null;
+    }
+
+    @Override
+    protected CloudProviderType getCloudProvider() {
+        return null;
+    }
+
+    @Override
+    protected String getRegion() {
+        return "";
     }
 }

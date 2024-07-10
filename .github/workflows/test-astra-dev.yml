@@ -82,7 +82,7 @@ jobs:
 #        run: |
 #          cd astra-db-java
 #          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
-  AWS_US_WEST2_OPEN_AI:
+  AWS_OPEN_AI:
     needs: AWS_US_WEST2_CORE
     runs-on: ubuntu-latest
     steps:
@@ -103,8 +103,7 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
-
-  AWS_US_WEST2_AZURE_OPEN_AI:
+  AWS_AZURE_OPEN_AI:
     needs: AWS_US_WEST2_CORE
     runs-on: ubuntu-latest
     steps:
@@ -125,3 +124,24 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  AWS_HUGGING_FACE:
+    needs: AWS_US_WEST2_CORE
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: huggingface
+          EMBEDDING_API_KEY: ${{ secrets.HF_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest          

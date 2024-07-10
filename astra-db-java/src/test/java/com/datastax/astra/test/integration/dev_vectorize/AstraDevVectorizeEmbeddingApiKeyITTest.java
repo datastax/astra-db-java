@@ -38,8 +38,14 @@ public class AstraDevVectorizeEmbeddingApiKeyITTest extends AbstractVectorizeITT
     }
 
     @Test
-    public void testOneProvider() {
-        shouldTestOneProvider(System.getenv("EMBEDDING_PROVIDER"), System.getenv("EMBEDDING_API_KEY"));
+    public void should_test_embedding_providers() {
+        shouldTestOneProvider(
+                System.getenv("EMBEDDING_PROVIDER"),
+                System.getenv("EMBEDDING_API_KEY"));
+        // Flush the collections
+        getDatabase()
+                .listCollectionNames()
+                .forEach(name -> getDatabase().dropCollection(name));
     }
 
 }
