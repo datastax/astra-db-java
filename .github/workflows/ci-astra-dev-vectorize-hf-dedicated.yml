@@ -1,4 +1,4 @@
-name: CI for AstraDEV
+name: AstraDev, HF Dedicated
 
 on:
   #push:
