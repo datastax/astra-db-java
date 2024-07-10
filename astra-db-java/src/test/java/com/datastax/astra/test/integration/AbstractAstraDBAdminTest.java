@@ -1,38 +1,21 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.db.domain.DatabaseInfo;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.dtsx.astra.sdk.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractAstraDBAdminTest implements TestDataSet {
-
-    protected AstraDBAdmin astraDbAdmin;
-
-    protected AstraDBAdmin getAstraDbAdmin() {
-        if (astraDbAdmin == null) {
-            astraDbAdmin = getAstraDBAdmin(getAstraEnvironment());
-        }
-        return astraDbAdmin;
-    }
-
-    protected abstract AstraEnvironment getAstraEnvironment();
-    protected abstract CloudProviderType getCloudProvider();
-    protected abstract String getRegion();
+public abstract class AbstractAstraDBAdminTest extends AbstractDataAPITest {
 
     protected static com.dtsx.astra.sdk.db.domain.Database devopsDb;
 

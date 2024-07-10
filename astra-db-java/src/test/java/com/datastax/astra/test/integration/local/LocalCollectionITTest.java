@@ -18,6 +18,8 @@ import com.datastax.astra.client.model.Page;
 import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -47,10 +49,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalCollectionITTest extends AbstractCollectionITTest {
 
-    /** {@inheritDoc} */
     @Override
-    protected Database initDatabase() {
-        return DataAPIClients.createDefaultLocalDatabase();
+    protected AstraEnvironment getAstraEnvironment() { return null; }
+    @Override
+    protected CloudProviderType getCloudProvider() { return null; }
+    @Override
+    protected String getRegion() { return "";}
+    @Override
+    protected Database getDatabase() {
+        if (database == null) {
+            database = DataAPIClients.createDefaultLocalDatabase();
+        }
+        return database;
     }
 
     static final List<Document> FRENCH_SOCCER_TEAM = List.of(
@@ -303,5 +313,6 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         iter2.iterator().next();
         assertThatThrownBy(iter2::all).isInstanceOf(IllegalStateException.class);
     }
+
 
 }

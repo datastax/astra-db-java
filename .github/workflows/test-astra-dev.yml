@@ -1,0 +1,75 @@
+name: CI for AstraDEV
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  AWS_US_WEST2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Build with Maven
+        run: |
+          mvn install
+      - name: Run test for DEV
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
+
+  GCP_EUROPE_WEST4:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Build with Maven
+        run: |
+          mvn install
+      - name: Run test for DEV
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: GCP
+          ASTRA_CLOUD_REGION_DEV: europe-west4
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
+
+  GCP_US_CENTRAL1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Build with Maven
+        run: |
+          mvn install
+      - name: Run test for DEV
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: GCP
+          ASTRA_CLOUD_REGION_DEV: us-central1
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test

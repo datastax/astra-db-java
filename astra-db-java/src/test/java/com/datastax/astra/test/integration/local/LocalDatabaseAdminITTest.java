@@ -2,6 +2,7 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
@@ -21,8 +22,26 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
-    protected DatabaseAdmin initDatabaseAdmin() {
-        return DataAPIClients.createDefaultLocalDatabase().getDatabaseAdmin();
+    protected AstraEnvironment getAstraEnvironment() { return null; }
+    @Override
+    protected CloudProviderType getCloudProvider() { return null; }
+    @Override
+    protected String getRegion() { return "";}
+
+    @Override
+    protected Database getDatabase() {
+        if (database == null) {
+            database = DataAPIClients.createDefaultLocalDatabase();
+        }
+        return database;
+    }
+
+    @Override
+    public DatabaseAdmin getDatabaseAdmin() {
+        if (databaseAdmin == null) {
+            AbstractDatabaseAdminITTest.databaseAdmin = getDatabase().getDatabaseAdmin();
+        }
+        return databaseAdmin;
     }
 
     @Test
@@ -61,20 +80,5 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropNamespace(""))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
-    }
-
-    @Override
-    protected AstraEnvironment getAstraEnvironment() {
-        return null;
-    }
-
-    @Override
-    protected CloudProviderType getCloudProvider() {
-        return null;
-    }
-
-    @Override
-    protected String getRegion() {
-        return "";
     }
 }

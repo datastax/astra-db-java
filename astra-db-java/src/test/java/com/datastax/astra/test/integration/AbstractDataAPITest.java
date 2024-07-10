@@ -25,25 +25,25 @@ import java.util.UUID;
 /**
  * Constants for the test suite
  */
-public interface TestDataSet {
+public abstract class AbstractDataAPITest {
 
-    String NAMESPACE_NS1       = "ns1";
-    String DEFAULT_NAMESPACE   = "default_keyspace";
-    String DATABASE_NAME       = "astra_db_client";
-    String COLLECTION_SIMPLE   = "collection_simple";
-    String COLLECTION_OBJECTID = "collection_objectid";
-    String COLLECTION_UUID     = "collection_uuid";
-    String COLLECTION_UUID_V6  = "collection_uuidv6";
-    String COLLECTION_UUID_V7  = "collection_uuidv7";
-    String COLLECTION_VECTOR   = "collection_vector";
-    String COLLECTION_DENY     = "collection_deny";
-    String COLLECTION_ALLOW    = "collection_allow";
+    public static String NAMESPACE_NS1       = "ns1";
+    public static String DEFAULT_NAMESPACE   = "default_keyspace";
+    public static String DATABASE_NAME       = "astra_db_client";
+    public static String COLLECTION_SIMPLE   = "collection_simple";
+    public static String COLLECTION_OBJECTID = "collection_objectid";
+    public static String COLLECTION_UUID     = "collection_uuid";
+    public static String COLLECTION_UUID_V6  = "collection_uuidv6";
+    public static String COLLECTION_UUID_V7  = "collection_uuidv7";
+    public static String COLLECTION_VECTOR   = "collection_vector";
+    public static String COLLECTION_DENY     = "collection_deny";
+    public static String COLLECTION_ALLOW    = "collection_allow";
 
-    String ASTRA_DB_APPLICATION_TOKEN      = "ASTRA_DB_APPLICATION_TOKEN";
-    String ASTRA_DB_APPLICATION_TOKEN_DEV  = "ASTRA_DB_APPLICATION_TOKEN_DEV";
-    String ASTRA_DB_APPLICATION_TOKEN_TEST = "ASTRA_DB_APPLICATION_TOKEN_TEST";
+    public static String ASTRA_DB_APPLICATION_TOKEN      = "ASTRA_DB_APPLICATION_TOKEN";
+    public static String ASTRA_DB_APPLICATION_TOKEN_DEV  = "ASTRA_DB_APPLICATION_TOKEN_DEV";
+    public static String ASTRA_DB_APPLICATION_TOKEN_TEST = "ASTRA_DB_APPLICATION_TOKEN_TEST";
 
-    Document COMPLETE_DOCUMENT = new Document().id("1")
+    public static Document COMPLETE_DOCUMENT = new Document().id("1")
             .append("metadata_instant", Instant.now())
             .append("metadata_date", new Date())
             .append("metadata_calendar", Calendar.getInstance())
@@ -72,13 +72,65 @@ public interface TestDataSet {
             .append("metadata_enum_array", new CloudProviderType[]{AstraDBAdmin.FREE_TIER_CLOUD, CloudProviderType.AWS})
             .append("metadata_object", new ProductString("p1", "name", 10.1));
 
+    protected static DatabaseAdmin databaseAdmin;
+
+    /** Reference to working DataApiNamespace. */
+    protected static Database database;
+
+    protected static AstraDBAdmin astraDbAdmin;
+
+    protected Database getDatabase() {
+        if (database == null) {
+            AbstractCollectionITTest.database =
+                    initializeDatabase(getAstraEnvironment(), getCloudProvider(), getRegion());
+        }
+        return database;
+    }
+
+    public DatabaseAdmin getDatabaseAdmin() {
+        if (databaseAdmin == null) {
+            AbstractDatabaseAdminITTest.databaseAdmin =
+                    initializeDatabase(getAstraEnvironment(), getCloudProvider(), getRegion()).getDatabaseAdmin();
+        }
+        return databaseAdmin;
+    }
+
+    protected AstraDBAdmin getAstraDbAdmin() {
+        if (astraDbAdmin == null) {
+            astraDbAdmin = getAstraDBAdmin(getAstraEnvironment());
+        }
+        return astraDbAdmin;
+    }
+
+    /**
+     * Return the Astra Environment.
+     *
+     * @return
+     *      astra environment
+     */
+    protected abstract AstraEnvironment getAstraEnvironment();
+
+    /**
+     * Cloud Provider
+     *
+     * @return
+     *      astra environment
+     */
+    protected abstract CloudProviderType getCloudProvider();
+
+    /**
+     * Return Value with the Region
+     * @return
+     */
+    protected abstract String getRegion();
+
     /**
      * Bean to be used for the test suite
      */
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    class Product<ID> {
+    public static class Product<ID> {
         @JsonProperty("_id")
         protected ID     id;
         protected String name;
@@ -87,7 +139,7 @@ public interface TestDataSet {
     }
 
     @NoArgsConstructor
-    class ProductString extends Product<String> {
+    public static class ProductString extends Product<String> {
         public ProductString(String id, String name, Double price) {
             this.id = id;
             this.name = name;
@@ -96,13 +148,13 @@ public interface TestDataSet {
     }
 
     @NoArgsConstructor
-    class ProductObjectId extends Product<ObjectId> {}
+    public static class ProductObjectId extends Product<ObjectId> {}
 
     @NoArgsConstructor
-    class ProductObjectUUID extends Product<UUID> {}
+    public static class ProductObjectUUID extends Product<UUID> {}
 
     /** Create Data Api client for the given environment */
-    default DataAPIClient getDataApiClient(AstraEnvironment env) {
+    protected DataAPIClient getDataApiClient(AstraEnvironment env) {
         switch (env) {
             case DEV: return DataAPIClients
                .createForAstraDev(Utils.readEnvVariable(ASTRA_DB_APPLICATION_TOKEN_DEV)
@@ -119,7 +171,7 @@ public interface TestDataSet {
     }
 
     /** Create DB Admin for the given environment */
-    default AstraDBAdmin getAstraDBAdmin(AstraEnvironment env) {
+    protected AstraDBAdmin getAstraDBAdmin(AstraEnvironment env) {
         return  getDataApiClient(env).getAdmin();
     }
 
@@ -135,14 +187,14 @@ public interface TestDataSet {
      * @return
      *      current database
      */
-    default Database initializeDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
+    protected Database initializeDatabase(AstraEnvironment env, CloudProviderType cloud, String region) {
         AstraDBAdmin client = getAstraDBAdmin(env);
         String databaseName = env.name().toLowerCase() + "_"
                 + cloud.name().toLowerCase() + "_"
                 + region.replaceAll("-", "_");
         DatabaseAdmin databaseAdmin = client.createDatabase(databaseName, cloud, region);
         Database db = databaseAdmin.getDatabase();
-        // Delete Databaseds if already exists
+        // Delete Database if already exists
         db.listCollectionNames().forEach(db::dropCollection);
         return db;
     }

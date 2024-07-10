@@ -41,33 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-public abstract class AbstractDatabaseTest implements TestDataSet {
-
-    /**
-     * Reference to working DataApiNamespace
-     */
-    public static Database database;
-
-    /**
-     * Initialization of the DataApiNamespace.
-     *
-     * @return
-     *      the instance of Data ApiNamespace
-     */
-    protected abstract Database initDatabase();
-
-    /**
-     * Initialization of the working Namespace.
-     *
-     * @return
-     *      current Namespace
-     */
-    public Database getDatabase() {
-        if (database == null) {
-            AbstractDatabaseTest.database = initDatabase();
-        }
-        return database;
-    }
+public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
 
     // ------------------------------------
     // --------- Collections --------------

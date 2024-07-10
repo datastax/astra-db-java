@@ -10,6 +10,8 @@ import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
+import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
@@ -28,10 +30,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalDatabaseITTest extends AbstractDatabaseTest {
 
-    /** {@inheritDoc} */
     @Override
-    protected Database initDatabase() {
-        return DataAPIClients.createDefaultLocalDatabase();
+    protected AstraEnvironment getAstraEnvironment() { return null; }
+    @Override
+    protected CloudProviderType getCloudProvider() { return null; }
+    @Override
+    protected String getRegion() { return "";}
+    @Override
+    protected Database getDatabase() {
+        if (database == null) {
+            database = DataAPIClients.createDefaultLocalDatabase();
+        }
+        return database;
     }
 
     @Test

@@ -4,8 +4,6 @@ import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,29 +21,14 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-public abstract class AbstractDatabaseAdminITTest implements TestDataSet {
-
-    protected static DatabaseAdmin databaseAdmin;
-
-    public DatabaseAdmin getDatabaseAdmin() {
-        if (databaseAdmin == null) {
-            AbstractDatabaseAdminITTest.databaseAdmin = initDatabaseAdmin();
-        }
-        return databaseAdmin;
-    }
-
-    protected abstract AstraEnvironment getAstraEnvironment();
-    protected abstract CloudProviderType getCloudProvider();
-    protected abstract String getRegion();
-
-    protected DatabaseAdmin initDatabaseAdmin() {
-        return initializeDatabase(getAstraEnvironment(), getCloudProvider(), getRegion()).getDatabaseAdmin();
-    }
+public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
 
     @Test
     @Order(1)
     void shouldListAvailableNamespace() {
+        // Initialization
         assertThat(getDatabaseAdmin()).isNotNull();
+
         // Sync
         assertThat(getDatabaseAdmin().listNamespaceNames()).isNotEmpty();
 

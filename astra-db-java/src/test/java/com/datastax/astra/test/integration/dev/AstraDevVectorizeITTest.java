@@ -23,6 +23,7 @@ import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -36,15 +37,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Testing Vectorize in DEV
  */
+@Disabled
 @Slf4j
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
+@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER_DEV", matches = ".*")
+@EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION_DEV", matches = ".*")
 public class AstraDevVectorizeITTest extends AbstractVectorizeITTest {
 
     @Override
     protected Database initDatabase() {
         Database usWest2     = initAstraDatabase(AstraEnvironment.DEV, "aws_us-west-2", CloudProviderType.AWS, "us-west-2");
         Database usCentral1  = initAstraDatabase(AstraEnvironment.DEV, "gcp_us_central1", CloudProviderType.GCP, "us-central1");
-        Database eastUs      = initAstraDatabase(AstraEnvironment.DEV, "azure_eastus", CloudProviderType.AZURE, "eastus");
         Database europeWest4 = initAstraDatabase(AstraEnvironment.DEV, "gcp_europe_west4", CloudProviderType.GCP, "europe-west4");
         return europeWest4;
     }

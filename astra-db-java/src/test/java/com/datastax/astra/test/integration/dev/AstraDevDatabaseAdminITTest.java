@@ -1,20 +1,14 @@
 package com.datastax.astra.test.integration.dev;
 
-import com.datastax.astra.client.Database;
-import com.datastax.astra.test.integration.AbstractCollectionITTest;
+import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-/**
- * Allow to test Collection information
- * AstraEnvironment.DEV, CloudProviderType.GCP, "europe-west4"
- * AstraEnvironment.DEV, CloudProviderType.GCP, "us-central1"
- */
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER_DEV", matches = ".*")
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION_DEV", matches = ".*")
-class AstraDevCollectionITTest extends AbstractCollectionITTest {
+public class AstraDevDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
 
     @Override
     public AstraEnvironment getAstraEnvironment() {
@@ -30,5 +24,4 @@ class AstraDevCollectionITTest extends AbstractCollectionITTest {
     public String getRegion() {
         return System.getenv("ASTRA_CLOUD_REGION_DEV");
     }
-
 }

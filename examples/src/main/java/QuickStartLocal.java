@@ -3,7 +3,7 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
-import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 
 import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.CASSANDRA;
 import static com.datastax.astra.client.DataAPIOptions.builder;

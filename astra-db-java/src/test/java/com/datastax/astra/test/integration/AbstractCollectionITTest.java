@@ -53,37 +53,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public abstract class AbstractCollectionITTest implements TestDataSet {
-
-    /** Reference to working DataApiNamespace. */
-    protected static Database database;
+public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
     /** Tested collection1. */
     protected static Collection<Document> collectionSimple;
 
     /** Tested collection2. */
     protected static Collection<ProductString> collectionVector;
-
-    /**
-     * Initialization of the DataApiNamespace.
-     *
-     * @return
-     *      the instance of Data ApiNamespace
-     */
-    protected abstract Database initDatabase();
-
-    /**
-     * Initialization of the working Namespace.
-     *
-     * @return
-     *      current Namespace
-     */
-    protected Database getDatabase() {
-        if (database == null) {
-            AbstractCollectionITTest.database = initDatabase();
-        }
-        return database;
-    }
 
     /**
      * Generating sample document to insert.
