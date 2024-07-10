@@ -83,6 +83,10 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
 
         // When
         getDatabaseAdmin().createNamespaceAsync("ns2").thenAccept(dan -> assertThat(dan).isNotNull());
+        while (!getDatabaseAdmin().namespaceExists("ns2")) {
+            log.warn("Waiting for namespace 'ns2' to be created and db to be active");
+            Thread.sleep(1000);
+        }
 
         // Surface
         final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
@@ -98,11 +102,11 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     @Order(5)
     void shouldDropNamespace() throws InterruptedException {
         assertThat( getDatabaseAdmin().listNamespaceNames())
-                .as("Check if 'ns2' is present in the namespace names")
+                .as("Check if 'nsx' is present in the namespace names")
                 .anyMatch("nsx"::equals);
         assertThat( getDatabaseAdmin().namespaceExists("nsx")).isTrue();
         Database ns2 =  getDatabaseAdmin().getDatabase("nsx");
-        assertThat("nsx").isNotNull();
+        assertThat(ns2).isNotNull();
         ns2.drop();
         while (getDatabaseAdmin().namespaceExists("nsx")) {
             log.warn("Waiting for namespace 'nsx' to be delete");
