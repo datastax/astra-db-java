@@ -267,13 +267,14 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     public void testEmbeddingProvider(String key, EmbeddingProvider provider, String apiKey) {
         System.out.println("TESTING PROVIDER [" + key + "]");
         Map<String, Object> params = getParameters(key);
+        final String targetApiKey = ("nvidia".equals(key)) ? null : apiKey;
         provider.getModels().forEach(model -> {
             System.out.println("Processing MODEL " + model.getName());
             try {
                 log.info("Testing model {}", model);
-                Collection<Document> collection = createCollectionHeader(key, model, apiKey, params);
+                Collection<Document> collection = createCollectionHeader(key, model, targetApiKey, params);
                 log.info("Collection created {}", collection.getName());
-                testCollection(collection, new EmbeddingAPIKeyHeaderProvider(apiKey));
+                testCollection(collection, new EmbeddingAPIKeyHeaderProvider(targetApiKey));
                 collection.drop();
 
             } catch(Exception e) {

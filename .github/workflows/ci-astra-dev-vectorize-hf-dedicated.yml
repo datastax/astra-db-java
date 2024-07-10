@@ -1,0 +1,49 @@
+name: CI for AstraDEV
+
+on:
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  BUILD:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Build with Maven
+        run: |
+          mvn install -Dmaven.test.skip=true
+
+  AWS_HF_DEDICATED:
+    needs: BUILD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: huggingfaceDedicated
+          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
+          HUGGINGFACEDED_DIMENSION: ${{ env.HUGGINGFACEDED_DIMENSION }}
+          HUGGINGFACEDED_ENDPOINTNAME: ${{ env.HUGGINGFACEDED_ENDPOINTNAME }}
+          HUGGINGFACEDED_REGIONNAME: ${{ env.HUGGINGFACEDED_REGIONNAME }}
+          HUGGINGFACEDED_CLOUDNAME: ${{ env.HUGGINGFACEDED_CLOUDNAME }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest

@@ -1,10 +1,10 @@
 name: CI for AstraDEV
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -168,29 +168,6 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
-  AWS_JINA_AI:
-    needs: AWS_AZURE_OPEN_AI
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Set up JDK
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'adopt'
-          java-version: 11
-      - name: Maven Test
-        env:
-          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
-          ASTRA_CLOUD_PROVIDER_DEV: AWS
-          ASTRA_CLOUD_REGION_DEV: us-west-2
-          EMBEDDING_PROVIDER: jinaAI
-          EMBEDDING_API_KEY: ${{ secrets.JINA_API_KEY }}
-        run: |
-          cd astra-db-java
-          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
-  
-
   AWS_VOYAGE_AI:
     needs: AWS_OPEN_AI
     runs-on: ubuntu-latest
@@ -212,8 +189,6 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
-  
-
   AWS_UPSTAGE_AI:
     needs: AWS_OPEN_AI
     runs-on: ubuntu-latest
@@ -235,6 +210,83 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+
+  AWS_JINA_AI:
+    needs: AWS_UPSTAGE_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: jinaAI
+          EMBEDDING_API_KEY: ${{ secrets.JINA_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+
+  AWS_NVIDIA:
+    needs: AWS_VOYAGE_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: nvidia
+          EMBEDDING_API_KEY: nvidia # required for github actions, not used
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+
+
+
+  AWS_HF_DEDICATED:
+    needs: AWS_NVIDIA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: huggingfaceDedicated
+          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
+          HUGGINGFACEDED_DIMENSION: ${{ env.HUGGINGFACEDED_DIMENSION }}
+          HUGGINGFACEDED_ENDPOINTNAME: ${{ env.HUGGINGFACEDED_ENDPOINTNAME }}
+          HUGGINGFACEDED_REGIONNAME: ${{ env.HUGGINGFACEDED_REGIONNAME }}
+          HUGGINGFACEDED_CLOUDNAME: ${{ env.HUGGINGFACEDED_CLOUDNAME }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+  
   
 
   GCP_OPEN_AI:
