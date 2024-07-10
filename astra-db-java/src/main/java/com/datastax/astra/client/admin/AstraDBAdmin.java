@@ -52,6 +52,8 @@ import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 @Slf4j
 public class AstraDBAdmin {
 
+    public static final Integer WAIT_IN_SECONDS = 600;
+
     /** Default cloud provider. (free-tier) */
     public static final CloudProviderType FREE_TIER_CLOUD = CloudProviderType.GCP;
 
@@ -370,17 +372,17 @@ public class AstraDBAdmin {
     @SuppressWarnings("java:S2925")
     private void waitForDatabase(DbOpsClient dbc) {
         long top = System.currentTimeMillis();
-        while(DatabaseStatusType.ACTIVE != getStatus(dbc) && ((System.currentTimeMillis()-top) < 1000L*180)) {
+        while(DatabaseStatusType.ACTIVE != getStatus(dbc) && ((System.currentTimeMillis()-top) < 1000L*WAIT_IN_SECONDS)) {
             try {
                 Thread.sleep( 5000);
-                log.info("■");
+                log.info("...waiting for database '" + dbc.get().getInfo().getName() + "' to become active...");
             } catch (InterruptedException e) {
                 log.warn("Interrupted {}",e.getMessage());
                 Thread.currentThread().interrupt();
             }
         }
         if (getStatus(dbc) != DatabaseStatusType.ACTIVE) {
-            throw new IllegalStateException("Database is not in expected state after timeouts");
+            throw new IllegalStateException("Database is not in expected state after timeouts of " + WAIT_IN_SECONDS + " seconds.");
         }
     }
 

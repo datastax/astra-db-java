@@ -35,66 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Slf4j
-public abstract class AbstractVectorizeITTest {
-
-    /**
-     * Reference to working DataApiNamespace
-     */
-    protected static Database database;
-
-    /**
-     * Initialization of the DataApiNamespace.
-     *
-     * @return
-     *      the instance of Data ApiNamespace
-     */
-    protected abstract Database initDatabase();
-
-    /**
-     * Initialize the Test database on an Astra Environment.
-     *
-     * @param env
-     *      target environment
-     * @param cloud
-     *      target cloud
-     * @param region
-     *      target region
-     * @return
-     *      the database instance
-     */
-    public static Database initAstraDatabase(AstraEnvironment env, String dbName, CloudProviderType cloud, String region) {
-        log.info("Working in environment '{}'", env.name());
-        AstraDBAdmin client = getAstraDBClient(env);
-        DatabaseAdmin databaseAdmin = client.createDatabase(dbName, cloud, region);
-        return databaseAdmin.getDatabase();
-    }
-
-    /**
-     * Access AstraDBAdmin for different environment (to create DB).
-     *
-     * @param env
-     *      astra environment
-     * @return
-     *      instance of AstraDBAdmin
-     */
-    public static AstraDBAdmin getAstraDBClient(AstraEnvironment env) {
-        switch (env) {
-            case DEV:
-                return DataAPIClients.createForAstraDev(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_DEV")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_DEV'")))
-                        .getAdmin();
-            case PROD:
-                return DataAPIClients.create(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN'")))
-                        .getAdmin();
-            case TEST:
-                return DataAPIClients.createForAstraTest(Utils.readEnvVariable("ASTRA_DB_APPLICATION_TOKEN_TEST")
-                                .orElseThrow(() -> new IllegalStateException("Please define env variable 'ASTRA_DB_APPLICATION_TOKEN_TEST'")))
-                        .getAdmin();
-            default:
-                throw new IllegalArgumentException("Invalid Environment");
-        }
-    }
+public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
 
     public static String getApiKey(String provider) {
         if (provider.equals("openai")) {
@@ -127,19 +68,6 @@ public abstract class AbstractVectorizeITTest {
             return parameters;
         }
         return null;
-    }
-
-    /**
-     * Initialization of the working Namespace.
-     *
-     * @return
-     *      current Namespace
-     */
-    protected Database getDatabase() {
-        if (database == null) {
-            database = initDatabase();
-        }
-        return database;
     }
 
     protected void dropCollection(String name) {
@@ -312,6 +240,18 @@ public abstract class AbstractVectorizeITTest {
         }
     }
 
+    public void shouldTestOneProvider(String provider, String embeddingApiKey) {
+        for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
+                .getDatabaseAdmin()
+                .findEmbeddingProviders()
+                .getEmbeddingProviders()
+                .entrySet()) {
+            if (entry.getKey().equals(provider)) {
+                this.testEmbeddingProvider(entry.getKey(), entry.getValue(), embeddingApiKey);
+            }
+        }
+    }
+
     public void shouldTestOneProviderSharedKey(String provider, String keyName) {
         for (Map.Entry<String, EmbeddingProvider> entry : getDatabase()
                 .getDatabaseAdmin()
@@ -322,6 +262,24 @@ public abstract class AbstractVectorizeITTest {
                 this.testEmbeddingProviderSharedKey(entry.getKey(), entry.getValue(), keyName);
             }
         }
+    }
+
+    public void testEmbeddingProvider(String key, EmbeddingProvider provider, String apiKey) {
+        System.out.println("TESTING PROVIDER [" + key + "]");
+        Map<String, Object> params = getParameters(key);
+        provider.getModels().forEach(model -> {
+            System.out.println("Processing MODEL " + model.getName());
+            try {
+                log.info("Testing model {}", model);
+                Collection<Document> collection = createCollectionHeader(key, model, apiKey, params);
+                log.info("Collection created {}", collection.getName());
+                testCollection(collection, new EmbeddingAPIKeyHeaderProvider(apiKey));
+                collection.drop();
+
+            } catch(Exception e) {
+                log.error("Error while testing model {}", model, e);
+            }
+        });
     }
 
 }

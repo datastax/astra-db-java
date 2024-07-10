@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.dev;
+package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
