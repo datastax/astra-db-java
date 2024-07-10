@@ -104,7 +104,7 @@ jobs:
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
   AWS_AZURE_OPEN_AI:
-    needs: AWS_OPEN_AI
+    needs: AWS_US_WEST2_CORE
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -145,6 +145,97 @@ jobs:
         run: |
           cd astra-db-java
           mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest          
+
+
+  AWS_MISTRAL_AI:
+    needs: AWS_AZURE_OPEN_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: mistral
+          EMBEDDING_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  AWS_JINA_AI:
+    needs: AWS_AZURE_OPEN_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: jinaAI
+          EMBEDDING_API_KEY: ${{ secrets.JINA_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+
+  AWS_VOYAGE_AI:
+    needs: AWS_OPEN_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: voyageAI
+          EMBEDDING_API_KEY: ${{ secrets.VOYAGE_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
+
+  AWS_UPSTAGE_AI:
+    needs: AWS_OPEN_AI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: AWS
+          ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: upstageAI
+          EMBEDDING_API_KEY: ${{ secrets.UPSTAGE_API_KEY }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
+  
 
   GCP_OPEN_AI:
     needs: GCP_EUROPE_WEST4
