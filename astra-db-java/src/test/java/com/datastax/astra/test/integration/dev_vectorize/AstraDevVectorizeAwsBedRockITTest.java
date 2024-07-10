@@ -62,7 +62,7 @@ public class AstraDevVectorizeAwsBedRockITTest extends AbstractVectorizeITTest {
         String collectionName = "aws_bedrock_titan_v1";
 
         // Validate that 'bedrock' is a valid provider
-        FindEmbeddingProvidersResult result = databaseAdmin.findEmbeddingProviders();
+        FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
         assertThat(result).isNotNull();
         assertThat(result.getEmbeddingProviders()).isNotNull();
         assertThat(result.getEmbeddingProviders()).containsKey(providerName);
