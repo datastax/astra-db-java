@@ -261,7 +261,7 @@ jobs:
 
 
   AWS_HF_DEDICATED:
-    needs: AWS_NVIDIA
+    needs: AWS_HUGGING_FACE
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -278,16 +278,13 @@ jobs:
           ASTRA_CLOUD_REGION_DEV: us-west-2
           EMBEDDING_PROVIDER: huggingfaceDedicated
           EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
-          HUGGINGFACEDED_DIMENSION: ${{ env.HUGGINGFACEDED_DIMENSION }}
-          HUGGINGFACEDED_ENDPOINTNAME: ${{ env.HUGGINGFACEDED_ENDPOINTNAME }}
-          HUGGINGFACEDED_REGIONNAME: ${{ env.HUGGINGFACEDED_REGIONNAME }}
-          HUGGINGFACEDED_CLOUDNAME: ${{ env.HUGGINGFACEDED_CLOUDNAME }}
+          HUGGINGFACEDED_DIMENSION: ${{ vars.HUGGINGFACEDED_DIMENSION }}
+          HUGGINGFACEDED_ENDPOINTNAME: ${{ vars.HUGGINGFACEDED_ENDPOINTNAME }}
+          HUGGINGFACEDED_REGIONNAME: ${{ vars.HUGGINGFACEDED_REGIONNAME }}
+          HUGGINGFACEDED_CLOUDNAME: ${{ vars.HUGGINGFACEDED_CLOUDNAME }}
         run: |
           cd astra-db-java
-          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
-  
-  
-  
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest
 
   GCP_OPEN_AI:
     needs: GCP_EUROPE_WEST4
