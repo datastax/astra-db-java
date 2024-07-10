@@ -40,7 +40,7 @@ jobs:
           ASTRA_CLOUD_REGION_DEV: us-west-2
           EMBEDDING_PROVIDER: bedrock
           BEDROCK_HEADER_AWS_ACCESS_ID: ${{ secrets.BEDROCK_HEADER_AWS_ACCESS_ID }}
-          BEDROCK_HEADER_AWS_SECRET_IDx: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}
+          BEDROCK_HEADER_AWS_SECRET_ID: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}
           BEDROCK_REGION: ${{ vars.BEDROCK_REGION }}
         run: |
           cd astra-db-java
