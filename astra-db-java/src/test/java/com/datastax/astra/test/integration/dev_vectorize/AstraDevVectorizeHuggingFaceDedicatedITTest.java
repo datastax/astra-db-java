@@ -46,7 +46,6 @@ public class AstraDevVectorizeHuggingFaceDedicatedITTest extends AbstractVectori
     @Test
     public void testHuggingFaceDedicated() {
         String providerName   = System.getenv("EMBEDDING_PROVIDER");
-        String huggingFaceKey = System.getenv("EMBEDDING_API_KEY");
         String collectionName = "collection_hf_dedicated";
         FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
         assertThat(result.getEmbeddingProviders().get(providerName)).isNotNull();
@@ -58,14 +57,14 @@ public class AstraDevVectorizeHuggingFaceDedicatedITTest extends AbstractVectori
         params.put("endpointName",  System.getenv("HUGGINGFACEDED_ENDPOINTNAME"));
         params.put("regionName", System.getenv("HUGGINGFACEDED_REGIONNAME"));
         params.put("cloudName",  System.getenv("HUGGINGFACEDED_CLOUDNAME"));
-        builder.vectorize(providerName, null, huggingFaceKey, params);
+        builder.vectorize(providerName, null, null, params);
         Collection<Document> collection = getDatabase()
                 .createCollection(collectionName, builder.build(), new CommandOptions<>());
         assertThat(getDatabase()
                 .collectionExists(collectionName)).isTrue();
 
         // Test Collection
-        testCollection(collection, new EmbeddingAPIKeyHeaderProvider(huggingFaceKey));
+        testCollection(collection, new EmbeddingAPIKeyHeaderProvider( System.getenv("EMBEDDING_API_KEY")));
 
         // Drop Collection
         getDatabase().dropCollection(collectionName);
