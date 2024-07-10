@@ -13,7 +13,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Testing Vectorize in DEV
  */
-@Disabled
 @Slf4j
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN_DEV", matches = "Astra.*")
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER_DEV", matches = ".*")
