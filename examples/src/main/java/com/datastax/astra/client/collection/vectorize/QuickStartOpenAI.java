@@ -8,7 +8,7 @@ import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.internal.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 

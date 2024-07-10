@@ -8,7 +8,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  BUILD:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Build with Maven
+        run: |
+          mvn install -Dmaven.test.skip=true
+
   AWS_US_WEST2:
+    needs: BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -18,10 +33,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-      - name: Build with Maven
-        run: |
-          mvn install
-      - name: Run test for DEV
+      - name: Maven Test
         env:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           ASTRA_CLOUD_PROVIDER_DEV: AWS
@@ -31,6 +43,7 @@ jobs:
           mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
 
   GCP_EUROPE_WEST4:
+    needs: BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -40,9 +53,6 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-      - name: Build with Maven
-        run: |
-          mvn install
       - name: Run test for DEV
         env:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
@@ -53,6 +63,7 @@ jobs:
           mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
 
   GCP_US_CENTRAL1:
+    needs: BUILD
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -62,9 +73,7 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-      - name: Build with Maven
-        run: |
-          mvn install
+
       - name: Run test for DEV
         env:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
