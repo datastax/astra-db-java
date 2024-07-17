@@ -1,10 +1,8 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.DataAPIKeywords;
@@ -17,11 +15,6 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.Projections;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.dtsx.astra.sdk.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
