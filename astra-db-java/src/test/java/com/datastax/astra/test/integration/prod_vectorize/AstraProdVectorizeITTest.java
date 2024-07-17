@@ -1,9 +1,6 @@
-package com.datastax.astra.test.integration.prod;
+package com.datastax.astra.test.integration.prod_vectorize;
 
-import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.EmbeddingProvider;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

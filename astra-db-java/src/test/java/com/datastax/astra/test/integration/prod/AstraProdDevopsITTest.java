@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class AstraProdDBAdminITTest extends AbstractAstraDBAdminTest {
+class AstraProdDevopsITTest extends AbstractAstraDBAdminTest {
 
     private static final String TMP_VECTOR_DB = "astra_db_admin_test";
     private static final String TMP_VECTOR_DB2 = "astra_db_admin_test2";

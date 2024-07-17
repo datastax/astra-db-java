@@ -1,15 +1,17 @@
 package com.datastax.astra.test.integration.prod;
 
-import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
+import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-@EnabledIfEnvironmentVariable(named = "GITHUB_ACTION", matches = "true")
+/**
+ * Integration tests against a Local Instance of Stargate.
+ */
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_PROVIDER", matches = ".*")
 @EnabledIfEnvironmentVariable(named = "ASTRA_CLOUD_REGION", matches = ".*")
-public class AstraProdDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
+class AstraProdDatabaseITTest extends AbstractDatabaseTest {
 
     @Override
     public AstraEnvironment getAstraEnvironment() {
@@ -25,4 +27,5 @@ public class AstraProdDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
     public String getRegion() {
         return System.getenv("ASTRA_CLOUD_REGION");
     }
+
 }

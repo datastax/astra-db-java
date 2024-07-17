@@ -16,7 +16,7 @@ class AstraProdCollectionITTest extends AbstractCollectionITTest {
 
     @Override
     public AstraEnvironment getAstraEnvironment() {
-        return AstraEnvironment.DEV;
+        return AstraEnvironment.PROD;
     }
 
     @Override
