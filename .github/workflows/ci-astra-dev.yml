@@ -82,7 +82,7 @@ jobs:
 #        run: |
 #          cd astra-db-java
 #          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
-  
+
   AWS_OPEN_AI:
     needs: AWS_US_WEST2_CORE
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-name: AstraDev | AWS Bedrock
+name: AstraDev | Vectorize Bedrock
 
 on:
   #push:
@@ -22,7 +22,7 @@ jobs:
         run: |
           mvn install -Dmaven.test.skip=true
 
-  AWS_BEDROCK:
+  BEDROCK_AWS_us-west-2:
     needs: BUILD
     runs-on: ubuntu-latest
     steps:
@@ -38,6 +38,53 @@ jobs:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           ASTRA_CLOUD_PROVIDER_DEV: AWS
           ASTRA_CLOUD_REGION_DEV: us-west-2
+          EMBEDDING_PROVIDER: bedrock
+          BEDROCK_HEADER_AWS_ACCESS_ID: ${{ secrets.BEDROCK_HEADER_AWS_ACCESS_ID }}
+          BEDROCK_HEADER_AWS_SECRET_ID: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}
+          BEDROCK_REGION: ${{ vars.BEDROCK_REGION }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeAwsBedRockITTest
+  BEDROCK_GCP_europe-west4:
+    needs: BUILD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: GCP
+          ASTRA_CLOUD_REGION_DEV: europe-west4
+          EMBEDDING_PROVIDER: bedrock
+          BEDROCK_HEADER_AWS_ACCESS_ID: ${{ secrets.BEDROCK_HEADER_AWS_ACCESS_ID }}
+          BEDROCK_HEADER_AWS_SECRET_ID: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}
+          BEDROCK_REGION: ${{ vars.BEDROCK_REGION }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeAwsBedRockITTest
+
+  BEDROCK_GCP_us-central1:
+    needs: BUILD
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: 11
+      - name: Maven Test
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: GCP
+          ASTRA_CLOUD_REGION_DEV: us-central1
           EMBEDDING_PROVIDER: bedrock
           BEDROCK_HEADER_AWS_ACCESS_ID: ${{ secrets.BEDROCK_HEADER_AWS_ACCESS_ID }}
           BEDROCK_HEADER_AWS_SECRET_ID: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}

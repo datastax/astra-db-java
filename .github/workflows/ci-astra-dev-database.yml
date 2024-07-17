@@ -1,4 +1,4 @@
-name: AstraDev | HF Dedicated
+name: AstraDev | Database
 
 on:
   #push:
@@ -21,8 +21,7 @@ jobs:
       - name: Build with Maven
         run: |
           mvn install -Dmaven.test.skip=true
-
-  HD_DEDICATED_AWS_us-west-2:
+  AWS_US_WEST2_CORE:
     needs: BUILD
     runs-on: ubuntu-latest
     steps:
@@ -38,17 +37,11 @@ jobs:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           ASTRA_CLOUD_PROVIDER_DEV: AWS
           ASTRA_CLOUD_REGION_DEV: us-west-2
-          EMBEDDING_PROVIDER: huggingfaceDedicated
-          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
-          HUGGINGFACEDED_DIMENSION: ${{ vars.HUGGINGFACEDED_DIMENSION }}
-          HUGGINGFACEDED_ENDPOINTNAME: ${{ vars.HUGGINGFACEDED_ENDPOINTNAME }}
-          HUGGINGFACEDED_REGIONNAME: ${{ vars.HUGGINGFACEDED_REGIONNAME }}
-          HUGGINGFACEDED_CLOUDNAME: ${{ vars.HUGGINGFACEDED_CLOUDNAME }}
         run: |
           cd astra-db-java
-          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.AstraDevDatabaseITTest
 
-  HD_DEDICATED_GCP_europe-west4:
+  GCP_EUROPE_WEST4:
     needs: BUILD
     runs-on: ubuntu-latest
     steps:
@@ -59,22 +52,16 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-      - name: Maven Test
+      - name: Run test for DEV
         env:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           ASTRA_CLOUD_PROVIDER_DEV: GCP
           ASTRA_CLOUD_REGION_DEV: europe-west4
-          EMBEDDING_PROVIDER: huggingfaceDedicated
-          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
-          HUGGINGFACEDED_DIMENSION: ${{ vars.HUGGINGFACEDED_DIMENSION }}
-          HUGGINGFACEDED_ENDPOINTNAME: ${{ vars.HUGGINGFACEDED_ENDPOINTNAME }}
-          HUGGINGFACEDED_REGIONNAME: ${{ vars.HUGGINGFACEDED_REGIONNAME }}
-          HUGGINGFACEDED_CLOUDNAME: ${{ vars.HUGGINGFACEDED_CLOUDNAME }}
         run: |
           cd astra-db-java
-          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.AstraDevDatabaseITTest
 
-  HD_DEDICATED_GCP_us-central1:
+  GCP_US_CENTRAL1:
     needs: BUILD
     runs-on: ubuntu-latest
     steps:
@@ -85,17 +72,12 @@ jobs:
         with:
           distribution: 'adopt'
           java-version: 11
-      - name: Maven Test
+
+      - name: Run test for DEV
         env:
           ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
           ASTRA_CLOUD_PROVIDER_DEV: GCP
           ASTRA_CLOUD_REGION_DEV: us-central1
-          EMBEDDING_PROVIDER: huggingfaceDedicated
-          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
-          HUGGINGFACEDED_DIMENSION: ${{ vars.HUGGINGFACEDED_DIMENSION }}
-          HUGGINGFACEDED_ENDPOINTNAME: ${{ vars.HUGGINGFACEDED_ENDPOINTNAME }}
-          HUGGINGFACEDED_REGIONNAME: ${{ vars.HUGGINGFACEDED_REGIONNAME }}
-          HUGGINGFACEDED_CLOUDNAME: ${{ vars.HUGGINGFACEDED_CLOUDNAME }}
         run: |
           cd astra-db-java
-          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.AstraDevDatabaseITTest
