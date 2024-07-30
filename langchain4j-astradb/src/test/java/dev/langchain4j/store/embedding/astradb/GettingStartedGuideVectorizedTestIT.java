@@ -3,7 +3,9 @@ package dev.langchain4j.store.embedding.astradb;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.langchain4j.Assistant;
 import com.datastax.astra.langchain4j.AstraDBTestSupport;
+import com.datastax.astra.langchain4j.rag.AstraVectorizeContentRetriever;
 import com.datastax.astra.langchain4j.rag.AstraVectorizeIngestor;
 import com.datastax.astra.langchain4j.store.embedding.AstraDbEmbeddingStore;
 import com.datastax.astra.langchain4j.store.embedding.EmbeddingSearchRequestAstra;
@@ -12,6 +14,13 @@ import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModelName;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
+import dev.langchain4j.rag.RetrievalAugmentor;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
+import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,6 +90,23 @@ public class GettingStartedGuideVectorizedTestIT {
 
     @Test
     @Order(2)
+    public void should_search_with_content_retriever() {
+        AstraVectorizeContentRetriever contentRetriever = AstraVectorizeContentRetriever.builder()
+                .embeddingStore(embeddingStoreVectorizeNVidia)
+                .maxResults(2)
+                .minScore(0.5)
+                .build();
+        // configuring it to use the components we've created above.
+        Assistant ai = AiServices.builder(Assistant.class)
+                .contentRetriever(contentRetriever)
+                .chatLanguageModel(AstraDBTestSupport.createOpenAIChatLanguageModel(OpenAiChatModelName.GPT_4_O))
+                .build();
+        String response = ai.answer("Who is Johnny?");
+        System.out.println(response);
+    }
+
+    @Test
+    @Order(3)
     public void should_search_results() {
         String question = "Who is Johnny?";
 
@@ -106,5 +132,15 @@ public class GettingStartedGuideVectorizedTestIT {
                 .collect(Collectors.joining("\n\n"));
 
         System.out.println(ragContext);
+    }
+
+    @Test
+    @Order(4)
+    public void should_search_withResultAggregator() {
+        String question = "Who is Johnny?";
+        // Our guy for advanced RAG
+        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                .contentRetriever(AstraVectorizeContentRetriever.from(embeddingStoreVectorizeNVidia))
+                .build();
     }
 }
