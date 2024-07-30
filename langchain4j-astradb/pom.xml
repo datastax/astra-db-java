@@ -7,7 +7,7 @@
     <artifactId>langchain4j-astradb</artifactId>
     <name>LangChain4j :: Integration :: AstraDB</name>
     <description>Some dependencies have a "Public Domain" license</description>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
