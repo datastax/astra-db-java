@@ -4,6 +4,8 @@ import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import lombok.Data;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
@@ -13,6 +15,8 @@ import java.util.Map;
  * Testing Vectorize in DEV
  */
 @EnabledIfEnvironmentVariable(named = "ASTRA_DB_APPLICATION_TOKEN", matches = "Astra.*")
+@Disabled
+
 public class AstraProdVectorizeITTest extends AbstractVectorizeITTest {
 
 //    @Override

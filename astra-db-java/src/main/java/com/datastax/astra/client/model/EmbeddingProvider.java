@@ -151,6 +151,9 @@ public class EmbeddingProvider {
         private String defaultValue;
         private Validation validation;
         private String help;
+        private String displayName;
+        private String hint;
+
         /**
          * Default constructor.
          */

@@ -8,6 +8,8 @@ import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DistinctIterable;
 import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.Filter;
+import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
 import com.datastax.astra.client.model.FindOneAndUpdateOptions;
@@ -322,6 +324,23 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         DistinctIterable<Document, Integer> dis = getCollectionSimple().distinct("indice", Integer.class);
         List<Integer> distinctList = dis.all();
         assertThat(distinctList).hasSize(7);
+    }
+
+    @Test
+    public void shouldTestFindOnEmptyResultList() {
+        getCollectionSimple().deleteAll();
+        // Find All
+        List<Document> okDoc = getCollectionSimple().find().all();
+        assertThat(okDoc).isEmpty();
+
+        Filter filter = Filters.eq("userId", UUID.randomUUID());
+        FindOptions options = new FindOptions().projection(include("transactionHash"));
+        List<Document> docs = getCollectionSimple().find(filter, options).all();
+        assertThat(docs).isEmpty();
+
+        //DistinctIterable<Document, Integer> dis = getCollectionSimple().distinct("indice", Integer.class);
+        //List<Integer> distinctList = dis.all();
+        //assertThat(distinctList).hasSize(0);
     }
 
     @Test
