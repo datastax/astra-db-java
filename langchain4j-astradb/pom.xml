@@ -5,7 +5,7 @@
     <artifactId>langchain4j-astradb</artifactId>
     <name>LangChain4j :: Integration :: AstraDB</name>
     <description>Some dependencies have a "Public Domain" license</description>
-    <version>1.4.2-SNAPSHOT</version>
+    <version>1.4.2</version>
     <url>https://github.com/datastax/astra-db-java</url>
     <inceptionYear>2024</inceptionYear>
 
@@ -327,7 +327,7 @@
         <connection>scm:git:git@github.com:datastax/astra-db-java.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/astra-db-java.git</developerConnection>
         <url>https://github.com/datastax/astra-db-java</url>
-        <tag>1.0.0-beta1</tag>
+        <tag>1.4.2</tag>
     </scm>
 
     <developers>
