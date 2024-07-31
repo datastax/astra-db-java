@@ -77,10 +77,19 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
                 Thread.sleep(1000);
             }
         }
+
         // Then
         assertThat(getDatabaseAdmin().namespaceExists("nsx")).isTrue();
         assertThat(getDatabaseAdmin().getDatabase("nsx")
                 .getNamespaceName()).isEqualTo("nsx");
+
+        if (!getDatabaseAdmin().namespaceExists("nsx2")) {
+            getDatabaseAdmin().createNamespace("nsx2", true);
+            while (!getDatabaseAdmin().namespaceExists("nsx2")) {
+                Thread.sleep(1000);
+            }
+            assertThat(getDatabaseAdmin().getDatabase().getNamespaceName()).isEqualTo("nx2");
+        }
 
         // Surface
         final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();

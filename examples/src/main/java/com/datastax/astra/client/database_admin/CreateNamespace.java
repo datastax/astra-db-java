@@ -9,5 +9,8 @@ public class CreateNamespace {
 
     // Create a new namespace
     db.getDatabaseAdmin().createNamespace("<namespace_name>");
+
+    // The database can be mutate on namespace creation
+    db.getDatabaseAdmin().createNamespace("<namespace2_name>", true);
   }
 }

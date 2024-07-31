@@ -7,7 +7,7 @@
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
     <name>Data API Client</name>
-    <version>1.4.1-SNAPSHOT</version>
+    <version>1.4.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -21,8 +21,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <astra.db.java.version>1.4.0</astra.db.java.version>
         <logback.version>1.5.3</logback.version>
+        <astra.db.java.version>1.4.3-SNAPSHOT</astra.db.java.version>
     </properties>
 
     <dependencyManagement>

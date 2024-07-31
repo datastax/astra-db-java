@@ -173,14 +173,12 @@ public interface DatabaseAdmin {
     Database getDatabase(String namespaceName, String userToken);
 
     /**
-     * Access the Database asscociated with this admin class.
+     * Access the Database associated with this admin class.
      *
      * @return
      *      associated database
      */
-    default Database getDatabase() {
-        return getDatabase(DEFAULT_NAMESPACE);
-    }
+    Database getDatabase();
 
     /**
      * Drops (deletes) the specified namespace from the database. This operation is idempotent; it will not
@@ -250,8 +248,20 @@ public interface DatabaseAdmin {
      *
      * @param namespace
      *      current namespace.
+     * @param updateDbNamespace
+     *      if the namespace should be updated in the database.
      */
-     void createNamespace(String namespace);
+    void createNamespace(String namespace, boolean updateDbNamespace);
+
+    /**
+     * Syntax Sugar, retro compatible.
+     *
+     * @param namespace
+     *      current namespace.
+     **/
+    default void createNamespace(String namespace) {
+        createNamespace(namespace, false);
+    }
 
     /**
      * Create a Namespace providing a name.

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
@@ -52,14 +53,8 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** parameters names. */
     private static final String ARG_NAMESPACE = "namespaceName";
 
-    /** Version of the API. */
-    protected final DataAPIOptions options;
-
-    /** Version of the API. */
-    protected final String apiEndPoint;
-
-    /** Version of the API. */
-    protected final String token;
+    /** Database if initialized from the DB. */
+    protected Database db;
 
     /**
      * Initialize a database admin from token and database id.
@@ -72,14 +67,22 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      list of options for the admin
      */
     public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
-        this.apiEndPoint    = apiEndpoint;
-        this.token          = token;
-        this.options        = options;
+        this(new Database(apiEndpoint, token, DEFAULT_NAMESPACE, options));
+    }
+
+    /**
+     * Initialize a database admin from token and database id.
+     *
+     * @param db
+     *      current database instance
+     */
+    public DataAPIDatabaseAdmin(Database db) {
+        this.db             = db;
         this.commandOptions = new CommandOptions<>()
-                .token(token)
-                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
-                .httpClientOptions(options.getHttpClientOptions());
-        options.getObservers().forEach(this.commandOptions::registerObserver);
+                .token(db.getToken())
+                .embeddingAuthProvider(db.getOptions().getEmbeddingAuthProvider())
+                .httpClientOptions(db.getOptions().getHttpClientOptions());
+        db.getOptions().getObservers().forEach(this.commandOptions::registerObserver);
     }
 
     // ------------------------------------------
@@ -106,9 +109,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
+    public Database getDatabase() {
+        return db;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public Database getDatabase(String namespaceName) {
-        Assert.hasLength(namespaceName, ARG_NAMESPACE);
-        return new Database(apiEndPoint, token, namespaceName, options);
+        return db.useNamespace(namespaceName);
     }
 
     /** {@inheritDoc} */
@@ -116,13 +124,18 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     public Database getDatabase(String namespaceName, String userToken) {
         Assert.hasLength(namespaceName, ARG_NAMESPACE);
         Assert.hasLength(userToken, "userToken");
-        return new Database(apiEndPoint, userToken, namespaceName, options);
+        db = new Database(db.getDbApiEndpoint(), userToken, namespaceName, db.getOptions());
+        return db;
     }
 
     /** {@inheritDoc} */
-    public void createNamespace(String namespace) {
+    @Override
+    public void createNamespace(String namespace, boolean updateDbNamespace) {
         Assert.hasLength(namespace, ARG_NAMESPACE);
         createNamespace(namespace, NamespaceOptions.simpleStrategy(1));
+        if (updateDbNamespace) {
+            db.useNamespace(namespace);
+        }
     }
 
     /**
@@ -157,7 +170,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return apiEndPoint;
+        return db.getDbApiEndpoint();
     }
 
     /**

@@ -34,29 +34,41 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+
 /**
  * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.
  */
 public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
-    /**
-     * Token used for the credentials
-     */
+    /** Token used for the credentials. */
     final String token;
 
-    /**
-     * Token used for the credentials
-     */
+    /** Token used for the credentials. */
     final UUID databaseId;
 
     /** Working environment. */
     final AstraEnvironment env;
 
-    /** Options to personalized http client other client options. */
-    final DataAPIOptions options;
-
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
+
+    /** Database if initialized from the DB. */
+    protected com.datastax.astra.client.Database db;
+
+    /**
+     * Initialize a database admin from token and database id.
+     *
+     * @param db
+     *      target database
+     */
+    public AstraDBDatabaseAdmin(com.datastax.astra.client.Database db) {
+        this.databaseId = UUID.fromString(db.getDbApiEndpoint().substring(8, 44));
+        this.env        = getEnvironment(db.getOptions().getDestination());
+        this.token      = db.getToken();
+        this.db         = db;
+        this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+    }
 
     /**
      * Initialize a database admin from token and database id.
@@ -74,8 +86,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         this.env            = env;
         this.token          = token;
         this.databaseId     = databaseId;
-        this.options        = options;
         this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+        this.db = new com.datastax.astra.client.Database(getApiEndpoint(), token, DEFAULT_NAMESPACE, options);
     }
 
     /**
@@ -88,6 +100,27 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         return devopsDbClient
                 .findById(databaseId.toString())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
+    }
+
+    /**
+     * Extract environment from the destination.
+     *
+     * @param destination
+     *      destination to extract the environment from
+     * @return
+     *      the environment
+     */
+    private static AstraEnvironment getEnvironment(DataAPIOptions.DataAPIDestination destination) {
+        switch (destination) {
+            case ASTRA:
+                return AstraEnvironment.PROD;
+            case ASTRA_DEV:
+                return AstraEnvironment.DEV;
+            case ASTRA_TEST:
+                return AstraEnvironment.TEST;
+            default:
+                throw new IllegalArgumentException("Unknown destination: " + destination);
+        }
     }
 
     // ------------------------------------------
@@ -115,7 +148,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.Database getDatabase(String namespaceName) {
-        return getDatabase(namespaceName, this.token);
+        return db.useNamespace(namespaceName);
     }
 
     /**
@@ -128,7 +161,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.Database getDatabase(String namespaceName, String tokenUser) {
-        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName, options);
+        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName, db.getOptions());
     }
 
     /** {@inheritDoc} */
@@ -142,7 +175,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /** {@inheritDoc} */
     @Override
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
-        DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + options.getApiVersion(), token, options);
+        DataAPIDatabaseAdmin admin =
+                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getOptions().getApiVersion(), token, db.getOptions());
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 
@@ -154,6 +188,15 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /** {@inheritDoc} */
     @Override
+    public void createNamespace(String namespace, boolean updateDbNamespace) {
+        createNamespace(namespace);
+        if (updateDbNamespace) {
+            db.useNamespace(namespace);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public void dropNamespace(String namespace) {
         try {
             devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
@@ -161,4 +204,11 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
             // Left blank to parse output from a delete
         }
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public com.datastax.astra.client.Database getDatabase() {
+        return db;
+    }
+
 }
