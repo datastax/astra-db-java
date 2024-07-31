@@ -24,5 +24,7 @@ public class Connecting {
         Database db4 = client.getDatabase(databaseId, "*NAMESPACE*");
         Database db5 = client.getDatabase(databaseId, "*NAMESPACE*", "us-east-2");
 
+        db5.useNamespace("yet_another");
+
     }
 }
