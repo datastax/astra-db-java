@@ -8,9 +8,7 @@ import java.util.Map;
 
 public class FindEmbeddingProviders {
     public static void main(String[] args) {
-        Database db = new Database(
-                "https://8f915e5a-ea58-4576-bd00-9828984a1023-us-east1.apps.astra.datastax.com",
-                "AstraCS:iLPiNPxSSIdefoRdkTWCfWXt:2b360d096e0e6cb732371925ffcc6485541ff78067759a2a1130390e231c2c7a");
+        Database db = new Database("API_ENDPOINT","TOKEN");
         FindEmbeddingProvidersResult fepr = db.getDatabaseAdmin().findEmbeddingProviders();
         Map<String, EmbeddingProvider> providers = fepr.getEmbeddingProviders();
         for (Map.Entry<String, EmbeddingProvider> entry : providers.entrySet()) {
