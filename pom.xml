@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
     <name>Data API Client</name>
-    <version>1.4.4-SNAPSHOT</version>
+    <version>1.4.4</version>
     <packaging>pom</packaging>
     <url>https://github.com/datastax/astra-db-java</url>
     <inceptionYear>2024</inceptionYear>
@@ -328,7 +326,7 @@
         <connection>scm:git:git@github.com:datastax/astra-db-java.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/astra-db-java.git</developerConnection>
         <url>https://github.com/datastax/astra-db-java</url>
-        <tag>1.0.0-beta1</tag>
+        <tag>1.4.4</tag>
     </scm>
 
     <developers>
