@@ -62,4 +62,57 @@ public class EmbeddingSearchRequestAstra extends EmbeddingSearchRequest {
     public String query() {
         return query;
     }
+
+    public static EmbeddingSearchRequestAstra.Builder builderAstra() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private String queryVectorize;
+        private Embedding queryEmbedding;
+        private Integer maxResults;
+        private Double minScore;
+        private Filter filter;
+
+        Builder() {
+        }
+
+        public Builder queryVectorize(String queryVectorize) {
+            this.queryVectorize = queryVectorize;
+            return this;
+        }
+
+        public Builder queryEmbedding(Embedding queryEmbedding) {
+            this.queryEmbedding = queryEmbedding;
+            return this;
+        }
+
+        public Builder maxResults(Integer maxResults) {
+            this.maxResults = maxResults;
+            return this;
+        }
+
+        public Builder minScore(Double minScore) {
+            this.minScore = minScore;
+            return this;
+        }
+
+        public Builder filter(Filter filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public EmbeddingSearchRequestAstra build() {
+            return new EmbeddingSearchRequestAstra(
+                    this.queryEmbedding, this.queryVectorize,
+                    this.maxResults, this.minScore, this.filter);
+        }
+
+        public String toString() {
+            return "Search(\nqueryEmbedding=" + this.queryEmbedding
+                    + "\nmaxResults=" + this.maxResults
+                    + "\nminScore=" + this.minScore
+                    + "\nfilter=" + this.filter + ")";
+        }
+    }
 }

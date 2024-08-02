@@ -5,39 +5,15 @@
     <artifactId>langchain4j-astradb</artifactId>
     <name>LangChain4j :: Integration :: AstraDB</name>
     <description>Some dependencies have a "Public Domain" license</description>
-    <version>1.4.3-SNAPSHOT</version>
-    <url>https://github.com/datastax/astra-db-java</url>
-    <inceptionYear>2024</inceptionYear>
+
+    <parent>
+        <groupId>com.datastax.astra</groupId>
+        <artifactId>astra-db-java-parent</artifactId>
+        <version>1.4.4-SNAPSHOT</version>
+    </parent>
 
     <properties>
-        <logback.version>1.5.6</logback.version>
-        <jackson.version>2.17.2</jackson.version>
-        <lombok.version>1.18.34</lombok.version>
-        <assertj.version>3.26.3</assertj.version>
-        <junit-jupiter.version>5.10.3</junit-jupiter.version>
-        <astra-db-java.version>1.4.0</astra-db-java.version>
         <langchain4j.version>0.33.0</langchain4j.version>
-
-        <!-- Maven -->
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>11</maven.compiler.release>
-        <maven.plugin.compiler.source>11</maven.plugin.compiler.source>
-        <maven.plugin.compiler.target>11</maven.plugin.compiler.target>
-        <version.maven.plugin.compiler>3.13.0</version.maven.plugin.compiler>
-        <version.maven.plugin.coveralls>4.3.0</version.maven.plugin.coveralls>
-        <version.maven.plugin.dependency>3.7.1</version.maven.plugin.dependency>
-        <version.maven.plugin.enforcer>3.5.0</version.maven.plugin.enforcer>
-        <version.maven.plugin.gpg>3.2.4</version.maven.plugin.gpg>
-        <version.maven.plugin.jacoco>0.8.12</version.maven.plugin.jacoco>
-        <version.maven.plugin.javadoc>3.8.0</version.maven.plugin.javadoc>
-        <version.maven.plugin.jar>3.4.2</version.maven.plugin.jar>
-        <version.maven.plugin.license>2.4.0</version.maven.plugin.license>
-        <version.maven.plugin.nexus>1.7.0</version.maven.plugin.nexus>
-        <version.maven.plugin.release>3.1.1</version.maven.plugin.release>
-        <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
-        <version.maven.plugin.source>3.3.1</version.maven.plugin.source>
-        <version.maven.plugin.surefire>3.2.5</version.maven.plugin.surefire>
-        <version.maven.plugin.surefire>3.2.5</version.maven.plugin.surefire>
     </properties>
 
     <dependencyManagement>
@@ -58,34 +34,25 @@
         <dependency>
             <groupId>com.datastax.astra</groupId>
             <artifactId>astra-db-java</artifactId>
-            <version>${astra-db-java.version}</version>
+            <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
-
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
-            <version>${langchain4j.version}</version>
         </dependency>
-
-        <!-- Enforce Jackson Latest to support @Unwrapped -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
-
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-core</artifactId>
             <classifier>tests</classifier>
-            <version>${langchain4j.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -93,195 +60,37 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-embeddings-all-minilm-l6-v2-q</artifactId>
-            <version>${langchain4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>${langchain4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>${langchain4j.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${logback.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${version.maven.plugin.nexus}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                    <skipLocalStaging>true</skipLocalStaging>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>${version.maven.plugin.gpg}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${version.maven.plugin.source}</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>${version.maven.plugin.release}</version>
-                <configuration>
-                    <tagNameFormat>@{project.version}</tagNameFormat>
-                    <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <useReleaseProfile>false</useReleaseProfile>
-                    <releaseProfiles>release</releaseProfiles>
-                    <goals>deploy</goals>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>${version.maven.plugin.compiler}</version>
-                <configuration>
-                    <source>${maven.plugin.compiler.source}</source>
-                    <target>${maven.plugin.compiler.target}</target>
-                    <showWarnings>false</showWarnings>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>${version.maven.plugin.surefire}</version>
-                <configuration>
-                    <skipTests>true</skipTests>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>${junit-jupiter.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${version.maven.plugin.javadoc}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <source>${maven.plugin.compiler.source}</source>
-                    <overview>${basedir}/src/main/java/overview.html</overview>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${version.maven.plugin.jacoco}</version>
-                <executions>
-                    <execution>
-                        <id>default-prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-prepare-agent-integration</id>
-                        <goals>
-                            <goal>prepare-agent-integration</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report</id>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>default-report-integration</id>
-                        <goals>
-                            <goal>report-integration</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${version.maven.plugin.dependency}</version>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${version.maven.plugin.jar}</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${version.maven.plugin.resources}</version>
-                <configuration>
-                    <escapeString>\</escapeString>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -315,66 +124,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-
-    <scm>
-        <connection>scm:git:git@github.com:datastax/astra-db-java.git</connection>
-        <developerConnection>scm:git:git@github.com:datastax/astra-db-java.git</developerConnection>
-        <url>https://github.com/datastax/astra-db-java</url>
-        <tag>1.0.0-beta1</tag>
-    </scm>
-
-    <developers>
-        <developer>
-            <id>clunven</id>
-            <name>Cedrick Lunven</name>
-            <email>cedrick.lunven@gmail.com</email>
-            <url>https://github.com/clun</url>
-        </developer>
-    </developers>
-
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <!-- Organization -->
-    <organization>
-        <name>DataStax</name>
-        <url>https://www.datastax.com</url>
-    </organization>
-
-    <!-- Release the client with Apache License -->
-    <licenses>
-        <license>
-            <name>Apache-2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
-        </license>
-    </licenses>
 </project>

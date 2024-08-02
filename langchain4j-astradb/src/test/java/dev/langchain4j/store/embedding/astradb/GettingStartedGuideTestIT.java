@@ -46,8 +46,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.langchain4j.AstraDBTestSupport.createOpenAIChatLanguageModel;
-import static com.datastax.astra.langchain4j.AstraDBTestSupport.createopenAIEmbeddingModel;
+import static com.datastax.astra.langchain4j.AstraDBTestSupport.openAIChatModel;
+import static com.datastax.astra.langchain4j.AstraDBTestSupport.openAIEmbedModel;
 
 /**
  * ASTRA can now compute the embeddings for you. This is a simple example of how to use ASTRA to compute embeddings.
@@ -90,7 +90,7 @@ public class GettingStartedGuideTestIT {
         storeShadow.clear();
 
         // Access the embedding Model
-        openAiEmbeddingModel = createopenAIEmbeddingModel(OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL);
+        openAiEmbeddingModel = openAIEmbedModel(OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL);
 
         ingestDocument("johnny.txt", storeJohnny);
         ingestDocument("shadow.txt", storeShadow);
@@ -139,7 +139,7 @@ public class GettingStartedGuideTestIT {
 
             ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder()
                     .embeddingStore(storeJohnny)
-                    .embeddingModel(AstraDBTestSupport.createopenAIEmbeddingModel(OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL))
+                    .embeddingModel(AstraDBTestSupport.openAIEmbedModel(OpenAiEmbeddingModelName.TEXT_EMBEDDING_3_SMALL))
                     .maxResults(2)
                     .minScore(0.5)
                     .build();
@@ -147,7 +147,7 @@ public class GettingStartedGuideTestIT {
             // configuring it to use the components we've created above.
             Assistant ai = AiServices.builder(Assistant.class)
                     .contentRetriever(contentRetriever)
-                    .chatLanguageModel(AstraDBTestSupport.createOpenAIChatLanguageModel(OpenAiChatModelName.GPT_4_O))
+                    .chatLanguageModel(AstraDBTestSupport.openAIChatModel(OpenAiChatModelName.GPT_4_O))
                     //.chatMemory(MessageWindowChatMemory.withMaxMessages(10))
                     .build();
 
@@ -165,7 +165,7 @@ public class GettingStartedGuideTestIT {
 
         Assistant assistant = AiServices.builder(Assistant.class)
                 .retrievalAugmentor(retrievalAugmentor)
-                .chatLanguageModel(createOpenAIChatLanguageModel(OpenAiChatModelName.GPT_4_O))
+                .chatLanguageModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
                 .build();
 
         System.out.println(assistant.answer("Give me the name of the horse"));

@@ -3,6 +3,9 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.model.FindOptions;
+
+import java.util.List;
 
 import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
 
@@ -58,6 +61,12 @@ public class Quickstart {
     collection.drop();
     System.out.println("Deleted the collection");
 // end::cleanup[]
+
+    List<Document> matches = collection.find(
+            new FindOptions()
+                    .sort(new float[] {0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
+            .all();
+
 
 // tag::end[]
   }

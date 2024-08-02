@@ -49,14 +49,14 @@ public class AstraDBTestSupport {
         return databaseAdmin.getDatabase();
     }
 
-    public static ChatLanguageModel createOpenAIChatLanguageModel(OpenAiChatModelName modelName) {
+    public static ChatLanguageModel openAIChatModel(OpenAiChatModelName modelName) {
         return OpenAiChatModel.builder()
                 .apiKey(AstraDBTestSupport.OPENAI_API_KEY)
                 .modelName(modelName)
                 .build();
     }
 
-    public static EmbeddingModel createopenAIEmbeddingModel(OpenAiEmbeddingModelName modelName) {
+    public static EmbeddingModel openAIEmbedModel(OpenAiEmbeddingModelName modelName) {
         return OpenAiEmbeddingModel.builder()
                 .apiKey(AstraDBTestSupport.OPENAI_API_KEY)
                 .modelName(modelName)

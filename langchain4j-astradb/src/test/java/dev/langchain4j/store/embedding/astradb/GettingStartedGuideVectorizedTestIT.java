@@ -15,13 +15,11 @@ import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.openai.OpenAiChatModelName;
-import dev.langchain4j.model.openai.OpenAiEmbeddingModelName;
 import dev.langchain4j.rag.DefaultRetrievalAugmentor;
 import dev.langchain4j.rag.RetrievalAugmentor;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
-import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -31,13 +29,12 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
-import java.net.URL;
-import java.nio.file.Path;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static dev.langchain4j.store.embedding.filter.MetadataFilterBuilder.metadataKey;
+import static com.datastax.astra.langchain4j.AstraDBTestSupport.openAIChatModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -68,18 +65,35 @@ public class GettingStartedGuideVectorizedTestIT {
                         .vector(1024, SimilarityMetric.COSINE)
                         .vectorize("nvidia", "NV-Embed-QA")
                         .build()));
-        embeddingStoreVectorizeNVidia.clear();
+
+        // Empty Store to Start
+        //embeddingStoreVectorizeNVidia.clear();
     }
 
     private static void ingestDocument(String docName, AstraDbEmbeddingStore store) {
 
-        URL url = AstraDBTestSupport.class.getResource("/" + docName);
-        Path path = new File(url.getFile()).toPath();
+        // Load the document
+        Document inputDocument = FileSystemDocumentLoader.loadDocument(
+                new File(AstraDBTestSupport.class.getResource("/" + docName)
+                        .getFile())
+                        .toPath(),
+                new TextDocumentParser());
 
+        // Create some metadata
+        SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd");
+        String ingestionDate = SDF.format(new Date());
+
+        // Ingestion
         AstraVectorizeIngestor.builder()
                 .documentSplitter(DocumentSplitters.recursive(300, 0))
-                .embeddingStore(store).build()
-                .ingest(FileSystemDocumentLoader.loadDocument(path, new TextDocumentParser()));
+                .documentTransformer(doc -> {
+                    doc.metadata().put("insertion_date", ingestionDate);
+                    doc.metadata().put("doc_name", docName);
+                    return doc;
+                })
+                .embeddingStore(store)
+                .build()
+                .ingest(inputDocument);
     }
 
     @Test
@@ -90,57 +104,62 @@ public class GettingStartedGuideVectorizedTestIT {
 
     @Test
     @Order(2)
-    public void should_search_with_content_retriever() {
-        AstraVectorizeContentRetriever contentRetriever = AstraVectorizeContentRetriever.builder()
-                .embeddingStore(embeddingStoreVectorizeNVidia)
-                .maxResults(2)
-                .minScore(0.5)
-                .build();
-        // configuring it to use the components we've created above.
-        Assistant ai = AiServices.builder(Assistant.class)
-                .contentRetriever(contentRetriever)
-                .chatLanguageModel(AstraDBTestSupport.createOpenAIChatLanguageModel(OpenAiChatModelName.GPT_4_O))
-                .build();
-        String response = ai.answer("Who is Johnny?");
-        System.out.println(response);
+    public void should_search_direct() {
+        List<EmbeddingMatch<TextSegment>> relevantEmbeddings = embeddingStoreVectorizeNVidia
+                .search(EmbeddingSearchRequestAstra.builderAstra()
+                        .queryVectorize("Who is Johnny?")
+                        .maxResults(10)
+                        .minScore(0.5)
+                        .build()).matches();
+        assertThat(relevantEmbeddings).isNotEmpty();
+
+        // Building a RAG CONTEXT
+        relevantEmbeddings.forEach(match -> log.info("Match: {}", match.embedded()));
+        String ragContext = relevantEmbeddings.stream()
+                .map(match -> match.embedded().text())
+                .collect(Collectors.joining("\n\n"));
+        log.info("Rag Context {}", ragContext);
     }
 
     @Test
     @Order(3)
-    public void should_search_results() {
-        String question = "Who is Johnny?";
-
-        /* RAG
-         * I needed to create a new object EmbeddingSearchRequestAstra
-         * to add the field "vectorize" to the search.
-         *
-         * "Vectorize" (nvidia nemo) will not work with content retriever.
-         * For advanced RAG. I suggest to keep EmbeddingModel End embedding Store separated.
-         */
-
-        EmbeddingSearchRequestAstra searchQuery = new EmbeddingSearchRequestAstra(null,
-                question, 10, 0.5, metadataKey("documentId")
-                .isIn("f47ac10b-58cc-4372-a567-0e02b2c3d479"));
-        List<EmbeddingMatch<TextSegment>> relevantEmbeddings = embeddingStoreVectorizeNVidia.search(searchQuery).matches();
-        assertThat(relevantEmbeddings).isNotEmpty();
-        assertThat(relevantEmbeddings).isNotEmpty();
-
-        relevantEmbeddings.forEach(match -> log.info("Match: {}", match.embedded()));
-
-        String ragContext = relevantEmbeddings.stream()
-                .map(match -> match.embedded().text())
-                .collect(Collectors.joining("\n\n"));
-
-        System.out.println(ragContext);
+    public void should_search_with_content_retriever() {
+        Assistant ai = AiServices.builder(Assistant.class)
+                .contentRetriever(
+                        AstraVectorizeContentRetriever.builder()
+                        .embeddingStore(embeddingStoreVectorizeNVidia)
+                        .filter(new IsEqualTo("file_name", "johnny.txt"))
+                        .maxResults(5)
+                        .minScore(0.2)
+                        .build())
+                .chatLanguageModel(
+                        openAIChatModel(OpenAiChatModelName.GPT_4_O))
+                .build();
+        System.out.println(ai.answer("Give me the name of the HORSE"));
     }
 
     @Test
     @Order(4)
-    public void should_search_withResultAggregator() {
-        String question = "Who is Johnny?";
-        // Our guy for advanced RAG
+    public void should_search_advanced_rag() {
+
         RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
-                .contentRetriever(AstraVectorizeContentRetriever.from(embeddingStoreVectorizeNVidia))
+                // Preprocessing
+                //.queryRouter()
+                //.queryTransformer()
+                .contentRetriever(AstraVectorizeContentRetriever.builder()
+                        .embeddingStore(embeddingStoreVectorizeNVidia)
+                        .filter(new IsEqualTo("file_name", "johnny.txt"))
+                        .maxResults(5)
+                        .minScore(0.2)
+                        .build())
+                // Post Processir
+                //.contentAggregator()
                 .build();
+
+        Assistant ai = AiServices.builder(Assistant.class)
+                .retrievalAugmentor(retrievalAugmentor)
+                .chatLanguageModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
+                .build();
+        System.out.println(ai.answer("Give me the name of the HORSE"));
     }
 }
