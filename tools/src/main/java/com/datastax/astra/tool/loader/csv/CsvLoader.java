@@ -71,6 +71,7 @@ public class CsvLoader {
                 batch.add(processor.map(rowMap));
                 if (batch.size() == settings.batchSize) {
                     final List<Document> batchToInsert = new ArrayList<>(batch);
+                    log.info("Enqueuing {} rows from {}... ", collection, batch.size());
                     executor.submit(() -> collection.insertMany(batchToInsert));
                     batch.clear(); // Clear the batch for the next set of rows
                 }

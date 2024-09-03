@@ -10,13 +10,14 @@
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
-        <version>1.4.3-SNAPSHOT</version>
+        <version>1.4.6-SNAPSHOT</version>
     </parent>
 
     <dependencies>
         <dependency>
             <groupId>com.datastax.astra</groupId>
             <artifactId>astra-db-java</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
