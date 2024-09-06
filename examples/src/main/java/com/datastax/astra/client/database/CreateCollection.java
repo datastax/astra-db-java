@@ -9,13 +9,33 @@ import com.datastax.astra.client.model.SimilarityMetric;
 
 public class CreateCollection {
   public static void main(String[] args) {
-    Database db = new Database("API_ENDPOINT", "TOKEN");
+
+    Database db = new Database(
+            System.getenv("ASTRA_DB_API_ENDPOINT"),
+            System.getenv("ASTRA_DB_APPLICATION_TOKEN"));
 
     // Create a non-vector collection
     Collection<Document> simple1 = db.createCollection("col");
 
-    Collection<Document> vector1 = db
-            .createCollection("vector1", 14, SimilarityMetric.DOT_PRODUCT);
+    // Default Id Collection
+    Collection<Document> defaultId = db.createCollection("defaultId", CollectionOptions
+            .builder()
+            .defaultIdType(CollectionIdTypes.OBJECT_ID)
+            .build());
+
+    // -- Indexing
+    Collection<Document> indexingDeny = db.createCollection("indexing1", CollectionOptions
+              .builder()
+              .indexingDeny("blob")
+              .build());
+    // Create a collection with indexing (allow) - cannot use allow and denay at the same time
+    Collection<Document> indexingAllow = db.createCollection("allow1", CollectionOptions
+            .builder()
+            .indexingAllow("metadata")
+            .build());
+
+    // Vector
+    Collection<Document> vector1 = db.createCollection("vector1", 14, SimilarityMetric.DOT_PRODUCT);
 
     // Create a vector collection
     Collection<Document> vector2 = db.createCollection("vector2", CollectionOptions
@@ -24,22 +44,27 @@ public class CreateCollection {
       .vectorSimilarity(SimilarityMetric.EUCLIDEAN)
       .build());
 
-    // Create a collection with indexing (deny)
-    Collection<Document> indexing1 = db.createCollection("indexing1", CollectionOptions
-              .builder()
-              .indexingDeny("blob")
-              .build());
+    // Create a collection for the db
+    Collection<Document> collection_vectorize_header = db.createCollection(
+            "collection_vectorize_header",
+            // Create collection with a Service in vectorize (No API KEY)
+            CollectionOptions.builder()
+                    .vectorDimension(1536)
+                    .vectorSimilarity(SimilarityMetric.DOT_PRODUCT)
+                    .vectorize("openai", "text-embedding-ada-002")
+                    .build());
 
-    // Create a collection with indexing (allow) - cannot use allow and denay at the same time
-    Collection<Document> allow1 = db.createCollection("allow1", CollectionOptions
-            .builder()
-            .indexingAllow("metadata")
-            .build());
+    // Create a collection for the db
+    Collection<Document> collection_vectorize_shared_key = db.createCollection(
+            "collection_vectorize_shared_key",
+            // Create collection with a Service in vectorize (No API KEY)
+            CollectionOptions.builder()
+                    .vectorDimension(1536)
+                    .vectorSimilarity(SimilarityMetric.DOT_PRODUCT)
+                    .vectorize("openai", "text-embedding-ada-002", "OPENAI_API_KEY" )
+                    .build());
 
-    // Enforce default id type could be objectid, uuid, uuivv6, uuidv7
-    Collection<Document> defaultId = db.createCollection("defaultId", CollectionOptions
-            .builder()
-            .defaultIdType(CollectionIdTypes.OBJECT_ID)
-            .build());
+
+
   }
 }

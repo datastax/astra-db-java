@@ -175,8 +175,8 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
      */
     public List<String> addAllVectorize(List<TextSegment> textSegmentList) {
         return addAll(null, textSegmentList);
-
     }
+
     /**
      * Add multiple embeddings as a single action.
      *
@@ -299,6 +299,25 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
     @Override
     public void removeAll(dev.langchain4j.store.embedding.filter.Filter filter) {
         astraDBCollection.deleteMany(AstraDbFilterMapper.map(filter));
+    }
+
+    /**
+     * Truncate the Repository
+     *
+     */
+    @Override
+    public void removeAll() {
+        astraDBCollection.deleteAll();
+    }
+
+    /**
+     * Accessing the underlying collection to have even better filter capabilities, SORT, projection
+     *
+     * @return
+     *      associated AstraDB collection
+     */
+    public Collection<Document> getCollection() {
+        return astraDBCollection;
     }
 
     /**
