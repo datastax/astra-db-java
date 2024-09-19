@@ -64,7 +64,6 @@ import com.datastax.astra.client.model.UpdateResult;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
@@ -280,9 +279,35 @@ public class Collection<T> extends AbstractCommandRunner {
      * System.out.println("The collection belongs to the namespace: " + namespaceName);
      * }
      * </pre>
+     * @deprecated use {@link #getKeyspaceName()} instead
      */
+    @Deprecated
     public String getNamespaceName() {
-        return getDatabase().getNamespaceName();
+        return getDatabase().getKeyspaceName();
+    }
+
+    /**
+     * Retrieves the name of the parent keyspace associated with this collection. A keyspace in
+     * this context typically refers to a higher-level categorization or grouping mechanism within
+     * the database that encompasses one or more collections. This method allows for identifying
+     * the broader context in which this collection exists, which can be useful for operations
+     * requiring knowledge of the database structure or for dynamic database interaction patterns.
+     *
+     * @return A {@code String} representing the name of the parent keyspace of the current
+     *         collection. This name serves as an identifier for the keyspace and can be used
+     *         to navigate or query the database structure.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection myCollection = ... // assume myCollection is already initialized
+     * String keyspaceName = myCollection.getKeyspaceName();
+     * System.out.println("The collection belongs to the keyspace: " + namespaceName);
+     * }
+     * </pre>
+     */
+    public String getKeyspaceName() {
+        return getDatabase().getKeyspaceName();
     }
 
     /**

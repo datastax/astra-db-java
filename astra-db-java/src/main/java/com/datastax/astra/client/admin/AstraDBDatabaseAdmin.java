@@ -28,6 +28,7 @@ import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +40,7 @@ import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 /**
  * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.
  */
+@Slf4j
 public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /** Token used for the credentials. */
@@ -97,6 +99,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *     list of db matching the criteria
      */
     public Database getDatabaseInformations() {
+        log.debug("getDatabaseInformations");
         return devopsDbClient
                 .findById(databaseId.toString())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
@@ -142,31 +145,40 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /**
      * Access teh database with the default token.
      *
-     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     * @param keyspace The name of the namespace (or keyspace) to retrieve. This parameter should match the
      *                      exact name of the namespace as it exists in the database.
      * @return
      *      client to interact with database DML.
      */
-    public com.datastax.astra.client.Database getDatabase(String namespaceName) {
-        return db.useNamespace(namespaceName);
+    public com.datastax.astra.client.Database getDatabase(String keyspace) {
+        return db.useNamespace(keyspace);
     }
 
     /**
      * Access teh database with the specialized token.
      *
-     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     * @param keyspace The name of the namespace (or keyspace) to retrieve. This parameter should match the
      *                      exact name of the namespace as it exists in the database.
      * @param tokenUser token with reduce privileges compared to admin token in order to do dml options (CRUD).
      * @return
      *      client to interact with database DML.
      */
-    public com.datastax.astra.client.Database getDatabase(String namespaceName, String tokenUser) {
-        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, namespaceName, db.getOptions());
+    public com.datastax.astra.client.Database getDatabase(String keyspace, String tokenUser) {
+        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, keyspace, db.getOptions());
     }
 
     /** {@inheritDoc} */
     @Override
     public Set<String> listNamespaceNames() {
+        log.debug("listNamespaceNames");
+        return devopsDbClient
+                .database(databaseId.toString())
+                .keyspaces().findAll();
+    }
+
+    @Override
+    public Set<String> listKeyspaceNames() {
+        log.debug("listKeyspaceNames");
         return devopsDbClient
                 .database(databaseId.toString())
                 .keyspaces().findAll();
@@ -175,6 +187,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /** {@inheritDoc} */
     @Override
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
+        log.debug("findEmbeddingProviders");
         DataAPIDatabaseAdmin admin =
                 new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getOptions().getApiVersion(), token, db.getOptions());
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
@@ -183,21 +196,39 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /** {@inheritDoc} */
     @Override
     public void createNamespace(String namespace) {
+        log.debug("createNamespace");
         devopsDbClient.database(databaseId.toString()).keyspaces().create(namespace);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void createNamespace(String namespace, boolean updateDbNamespace) {
-        createNamespace(namespace);
-        if (updateDbNamespace) {
-            db.useNamespace(namespace);
+    public void createNamespace(String keyspace, boolean updateDBKeyspace) {
+        createNamespace(keyspace);
+        if (updateDBKeyspace) {
+            db.useNamespace(keyspace);
         }
+    }
+
+    @Override
+    public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
+        log.debug("createKeyspace");
+        devopsDbClient.database(databaseId.toString()).keyspaces().create(keyspace);
     }
 
     /** {@inheritDoc} */
     @Override
     public void dropNamespace(String namespace) {
+        log.debug("dropNamespace");
+        try {
+            devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
+        } catch(NullPointerException e) {
+            // Left blank to parse output from a delete
+        }
+    }
+
+    @Override
+    public void dropKeyspace(String namespace) {
+        log.debug("dropKeyspace");
         try {
             devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
         } catch(NullPointerException e) {

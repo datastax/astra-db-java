@@ -25,13 +25,8 @@ import com.datastax.astra.client.model.CommandRunner;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
  * Defines the core client interface for interacting with the Data API, focusing on CRUD (Create, Read, Update, Delete)
@@ -82,8 +77,33 @@ public interface DatabaseAdmin {
      *
      * @return A {@link Set} containing the names of all namespaces within the current database. The stream
      *         provides a flexible and efficient means to process the namespace names according to the application's needs.
+     *
+     * @deprecated Use {@link #listKeyspaceNames()} instead.
      */
+    @Deprecated
     Set<String> listNamespaceNames();
+
+    /**
+     * Retrieves a stream of keyspaces names available in the current database. This method is essential for
+     * applications that need to enumerate all namespaces to perform operations such as displaying available
+     * namespaces to users, managing keyspaces programmatically, or executing specific tasks within each
+     * keyspace. The returned Stream facilitates efficient processing of keyspace names, enabling
+     * operations like filtering, sorting, and mapping without the need for preloading all names into memory.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assuming 'client' is an instance of DataApiClient
+     * Stream<String> keyspacesNames = client.listKeyspacesNames());
+     * // Display names in the console
+     * keyspacesNames.forEach(System.out::println);
+     * }
+     * </pre>
+     *
+     * @return A {@link Set} containing the names of all namespaces within the current database. The stream
+     *         provides a flexible and efficient means to process the namespace names according to the application's needs.
+     */
+    Set<String> listKeyspaceNames();
 
     /**
      * Retrieve the list of embedding providers available in the current database. Embedding providers are services
@@ -126,9 +146,41 @@ public interface DatabaseAdmin {
      * @return A CompletableFuture that, when completed, provides a stream containing the names
      *         of all namespaces within the current database. This allows for the asynchronous processing of namespace
      *         names with the flexibility and efficiency benefits of using a stream.
+     *
+     * @deprecated Use {@link #listKeyspacesNamesAsync()} instead.
      */
+    @Deprecated
     default CompletableFuture<Set<String>> listNamespaceNamesAsync() {
         return CompletableFuture.supplyAsync(this::listNamespaceNames);
+    }
+
+    /**
+     * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates
+     * non-blocking operations by allowing the application to continue executing other tasks while the list of keyspace
+     * names is being fetched. The method returns a CompletableFuture that, upon completion, provides a
+     * Stream of keyspace names, enabling efficient and flexible processing through stream operations.
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assuming 'client' is an instance of DataApiClient
+     * CompletableFuture<Stream<String>> futureKeyspaces= client.listKeyspacesNames();
+     * // Process the stream of names asynchronously once it's available
+     * futureKeyspaces.thenAccept(streamOfNames -> {
+     *   Stream<String> keyspaceNames = streamOfNames);
+     *   keyspaceNames.forEach(System.out::println);
+     * }).exceptionally(ex -> {
+     *   System.out.println("An error occurred: " + ex.getMessage());
+     *   return null;
+     * });
+     * }
+     * </pre>
+     *
+     * @return A CompletableFuture that, when completed, provides a stream containing the names
+     *         of all keyspaces within the current database. This allows for the asynchronous processing of keyspace
+     *         names with the flexibility and efficiency benefits of using a stream.
+     */
+    default CompletableFuture<Set<String>> listKeyspacesNamesAsync() {
+        return CompletableFuture.supplyAsync(this::listKeyspaceNames);
     }
 
     /**
@@ -139,10 +191,10 @@ public interface DatabaseAdmin {
      * <pre>
      * {@code
      * // Assume 'client' is an instance of your data API client
-     * String namespaceName = "exampleNamespace";
+     * String keyspace = "exampleNamespace";
      *
      * // Retrieve the namespace instance
-     * DataApiNamespace namespace = client.getNamespace(namespaceName);
+     * DataApiNamespace namespace = client.getNamespace(keyspace);
      *
      * // Now, 'namespace' can be used to perform operations within 'exampleNamespace'
      * }
@@ -152,25 +204,24 @@ public interface DatabaseAdmin {
      * which then enables the execution of various database operations within that namespace. It highlights the
      * method's role in facilitating direct interaction with different parts of the database.
      *
-     * @param namespaceName The name of the namespace (or keyspace) to retrieve. This parameter should match the
+     * @param keyspace The name of the keyspace to retrieve. This parameter should match the
      *                      exact name of the namespace as it exists in the database.
      * @return A {@code DataApiNamespace} instance that encapsulates the operations and information specific to the
-     *         given namespace.
-     *
+     *         given keyspace.
      */
-    Database getDatabase(String namespaceName);
+    Database getDatabase(String keyspace);
 
     /**
      * Access the Database associated with this admin class.
      *
-     * @param namespaceName
-     *      the destination namespace for this database
+     * @param keyspace
+     *      the destination keyspace for this database
      * @param userToken
      *      the user token with DML access if different from admin.
      * @return
      *      instance of the database
      */
-    Database getDatabase(String namespaceName, String userToken);
+    Database getDatabase(String keyspace, String userToken);
 
     /**
      * Access the Database associated with this admin class.
@@ -207,8 +258,40 @@ public interface DatabaseAdmin {
      * @param namespace The name of the namespace to be dropped. This parameter specifies the target namespace
      *                  that should be deleted. The operation will proceed silently and without error even if the
      *                  namespace does not exist, ensuring consistent behavior.
+     * @deprecated Use {@link #dropKeyspace(String)} instead.
      */
+    @Deprecated
     void dropNamespace(String namespace);
+
+    /**
+     * Drops (deletes) the specified keyspace from the database. This operation is idempotent; it will not
+     * produce an error if the keyspace does not exist. This method is useful for cleaning up data or removing
+     * entire keyspaces as part of database maintenance or restructuring. Caution should be exercised when using
+     * this method, as dropping a keyspace will remove all the data, collections, or tables contained within it,
+     * and this action cannot be undone.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assume 'client' is an instance of your data API client
+     * String keyspace = "targetKeyspace";
+     *
+     * // Drop the namespace
+     * client.dropKeyspace(keyspace);
+     *
+     * // The namespace 'targetKeyspace' is now deleted, along with all its contained data
+     * }
+     * </pre>
+     *
+     * This example demonstrates how to safely drop a keyspace by name. The operation ensures that even if the
+     * keyspace does not exist, the method call will not interrupt the flow of the application, thereby allowing
+     * for flexible and error-tolerant code design.
+     *
+     * @param namespace The name of the keyspace to be dropped. This parameter specifies the target keyspace
+     *                  that should be deleted. The operation will proceed silently and without error even if the
+     *                  keyspace does not exist, ensuring consistent behavior.
+     */
+    void dropKeyspace(String namespace);
 
     /**
      * Asynchronously drops (deletes) the specified namespace from the database. This operation is idempotent, meaning
@@ -238,29 +321,90 @@ public interface DatabaseAdmin {
      *                  The asynchronous nature of this method means that it will execute without blocking the calling
      *                  thread, regardless of whether the namespace exists or not, ensuring a consistent and responsive
      *                  application behavior.
+     * @deprecated Use {@link #dropKeyspaceAsync(String)} instead.
      */
+    @Deprecated
     default void dropNamespaceAsync(String namespace) {
         CompletableFuture.runAsync(() -> dropNamespace(namespace));
     }
 
     /**
-     * Create a Namespace providing a name.
+     * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning
+     * it will not produce an error if the keyspace does not exist. Performing this operation asynchronously ensures
+     * that the calling thread remains responsive, and can be particularly useful for applications that require high
+     * availability and cannot afford to block on potentially long-running operations. Just like its synchronous counterpart,
+     * this method should be used with caution as dropping a keyspace will remove all associated data, collections,
+     * or tables, and this action is irreversible.
      *
-     * @param namespace
-     *      current namespace.
-     * @param updateDbNamespace
-     *      if the namespace should be updated in the database.
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assume 'client' is an instance of your data API client
+     * String keyspace = "asyncTargetKeyspace";
+     *
+     * // Asynchronously drop the namespace
+     * client.dropKeyspaceAsync(keyspace);
+     *
+     * // The keyspace 'asyncTargetKeyspace' is now being deleted in the background, along with all its contained data
+     * }
+     * </pre>
+     *
+     * This example illustrates the non-blocking nature of dropping a keyspace. It demonstrates the method's utility in
+     * maintaining application responsiveness, even when performing potentially long-running database operations.
+     *
+     * @param keyspace The name of the keyspace to be dropped. This is the target keyspace that will be deleted.
+     *                  The asynchronous nature of this method means that it will execute without blocking the calling
+     *                  thread, regardless of whether the keyspace exists or not, ensuring a consistent and responsive
+     *                  application behavior.
      */
-    void createNamespace(String namespace, boolean updateDbNamespace);
+    default void dropKeyspaceAsync(String keyspace) {
+        CompletableFuture.runAsync(() -> dropKeyspace(keyspace));
+    }
+
+    /**
+     * Create a Keyspace providing a name.
+     *
+     * @param keyspace
+     *      current keyspace.
+     * @param updateDBKeyspace
+     *      if the keyspace should be updated in the database.
+     *
+     * @deprecated Use {@link #createKeyspace(String, boolean)} instead.
+     */
+    @Deprecated
+    void createNamespace(String keyspace, boolean updateDBKeyspace);
+
+    /**
+     * Create a Keyspace providing a name.
+     *
+     * @param keyspace
+     *      current keyspace.
+     * @param updateDBKeyspace
+     *      if the keyspace should be updated in the database.
+     */
+    void createKeyspace(String keyspace, boolean updateDBKeyspace);
 
     /**
      * Syntax Sugar, retro compatible.
      *
      * @param namespace
      *      current namespace.
+     *
+     * @deprecated Use {@link #createKeyspace(String)} ()} instead.
      **/
+    @Deprecated
     default void createNamespace(String namespace) {
         createNamespace(namespace, false);
+    }
+
+    /**
+     * Syntax Sugar, retro compatible.
+     *
+     * @param keyspace
+     *      current namespace.
+     **/
+    default void createKeyspace(String keyspace) {
+        createKeyspace(keyspace, false);
     }
 
     /**
@@ -270,9 +414,24 @@ public interface DatabaseAdmin {
      *      current namespace.
      * @return
      *      client for namespace
+     *
+     * @deprecated Use {@link #createKeyspaceAsync(String)} instead.
      */
+    @Deprecated
     default CompletableFuture<Void> createNamespaceAsync(String namespace) {
         return CompletableFuture.runAsync(() -> createNamespace(namespace));
+    }
+
+    /**
+     * Create a keyspace providing a name.
+     *
+     * @param keyspace
+     *      current keyspace.
+     * @return
+     *      client for namespace
+     */
+    default CompletableFuture<Void> createKeyspaceAsync(String keyspace) {
+        return CompletableFuture.runAsync(() -> createKeyspace(keyspace));
     }
 
     /**
@@ -282,9 +441,24 @@ public interface DatabaseAdmin {
      *      namespace name.
      * @return
      *      if namespace exists
+     *
+     * @deprecated Use {@link #keyspaceExists(String)} instead.
      */
+    @Deprecated
     default boolean namespaceExists(String namespace) {
         return listNamespaceNames().contains(namespace);
+    }
+
+    /**
+     * Evaluate if a keyspace exists.
+     *
+     * @param keyspace
+     *      keyspace name.
+     * @return
+     *      if keyspace exists
+     */
+    default boolean keyspaceExists(String keyspace) {
+        return listKeyspaceNames().contains(keyspace);
     }
 
 }

@@ -31,7 +31,7 @@ import java.util.Map;
  */
 @Getter
 @Setter
-public class FindOptions extends CommandOptions<FindOneOptions> {
+public class FindOptions extends CommandOptions<FindOptions> {
 
     /**
      * Order by.

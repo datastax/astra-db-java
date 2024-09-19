@@ -16,13 +16,13 @@ public class Connecting {
 
         // Access the Database from its endpoint
         Database db1 = client1.getDatabase("*API_ENDPOINT*");
-        Database db2 = client1.getDatabase("*API_ENDPOINT*", "*NAMESPACE*");
+        Database db2 = client1.getDatabase("*API_ENDPOINT*", "*KEYSPACE*");
 
         // Access the Database from its endpoint
         UUID databaseId = UUID.fromString("f5abf92f-ff66-48a0-bbc2-d240bc25dc1f");
         Database db3 = client.getDatabase(databaseId);
-        Database db4 = client.getDatabase(databaseId, "*NAMESPACE*");
-        Database db5 = client.getDatabase(databaseId, "*NAMESPACE*", "us-east-2");
+        Database db4 = client.getDatabase(databaseId, "*KEYSPACE*");
+        Database db5 = client.getDatabase(databaseId, "*KEYSPACE*", "us-east-2");
 
         db5.useNamespace("yet_another");
 

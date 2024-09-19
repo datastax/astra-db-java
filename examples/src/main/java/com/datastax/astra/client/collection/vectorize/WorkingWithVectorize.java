@@ -2,6 +2,7 @@ package com.datastax.astra.client.collection.vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.Sort;
@@ -24,6 +25,7 @@ public class WorkingWithVectorize {
         // Vector and Vectorize in Sort Clause
 
         FindOptions options1 = new FindOptions()
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("MY KEY"))
                 .sort("String to Vectorize", s1, s2);
 
         float[] vector = new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f};

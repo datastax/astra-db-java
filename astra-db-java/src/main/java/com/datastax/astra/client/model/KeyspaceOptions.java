@@ -21,7 +21,6 @@ package com.datastax.astra.client.model;
  */
 
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,12 +30,9 @@ import static com.datastax.astra.client.model.NamespaceInformation.ReplicationSt
 
 /**
  * Options to create a Namespace.
- *
- * @deprecated use {@link KeyspaceOptions} instead
  */
-@Deprecated
 @Getter
-public class NamespaceOptions {
+public class KeyspaceOptions {
 
     /**
      * The replication of the namespace.
@@ -46,7 +42,7 @@ public class NamespaceOptions {
     /**
      * Default Constructor.
      */
-    private NamespaceOptions() {
+    private KeyspaceOptions() {
         replication = new HashMap<>();
     }
 
@@ -59,8 +55,8 @@ public class NamespaceOptions {
      *      instance of the options populated
      *
      */
-    public static NamespaceOptions simpleStrategy(int replicationFactor) {
-        NamespaceOptions options = new NamespaceOptions();
+    public static KeyspaceOptions simpleStrategy(int replicationFactor) {
+        KeyspaceOptions options = new KeyspaceOptions();
         options.replication.put("class", SIMPLE_STRATEGY.getValue());
         options.replication.put("replication_factor", replicationFactor);
         return options;
@@ -74,8 +70,8 @@ public class NamespaceOptions {
      * @return
      *      instance of the options populated
      */
-    public static NamespaceOptions networkTopologyStrategy(Map<String, Integer> datacenters) {
-        NamespaceOptions options = new NamespaceOptions();
+    public static KeyspaceOptions networkTopologyStrategy(Map<String, Integer> datacenters) {
+        KeyspaceOptions options = new KeyspaceOptions();
         options.replication.put("class", NETWORK_TOPOLOGY_STRATEGY.getValue());
         options.replication.putAll(datacenters);
         return options;

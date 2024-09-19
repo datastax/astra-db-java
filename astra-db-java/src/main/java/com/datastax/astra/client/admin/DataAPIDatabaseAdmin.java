@@ -26,6 +26,7 @@ import com.datastax.astra.client.model.Command;
 import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.model.KeyspaceOptions;
 import com.datastax.astra.client.model.NamespaceOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -34,7 +35,6 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +51,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements DatabaseAdmin {
 
     /** parameters names. */
-    private static final String ARG_NAMESPACE = "namespaceName";
+    private static final String ARG_KEYSPACE = "keyspaceName";
 
     /** Database if initialized from the DB. */
     protected Database db;
@@ -91,9 +91,20 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
+    public Set<String> listKeyspaceNames() {
+        Command cmd = Command.create("findKeyspaces");
+        return runCommand(cmd)
+                .getStatusKeyAsStringStream("keyspaces")
+                .collect(Collectors.toSet());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Deprecated
     public Set<String> listNamespaceNames() {
         Command cmd = Command.create("findNamespaces");
-        return runCommand(cmd)
+        ApiResponse response = runCommand(cmd);
+        return response
                 .getStatusKeyAsStringStream("namespaces")
                 .collect(Collectors.toSet());
     }
@@ -115,26 +126,38 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
-    public Database getDatabase(String namespaceName) {
-        return db.useNamespace(namespaceName);
+    public Database getDatabase(String keyspace) {
+        return db.useNamespace(keyspace);
     }
 
     /** {@inheritDoc} */
     @Override
-    public Database getDatabase(String namespaceName, String userToken) {
-        Assert.hasLength(namespaceName, ARG_NAMESPACE);
+    public Database getDatabase(String keyspace, String userToken) {
+        Assert.hasLength(keyspace, ARG_KEYSPACE);
         Assert.hasLength(userToken, "userToken");
-        db = new Database(db.getDbApiEndpoint(), userToken, namespaceName, db.getOptions());
+        db = new Database(db.getDbApiEndpoint(), userToken, keyspace, db.getOptions());
         return db;
     }
 
     /** {@inheritDoc} */
     @Override
-    public void createNamespace(String namespace, boolean updateDbNamespace) {
-        Assert.hasLength(namespace, ARG_NAMESPACE);
-        createNamespace(namespace, NamespaceOptions.simpleStrategy(1));
-        if (updateDbNamespace) {
-            db.useNamespace(namespace);
+    @Deprecated
+    public void createNamespace(String keyspace, boolean updateDBKeyspace) {
+        createKeyspace(keyspace, updateDBKeyspace);
+        Assert.hasLength(keyspace, ARG_KEYSPACE);
+        createKeyspace(keyspace, KeyspaceOptions.simpleStrategy(1));
+        if (updateDBKeyspace) {
+            db.useNamespace(keyspace);
+        }
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
+        Assert.hasLength(keyspace, ARG_KEYSPACE);
+        createKeyspace(keyspace, KeyspaceOptions.simpleStrategy(1));
+        if (updateDBKeyspace) {
+            db.useNamespace(keyspace);
         }
     }
 
@@ -145,26 +168,53 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      namespace name
      * @param options
      *      options to create a namespace
+     * @deprecated use {@link #createKeyspace(String, KeyspaceOptions)} instead
      */
+    @Deprecated
     public void createNamespace(String namespace, NamespaceOptions options) {
-        hasLength(namespace, ARG_NAMESPACE);
+        hasLength(namespace, ARG_KEYSPACE);
         notNull(options, "options");
         Command createNamespace = Command
-                        .create("createNamespace")
+                        .create("createKeyspace")
                         .append("name", namespace)
                         .withOptions(options);
         runCommand(createNamespace);
         log.info("Namespace  '" + green("{}") + "' has been created", namespace);
     }
 
+    /**
+     * Allow to create a keyspace with full-fledged definition
+     *
+     * @param keyspace
+     *      keyspace name
+     * @param options
+     *      options to create a namespace
+     */
+    public void createKeyspace(String keyspace, KeyspaceOptions options) {
+        hasLength(keyspace, ARG_KEYSPACE);
+        notNull(options, "options");
+        Command createKeypace = Command
+                .create("createKeyspace")
+                .append("name", keyspace)
+                .withOptions(options);
+        runCommand(createKeypace);
+        log.info("Keyspace  '" + green("{}") + "' has been created", keyspace);
+    }
+
     /** {@inheritDoc} */
+    @Deprecated
     public void dropNamespace(String namespace) {
-        hasLength(namespace, ARG_NAMESPACE);
+        dropKeyspace(namespace);
+    }
+
+    @Override
+    public void dropKeyspace(String keyspace) {
+        hasLength(keyspace, ARG_KEYSPACE);
         Command dropNamespace = Command
-                .create("dropNamespace")
-                .append("name", namespace);
+                .create("dropKeyspace")
+                .append("name", keyspace);
         runCommand(dropNamespace);
-        log.info("Namespace  '" + green("{}") + "' has been deleted", namespace);
+        log.info("Keyspace  '" + green("{}") + "' has been deleted", keyspace);
     }
 
     /** {@inheritDoc} */

@@ -2,8 +2,11 @@ import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
+import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.model.FindOptions;
+import com.datastax.astra.client.model.InsertManyOptions;
 
 import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
 
@@ -13,7 +16,9 @@ public class QuickStartTraining {
         String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
         String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
 
-        DataAPIClient client = new DataAPIClient(astraToken, DataAPIOptions.builder().build());
+        DataAPIClient client = new DataAPIClient(astraToken, DataAPIOptions.builder()
+                .withEmbeddingAPIKey("sfdsfdsfd")
+                .build());
         System.out.println("Connected to AstraDB");
 
         Database db = client.getDatabase(astraApiEndpoint, "default_keyspace");
@@ -21,8 +26,14 @@ public class QuickStartTraining {
 
         // Create a collection. The default similarity metric is cosine.
         Collection<Document> collection = db
-                .createCollection("vector_test", 5, COSINE);
+                .createCollection("vector2", 5, COSINE);
+
+        db.createCollection("sdfdsf", CollectionOptions.builder()
+                .vectorize("openai", "eeneee")
+                .build());
         System.out.println("Created a collection");
+
+        DataAPIOptions.builder().withEmbeddingAPIKey("EMBEDDING_API_KEY");
 
         collection.insertMany(
                 new Document("1")
@@ -37,6 +48,7 @@ public class QuickStartTraining {
         System.out.println("Inserted documents into the collection");
 
         // Perform a similarity search
+
         FindIterable<Document> resultsSet = collection.find(
                 new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f},
                 10

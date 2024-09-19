@@ -23,6 +23,7 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.DatabaseInfo;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.DbOpsClient;
@@ -33,12 +34,16 @@ import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.AstraRc;
+import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
+import com.dtsx.astra.sdk.utils.observability.LoggingRequestObserver;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -64,7 +69,11 @@ public class AstraDBAdmin {
     public static final String TOKEN_HEADER_PARAM = "X-Token";
 
     /** Default keyspace (same created by the ui). */
+    @Deprecated
     public static final String DEFAULT_NAMESPACE = "default_keyspace";
+
+    /** Default keyspace (same created by the ui). */
+    public static final String DEFAULT_KEYSPACE = "default_keyspace";
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
@@ -112,7 +121,15 @@ public class AstraDBAdmin {
         this.token = token;
         this.env = env;
         this.dataAPIOptions = options;
-        this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+        if (options.getObservers() != null) {
+            Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
+            if (options.getObservers().keySet().contains(LoggingCommandObserver.class.getSimpleName())) {
+                devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
+            }
+            this.devopsDbClient = new AstraDBOpsClient(token, this.env, devopsObservers);
+        } else {
+            this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+        }
 
         // Local Agent for Resume
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
@@ -234,7 +251,7 @@ public class AstraDBAdmin {
                 .name(name)
                 .cloudProvider(cloud)
                 .cloudRegion(cloudRegion)
-                .keyspace(DEFAULT_NAMESPACE)
+                .keyspace(DEFAULT_KEYSPACE)
                 .withVector().build()));
         log.info("Database {} is starting (id={}): it will take about a minute please wait...", name, newDbId);
         if (waitForDb) {
@@ -320,21 +337,21 @@ public class AstraDBAdmin {
      *
      * @param databaseId
      *      database identifier
-     * @param namespace
-     *      target namespace name
+     * @param keyspace
+     *      target keyspace name
      * @return
      *      database client
      */
-    public com.datastax.astra.client.Database getDatabase(UUID databaseId, String namespace) {
+    public com.datastax.astra.client.Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, "databaseId");
-        Assert.hasLength(namespace, "namespace");
+        Assert.hasLength(keyspace, "keyspace");
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
         return new com.datastax.astra.client.Database(
             new AstraApiEndpoint(databaseId, databaseRegion, env).getApiEndPoint(),
-            token,namespace, dataAPIOptions) {
+            token,keyspace, dataAPIOptions) {
         };
     }
 
@@ -347,7 +364,7 @@ public class AstraDBAdmin {
      *      database client
      */
     public com.datastax.astra.client.Database getDatabase(UUID databaseId) {
-        return getDatabase(databaseId, DEFAULT_NAMESPACE);
+        return getDatabase(databaseId, DEFAULT_KEYSPACE);
     }
 
     /**

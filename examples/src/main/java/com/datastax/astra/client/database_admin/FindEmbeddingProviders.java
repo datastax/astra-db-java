@@ -16,7 +16,7 @@ public class FindEmbeddingProviders {
         // was actually a new object not the initial
         // RATIONAL: as you can come from AstraDBAdmin potentially you not always have a database object created
         Database db1 = dbAdmin.getDatabase();
-        Database db2 = dbAdmin.getDatabase("namespace2");
+        Database db2 = dbAdmin.getDatabase("keyspace2");
 
 
         FindEmbeddingProvidersResult fepr = db.getDatabaseAdmin().findEmbeddingProviders();

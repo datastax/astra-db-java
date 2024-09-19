@@ -50,10 +50,18 @@ public class DatabaseInfo {
     private String region;
 
     /** Default namespace for the database. */
+    @Deprecated
     private String namespace;
 
+    /** Default keyspace for the database. */
+    @Deprecated
+    private String keyspace;
+
     /** List of Namespace for the db. */
+    @Deprecated
     private String namespaceList;
+
+    private String keyspaceList;
 
     /** List of regions where the database is deployed. */
     private Set<String> regionList;
@@ -76,13 +84,16 @@ public class DatabaseInfo {
         this.rawDevopsResponse = db;
         this.id           = UUID.fromString(db.getId());
         this.name         = db.getInfo().getName();
-        this.namespace    = db.getInfo().getKeyspace();
+        this.keyspace    = db.getInfo().getKeyspace();
         this.region       = db.getInfo().getRegion();
         this.cloud        = db.getInfo().getCloudProvider();
         this.creationTime = db.getCreationTime();
         this.regionList   = db.getInfo().getDatacenters().stream()
                 .map(Datacenter::getRegion).collect(Collectors.toSet());
-        this.namespaceList = String.join(",", db.getInfo().getKeyspaces());
+        this.keyspaceList = String.join(",", db.getInfo().getKeyspaces());
+
+        this.namespace     = keyspace;
+        this.namespaceList = keyspaceList;
     }
 
 }
