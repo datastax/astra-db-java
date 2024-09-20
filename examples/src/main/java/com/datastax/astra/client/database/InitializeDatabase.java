@@ -9,7 +9,7 @@ public class InitializeDatabase {
     Database db = new Database("API_ENDPOINT", "TOKEN");
 
     // Initialize with a non-default namespace.
-    Database db2 = new Database("API_ENDPOINT", "TOKEN", "NAMESPACE");
+    Database db2 = new Database("API_ENDPOINT", "TOKEN", "KEYSPACE");
 
     // non-default namespace + options
     // 'Options' allows fined-grained configuration.
@@ -17,6 +17,6 @@ public class InitializeDatabase {
             .withMaxTimeMS(10)
             .withHttpConnectTimeout(10)
             .build();
-    Database db3 = new Database("API_ENDPOINT", "TOKEN", "NAMESPACE", options);
+    Database db3 = new Database("API_ENDPOINT", "TOKEN", "KEYSPACE", options);
   }
 }

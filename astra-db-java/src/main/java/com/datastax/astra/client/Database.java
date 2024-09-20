@@ -40,7 +40,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -75,7 +74,7 @@ public class Database extends AbstractCommandRunner {
 
     /** Current Namespace information.*/
     @Getter
-    private String namespaceName;
+    private String keyspaceName;
 
     /**
      * This core endpoint could be used for admin operations.
@@ -115,17 +114,17 @@ public class Database extends AbstractCommandRunner {
      *      api endpoint
      *  @param token
      *      api token
-     * @param namespace
-     *      namespace
+     * @param keyspace
+     *      keyspace
      * @param options
      *      setup of the clients with options
      */
-    public Database(String apiEndpoint, String token, String namespace, DataAPIOptions options) {
+    public Database(String apiEndpoint, String token, String keyspace, DataAPIOptions options) {
         hasLength(apiEndpoint, "endpoint");
         hasLength(token,     "token");
-        hasLength(namespace, "namespace");
+        hasLength(keyspace, "keyspace");
         notNull(options, "options");
-        this.namespaceName = namespace;
+        this.keyspaceName = keyspace;
         this.token         = token;
         this.options       = options;
         this.dbApiEndpoint = apiEndpoint;
@@ -159,9 +158,24 @@ public class Database extends AbstractCommandRunner {
      *      current namespace
      * @return
      *      the database
+     * @deprecated use {@link #useKeyspace(String)}
      */
+    @Deprecated
     public Database useNamespace(String namespace) {
-        this.namespaceName = namespace;
+        return useKeyspace(namespace);
+    }
+
+    /**
+     * This mutates the keyspace to be used.
+     *
+     * @param keyspace
+     *      current keyspace
+     * @return
+     *      the database
+     */
+    @Deprecated
+    public Database useKeyspace(String keyspace) {
+        this.keyspaceName = keyspace;
         return this;
     }
 
@@ -319,7 +333,7 @@ public class Database extends AbstractCommandRunner {
      * Drops this namespace
      */
     public void drop() {
-        getDatabaseAdmin().dropNamespace(getNamespaceName());
+        getDatabaseAdmin().dropNamespace(getKeyspaceName());
     }
 
     /**
@@ -495,7 +509,7 @@ public class Database extends AbstractCommandRunner {
                 .append("/")
                 .append(options.getApiVersion())
                 .append("/")
-                .append(namespaceName)
+                .append(keyspaceName)
                 .toString();
     }
 

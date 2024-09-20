@@ -1,5 +1,6 @@
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
@@ -18,7 +19,7 @@ public class Quickstart {
 
     // Initialize the client. The keyspace parameter is optional if you use
     // "default_keyspace".
-    DataAPIClient client = new DataAPIClient(astraToken);
+    DataAPIClient client = new DataAPIClient(astraToken, DataAPIOptions.builder().build());
     System.out.println("Connected to AstraDB");
 
     Database db = client.getDatabase(astraApiEndpoint, "default_keyspace");

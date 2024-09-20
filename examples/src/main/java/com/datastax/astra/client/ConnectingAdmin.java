@@ -14,6 +14,6 @@ public class ConnectingAdmin {
         AstraDBAdmin astradbAdmin = client.getAdmin("SUPER_USER_TOKEN");
 
         // Create a Database
-        astradbAdmin.createDatabase("db-demo", GCP, "us-east-1").listNamespaceNames();
+        astradbAdmin.createDatabase("db-demo", GCP, "us-east-1").listKeyspaceNames();
     }
 }

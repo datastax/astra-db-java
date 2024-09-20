@@ -25,29 +25,26 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents the Namespace (keyspac) definition with its name and metadata.
- *
- * @deprecated use {@link KeyspaceInformation} instead
+ * Represents the keyspace definition with its name and metadata.
  */
 @Getter
 @Setter
-@Deprecated
-public class NamespaceInformation {
+public class KeyspaceInformation {
 
     /**
-     * The name of the namespace.
+     * The name of the keyspace.
      */
     private String name;
 
     /**
      * The options of the namespace.
-     */
-    private NamespaceOptions options;
+     keyspace
+    private KeyspaceOptions options;
 
     /**
      * Default Constructor.
      */
-    public NamespaceInformation() {
+    public KeyspaceInformation() {
         // Left Blank for Jackson
     }
 
@@ -55,9 +52,9 @@ public class NamespaceInformation {
      * Default Constructor.
      *
      * @param name
-     *      create namespace information with name
+     *      create keyspace information with name
      */
-    public NamespaceInformation(String name) {
+    public KeyspaceInformation(String name) {
         this.name = name;
     }
 

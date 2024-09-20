@@ -157,6 +157,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             if (jsonRes.getErrors() != null) {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
+            // Trace All Warning
+            if (jsonRes.getStatus().containsKey("warnings")) {
+                jsonRes.getStatusKeyAsStringStream("warnings").forEach(log::warn);
+            }
             return jsonRes;
         } catch(URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);

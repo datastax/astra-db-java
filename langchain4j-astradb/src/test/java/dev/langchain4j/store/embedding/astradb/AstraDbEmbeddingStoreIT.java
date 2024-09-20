@@ -138,7 +138,7 @@ class AstraDbEmbeddingStoreIT extends EmbeddingStoreIT {
      * OVERRIDING FROM DEFAULT TEST AS  THE UUID are ENCODED AS {"$uuid":"value"} in ASTRA
      */
     @Test
-    void should_add_embedding_with_segment_with_metadata() {
+    void should_add_embedding_with_segment_with_metadata() throws InterruptedException {
 
         Metadata metadata = createMetadata();
 
@@ -148,15 +148,11 @@ class AstraDbEmbeddingStoreIT extends EmbeddingStoreIT {
         String id = embeddingStore().add(embedding, segment);
         assertThat(id).isNotBlank();
 
-        {
-            // Not returned.
-            TextSegment altSegment = TextSegment.from("hello?");
-            Embedding altEmbedding = embeddingModel().embed(altSegment.text()).content();
-            embeddingStore().add(altEmbedding, altSegment);
-        }
+        TextSegment altSegment = TextSegment.from("hello?");
+        Embedding altEmbedding = embeddingModel().embed(altSegment.text()).content();
+        embeddingStore().add(altEmbedding, altSegment);
 
-        awaitUntilPersisted();
-
+        Thread.sleep(1000);
         List<EmbeddingMatch<TextSegment>> relevant = embeddingStore().findRelevant(embedding, 1);
         assertThat(relevant).hasSize(1);
 

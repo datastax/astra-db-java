@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 
 /**
@@ -40,10 +41,10 @@ public class QuickStartOpenAI {
 
         // Access to the database
         Database localDb = localDataAPI
-                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_KEYSPACE);
 
         // Create a Namespace if Needed
-        localDb.getDatabaseAdmin().createNamespace(DEFAULT_NAMESPACE);
+        localDb.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
 
         // Create a collection for the provider
         Collection<Document> collection = localDb.createCollection(
