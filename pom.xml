@@ -13,8 +13,8 @@
     <modules>
         <module>astra-db-java</module>
         <module>langchain4j-astradb</module>
-        <!--<module>examples</module>-->
-        <!--<module>tools</module>-->
+        <module>examples</module>
+        <module>tools</module>
     </modules>
 
     <properties>
