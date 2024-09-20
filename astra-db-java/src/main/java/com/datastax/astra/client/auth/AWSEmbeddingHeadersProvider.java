@@ -29,6 +29,8 @@ public class AWSEmbeddingHeadersProvider implements EmbeddingHeadersProvider {
 
     /** Headers param with the embedding ApiKey when dealing with a embedding service provider. */
     public static String HEADER_AWS_ASSET_ID  = "x-embedding-access-id";
+
+    /** Headers param with the embedding ApiKey when dealing with a embedding service provider. */
     public static String HEADER_AWS_SECRET_ID = "x-embedding-secret-id";
 
     /** Headers param with the embedding ApiKey when dealing with a embedding service provider. */
@@ -60,8 +62,6 @@ public class AWSEmbeddingHeadersProvider implements EmbeddingHeadersProvider {
     public Map<String, String> getHeaders() {
         return Map.of(HEADER_AWS_ASSET_ID, accessId, HEADER_AWS_SECRET_ID, secretId);
     }
-
-
 
 
 }

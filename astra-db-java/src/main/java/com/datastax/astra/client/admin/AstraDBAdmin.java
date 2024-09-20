@@ -57,6 +57,7 @@ import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 @Slf4j
 public class AstraDBAdmin {
 
+    /** Default timeout in seconds. */
     public static final Integer WAIT_IN_SECONDS = 600;
 
     /** Default cloud provider. (free-tier) */

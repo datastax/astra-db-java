@@ -31,6 +31,9 @@ import java.util.Map;
 @Data @AllArgsConstructor
 public class FindEmbeddingProvidersResult {
 
+    /**
+     * List of embedding providers
+     */
     Map<String, EmbeddingProvider> embeddingProviders;
 
 }
