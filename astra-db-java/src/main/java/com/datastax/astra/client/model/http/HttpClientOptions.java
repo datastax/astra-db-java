@@ -41,19 +41,10 @@ public class HttpClientOptions {
     // ----------------- HEADERS  -----------------
     // --------------------------------------------
 
-    /** Feature Flag Tables. */
-    public static final String HEADER_FEATURE_FLAG_TABLES = "Feature-Flag-tables";
-
     /** Default caller name. */
     public static final Caller DEFAULT_CALLER = new Caller("astra-db-java",
             DataAPIOptions.class.getPackage().getImplementationVersion() != null ?
             DataAPIOptions.class.getPackage().getImplementationVersion() : "dev");
-
-    /** Add headers to db calls. */
-    Map<String, Object> dbAdditionalHeaders = new HashMap<>();
-
-    /** Add headers to admin calls. */
-    Map<String, Object> adminAdditionalHeaders  = new HashMap<>();
 
     /** Add headers to db calls. */
     List<Caller> callers = new ArrayList<>();
@@ -68,44 +59,6 @@ public class HttpClientOptions {
         Assert.notNull(caller, "caller");
         Assert.hasLength(caller.getName(), caller.getVersion());
         callers.add(caller);
-    }
-
-    /**
-     * Add a header to the db calls.
-     *
-     * @param key
-     *      key
-     * @param value
-     *      value
-     * @return
-     *      self reference
-     */
-    public HttpClientOptions addDbHeader(String key, Object value) {
-        dbAdditionalHeaders.put(key, value);
-        return this;
-    }
-
-    /**
-     * Add a header to the admin calls.
-     *
-     * @param key
-     *      key
-     * @param value
-     *      value
-     * @return
-     *      self reference
-     */
-    public HttpClientOptions addAdminHeader(String key, Object value) {
-        adminAdditionalHeaders.put(key, value);
-        return this;
-    }
-
-    /**
-     * Enable Feature Flag Tables.
-     */
-    public HttpClientOptions enableFeatureFlagTables() {
-        dbAdditionalHeaders.put(HEADER_FEATURE_FLAG_TABLES, true);
-        return this;
     }
 
     // --------------------------------------------

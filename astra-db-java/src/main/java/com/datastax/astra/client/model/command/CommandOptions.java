@@ -26,9 +26,12 @@ import com.datastax.astra.client.model.http.HttpClientOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.datastax.astra.client.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
 
 /**
  * Options that will be provided to all commands for this collection.
@@ -58,6 +61,12 @@ public class CommandOptions<T extends CommandOptions<T>>{
      * Embedding auth provider
      */
     protected EmbeddingHeadersProvider embeddingAuthProvider;
+
+    /** Add headers to db calls. */
+    protected Map<String, Object> databaseAdditionalHeaders = new HashMap<>();
+
+    /** Add headers to admin calls. */
+    protected Map<String, Object> adminAdditionalHeaders  = new HashMap<>();
 
     /**
      * Provide the token.
@@ -198,6 +207,46 @@ public class CommandOptions<T extends CommandOptions<T>>{
      */
     public Optional<HttpClientOptions> getHttpClientOptions() {
         return Optional.ofNullable(httpClientOptions);
+    }
+
+    /**
+     * Add a header to the db calls.
+     *
+     * @param key
+     *      key
+     * @param value
+     *      value
+     * @return
+     *      self reference
+     */
+    @SuppressWarnings("unchecked")
+    public T addDatabaseAdditionalHeader(String key, Object value) {
+        databaseAdditionalHeaders.put(key, value);
+        return (T) this;
+    }
+
+    public T enableFeatureFlagTables() {
+        return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
+    }
+
+    public T disableFeatureFlagTables() {
+        return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, null);
+    }
+
+    /**
+     * Add a header to the admin calls.
+     *
+     * @param key
+     *      key
+     * @param value
+     *      value
+     * @return
+     *      self reference
+     */
+    @SuppressWarnings("unchecked")
+    public T addAdminAdditionalHeader(String key, Object value) {
+        adminAdditionalHeaders.put(key, value);
+        return (T) this;
     }
 
     /**

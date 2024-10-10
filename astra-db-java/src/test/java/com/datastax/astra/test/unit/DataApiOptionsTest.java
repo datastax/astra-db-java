@@ -1,10 +1,12 @@
 package com.datastax.astra.test.unit;
 
+import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
+import com.datastax.astra.client.model.http.HttpProxy;
 import com.datastax.astra.client.model.query.Filter;
 import com.datastax.astra.client.model.query.FilterOperator;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -28,9 +30,11 @@ import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
+import static com.datastax.astra.client.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -39,12 +43,14 @@ class DataApiOptionsTest {
     @Test
     void shouldPopulateOptions() {
         DataAPIOptions options = DataAPIOptions.builder()
-                .withHttpProxy(new DataAPIOptions.HttpProxy("localhost", 8080))
+                .withHttpProxy(new HttpProxy("localhost", 8080))
                 .withApiVersion("v1")
                 .withHttpRedirect(HttpClient.Redirect.NORMAL)
-                .withHttpRetryCount(5)
-                .withHttpRetryDelayMillis(1000)
-                .withDestination(DataAPIOptions.DataAPIDestination.DSE)
+                .withHttpRetries(5, Duration.ofMillis(1000))
+                .withDestination(DataAPIDestination.DSE)
+                .enableFeatureFlagTables()
+                // equivalent to:
+                .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true")
                 .build();
         assertThat(options.getHttpClientOptions().getProxy().getHostname()).isEqualTo("localhost");
     }

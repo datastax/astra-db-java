@@ -32,6 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -41,6 +42,9 @@ import java.util.TreeMap;
 @Slf4j
 @Getter
 public class DataAPIOptions {
+
+    /** Feature Flag Tables. */
+    public static final String HEADER_FEATURE_FLAG_TABLES = "Feature-Flag-tables";
 
     /** path for json api. */
     public static final String DEFAULT_VERSION = "v1";
@@ -75,6 +79,12 @@ public class DataAPIOptions {
     /** Embedding auth provider. */
     final EmbeddingHeadersProvider embeddingAuthProvider;
 
+    /** Add headers to db calls. */
+    final Map<String, Object> databaseAdditionalHeaders;
+
+    /** Add headers to admin calls. */
+    final Map<String, Object> adminAdditionalHeaders;
+
     /** Observers for the commands. */
     final Map<String, CommandObserver> observers;
 
@@ -103,6 +113,8 @@ public class DataAPIOptions {
         this.embeddingAuthProvider = builder.embeddingAuthProvider;
         this.httpClientOptions     = builder.httpClientOptions;
         this.observers             = builder.observers;
+        this.databaseAdditionalHeaders = builder.databaseAdditionalHeaders;
+        this.adminAdditionalHeaders    = builder.adminAdditionalHeaders;
     }
 
     /**
@@ -127,6 +139,12 @@ public class DataAPIOptions {
 
         /** The embedding service API key can be provided at top level. */
         private EmbeddingHeadersProvider embeddingAuthProvider;
+
+        /** Add headers to admin calls. */
+        final Map<String, Object> databaseAdditionalHeaders = new HashMap<>();
+
+        /** Add headers to admin calls. */
+        final Map<String, Object> adminAdditionalHeaders = new HashMap<>();
 
         /** Observers for the commands. */
         private final Map<String, CommandObserver> observers = new TreeMap<>();
@@ -295,6 +313,10 @@ public class DataAPIOptions {
             return this;
         }
 
+        // --------------------------------------------
+        // ----------------- HEADERS  -----------------
+        // --------------------------------------------
+
         /**
          * Builder pattern, update http connection Timeout
          *
@@ -346,8 +368,16 @@ public class DataAPIOptions {
          *      self reference
          */
         public DataAPIClientOptionsBuilder addDatabaseAdditionalHeader(String key, Object value) {
-            httpClientOptions.addDbHeader(key, value);
+            databaseAdditionalHeaders.put(key, value);
             return this;
+        }
+
+        public DataAPIClientOptionsBuilder enableFeatureFlagTables() {
+            return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
+        }
+
+        public DataAPIClientOptionsBuilder disableFeatureFlagTables() {
+            return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, null);
         }
 
         /**
@@ -360,13 +390,8 @@ public class DataAPIOptions {
          * @return
          *      self reference
          */
-        public DataAPIClientOptionsBuilder addAdminAdditionHeader(String key, Object value) {
-            httpClientOptions.addAdminHeader(key, value);
-            return this;
-        }
-
-        public DataAPIClientOptionsBuilder enableFeatureFlagTables() {
-            httpClientOptions.enableFeatureFlagTables();
+        public DataAPIClientOptionsBuilder addAdminAdditionalHeader(String key, Object value) {
+            adminAdditionalHeaders.put(key, value);
             return this;
         }
 
