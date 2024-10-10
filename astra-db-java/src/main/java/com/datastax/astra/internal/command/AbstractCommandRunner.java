@@ -158,7 +158,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
             // Trace All Warning
-            if (jsonRes.getStatus().containsKey("warnings")) {
+            if (jsonRes.getStatus()!= null && jsonRes.getStatus().containsKey("warnings")) {
                 jsonRes.getStatusKeyAsStringStream("warnings").forEach(log::warn);
             }
             return jsonRes;

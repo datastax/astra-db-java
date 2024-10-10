@@ -8,11 +8,11 @@
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
-        <version>1.5.1-SNAPSHOT</version>
+        <version>1.5.3-SNAPSHOT</version>
     </parent>
 
     <properties>
-        <langchain4j.version>0.34.0</langchain4j.version>
+        <langchain4j.version>0.35.0</langchain4j.version>
     </properties>
 
     <dependencyManagement>

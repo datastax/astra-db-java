@@ -32,6 +32,7 @@ import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import lombok.Getter;
@@ -213,6 +214,18 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
     /** {@inheritDoc}  */
     public List<EmbeddingMatch<TextSegment>> findRelevant(Embedding referenceEmbedding, int maxResults, double minScore) {
         return findRelevant(referenceEmbedding, (Filter) null, maxResults, minScore);
+    }
+
+    public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
+        dev.langchain4j.store.embedding.filter.Filter lc4jFilter = request.filter();
+        if (lc4jFilter != null) {
+            // Map Filter
+            Filter astraFilter = AstraDbFilterMapper.map(lc4jFilter);
+            List<EmbeddingMatch<TextSegment>> matches = this.findRelevant(request.queryEmbedding(), astraFilter, request.maxResults(), request.minScore());
+            return new EmbeddingSearchResult(matches);
+        }
+        List<EmbeddingMatch<TextSegment>> matches2 = this.findRelevant(request.queryEmbedding(), request.maxResults(), request.minScore());
+        return new EmbeddingSearchResult(matches2);
     }
 
     /**
