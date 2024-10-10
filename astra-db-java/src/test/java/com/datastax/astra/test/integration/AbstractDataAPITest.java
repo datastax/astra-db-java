@@ -6,7 +6,7 @@ import com.datastax.astra.client.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.ObjectId;
+import com.datastax.astra.client.model.types.ObjectId;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.Utils;

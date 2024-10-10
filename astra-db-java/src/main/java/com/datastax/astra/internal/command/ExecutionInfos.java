@@ -20,10 +20,9 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.model.InsertOneOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
-import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 

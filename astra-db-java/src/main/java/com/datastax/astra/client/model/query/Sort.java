@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.query;
 
 /*-
  * #%L
@@ -20,22 +20,31 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Options to delete many documents.
+ * Class to help building a projection.
  */
-@Getter
-@Setter
-public class DeleteManyOptions extends CommandOptions<DeleteManyOptions> {
+@Getter @Setter
+public class Sort {
+
+    /** name of the Projection. */
+    private final String field;
+
+    /** sort for the field. */
+    private final SortOrder order;
 
     /**
-     * Default constructor.
+     * Default Constructor.
+     *
+     * @param field
+     *      field name
+     * @param order
+     *      field ordering instruction
      */
-    public DeleteManyOptions() {
-        // Left blank as sort is populated in static way
+    public Sort(String field, SortOrder order) {
+        this.field = field;
+        this.order = order;
     }
-
 }

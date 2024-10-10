@@ -24,7 +24,7 @@ import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 
 /**
  * Provides utility methods for initializing and configuring clients to interact with the Data API. This class
@@ -77,7 +77,7 @@ public class DataAPIClients {
         return new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
-                        .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
+                        .withDestination(DataAPIDestination.CASSANDRA)
                         .logRequests()
                         .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                         .build());
@@ -95,9 +95,9 @@ public class DataAPIClients {
      *         than the intricacies of database connectivity and command execution.
      */
     public static Database createDefaultLocalDatabase() {
-        Database db = createForLocal().getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE);
+        Database db = createForLocal().getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_KEYSPACE);
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
-        dbAdmin.createNamespace(DEFAULT_NAMESPACE);
+        dbAdmin.createKeyspace(DEFAULT_KEYSPACE);
         return db;
     }
 
@@ -127,7 +127,7 @@ public class DataAPIClients {
     public static DataAPIClient create(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA)
+                .withDestination(DataAPIDestination.ASTRA)
                 .build());
     }
 
@@ -154,7 +154,7 @@ public class DataAPIClients {
     public static DataAPIClient createForAstraDev(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_DEV)
+                .withDestination(DataAPIDestination.ASTRA_DEV)
                 .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                 .build());
     }
@@ -183,7 +183,7 @@ public class DataAPIClients {
     public static DataAPIClient createForAstraTest(String token) {
         return new DataAPIClient(token, DataAPIOptions
                 .builder()
-                .withDestination(DataAPIOptions.DataAPIDestination.ASTRA_TEST)
+                .withDestination(DataAPIDestination.ASTRA_TEST)
                 .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                 .build());
     }

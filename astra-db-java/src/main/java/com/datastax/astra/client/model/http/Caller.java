@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.http;
 
 /*-
  * #%L
@@ -20,31 +20,19 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Encode the sort order in results.
+ * Caller information.
  */
-@Getter
-public enum SortOrder {
+@Data @NoArgsConstructor @AllArgsConstructor
+public class Caller {
 
-    /** Value for ascending order. */
-    ASCENDING(1),
+    /** caller name. */
+    String name;
 
-    /** Value for descending order. */
-    DESCENDING(-1);
-
-    /** Order value. */
-    private final Integer code;
-
-    /**
-     * Constructor for the enum.
-     *
-     * @param code
-     *      value for the order
-     */
-    SortOrder(Integer code) {
-        this.code = code;
-    }
-
+    /** caller version. */
+    String version;
 }

@@ -20,8 +20,8 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
@@ -30,12 +30,11 @@ import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
+
 
 /**
  * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.
@@ -89,7 +88,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         this.token          = token;
         this.databaseId     = databaseId;
         this.devopsDbClient = new AstraDBOpsClient(token, this.env);
-        this.db = new com.datastax.astra.client.Database(getApiEndpoint(), token, DEFAULT_NAMESPACE, options);
+        this.db = new com.datastax.astra.client.Database(getApiEndpoint(), token, DEFAULT_KEYSPACE, options);
     }
 
     /**
@@ -113,7 +112,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @return
      *      the environment
      */
-    private static AstraEnvironment getEnvironment(DataAPIOptions.DataAPIDestination destination) {
+    private static AstraEnvironment getEnvironment(DataAPIDestination destination) {
         switch (destination) {
             case ASTRA:
                 return AstraEnvironment.PROD;
@@ -151,7 +150,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.Database getDatabase(String keyspace) {
-        return db.useNamespace(keyspace);
+        return db.useKeyspace(keyspace);
     }
 
     /**
@@ -165,15 +164,6 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      */
     public com.datastax.astra.client.Database getDatabase(String keyspace, String tokenUser) {
         return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, keyspace, db.getOptions());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Set<String> listNamespaceNames() {
-        log.debug("listNamespaceNames");
-        return devopsDbClient
-                .database(databaseId.toString())
-                .keyspaces().findAll();
     }
 
     @Override
@@ -193,44 +183,17 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public void createNamespace(String namespace) {
-        log.debug("createNamespace");
-        devopsDbClient.database(databaseId.toString()).keyspaces().create(namespace);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void createNamespace(String keyspace, boolean updateDBKeyspace) {
-        createNamespace(keyspace);
-        if (updateDBKeyspace) {
-            db.useNamespace(keyspace);
-        }
-    }
-
     @Override
     public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
         log.debug("createKeyspace");
         devopsDbClient.database(databaseId.toString()).keyspaces().create(keyspace);
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void dropNamespace(String namespace) {
-        log.debug("dropNamespace");
-        try {
-            devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
-        } catch(NullPointerException e) {
-            // Left blank to parse output from a delete
-        }
-    }
-
-    @Override
-    public void dropKeyspace(String namespace) {
+    public void dropKeyspace(String keyspace) {
         log.debug("dropKeyspace");
         try {
-            devopsDbClient.database(databaseId.toString()).keyspaces().delete(namespace);
+            devopsDbClient.database(databaseId.toString()).keyspaces().delete(keyspace);
         } catch(NullPointerException e) {
             // Left blank to parse output from a delete
         }

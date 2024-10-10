@@ -147,7 +147,7 @@ import com.datastax.astra.client.Database;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.FindIterable;
 import java.util.List;
-import static com.datastax.astra.client.model.Filters.eq;
+import static com.datastax.astra.client.model.query.Filters.eq;
 import static com.datastax.astra.client.model.SimilarityMetric.cosine;
 
 public class GettingStarted {

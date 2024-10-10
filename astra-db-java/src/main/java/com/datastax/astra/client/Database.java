@@ -20,17 +20,16 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions.DataAPIDestination;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.model.command.Command;
+import com.datastax.astra.client.model.command.CommandOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -72,7 +71,7 @@ public class Database extends AbstractCommandRunner {
     @Getter
     private final DataAPIOptions options;
 
-    /** Current Namespace information.*/
+    /** Current Keyspace information.*/
     @Getter
     private String keyspaceName;
 
@@ -90,7 +89,7 @@ public class Database extends AbstractCommandRunner {
      *      api endpoint
      */
     public Database(String apiEndpoint, String token) {
-        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_NAMESPACE, DataAPIOptions.builder().build());
+        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_KEYSPACE, DataAPIOptions.builder().build());
     }
 
     /**
@@ -100,11 +99,11 @@ public class Database extends AbstractCommandRunner {
      *      api token
      * @param apiEndpoint
      *      api endpoint
-     * @param namespace
-     *      namespace
+     * @param keyspace
+     *      keyspace
      */
-    public Database(String apiEndpoint, String token, String namespace) {
-        this(apiEndpoint, token, namespace,  DataAPIOptions.builder().build());
+    public Database(String apiEndpoint, String token, String keyspace) {
+        this(apiEndpoint, token, keyspace,  DataAPIOptions.builder().build());
     }
 
     /**
@@ -148,22 +147,8 @@ public class Database extends AbstractCommandRunner {
     }
 
     // ------------------------------------------
-    // ----       Mutate Namespace           ----
+    // ----       Mutate Keyspace            ----
     // ------------------------------------------
-
-    /**
-     * This mutates the namespace to be used.
-     *
-     * @param namespace
-     *      current namespace
-     * @return
-     *      the database
-     * @deprecated use {@link #useKeyspace(String)}
-     */
-    @Deprecated
-    public Database useNamespace(String namespace) {
-        return useKeyspace(namespace);
-    }
 
     /**
      * This mutates the keyspace to be used.
@@ -173,7 +158,6 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      the database
      */
-    @Deprecated
     public Database useKeyspace(String keyspace) {
         this.keyspaceName = keyspace;
         return this;
@@ -258,9 +242,9 @@ public class Database extends AbstractCommandRunner {
      * Evaluate if a collection exists.
      *
      * @param collection
-     *      namespace name.
+     *      collections name.
      * @return
-     *      if namespace exists
+     *      if collections exists
      */
     public boolean collectionExists(String collection) {
         return listCollectionNames().anyMatch(collection::equals);
@@ -327,13 +311,6 @@ public class Database extends AbstractCommandRunner {
             commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
         }
         return new Collection<>(this, collectionName, collectionCollectionOptions, documentClass);
-    }
-
-    /**
-     * Drops this namespace
-     */
-    public void drop() {
-        getDatabaseAdmin().dropNamespace(getKeyspaceName());
     }
 
     /**

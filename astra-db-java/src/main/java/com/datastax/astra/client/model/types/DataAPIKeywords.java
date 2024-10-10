@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.types;
 
 /*-
  * #%L
@@ -39,85 +39,83 @@ package com.datastax.astra.client.model;
 import lombok.Getter;
 
 /**
- * Ease process of creating a where clause.
- *
- * @author Cedrick LUNVEN (@clunven)
+ * Constants in the JSON API.
  */
 @Getter
-public enum FilterOperator {
+public enum DataAPIKeywords {
 
     /**
-     * Greater Than.
+     * ID.
      */
-    GREATER_THAN("$gt"),
-    
-    /** 
-     * Greater Than Or Equal To.
-     */  
-    GREATER_THAN_OR_EQUALS_TO("$gte"),
-
-    /** 
-     * Less Than. 
-     */
-    LESS_THAN("$lt"),
-    
-    /** 
-     * Less Than Or Equal To. 
-     */
-    LESS_THAN_OR_EQUALS_TO("$lte"),
-    
-    /** 
-     * Equal To. 
-     */
-    EQUALS_TO("$eq"),
-    
-    /** 
-     * Not Equal To.
-     */
-    NOT_EQUALS_TO("$ne"),
-    
-    /** 
-     * in. 
-     */
-    IN("$in"),
+    ID("_id"),
 
     /**
-     * in.
+     * ALL.
      */
-    NOT_IN("$nin"),
-    
-    /** 
-     * Exist. 
+    ALL("$all"),
+
+    /**
+     * ALL.
+     */
+    DATE("$date"),
+
+    /**
+     * UUID
+     */
+    UUID("$uuid"),
+
+    /**
+     * OBJECT_ID.
+     */
+    OBJECT_ID("$objectId"),
+
+    /**
+     * SIZE.
+     */
+    SIZE("$size"),
+
+    /**
+     * EXISTS.
      */
     EXISTS("$exists"),
-    
-    /** 
-     * Contains. 
-     */
-    CONTAINS("$contains"),
-    
-    /** 
-     * Contains Key. 
-     */
-    CONTAIN_KEY("$containsKey"),
-    
-    /** 
-     * Contains Entry. 
-     */
-    CONTAIN_ENTRY("$containsEntry");
 
     /**
-     * Operator name.
+     * SIMILARITY.
      */
-    private String operator;
-    
+    SLICE("$slice"),
+
+    /**
+     * SIMILARITY.
+     */
+    SIMILARITY("$similarity"),
+
+    /**
+     * VECTOR.
+     */
+    VECTOR("$vector"),
+
+    /**
+     * SORT VECTOR.
+     */
+    SORT_VECTOR("sortVector"),
+
+    /**
+     * VECTORIZE.
+     */
+    VECTORIZE("$vectorize");
+
+    /**
+     * Keyword.
+     */
+    private final String keyword;
+
     /**
      * Constructor for the enum.
+     *
      * @param op
      *      current operator
      */
-    private FilterOperator(String op) {
-        this.operator = op;
+    DataAPIKeywords(String op) {
+        this.keyword = op;
     }
-
 }

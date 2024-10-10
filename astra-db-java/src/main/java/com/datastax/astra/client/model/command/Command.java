@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.command;
 
 /*-
  * #%L
@@ -20,6 +20,9 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.query.Filter;
+import com.datastax.astra.client.model.Update;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;

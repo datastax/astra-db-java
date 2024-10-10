@@ -40,7 +40,6 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,10 +67,6 @@ public class AstraDBAdmin {
 
     /** Header name used to hold the Astra Token. */
     public static final String TOKEN_HEADER_PARAM = "X-Token";
-
-    /** Default keyspace (same created by the ui). */
-    @Deprecated
-    public static final String DEFAULT_NAMESPACE = "default_keyspace";
 
     /** Default keyspace (same created by the ui). */
     public static final String DEFAULT_KEYSPACE = "default_keyspace";
@@ -124,7 +119,7 @@ public class AstraDBAdmin {
         this.dataAPIOptions = options;
         if (options.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
-            if (options.getObservers().keySet().contains(LoggingCommandObserver.class.getSimpleName())) {
+            if (options.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
             this.devopsDbClient = new AstraDBOpsClient(token, this.env, devopsObservers);
@@ -135,7 +130,7 @@ public class AstraDBAdmin {
         // Local Agent for Resume
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
         httpClientBuilder.version(options.getHttpClientOptions().getHttpVersion());
-        httpClientBuilder.connectTimeout(Duration.ofSeconds(options.getHttpClientOptions().getConnectionRequestTimeoutInSeconds()));
+        httpClientBuilder.connectTimeout(options.getHttpClientOptions().getConnectionTimeout());
         this.httpClient = httpClientBuilder.build();
     }
 

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client;
 
 /*-
  * #%L
@@ -20,22 +20,5 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.client.model.command.CommandOptions;
-import lombok.Getter;
-import lombok.Setter;
-
-/**
- * Options to delete many documents.
- */
-@Getter
-@Setter
-public class DeleteManyOptions extends CommandOptions<DeleteManyOptions> {
-
-    /**
-     * Default constructor.
-     */
-    public DeleteManyOptions() {
-        // Left blank as sort is populated in static way
-    }
-
+public class Table {
 }

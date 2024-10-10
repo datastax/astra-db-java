@@ -20,6 +20,10 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.model.command.CommandOptions;
+import com.datastax.astra.client.model.query.Projection;
+import com.datastax.astra.client.model.query.Sort;
+import com.datastax.astra.client.model.query.Sorts;
 import com.datastax.astra.internal.utils.OptionsUtils;
 import lombok.Getter;
 import lombok.Setter;

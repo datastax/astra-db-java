@@ -21,6 +21,7 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
 
 /**
@@ -47,7 +48,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private int timeout = DataAPIOptions.DEFAULT_REQUEST_TIMEOUT_MILLIS_SECONDS * 1000;
+    private long timeout = httpClientOptions.getRequestTimeout().getSeconds();
 
     /**
      * Populate insertMany options

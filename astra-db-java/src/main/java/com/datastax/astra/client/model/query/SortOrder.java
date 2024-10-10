@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.query;
 
 /*-
  * #%L
@@ -20,22 +20,31 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
-import lombok.Setter;
 
 /**
- * Options to delete many documents.
+ * Encode the sort order in results.
  */
 @Getter
-@Setter
-public class DeleteManyOptions extends CommandOptions<DeleteManyOptions> {
+public enum SortOrder {
+
+    /** Value for ascending order. */
+    ASCENDING(1),
+
+    /** Value for descending order. */
+    DESCENDING(-1);
+
+    /** Order value. */
+    private final Integer code;
 
     /**
-     * Default constructor.
+     * Constructor for the enum.
+     *
+     * @param code
+     *      value for the order
      */
-    public DeleteManyOptions() {
-        // Left blank as sort is populated in static way
+    SortOrder(Integer code) {
+        this.code = code;
     }
 
 }

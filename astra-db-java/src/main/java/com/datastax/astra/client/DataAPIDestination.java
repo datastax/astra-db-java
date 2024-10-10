@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client;
 
 /*-
  * #%L
@@ -20,31 +20,43 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-
 /**
- * Class to help building a projection.
+ * Represent the destination of the data API.
  */
-@Getter @Setter
-public class Sort {
-
-    /** name of the Projection. */
-    private final String field;
-
-    /** sort for the field. */
-    private final SortOrder order;
+public enum DataAPIDestination {
 
     /**
-     * Default Constructor.
-     *
-     * @param field
-     *      field name
-     * @param order
-     *      field ordering instruction
+     * Astra Production environment
      */
-    public Sort(String field, SortOrder order) {
-        this.field = field;
-        this.order = order;
-    }
+    ASTRA,
+
+    /**
+     * Astra Development environment
+     */
+    ASTRA_DEV,
+
+    /**
+     * Astra Test environment
+     */
+    ASTRA_TEST,
+
+    /**
+     * Local installation of Datastax Enterprise
+     */
+    DSE,
+
+    /**
+     * Hyper Converged Database
+     */
+    HCD,
+
+    /**
+     * Local installation of Apache Cassandra
+     */
+    CASSANDRA,
+
+    /**
+     * Extra local installation .
+     */
+    OTHERS
 }

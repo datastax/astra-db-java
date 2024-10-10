@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.query;
 
 /*-
  * #%L
@@ -19,6 +19,9 @@ package com.datastax.astra.client.model;
  * limitations under the License.
  * #L%
  */
+
+import com.datastax.astra.client.model.types.DataAPIKeywords;
+import com.datastax.astra.client.model.Document;
 
 /**
  * Utility class to hold the sort options for a query.

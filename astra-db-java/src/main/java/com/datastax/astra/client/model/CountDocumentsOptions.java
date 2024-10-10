@@ -20,11 +20,9 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.OptionsUtils;
+import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Map;
 
 /**
  * List Options for a FindOne command.

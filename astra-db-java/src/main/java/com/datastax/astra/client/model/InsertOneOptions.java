@@ -20,6 +20,7 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
 
 /**

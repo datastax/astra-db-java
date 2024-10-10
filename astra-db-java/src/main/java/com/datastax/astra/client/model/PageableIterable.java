@@ -21,6 +21,7 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.model.query.Filter;
 import lombok.Getter;
 
 import java.io.Closeable;

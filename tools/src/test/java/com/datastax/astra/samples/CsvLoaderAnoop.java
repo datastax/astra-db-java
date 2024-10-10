@@ -11,8 +11,8 @@ import com.datastax.astra.tool.loader.csv.CsvRowMapper;
 
 import java.util.List;
 
-import static com.datastax.astra.client.model.Filters.and;
-import static com.datastax.astra.client.model.Filters.eq;
+import static com.datastax.astra.client.model.query.Filters.and;
+import static com.datastax.astra.client.model.query.Filters.eq;
 
 public class CsvLoaderAnoop {
 

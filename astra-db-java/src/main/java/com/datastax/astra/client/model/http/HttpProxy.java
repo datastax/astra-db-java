@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.http;
 
 /*-
  * #%L
@@ -20,34 +20,32 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.api.ApiResponse;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Store the list of responses returned by the bulk write.
+ * Subclass to represent an http proxy.
  */
-@Getter @Setter
-public class BulkWriteResult {
+@Getter
+@Setter
+public class HttpProxy {
+
+    /** hostname of the proxy. */
+    String hostname;
+
+    /** port of the proxy. */
+    int port;
 
     /**
-     * List of responses returned by the bulk write.
-     */
-    List<ApiResponse> responses;
-
-    /**
-     * Constructor with the number of operations.
+     * Default constructor.
      *
-     * @param size
-     *      number of operations to process.
+     * @param hostname
+     *    host name
+     * @param port
+     *      roxy port
      */
-    public BulkWriteResult(int size) {
-        this.responses = new ArrayList<>(size);
+    public HttpProxy(String hostname, int port) {
+        this.hostname = hostname;
+        this.port = port;
     }
-
-
-
 }

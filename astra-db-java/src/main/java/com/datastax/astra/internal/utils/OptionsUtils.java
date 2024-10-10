@@ -20,15 +20,14 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.model.DataAPIKeywords;
+import com.datastax.astra.client.model.types.DataAPIKeywords;
 import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.Projection;
-import com.datastax.astra.client.model.Sort;
+import com.datastax.astra.client.model.query.Projection;
+import com.datastax.astra.client.model.query.Sort;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Reuse of treatments for options

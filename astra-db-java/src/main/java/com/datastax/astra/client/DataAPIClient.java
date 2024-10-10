@@ -25,17 +25,15 @@ import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
-import com.dtsx.astra.sdk.db.domain.DatabaseCreationBuilder;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
-import java.net.http.HttpClient;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA;
-import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA_DEV;
-import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.ASTRA_TEST;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.DataAPIDestination.ASTRA;
+import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
+import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 
 /**
  * Serves as the primary entry point to the Data API client, offering streamlined access to the functionalities
@@ -49,7 +47,7 @@ import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
  * <p>
  * Through this client, users can perform a wide range of operations, from basic data manipulation in databases and
  * collections to more advanced administrative tasks. Administrative capabilities, such as database creation and
- * namespace management, are available to users with the appropriate administrative privileges.
+ * keyspace management, are available to users with the appropriate administrative privileges.
  * </p>
  *
  * <p>Example usage:</p>
@@ -76,7 +74,7 @@ import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
 public class DataAPIClient {
 
     /** parameters names. */
-    private static final String ARG_NAMESPACE = "namespace";
+    private static final String ARG_KEYSPACE = "keyspace";
     /** parameters names. */
     private static final String ARG_OPTIONS = "options";
     /** parameters names. */
@@ -300,15 +298,15 @@ public class DataAPIClient {
 
     /**
      * Retrieves a client for a specific database, enabling interactions with the Data API. This method allows for
-     * operations such as querying, updating, and managing data within the specified database and namespace.
+     * operations such as querying, updating, and managing data within the specified database and keyspace.
      * <p>
      * The {@code databaseId} parameter is a unique identifier for the target database. This ID ensures that operations
      * performed through the returned client are executed against the correct database instance within the Astra
      * environment or an on-premise DataStax Enterprise setup.
      * </p>
      * <p>
-     * The {@code namespace} parameter specifies the namespace (often synonymous with "keyspace" in Cassandra terminology)
-     * within the database to which the client will have access. Namespaces are used to organize and isolate data within
+     * The {@code keyspace} parameter specifies the keyspace (often synonymous with "keyspace" in Cassandra terminology)
+     * within the database to which the client will have access. Keyspaces are used to organize and isolate data within
      * the database, providing a layer of abstraction and security.
      * </p>
      *
@@ -316,21 +314,21 @@ public class DataAPIClient {
      * <pre>
      * {@code
      * UUID databaseId = UUID.fromString("your-database-uuid-here");
-     * String namespace = "your_namespace_here";
+     * String keyspace = "your_keyspace_here";
      * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
-     * Database databaseClient = apiClient.getDatabase(databaseId, namespace);
-     * // Use databaseClient to perform data operations within the specified namespace
+     * Database databaseClient = apiClient.getDatabase(databaseId, keyspace);
+     * // Use databaseClient to perform data operations within the specified keyspace
      * }
      * </pre>
      *
      * @param databaseId The unique identifier of the database to interact with.
-     * @param namespace The namespace within the specified database to which operations will be scoped.
-     * @return A {@link Database} client configured to interact with the specified database and namespace, allowing for
+     * @param keyspace The keyspace within the specified database to which operations will be scoped.
+     * @return A {@link Database} client configured to interact with the specified database and keyspace, allowing for
      *         data manipulation and query operations.
      */
-    public Database getDatabase(UUID databaseId, String namespace) {
+    public Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, ARG_DATABASE_ID);
-        Assert.hasLength(namespace, ARG_NAMESPACE);
+        Assert.hasLength(keyspace, ARG_KEYSPACE);
         if (options.getDestination() != ASTRA &&
             options.getDestination() != ASTRA_DEV &&
             options.getDestination() != ASTRA_TEST) {
@@ -341,34 +339,34 @@ public class DataAPIClient {
         return new Database(new AstraApiEndpoint(databaseId,
                 getAdmin().getDatabaseInfo(databaseId).getRegion(),
                 getAstraEnvironment()).getApiEndPoint(),
-                this.token, namespace, options);
+                this.token, keyspace, options);
     }
 
     /**
      * Retrieves a client for a specific database, enabling interactions with the Data API. This method allows for
-     * operations such as querying, updating, and managing data within the specified database and namespace.
+     * operations such as querying, updating, and managing data within the specified database and keyspace.
      *
      * @param databaseId The unique identifier of the database to interact with.
-     * @param namespace The namespace associated to this database
+     * @param keyspace The keyspace associated to this database
      * @param region The cloud provider region where the database is deployed.
      *
      * @return
-     *      A {@link Database} client configured to interact with the specified database and namespace, allowing for
+     *      A {@link Database} client configured to interact with the specified database and keyspace, allowing for
      *      data manipulation and query operations.
      */
-    public Database getDatabase(UUID databaseId, String namespace, String region) {
+    public Database getDatabase(UUID databaseId, String keyspace, String region) {
         Assert.notNull(databaseId, ARG_DATABASE_ID);
-        Assert.hasLength(namespace, ARG_NAMESPACE);
+        Assert.hasLength(keyspace, ARG_KEYSPACE);
         Assert.hasLength(region, ARG_REGION);
         return new Database(new AstraApiEndpoint(databaseId, region,
                 getAstraEnvironment()).getApiEndPoint(),
-                this.token, namespace, options);
+                this.token, keyspace, options);
     }
 
     /**
      * Retrieves a client for interacting with a specified database using its unique identifier. This client facilitates
      * direct communication with the Data API, enabling a range of operations such as querying, inserting, updating, and
-     * deleting data within the database. This streamlined method provides access to the default namespace or keyspace.
+     * deleting data within the database. This streamlined method provides access to the default keyspace or keyspace.
      * <p>
      * The {@code databaseId} serves as a unique identifier for the database within the Astra environment or an on-premise
      * DataStax Enterprise setup, ensuring that all operations through the client are correctly routed to the intended
@@ -389,22 +387,22 @@ public class DataAPIClient {
      * @return A {@link Database} client that provides the ability to perform operations on the specified database.
      */
     public Database getDatabase(UUID databaseId) {
-        return getDatabase(databaseId, DEFAULT_NAMESPACE);
+        return getDatabase(databaseId, DEFAULT_KEYSPACE);
     }
 
     /**
      * Creates and returns a database client configured to interact with the Data API at the specified API endpoint
-     * and within the given namespace. This method facilitates operations such as querying, inserting, updating, and
+     * and within the given keyspace. This method facilitates operations such as querying, inserting, updating, and
      * deleting data by directly communicating with the Data API, allowing for a wide range of data manipulation
-     * tasks in a specified namespace.
+     * tasks in a specified keyspace.
      * <p>
      * The {@code apiEndpoint} parameter should be the URL of the API endpoint where the Data API is hosted. This
      * is typically a fully qualified URL that points to the Astra service or an on-premise DataStax Enterprise
      * deployment hosting the Data API.
      * </p>
      * <p>
-     * The {@code namespace} parameter specifies the namespace (or keyspace in Cassandra terms) within the database
-     * that the client will interact with. Namespaces help organize data within the database and provide a way to
+     * The {@code keyspace} parameter specifies the keyspace (or keyspace in Cassandra terms) within the database
+     * that the client will interact with. Keyspaces help organize data within the database and provide a way to
      * isolate and manage access to data.
      * </p>
      *
@@ -412,20 +410,20 @@ public class DataAPIClient {
      * <pre>
      * {@code
      * String apiEndpoint = "https://example-astra-data-api.com";
-     * String namespace = "my_keyspace";
+     * String keyspace = "my_keyspace";
      * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
-     * Database databaseClient = apiClient.getDatabase(apiEndpoint, namespace);
+     * Database databaseClient = apiClient.getDatabase(apiEndpoint, keyspace);
      * // Now you can use the databaseClient to perform operations within "my_keyspace"
      * }
      * </pre>
      *
      * @param apiEndpoint The URL of the Data API endpoint. This specifies the location of the API the client will connect to.
-     * @param namespace The namespace (or keyspace) within the database that the client will access and perform operations in.
-     * @return A {@link Database} client configured for the specified API endpoint and namespace, enabling data manipulation
-     *         and query operations within the targeted namespace.
+     * @param keyspace The keyspace within the database that the client will access and perform operations in.
+     * @return A {@link Database} client configured for the specified API endpoint and keyspace, enabling data manipulation
+     *         and query operations within the targeted keyspace.
      */
-    public Database getDatabase(String apiEndpoint, String namespace) {
-        return new Database(apiEndpoint, token, namespace, options);
+    public Database getDatabase(String apiEndpoint, String keyspace) {
+        return new Database(apiEndpoint, token, keyspace, options);
     }
 
     /**
@@ -455,7 +453,7 @@ public class DataAPIClient {
     /**
      * Retrieves a database client configured to interact with the Data API at the specified API endpoint. This method
      * enables direct communication with the Data API, facilitating a range of data manipulation operations such as querying,
-     * inserting, updating, and deleting data. The client accesses the default namespace or keyspace for operations, unless
+     * inserting, updating, and deleting data. The client accesses the default keyspace or keyspace for operations, unless
      * otherwise specified through additional configuration.
      * <p>
      * The {@code apiEndpoint} parameter should be the URL of the Data API endpoint you wish to connect to. This URL
@@ -464,7 +462,7 @@ public class DataAPIClient {
      * </p>
      * <p>
      * Utilizing this method simplifies the process of connecting to the Data API by focusing on essential configuration,
-     * making it particularly useful for scenarios where detailed namespace management is handled separately or not required.
+     * making it particularly useful for scenarios where detailed keyspace management is handled separately or not required.
      * </p>
      *
      * <p>Example usage:</p>
@@ -482,6 +480,6 @@ public class DataAPIClient {
      *         ready for executing data manipulation tasks.
      */
     public Database getDatabase(String apiEndpoint) {
-        return getDatabase(apiEndpoint, DEFAULT_NAMESPACE);
+        return getDatabase(apiEndpoint, DEFAULT_KEYSPACE);
     }
 }

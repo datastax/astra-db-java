@@ -21,13 +21,13 @@ package com.datastax.astra.client.model;
  */
 
 import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.model.query.Filter;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Represents the result of a 'find' command executed on a collection, providing an iterable interface to navigate

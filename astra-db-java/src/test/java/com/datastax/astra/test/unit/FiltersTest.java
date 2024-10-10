@@ -1,16 +1,14 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.model.DataAPIKeywords;
-import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.Filters;
+import com.datastax.astra.client.model.types.DataAPIKeywords;
+import com.datastax.astra.client.model.query.Filter;
+import com.datastax.astra.client.model.query.Filters;
 import com.datastax.astra.client.model.FindOptions;
-import com.datastax.astra.client.model.ObjectId;
-import com.datastax.astra.client.model.Projection;
-import com.datastax.astra.client.model.Projections;
+import com.datastax.astra.client.model.types.ObjectId;
+import com.datastax.astra.client.model.query.Projections;
 import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;

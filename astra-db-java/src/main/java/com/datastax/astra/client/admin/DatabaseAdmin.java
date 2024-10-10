@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.CommandRunner;
+import com.datastax.astra.client.model.command.CommandRunner;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 
@@ -57,31 +57,6 @@ import java.util.concurrent.CompletableFuture;
  * </pre>
  */
 public interface DatabaseAdmin {
-
-    /**
-     * Retrieves a stream of namespace names available in the current database. This method is essential for
-     * applications that need to enumerate all namespaces to perform operations such as displaying available
-     * namespaces to users, managing namespaces programmatically, or executing specific tasks within each
-     * namespace. The returned Stream facilitates efficient processing of namespace names, enabling
-     * operations like filtering, sorting, and mapping without the need for preloading all names into memory.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assuming 'client' is an instance of DataApiClient
-     * Stream<String> namespaceNames = client.listNamespaceNames());
-     * // Display names in the console
-     * namespaceNames.forEach(System.out::println);
-     * }
-     * </pre>
-     *
-     * @return A {@link Set} containing the names of all namespaces within the current database. The stream
-     *         provides a flexible and efficient means to process the namespace names according to the application's needs.
-     *
-     * @deprecated Use {@link #listKeyspaceNames()} instead.
-     */
-    @Deprecated
-    Set<String> listNamespaceNames();
 
     /**
      * Retrieves a stream of keyspaces names available in the current database. This method is essential for
@@ -121,38 +96,6 @@ public interface DatabaseAdmin {
      *      list of available providers
      */
     FindEmbeddingProvidersResult findEmbeddingProviders();
-
-    /**
-     * Asynchronously retrieves a stream of namespace names available in the current database. This method facilitates
-     * non-blocking operations by allowing the application to continue executing other tasks while the list of namespace
-     * names is being fetched. The method returns a CompletableFuture that, upon completion, provides a
-     * Stream of namespace names, enabling efficient and flexible processing through stream operations.
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assuming 'client' is an instance of DataApiClient
-     * CompletableFuture<Stream<String>> futureNamespaces = client.listNamespaceNamesAsync();
-     * // Process the stream of names asynchronously once it's available
-     * futureNamespaces.thenAccept(streamOfNames -> {
-     *   Stream<String> namespaceNames = streamOfNames);
-     *   namespaceNames.forEach(System.out::println);
-     * }).exceptionally(ex -> {
-     *   System.out.println("An error occurred: " + ex.getMessage());
-     *   return null;
-     * });
-     * }
-     * </pre>
-     *
-     * @return A CompletableFuture that, when completed, provides a stream containing the names
-     *         of all namespaces within the current database. This allows for the asynchronous processing of namespace
-     *         names with the flexibility and efficiency benefits of using a stream.
-     *
-     * @deprecated Use {@link #listKeyspacesNamesAsync()} instead.
-     */
-    @Deprecated
-    default CompletableFuture<Set<String>> listNamespaceNamesAsync() {
-        return CompletableFuture.supplyAsync(this::listNamespaceNames);
-    }
 
     /**
      * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates
@@ -232,38 +175,6 @@ public interface DatabaseAdmin {
     Database getDatabase();
 
     /**
-     * Drops (deletes) the specified namespace from the database. This operation is idempotent; it will not
-     * produce an error if the namespace does not exist. This method is useful for cleaning up data or removing
-     * entire keyspaces as part of database maintenance or restructuring. Caution should be exercised when using
-     * this method, as dropping a namespace will remove all the data, collections, or tables contained within it,
-     * and this action cannot be undone.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * String namespace = "targetNamespace";
-     *
-     * // Drop the namespace
-     * client.dropNamespace(namespace);
-     *
-     * // The namespace 'targetNamespace' is now deleted, along with all its contained data
-     * }
-     * </pre>
-     *
-     * This example demonstrates how to safely drop a namespace by name. The operation ensures that even if the
-     * namespace does not exist, the method call will not interrupt the flow of the application, thereby allowing
-     * for flexible and error-tolerant code design.
-     *
-     * @param namespace The name of the namespace to be dropped. This parameter specifies the target namespace
-     *                  that should be deleted. The operation will proceed silently and without error even if the
-     *                  namespace does not exist, ensuring consistent behavior.
-     * @deprecated Use {@link #dropKeyspace(String)} instead.
-     */
-    @Deprecated
-    void dropNamespace(String namespace);
-
-    /**
      * Drops (deletes) the specified keyspace from the database. This operation is idempotent; it will not
      * produce an error if the keyspace does not exist. This method is useful for cleaning up data or removing
      * entire keyspaces as part of database maintenance or restructuring. Caution should be exercised when using
@@ -292,41 +203,6 @@ public interface DatabaseAdmin {
      *                  keyspace does not exist, ensuring consistent behavior.
      */
     void dropKeyspace(String namespace);
-
-    /**
-     * Asynchronously drops (deletes) the specified namespace from the database. This operation is idempotent, meaning
-     * it will not produce an error if the namespace does not exist. Performing this operation asynchronously ensures
-     * that the calling thread remains responsive, and can be particularly useful for applications that require high
-     * availability and cannot afford to block on potentially long-running operations. Just like its synchronous counterpart,
-     * this method should be used with caution as dropping a namespace will remove all associated data, collections,
-     * or tables, and this action is irreversible.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * String namespace = "asyncTargetNamespace";
-     *
-     * // Asynchronously drop the namespace
-     * client.dropNamespaceAsync(namespace);
-     *
-     * // The namespace 'asyncTargetNamespace' is now being deleted in the background, along with all its contained data
-     * }
-     * </pre>
-     *
-     * This example illustrates the non-blocking nature of dropping a namespace. It demonstrates the method's utility in
-     * maintaining application responsiveness, even when performing potentially long-running database operations.
-     *
-     * @param namespace The name of the namespace to be dropped. This is the target namespace that will be deleted.
-     *                  The asynchronous nature of this method means that it will execute without blocking the calling
-     *                  thread, regardless of whether the namespace exists or not, ensuring a consistent and responsive
-     *                  application behavior.
-     * @deprecated Use {@link #dropKeyspaceAsync(String)} instead.
-     */
-    @Deprecated
-    default void dropNamespaceAsync(String namespace) {
-        CompletableFuture.runAsync(() -> dropNamespace(namespace));
-    }
 
     /**
      * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning
@@ -368,34 +244,8 @@ public interface DatabaseAdmin {
      *      current keyspace.
      * @param updateDBKeyspace
      *      if the keyspace should be updated in the database.
-     *
-     * @deprecated Use {@link #createKeyspace(String, boolean)} instead.
-     */
-    @Deprecated
-    void createNamespace(String keyspace, boolean updateDBKeyspace);
-
-    /**
-     * Create a Keyspace providing a name.
-     *
-     * @param keyspace
-     *      current keyspace.
-     * @param updateDBKeyspace
-     *      if the keyspace should be updated in the database.
      */
     void createKeyspace(String keyspace, boolean updateDBKeyspace);
-
-    /**
-     * Syntax Sugar, retro compatible.
-     *
-     * @param namespace
-     *      current namespace.
-     *
-     * @deprecated Use {@link #createKeyspace(String)} ()} instead.
-     **/
-    @Deprecated
-    default void createNamespace(String namespace) {
-        createNamespace(namespace, false);
-    }
 
     /**
      * Syntax Sugar, retro compatible.
@@ -408,21 +258,6 @@ public interface DatabaseAdmin {
     }
 
     /**
-     * Create a Namespace providing a name.
-     *
-     * @param namespace
-     *      current namespace.
-     * @return
-     *      client for namespace
-     *
-     * @deprecated Use {@link #createKeyspaceAsync(String)} instead.
-     */
-    @Deprecated
-    default CompletableFuture<Void> createNamespaceAsync(String namespace) {
-        return CompletableFuture.runAsync(() -> createNamespace(namespace));
-    }
-
-    /**
      * Create a keyspace providing a name.
      *
      * @param keyspace
@@ -432,21 +267,6 @@ public interface DatabaseAdmin {
      */
     default CompletableFuture<Void> createKeyspaceAsync(String keyspace) {
         return CompletableFuture.runAsync(() -> createKeyspace(keyspace));
-    }
-
-    /**
-     * Evaluate if a namespace exists.
-     *
-     * @param namespace
-     *      namespace name.
-     * @return
-     *      if namespace exists
-     *
-     * @deprecated Use {@link #keyspaceExists(String)} instead.
-     */
-    @Deprecated
-    default boolean namespaceExists(String namespace) {
-        return listNamespaceNames().contains(namespace);
     }
 
     /**

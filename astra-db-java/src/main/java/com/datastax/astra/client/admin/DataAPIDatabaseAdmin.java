@@ -22,12 +22,11 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.CommandOptions;
+import com.datastax.astra.client.model.command.Command;
+import com.datastax.astra.client.model.command.CommandOptions;
 import com.datastax.astra.client.model.EmbeddingProvider;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.model.KeyspaceOptions;
-import com.datastax.astra.client.model.NamespaceOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -38,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
@@ -67,7 +66,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      list of options for the admin
      */
     public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
-        this(new Database(apiEndpoint, token, DEFAULT_NAMESPACE, options));
+        this(new Database(apiEndpoint, token, DEFAULT_KEYSPACE, options));
     }
 
     /**
@@ -100,17 +99,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
-    @Deprecated
-    public Set<String> listNamespaceNames() {
-        Command cmd = Command.create("findNamespaces");
-        ApiResponse response = runCommand(cmd);
-        return response
-                .getStatusKeyAsStringStream("namespaces")
-                .collect(Collectors.toSet());
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
         ApiResponse res = runCommand(Command.create("findEmbeddingProviders"));
         return new FindEmbeddingProvidersResult(
@@ -127,7 +115,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     public Database getDatabase(String keyspace) {
-        return db.useNamespace(keyspace);
+        return db.useKeyspace(keyspace);
     }
 
     /** {@inheritDoc} */
@@ -141,45 +129,12 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** {@inheritDoc} */
     @Override
-    @Deprecated
-    public void createNamespace(String keyspace, boolean updateDBKeyspace) {
-        createKeyspace(keyspace, updateDBKeyspace);
-        Assert.hasLength(keyspace, ARG_KEYSPACE);
-        createKeyspace(keyspace, KeyspaceOptions.simpleStrategy(1));
-        if (updateDBKeyspace) {
-            db.useNamespace(keyspace);
-        }
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
         Assert.hasLength(keyspace, ARG_KEYSPACE);
         createKeyspace(keyspace, KeyspaceOptions.simpleStrategy(1));
         if (updateDBKeyspace) {
-            db.useNamespace(keyspace);
+            db.useKeyspace(keyspace);
         }
-    }
-
-    /**
-     * Allow to create a namespace with full-fledged definition
-     *
-     * @param namespace
-     *      namespace name
-     * @param options
-     *      options to create a namespace
-     * @deprecated use {@link #createKeyspace(String, KeyspaceOptions)} instead
-     */
-    @Deprecated
-    public void createNamespace(String namespace, NamespaceOptions options) {
-        hasLength(namespace, ARG_KEYSPACE);
-        notNull(options, "options");
-        Command createNamespace = Command
-                        .create("createKeyspace")
-                        .append("name", namespace)
-                        .withOptions(options);
-        runCommand(createNamespace);
-        log.info("Namespace  '" + green("{}") + "' has been created", namespace);
     }
 
     /**
@@ -199,12 +154,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
                 .withOptions(options);
         runCommand(createKeypace);
         log.info("Keyspace  '" + green("{}") + "' has been created", keyspace);
-    }
-
-    /** {@inheritDoc} */
-    @Deprecated
-    public void dropNamespace(String namespace) {
-        dropKeyspace(namespace);
     }
 
     @Override

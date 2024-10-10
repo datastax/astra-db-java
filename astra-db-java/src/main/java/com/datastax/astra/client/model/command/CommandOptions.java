@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.command;
 
 /*-
  * #%L
@@ -22,6 +22,7 @@ package com.datastax.astra.client.model;
 
 import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.model.http.HttpClientOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import lombok.Getter;
 

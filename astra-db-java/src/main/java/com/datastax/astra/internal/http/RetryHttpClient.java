@@ -23,7 +23,8 @@ package com.datastax.astra.internal.http;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.HttpClientOptions;
+import com.datastax.astra.client.model.http.Caller;
+import com.datastax.astra.client.model.http.HttpClientOptions;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
@@ -40,11 +41,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -96,9 +95,6 @@ public class RetryHttpClient {
     /** Default retry configuration. */
     protected final RetryConfig retryConfig;
 
-    /** Default settings in Request and Retry */
-    public final Map<String, String> userAgents = new LinkedHashMap<>();
-
     /**
      * Default initialization of http client.
      */
@@ -118,7 +114,7 @@ public class RetryHttpClient {
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
         httpClientBuilder.version(config.getHttpVersion());
         httpClientBuilder.followRedirects(config.getHttpRedirect());
-        httpClientBuilder.connectTimeout(Duration.ofSeconds(config.getConnectionRequestTimeoutInSeconds()));
+        httpClientBuilder.connectTimeout(config.getConnectionTimeout());
         if (config.getProxy() != null) {
             httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
                     config.getProxy().getHostname(),
@@ -128,16 +124,10 @@ public class RetryHttpClient {
 
         retryConfig = new RetryConfigBuilder()
                 .retryOnAnyException()
-                .withDelayBetweenTries(Duration.ofMillis(config.getRetryDelay()))
+                .withDelayBetweenTries(config.getRetryDelay())
                 .withMaxNumberOfTries(config.getRetryCount())
                 .withExponentialBackoff()
                 .build();
-
-        userAgents.put(DataAPIOptions.DEFAULT_CALLER_NAME, DataAPIOptions.DEFAULT_CALLER_NAME);
-
-        if (!userAgents.containsKey(config.getUserAgentCallerName())) {
-            userAgents.put(config.getUserAgentCallerName(), config.getUserAgentCallerVersion());
-        }
     }
 
     /**
@@ -147,19 +137,13 @@ public class RetryHttpClient {
      *      user agent header
      */
     public String getUserAgentHeader() {
-        if (userAgents.isEmpty()) {
-            userAgents.put(REQUEST_WITH, RetryHttpClient.class.getPackage().getImplementationVersion());
+        List<Caller> callers = httpClientOptions.getCallers();
+        StringJoiner sj = new StringJoiner(" ");
+        for (int i = callers.size() - 1; i >= 0; i--) {
+            Caller entry = callers.get(i);
+            sj.add(entry.getName() + "/" + entry.getVersion());
         }
-        List<Map.Entry<String, String>> entryList = new ArrayList<>(userAgents.entrySet());
-        StringBuilder sb = new StringBuilder();
-        for (int i = entryList.size() - 1; i >= 0; i--) {
-            Map.Entry<String, String> entry = entryList.get(i);
-            sb.append(entry.getKey()).append("/").append(entry.getValue());
-            if (i > 0) { // Add a space between entries, but not after the last entry
-                sb.append(" ");
-            }
-        }
-        return sb.toString();
+        return sj.toString();
     }
 
     /**
@@ -169,7 +153,7 @@ public class RetryHttpClient {
      *      default response time
      */
     public long getResponseTimeoutInSeconds() {
-        return httpClientOptions.getMaxTimeMS();
+        return httpClientOptions.getRequestTimeout().getSeconds();
     }
 
     // -------------------------------------------
@@ -223,7 +207,7 @@ public class RetryHttpClient {
                 .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
                 .header(HEADER_CASSANDRA, token)
                 .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                .timeout(Duration.ofSeconds(httpClientOptions.getMaxTimeMS()))
+                .timeout(httpClientOptions.getRequestTimeout())
                 .method(method, HttpRequest.BodyPublishers.ofString(body))
                 .build();
         } catch(URISyntaxException e) {

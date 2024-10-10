@@ -7,7 +7,7 @@ import com.datastax.astra.client.Database;
 import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiResponseException;
-import com.datastax.astra.client.model.Command;
+import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
@@ -110,7 +110,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
                 new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
-                        .withCaller("Cedrick", "1.0")
+                        .addCaller("Cedrick", "1.0")
                         .build());
         assertThat(otherCallerClient
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)

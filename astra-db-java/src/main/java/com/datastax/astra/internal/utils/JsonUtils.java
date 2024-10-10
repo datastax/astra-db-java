@@ -37,12 +37,11 @@ package com.datastax.astra.internal.utils;
  */
 
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.ObjectId;
-import com.datastax.astra.client.model.UUIDv6;
-import com.datastax.astra.client.model.UUIDv7;
+import com.datastax.astra.client.model.types.ObjectId;
+import com.datastax.astra.client.model.types.UUIDv6;
+import com.datastax.astra.client.model.types.UUIDv7;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.StreamWriteFeature;

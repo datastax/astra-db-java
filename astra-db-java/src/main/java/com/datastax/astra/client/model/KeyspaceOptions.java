@@ -25,8 +25,8 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.datastax.astra.client.model.NamespaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
-import static com.datastax.astra.client.model.NamespaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
+import static com.datastax.astra.client.model.KeyspaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
+import static com.datastax.astra.client.model.KeyspaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
 
 /**
  * Options to create a Namespace.

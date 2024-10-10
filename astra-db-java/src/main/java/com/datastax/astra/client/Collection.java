@@ -23,23 +23,16 @@ package com.datastax.astra.client;
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.model.BulkWriteOptions;
-import com.datastax.astra.client.model.BulkWriteResult;
 import com.datastax.astra.client.model.CollectionIdTypes;
 import com.datastax.astra.client.model.CollectionInfo;
 import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.CommandOptions;
 import com.datastax.astra.client.model.CountDocumentsOptions;
-import com.datastax.astra.client.model.DataAPIKeywords;
 import com.datastax.astra.client.model.DeleteManyOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.DistinctIterable;
 import com.datastax.astra.client.model.Document;
 import com.datastax.astra.client.model.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.Filters;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
@@ -51,16 +44,21 @@ import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertManyResult;
 import com.datastax.astra.client.model.InsertOneOptions;
 import com.datastax.astra.client.model.InsertOneResult;
-import com.datastax.astra.client.model.ObjectId;
 import com.datastax.astra.client.model.Page;
 import com.datastax.astra.client.model.ReplaceOneOptions;
 import com.datastax.astra.client.model.ReturnDocument;
-import com.datastax.astra.client.model.UUIDv6;
-import com.datastax.astra.client.model.UUIDv7;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateManyOptions;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.UpdateResult;
+import com.datastax.astra.client.model.command.Command;
+import com.datastax.astra.client.model.command.CommandOptions;
+import com.datastax.astra.client.model.query.Filter;
+import com.datastax.astra.client.model.query.Filters;
+import com.datastax.astra.client.model.types.DataAPIKeywords;
+import com.datastax.astra.client.model.types.ObjectId;
+import com.datastax.astra.client.model.types.UUIDv6;
+import com.datastax.astra.client.model.types.UUIDv7;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -89,7 +87,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
-import static com.datastax.astra.client.model.DataAPIKeywords.SORT_VECTOR;
+import static com.datastax.astra.client.model.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -261,32 +259,6 @@ public class Collection<T> extends AbstractCommandRunner {
     // ----------------------------
 
     /**
-     * Retrieves the name of the parent namespace associated with this collection. A namespace in
-     * this context typically refers to a higher-level categorization or grouping mechanism within
-     * the database that encompasses one or more collections. This method allows for identifying
-     * the broader context in which this collection exists, which can be useful for operations
-     * requiring knowledge of the database structure or for dynamic database interaction patterns.
-     *
-     * @return A {@code String} representing the name of the parent namespace of the current
-     *         collection. This name serves as an identifier for the namespace and can be used
-     *         to navigate or query the database structure.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * Collection myCollection = ... // assume myCollection is already initialized
-     * String namespaceName = myCollection.getNamespaceName();
-     * System.out.println("The collection belongs to the namespace: " + namespaceName);
-     * }
-     * </pre>
-     * @deprecated use {@link #getKeyspaceName()} instead
-     */
-    @Deprecated
-    public String getNamespaceName() {
-        return getDatabase().getKeyspaceName();
-    }
-
-    /**
      * Retrieves the name of the parent keyspace associated with this collection. A keyspace in
      * this context typically refers to a higher-level categorization or grouping mechanism within
      * the database that encompasses one or more collections. This method allows for identifying
@@ -413,9 +385,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * at the collection definition level you can enforce property `defaultId` to work with specialize ids.</p>
      * <ul>
      * <li>If {@code defaultId} is set to  {@code uuid}, ids will be uuid v4 {@link java.util.UUID}</li>
-     * <li>If {@code defaultId} is set to  {@code objectId}, ids will be an {@link com.datastax.astra.client.model.ObjectId}</li>
-     * <li>If {@code defaultId} is set to  {@code uuidv6}, ids will be an {@link com.datastax.astra.client.model.UUIDv6}</li>
-     * <li>If {@code defaultId} is set to {@code uuidv7}, ids will be an {@link com.datastax.astra.client.model.UUIDv7}</li>
+     * <li>If {@code defaultId} is set to  {@code objectId}, ids will be an {@link ObjectId}</li>
+     * <li>If {@code defaultId} is set to  {@code uuidv6}, ids will be an {@link UUIDv6}</li>
+     * <li>If {@code defaultId} is set to {@code uuidv7}, ids will be an {@link UUIDv7}</li>
      * </ul>
      *
      * <p>The method returns an {@code InsertOneResult} object, which provides details about the
@@ -470,9 +442,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * at the collection definition level you can enforce property `defaultId` to work with specialize ids.</p>
      * <ul>
      * <li>If {@code defaultId} is set to  {@code uuid}, ids will be uuid v4 {@link java.util.UUID}</li>
-     * <li>If {@code defaultId} is set to  {@code objectId}, ids will be an {@link com.datastax.astra.client.model.ObjectId}</li>
-     * <li>If {@code defaultId} is set to  {@code uuidv6}, ids will be an {@link com.datastax.astra.client.model.UUIDv6}</li>
-     * <li>If {@code defaultId} is set to {@code uuidv7}, ids will be an {@link com.datastax.astra.client.model.UUIDv7}</li>
+     * <li>If {@code defaultId} is set to  {@code objectId}, ids will be an {@link ObjectId}</li>
+     * <li>If {@code defaultId} is set to  {@code uuidv6}, ids will be an {@link UUIDv6}</li>
+     * <li>If {@code defaultId} is set to {@code uuidv7}, ids will be an {@link UUIDv7}</li>
      * </ul>
      *
      * <p>The method returns an {@code InsertOneResult} object, which provides details about the
@@ -1924,7 +1896,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      command result
      */
-    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, CommandOptions options) {
+    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, CommandOptions<?> options) {
         // Run Command
         ApiResponse apiResponse = runCommand(cmd, options);
         // Parse Command Result
@@ -2179,67 +2151,6 @@ public class Collection<T> extends AbstractCommandRunner {
                     .map(getDocumentClass()));
         }
         return Optional.empty();
-    }
-
-    // ----------------------------
-    // ---   Bulk Write        ----
-    // ----------------------------
-
-    /**
-     * Executes a mix of inserts, updates, replaces, and deletes.
-     *
-     * @param commands
-     *      list of commands to run
-     * @return
-     *      the result of the bulk write
-     */
-    @Deprecated(since = "1.3.0", forRemoval = true)
-    public BulkWriteResult bulkWrite(List<Command> commands) {
-        return bulkWrite(commands, new BulkWriteOptions());
-    }
-
-    /**
-     * Executes a mix of inserts, updates, replaces, and deletes.
-     *
-     * @param options
-     *      if requests must be ordered or not
-     * @param commands
-     *      list of commands to run
-     * @return
-     *      the result of the bulk write
-     */
-    @Deprecated(since = "1.3.0", forRemoval = true)
-    public BulkWriteResult bulkWrite(List<Command> commands, BulkWriteOptions options) {
-        notNull(commands, ARG_COMMANDS);
-        notNull(options, ARG_OPTIONS);
-        if (options.getConcurrency() > 1 && options.isOrdered()) {
-            throw new IllegalArgumentException("Cannot run ordered bulk_write concurrently.");
-        }
-        BulkWriteResult result = new BulkWriteResult(commands.size());
-        if (options.isOrdered()) {
-            result.setResponses(commands
-                    .stream()
-                    .map(cmd -> runCommand(cmd, options))
-                    .collect(Collectors.toList()));
-        } else {
-            try {
-                ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
-                List<Future<ApiResponse>> futures = new ArrayList<>();
-                commands.forEach(req -> futures.add(executor.submit(() -> runCommand(req, options))));
-                executor.shutdown();
-                for (Future<ApiResponse> future : futures) {
-                    result.getResponses().add(future.get());
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IllegalStateException("Thread was interrupted while waiting for command results", e);
-            } catch (RuntimeException e) {
-                throw new IllegalStateException("Cannot access command results", e);
-            } catch (Exception e) {
-                throw new IllegalStateException("Error occurred during command execution", e.getCause());
-            }
-        }
-        return result;
     }
 
     /**
