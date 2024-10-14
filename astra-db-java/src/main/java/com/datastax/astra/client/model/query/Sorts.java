@@ -21,7 +21,7 @@ package com.datastax.astra.client.model.query;
  */
 
 import com.datastax.astra.client.model.types.DataAPIKeywords;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 
 /**
  * Utility class to hold the sort options for a query.

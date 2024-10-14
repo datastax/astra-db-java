@@ -2,13 +2,15 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.AuthenticationException;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.model.command.Command;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
+import com.datastax.astra.client.model.http.HttpProxy;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -91,13 +93,13 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
-                        .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
-                        .withHttpProxy(new DataAPIOptions.HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
+                        .withDestination(DataAPIDestination.CASSANDRA)
+                        .withHttpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
                         .build());
         Set<String> names = otherCallerClient
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)
                 .getDatabaseAdmin()
-                .listNamespaceNames();
+                .listKeyspaceNames();
         assertThat(names).isNotNull();
 
         // Shutdown the server
@@ -109,7 +111,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
-                        .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
+                        .withDestination(DataAPIDestination.CASSANDRA)
                         .addCaller("Cedrick", "1.0")
                         .build());
         assertThat(otherCallerClient

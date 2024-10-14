@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.collections;
 
 /*-
  * #%L
@@ -20,14 +20,13 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.model.SimilarityMetric;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import java.beans.Transient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -209,7 +208,7 @@ public class CollectionOptions {
     }
 
     /**
-     * Builder for {@link CollectionInfo}.
+     * Builder for {@link CollectionDefinition}.
      */
     public static class CollectionOptionsBuilder {
 

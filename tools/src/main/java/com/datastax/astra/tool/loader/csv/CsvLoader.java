@@ -1,7 +1,7 @@
 package com.datastax.astra.tool.loader.csv;
 
 import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.opencsv.CSVReader;
 import lombok.extern.slf4j.Slf4j;
 

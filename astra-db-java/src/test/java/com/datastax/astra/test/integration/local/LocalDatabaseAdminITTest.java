@@ -6,7 +6,7 @@ import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.NamespaceOptions;
+import com.datastax.astra.client.model.KeyspaceOptions;
 import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -45,10 +45,10 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
     }
 
     @Test
-    void shouldCreateNamespaceSimpleStrategy() {
+    void shouldCreateKeyspaceSimpleStrategy() {
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) getDatabaseAdmin();
-        dbAdmin.createNamespace("ns2", NamespaceOptions.simpleStrategy(1));
-        assertThat(dbAdmin.namespaceExists("ns2")).isTrue();
+        dbAdmin.createKeyspace("ns2", KeyspaceOptions.simpleStrategy(1));
+        assertThat(dbAdmin.keyspaceExists("ns2")).isTrue();
         Database ns2 = dbAdmin.getDatabase("ns2");
         assertThat(ns2).isNotNull();
     }
@@ -58,27 +58,27 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
         // Given
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) getDatabaseAdmin();
         // When
-        dbAdmin.createNamespace("ns3", NamespaceOptions.networkTopologyStrategy(Map.of("datacenter1", 1)));
-        assertThat(dbAdmin.namespaceExists("ns3")).isTrue();
+        dbAdmin.createKeyspace("ns3", KeyspaceOptions.networkTopologyStrategy(Map.of("datacenter1", 1)));
+        assertThat(dbAdmin.keyspaceExists("ns3")).isTrue();
         Database ns3 = dbAdmin.getDatabase("ns3");
         assertThat(ns3).isNotNull();
 
         // non-passing case
-        final NamespaceOptions options = NamespaceOptions.networkTopologyStrategy(Map.of("invalid", 1));
+        final KeyspaceOptions options = KeyspaceOptions.networkTopologyStrategy(Map.of("invalid", 1));
         assertThatExceptionOfType(DataApiException.class).isThrownBy(() ->
-                dbAdmin.createNamespace("ns4", options));
+                dbAdmin.createKeyspace("ns4", options));
 
         // DROP NAMESPACES
-        dbAdmin.dropNamespace("ns3");
-        assertThat(dbAdmin.namespaceExists("ns3")).isFalse();
-        dbAdmin.dropNamespaceAsync("ns3");
+        dbAdmin.dropKeyspace("ns3");
+        assertThat(dbAdmin.keyspaceExists("ns3")).isFalse();
+        dbAdmin.dropKeyspaceAsync("ns3");
 
         // non-passing case
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> dbAdmin.dropNamespace(null))
+                .isThrownBy(() -> dbAdmin.dropKeyspace(null))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> dbAdmin.dropNamespace(""))
+                .isThrownBy(() -> dbAdmin.dropKeyspace(""))
                 .withMessage("Parameter 'namespaceName' should be null nor empty");
     }
 }

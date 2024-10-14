@@ -23,15 +23,15 @@ package com.datastax.astra.client;
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
 import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.model.CollectionIdTypes;
-import com.datastax.astra.client.model.CollectionInfo;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.CountDocumentsOptions;
+import com.datastax.astra.client.model.collections.CollectionIdTypes;
+import com.datastax.astra.client.model.collections.CollectionDefinition;
+import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.collections.CountDocumentsOptions;
 import com.datastax.astra.client.model.DeleteManyOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.DistinctIterable;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.EstimatedCountDocumentsOptions;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -311,7 +311,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *         and configuration options. This object provides a comprehensive view of the collection's settings
      *         and identity within the database.
      */
-    public CollectionInfo getDefinition() {
+    public CollectionDefinition getDefinition() {
         return database
                 .listCollections()
                 .filter(col -> col.getName().equals(collectionName))

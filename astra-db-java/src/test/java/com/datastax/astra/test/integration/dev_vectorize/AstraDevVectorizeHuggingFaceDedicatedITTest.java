@@ -2,9 +2,9 @@ package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.command.CommandOptions;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;

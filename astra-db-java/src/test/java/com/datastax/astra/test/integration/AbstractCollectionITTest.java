@@ -2,11 +2,11 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DistinctIterable;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.query.Filter;
 import com.datastax.astra.client.model.query.Filters;
 import com.datastax.astra.client.model.FindIterable;
@@ -103,11 +103,11 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         assertThat(getCollectionSimple().getOptions()).isNotNull();
         assertThat(getCollectionSimple().getName()).isNotNull();
         assertThat(getCollectionSimple().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
-        assertThat(getCollectionSimple().getNamespaceName()).isNotNull();
+        assertThat(getCollectionSimple().getKeyspaceName()).isNotNull();
         assertThat(getCollectionVector().getOptions()).isNotNull();
         assertThat(getCollectionVector().getName()).isNotNull();
         assertThat(getCollectionVector().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
-        assertThat(getCollectionVector().getNamespaceName()).isNotNull();
+        assertThat(getCollectionVector().getKeyspaceName()).isNotNull();
     }
 
     @Test

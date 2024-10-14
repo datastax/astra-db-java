@@ -20,6 +20,7 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.internal.utils.JsonUtils;
 
 import java.util.Arrays;

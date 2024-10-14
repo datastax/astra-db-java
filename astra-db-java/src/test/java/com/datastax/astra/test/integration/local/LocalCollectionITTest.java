@@ -5,10 +5,8 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.Database;
 import com.datastax.astra.client.exception.DataApiResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.model.BulkWriteOptions;
-import com.datastax.astra.client.model.BulkWriteResult;
 import com.datastax.astra.client.model.command.Command;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.query.Filter;
 import com.datastax.astra.client.model.FindIterable;
 import com.datastax.astra.client.model.FindOptions;
@@ -252,24 +250,6 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         Filter metadataFilter = new Filter().where("product_price").isEqualsTo(9.99);
         List<Document> docs = collectionVectorRaw.find(metadataFilter, embeddings, 2).all();
         assertThat(docs).hasSize(2);
-    }
-
-    @Test
-    void shouldBulkWrite() {
-        getCollectionSimple().deleteAll();
-        Command cmd1 = Command.create("insertOne").withDocument(new Document().id(1).append("name", "hello"));
-        Command cmd2 = Command.create("insertOne").withDocument(new Document().id(2).append("name", "hello"));
-
-        BulkWriteOptions options1 = BulkWriteOptions.Builder.ordered(false).concurrency(1);
-        BulkWriteResult res = getCollectionSimple().bulkWrite(List.of(cmd1, cmd2), options1);
-        assertThat(res).isNotNull();
-        assertThat(res.getResponses()).hasSize(2);
-        assertThat(res.getResponses().get(0).getStatus().getList("insertedIds", Integer.class).get(0)).isEqualTo(1);
-
-        BulkWriteOptions options2 = BulkWriteOptions.Builder.concurrency(1).ordered(false);
-        Command cmd3 = Command.create("insertOne").withDocument(new Document().id(3).append("name", "hello"));
-        Command cmd4 = Command.create("insertOne").withDocument(new Document().id(4).append("name", "hello"));
-        getCollectionSimple().bulkWrite(List.of(cmd3, cmd4), options2);
     }
 
     @Test

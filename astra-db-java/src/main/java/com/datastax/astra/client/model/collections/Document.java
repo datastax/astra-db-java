@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.collections;
 
 /*-
  * #%L

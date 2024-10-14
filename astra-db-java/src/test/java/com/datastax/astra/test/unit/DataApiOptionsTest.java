@@ -2,13 +2,10 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.CollectionIdTypes;
-import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.collections.CollectionIdTypes;
+import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
-import com.datastax.astra.client.model.http.HttpProxy;
-import com.datastax.astra.client.model.query.Filter;
-import com.datastax.astra.client.model.query.FilterOperator;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
 import com.datastax.astra.client.model.FindOneAndReplaceOptions;
 import com.datastax.astra.client.model.FindOneAndUpdateOptions;
@@ -16,16 +13,17 @@ import com.datastax.astra.client.model.FindOneOptions;
 import com.datastax.astra.client.model.FindOptions;
 import com.datastax.astra.client.model.InsertManyOptions;
 import com.datastax.astra.client.model.InsertOneResult;
-import com.datastax.astra.client.model.NamespaceInformation;
-import com.datastax.astra.client.model.NamespaceOptions;
-import com.datastax.astra.client.model.query.Projection;
-import com.datastax.astra.client.model.query.Projections;
 import com.datastax.astra.client.model.ReplaceOneOptions;
 import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.client.model.query.Sorts;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.Updates;
+import com.datastax.astra.client.model.http.HttpProxy;
+import com.datastax.astra.client.model.query.Filter;
+import com.datastax.astra.client.model.query.FilterOperator;
+import com.datastax.astra.client.model.query.Projection;
+import com.datastax.astra.client.model.query.Projections;
+import com.datastax.astra.client.model.query.Sorts;
 import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 
@@ -162,22 +160,6 @@ class DataApiOptionsTest {
     @Test
     void shouldTestReplaceOneOptions() {
         assertThat(new ReplaceOneOptions().upsert(true)).isNotNull();
-    }
-
-    @Test
-    void shouldTestNamespaceInformation() {
-        NamespaceInformation ni1 = new NamespaceInformation();
-        NamespaceOptions options = NamespaceOptions.simpleStrategy(1);
-        ni1.setName("test");
-        ni1.setOptions(options);
-        assertThat(JsonUtils.marshall(ni1)).isNotNull();
-
-        NamespaceInformation ni2 = new NamespaceInformation("test");
-        ni2.setOptions(options);
-        assertThat(JsonUtils.marshall(ni2)).isNotNull();
-
-        assertThat(ni1.getName()).isEqualTo(ni2.getName());
-        assertThat(ni1.getOptions()).isEqualTo(ni2.getOptions());
     }
 
     @Test

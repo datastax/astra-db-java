@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model;
+package com.datastax.astra.client.model.collections;
 
 /*-
  * #%L
@@ -20,36 +20,20 @@ package com.datastax.astra.client.model;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.client.model.command.CommandOptions;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Represents the Collection definition with its name and metadata.
+ * List Options for a FindOne command.
  */
 @Getter @Setter
-public class CollectionInfo {
-
-    /**
-     * Name of the collection.
-     */
-    private String name;
-
-    /**
-     * Options for the collection.
-     */
-    private CollectionOptions options;
+public class CountDocumentsOptions extends CommandOptions<CountDocumentsOptions> {
 
     /**
      * Default constructor.
      */
-    public CollectionInfo() {
-        // left blank, serialization with jackson
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString() {
-        return JsonUtils.marshall(this);
+    public CountDocumentsOptions() {
+        // Left blank as sort is populated in static way
     }
 }

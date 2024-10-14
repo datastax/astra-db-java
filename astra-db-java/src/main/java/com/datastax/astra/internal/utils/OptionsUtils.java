@@ -21,7 +21,7 @@ package com.datastax.astra.internal.utils;
  */
 
 import com.datastax.astra.client.model.types.DataAPIKeywords;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.query.Projection;
 import com.datastax.astra.client.model.query.Sort;
 

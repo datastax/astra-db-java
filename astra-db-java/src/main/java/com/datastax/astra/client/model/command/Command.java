@@ -20,7 +20,7 @@ package com.datastax.astra.client.model.command;
  * #L%
  */
 
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.query.Filter;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.internal.utils.Assert;

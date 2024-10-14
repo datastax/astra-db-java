@@ -24,12 +24,14 @@ import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.model.CollectionInfo;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.CollectionDefinition;
+import com.datastax.astra.client.model.collections.CollectionOptions;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.command.CommandOptions;
+import com.datastax.astra.client.model.tables.TableDefinition;
+import com.datastax.astra.client.model.tables.TableInfo;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -214,12 +216,30 @@ public class Database extends AbstractCommandRunner {
      *      a stream containing all the names of all the collections in this database
      */
     public Stream<String> listCollectionNames() {
-
         Command findCollections = Command.create("findCollections");
-
         return runCommand(findCollections)
                 .getStatusKeyAsList("collections", String.class)
                 .stream();
+    }
+
+    /**
+     * Finds all the tables in this database.
+     *
+     * @return
+     *      list of table definitions
+     */
+    public Stream<TableDefinition> listTables() {
+        Command findTables = Command
+                .create("listTables")
+                .withOptions(new Document().append("explain", true));
+        return runCommand(findTables)
+                .getStatusKeyAsList("tables", TableInfo.class)
+                .stream()
+                .map(ti -> {
+                    TableDefinition td = ti.getDefinition();
+                    td.setName(ti.getName());
+                    return td;
+                });
     }
 
     /**
@@ -228,13 +248,13 @@ public class Database extends AbstractCommandRunner {
      * @return
      *  list of collection definitions
      */
-    public Stream<CollectionInfo> listCollections() {
+    public Stream<CollectionDefinition> listCollections() {
         Command findCollections = Command
                 .create("findCollections")
                 .withOptions(new Document().append("explain", true));
 
         return runCommand(findCollections)
-                .getStatusKeyAsList("collections", CollectionInfo.class)
+                .getStatusKeyAsList("collections", CollectionDefinition.class)
                 .stream();
     }
 
@@ -464,6 +484,15 @@ public class Database extends AbstractCommandRunner {
                 .append("name", collectionName), commandOptions);
         log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
     }
+
+    // ------------------------------------------
+    // -------     TABLES CRUD              -----
+    // ------------------------------------------
+
+    // ------------------------------------------
+    // ----    Generation Informations       ----
+    // ------------------------------------------
+
 
     /** {@inheritDoc} */
     @Override

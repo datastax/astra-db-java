@@ -1,8 +1,8 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.model.CollectionOptions;
+import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.command.Command;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;

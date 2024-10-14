@@ -25,19 +25,14 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
 
     @Test
     @Order(1)
-    @SuppressWarnings("deprecation")
     void shouldListAvailableKeyspace() {
         // Initialization
         assertThat(getDatabaseAdmin()).isNotNull();
 
         // Sync
-        assertThat(getDatabaseAdmin().listNamespaceNames()).isNotEmpty();
         assertThat(getDatabaseAdmin().listKeyspaceNames()).isNotEmpty();
 
         // Async
-        getDatabaseAdmin().listNamespaceNamesAsync()
-                .thenApply(Set::size)
-                .thenAccept(count -> assertThat(count).isPositive());
         getDatabaseAdmin().listKeyspacesNamesAsync()
                 .thenApply(Set::size)
                 .thenAccept(count -> assertThat(count).isPositive());
@@ -45,17 +40,12 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
 
     @Test
     @Order(2)
-    @SuppressWarnings("deprecation")
     void shouldListKeyspaces() {
         assertThat(getDatabaseAdmin()).isNotNull();
         // Sync
-        assertThat(getDatabaseAdmin().listNamespaceNames()).isNotEmpty();
         assertThat(getDatabaseAdmin().listKeyspaceNames()).isNotEmpty();
 
         // Async
-        getDatabaseAdmin().listNamespaceNamesAsync()
-                .thenApply(Set::size)
-                .thenAccept(count -> assertThat(count).isPositive());
         getDatabaseAdmin().listKeyspacesNamesAsync()
                 .thenApply(Set::size)
                 .thenAccept(count -> assertThat(count).isPositive());
@@ -116,19 +106,17 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
         assertThat(getDatabaseAdmin().listKeyspaceNames())
                 .as("Check if 'nsx' is present in the namespace names")
                 .anyMatch("nsx"::equals);
-        assertThat( getDatabaseAdmin().keyspaceExists("nsx")).isTrue();
+        assertThat(getDatabaseAdmin().keyspaceExists("nsx")).isTrue();
         Database ns2 = getDatabaseAdmin().getDatabase("nsx");
         assertThat(ns2).isNotNull();
-        try {
-            ns2.drop();
+
+            getDatabaseAdmin().dropKeyspace("nsx");
             while (getDatabaseAdmin().keyspaceExists("nsx")) {
                 log.warn("Waiting for namespace 'nsx' to be delete");
                 Thread.sleep(1000);
             }
             assertThat(getDatabaseAdmin().keyspaceExists("nsx")).isFalse();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
+
     }
 
 }

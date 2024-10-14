@@ -144,7 +144,7 @@ Here is a sample class that demonstrates how to use the library:
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.Collection;
 import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.FindIterable;
 import java.util.List;
 import static com.datastax.astra.client.model.query.Filters.eq;

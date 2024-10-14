@@ -1,6 +1,6 @@
 package com.datastax.astra.tool.loader.csv;
 
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.model.collections.Document;
 
 /**
  * Settings for the CSV Loader
