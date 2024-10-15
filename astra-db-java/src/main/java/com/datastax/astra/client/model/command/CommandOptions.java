@@ -118,7 +118,7 @@ public class CommandOptions<T extends CommandOptions<T>>{
      * @return
      *      service key
      * @deprecated
-     *      has been replace by {@link #embeddingAuthProvider(EmbeddingHeadersProvider)}
+     *      has been replaced by {@link #embeddingAuthProvider(EmbeddingHeadersProvider)}
      */
     @Deprecated
     @SuppressWarnings("unchecked")

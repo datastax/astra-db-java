@@ -4,7 +4,7 @@ services:
 
   # Development mode with latest taf
   coordinator:
-    image: stargateio/coordinator-dse-next:v2.1.0-BETA-12
+    image: stargateio/coordinator-dse-next:v2.1.0-BETA-18
     networks:
       - stargate
     ports:
@@ -26,7 +26,7 @@ services:
       retries: 10
 
   data-api:
-    image: stargateio/data-api:v1.0.12
+    image: stargateio/data-api:v1.0.17
     depends_on:
       coordinator:
         condition: service_healthy
