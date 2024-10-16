@@ -223,6 +223,18 @@ public class Database extends AbstractCommandRunner {
     }
 
     /**
+     * Gets the names of all the tables in this database.
+     *
+     * @return
+     *      a stream containing all the names of all the collections in this database
+     */
+    public Stream<String> listTableNames() {
+        Command findTables = Command.create("listTables");
+        return runCommand(findTables)
+                .getStatusKeyAsList("tables", String.class)
+                .stream();
+    }
+    /**
      * Finds all the tables in this database.
      *
      * @return

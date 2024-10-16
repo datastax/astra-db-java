@@ -3,6 +3,17 @@
 
 This page is mean to help developer to release this the SDK.
 
+## CQLSH
+
+```console
+# Get the latest compose with DSE
+curl -o docker-compose-dse.yml https://raw.githubusercontent.com/datastax/astra-db-java/refs/heads/main/docker-compose.yml
+# Start docker
+docker-compose -f ./docker-compose-dse.yml up -d   
+
+
+```
+
 ## Run the Test
 
 ### Prerequisites
@@ -30,4 +41,5 @@ eval "$(ssh-agent -s)"
 cd ~/.ssh
 ssh-add githubff4j
 ```
+
 

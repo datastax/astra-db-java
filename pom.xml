@@ -12,6 +12,7 @@
 
     <modules>
         <module>astra-db-java</module>
+        <module>cassio-cql</module>
         <module>langchain4j-astradb</module>
         <module>examples</module>
         <module>tools</module>

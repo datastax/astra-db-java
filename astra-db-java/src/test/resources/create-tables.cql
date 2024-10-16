@@ -1,18 +1,30 @@
-CREATE TABLE test_types_tables (
-    user_id uuid,
-    order_id uuid,
-    order_date timestamp,
-    address frozen<tuple<text, text, int>>,
-    age int,
-    is_active boolean,
-    login_attempts set<int>,
-    name text,
-    photo blob,
-    preferences map<text, text>,
-    salary decimal,
-    tags list<text>,
-    PRIMARY KEY (user_id, order_id, order_date)
-) WITH CLUSTERING ORDER BY (order_id ASC, order_date DESC);
+CREATE TABLE table_types (
+    p_ascii ascii,
+    p_blob blob,
+    p_boolean boolean,
+    p_bigint bigint,
+    p_date date,
+    p_decimal decimal,
+    p_double double,
+    p_duration duration,
+    p_float float,
+    p_inet inet,
+    p_int int,
+    p_smallint smallint,
+    p_text text,
+    p_time time,
+    p_timestamp timestamp,
+    p_tinyint tinyint,
+    p_varint varint,
+    p_uuid uuid,
+    p_set   set<int>,
+    p_map   map<text, text>,
+    p_list  list<text>,
+    --p_tuple tuple<text, text, int>,
+    PRIMARY KEY (p_uuid, p_text, p_int)
+) WITH CLUSTERING ORDER BY (p_text ASC, p_int DESC);
+
+blob, boolean, date, decimal, double, duration, float, inet, int, list, map, set, smallint, text, time, timestamp, tinyint, uuid, vector
 
 
 INSERT INTO test_types_tables (
