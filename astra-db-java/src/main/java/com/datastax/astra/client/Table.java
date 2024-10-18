@@ -24,18 +24,30 @@ import com.datastax.astra.client.exception.DataApiException;
 import com.datastax.astra.client.model.InsertOneOptions;
 import com.datastax.astra.client.model.InsertOneResult;
 import com.datastax.astra.client.model.collections.Document;
+import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.command.CommandOptions;
 import com.datastax.astra.client.model.tables.TableDefinition;
+import com.datastax.astra.client.model.tables.TableDescriptor;
+import com.datastax.astra.client.model.tables.TableOptions;
+import com.datastax.astra.client.model.tables.index.IndexDefinition;
+import com.datastax.astra.client.model.tables.index.IndexDescriptor;
+import com.datastax.astra.client.model.tables.index.IndexOptions;
+import com.datastax.astra.client.model.tables.index.VectorIndexDescriptor;
+import com.datastax.astra.client.model.tables.index.VectorIndexOptions;
+import com.datastax.astra.client.model.tables.row.Row;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
  * Execute commands against tables
  */
+@Slf4j
 public class Table<T>  extends AbstractCommandRunner {
 
     /** parameters names. */
@@ -165,7 +177,7 @@ public class Table<T>  extends AbstractCommandRunner {
      *         and configuration options. This object provides a comprehensive view of the collection's settings
      *         and identity within the database.
      */
-    public TableDefinition getDefinition() {
+    public TableDescriptor getDefinition() {
         return database
                 .listTables()
                 .filter(col -> col.getName().equals(tableName))
@@ -190,6 +202,113 @@ public class Table<T>  extends AbstractCommandRunner {
     @Override
     protected String getApiEndpoint() {
         return apiEndpoint;
+    }
+
+    // --------------------------
+    // ---       INDICES     ----
+    // --------------------------
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     */
+    public void createIndex(IndexDescriptor idxDescriptor) {
+        createIndex(idxDescriptor, null, commandOptions);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     * @param options
+     *      index options
+     */
+    public void createIndex(IndexDescriptor idxDescriptor, IndexOptions options) {
+        createIndex(idxDescriptor, options, commandOptions);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     * @param idxOptions
+     *      index options
+     * @param cmd
+     *      override the default command options
+     */
+    public void createIndex(IndexDescriptor idxDescriptor, IndexOptions idxOptions, CommandOptions<?> cmd) {
+        notNull(idxDescriptor, "idxDescriptor");
+        notNull(idxDescriptor.getDefinition(), "indexDefinition");
+        hasLength(idxDescriptor.getName(), "indexName");
+        Command createIndexCommand = Command
+                .create("createIndex")
+                .append("name", idxDescriptor.getName())
+                .append("definition", idxDescriptor.getDefinition())
+                .append("options", idxOptions);
+        runCommand(createIndexCommand, commandOptions);
+        log.info("Index  '" + green("{}") + "' has been created", idxDescriptor.getName());
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     */
+    public void createVectorIndex(VectorIndexDescriptor idxDescriptor) {
+        createVectorIndex(idxDescriptor, null, commandOptions);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     * @param options
+     *      index options
+     */
+    public void createVectorIndex(VectorIndexDescriptor idxDescriptor, VectorIndexOptions options) {
+        createVectorIndex(idxDescriptor, options, commandOptions);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxDescriptor
+     *      definition of the index
+     * @param idxOptions
+     *      index options
+     * @param cmd
+     *      override the default command options
+     */
+    public void createVectorIndex(VectorIndexDescriptor idxDescriptor, VectorIndexOptions idxOptions, CommandOptions<?> cmd) {
+        notNull(idxDescriptor, "idxDescriptor");
+        notNull(idxDescriptor.getDefinition(), "indexDefinition");
+        hasLength(idxDescriptor.getName(), "indexName");
+        Command createIndexCommand = Command
+                .create("createVectorIndex")
+                .append("name", idxDescriptor.getName())
+                .append("definition", idxDescriptor.getDefinition())
+                .append("options", idxOptions);
+        runCommand(createIndexCommand, commandOptions);
+        log.info("Vector Index '" + green("{}") + "' has been created", idxDescriptor.getName());
+    }
+
+
+    /**
+     * Delete an index by name.
+     *
+     * @param indexName
+     *      index name
+     */
+    public void dropIndex(String indexName) {
+        Command dropIndexCommand = Command.create("dropIndex").append("indexName", indexName);
+        runCommand(dropIndexCommand, commandOptions);
+        log.info("Index  '" + green("{}") + "' has been dropped", indexName);
     }
 
     // --------------------------
@@ -231,6 +350,5 @@ public class Table<T>  extends AbstractCommandRunner {
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }
-
 
 }

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.row;
 
 /*-
  * #%L

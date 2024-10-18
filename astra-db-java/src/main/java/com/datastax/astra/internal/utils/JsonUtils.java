@@ -37,6 +37,7 @@ package com.datastax.astra.internal.utils;
  */
 
 import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.model.tables.columns.ColumnTypes;
 import com.datastax.astra.client.model.types.ObjectId;
 import com.datastax.astra.client.model.types.UUIDv6;
 import com.datastax.astra.client.model.types.UUIDv7;
@@ -100,6 +101,9 @@ public class JsonUtils {
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
+            // Custom type
+            module.addSerializer(ColumnTypes.class, new CustomColumnTypeSerializer());
+            module.addDeserializer(ColumnTypes.class, new CustomColumnTypeDeserializer());
             // Date
             module.addSerializer(Date.class, new CustomEJsonDateSerializer());
             module.addDeserializer(Date.class, new CustomEJsonDateDeserializer());

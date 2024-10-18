@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.index;
 
 /*-
  * #%L
@@ -20,20 +20,22 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-
+/**
+ * Set of options used when creating a table
+ */
 @Data @NoArgsConstructor
-public class PrimaryKey {
+public class VectorIndexOptions {
 
-    @JsonProperty("partitionBy")
-    private List<String> partitionBy = new ArrayList<>();
+    /**
+     * Condition to upsert the table.
+     */
+    boolean ifNotExists = true;
 
-    @JsonProperty("partitionSort")
-    private LinkedHashMap<String, Integer> partitionSort;
+    public VectorIndexOptions ifNotExists() {
+        this.ifNotExists = true;
+        return this;
+    }
 }

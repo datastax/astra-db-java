@@ -10,8 +10,9 @@ This page is mean to help developer to release this the SDK.
 curl -o docker-compose-dse.yml https://raw.githubusercontent.com/datastax/astra-db-java/refs/heads/main/docker-compose.yml
 # Start docker
 docker-compose -f ./docker-compose-dse.yml up -d   
-
-
+```
+```
+docker run -it --rm --network container:$(docker ps | grep dse | cut -b 1-12) cassandra:latest cqlsh -u cassandra -p cassandra
 ```
 
 ## Run the Test

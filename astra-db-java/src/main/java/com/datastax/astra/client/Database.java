@@ -24,14 +24,15 @@ import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.collections.CollectionDefinition;
 import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.collections.Document;
-import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.command.CommandOptions;
-import com.datastax.astra.client.model.tables.TableDefinition;
-import com.datastax.astra.client.model.tables.TableInfo;
+import com.datastax.astra.client.model.tables.row.Row;
+import com.datastax.astra.client.model.tables.TableDescriptor;
+import com.datastax.astra.client.model.tables.TableOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -40,7 +41,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -59,7 +59,6 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  */
 @Slf4j
 public class Database extends AbstractCommandRunner {
-
 
     /** Token to be used with the Database. */
     @Getter
@@ -130,22 +129,12 @@ public class Database extends AbstractCommandRunner {
         this.options       = options;
         this.dbApiEndpoint = apiEndpoint;
 
-        // Adding version number if needed
+        // Command Options inherit from DataAPIOptions
+        this.commandOptions = new CommandOptions<>(options);
+        this.commandOptions.token(token);
         this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
                 apiEndpoint :
                 apiEndpoint + "/" + options.getApiVersion();
-
-        // Build Command
-        this.commandOptions = new CommandOptions<>()
-                .token(token)
-                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
-                .httpClientOptions(options.getHttpClientOptions());
-        for(Map.Entry<String, CommandObserver> entry : options.getObservers().entrySet()) {
-            // Avoid observers Duplication
-            if (!commandOptions.getObservers().containsKey(entry.getKey())) {
-                this.commandOptions.registerObserver(entry.getKey(), entry.getValue());
-            }
-        }
     }
 
     // ------------------------------------------
@@ -175,14 +164,6 @@ public class Database extends AbstractCommandRunner {
      *      database admin
      */
     public DatabaseAdmin getDatabaseAdmin() {
-        if (options.getDestination() != null) {
-            if (options.getDestination() == DataAPIDestination.ASTRA ||
-                options.getDestination() == DataAPIDestination.ASTRA_DEV ||
-                options.getDestination() == DataAPIDestination.ASTRA_TEST) {
-                AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
-                return new AstraDBDatabaseAdmin(this);
-            }
-        }
         return new DataAPIDatabaseAdmin(this);
     }
 
@@ -220,38 +201,6 @@ public class Database extends AbstractCommandRunner {
         return runCommand(findCollections)
                 .getStatusKeyAsList("collections", String.class)
                 .stream();
-    }
-
-    /**
-     * Gets the names of all the tables in this database.
-     *
-     * @return
-     *      a stream containing all the names of all the collections in this database
-     */
-    public Stream<String> listTableNames() {
-        Command findTables = Command.create("listTables");
-        return runCommand(findTables)
-                .getStatusKeyAsList("tables", String.class)
-                .stream();
-    }
-    /**
-     * Finds all the tables in this database.
-     *
-     * @return
-     *      list of table definitions
-     */
-    public Stream<TableDefinition> listTables() {
-        Command findTables = Command
-                .create("listTables")
-                .withOptions(new Document().append("explain", true));
-        return runCommand(findTables)
-                .getStatusKeyAsList("tables", TableInfo.class)
-                .stream()
-                .map(ti -> {
-                    TableDefinition td = ti.getDefinition();
-                    td.setName(ti.getName());
-                    return td;
-                });
     }
 
     /**
@@ -309,7 +258,7 @@ public class Database extends AbstractCommandRunner {
      *      the collection
      */
     public <T> Collection<T> getCollection(String collectionName, @NonNull Class<T> documentClass) {
-        return getCollection(collectionName, null, documentClass);
+        return getCollection(collectionName, this.commandOptions, documentClass);
     }
 
     /**
@@ -329,20 +278,7 @@ public class Database extends AbstractCommandRunner {
     public <T> Collection<T> getCollection(String collectionName, CommandOptions<?> commandOptions, @NonNull Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
-        CommandOptions<?> collectionCollectionOptions = new CommandOptions<>()
-                .token(token)
-                .embeddingAuthProvider(options.getEmbeddingAuthProvider())
-                .httpClientOptions(options.getHttpClientOptions());
-        this.commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
-
-        // Override with the commandOptions if any for a collection
-        if (commandOptions != null) {
-            commandOptions.getToken().ifPresent(collectionCollectionOptions::token);
-            commandOptions.getEmbeddingAuthProvider().ifPresent(collectionCollectionOptions::embeddingAuthProvider);
-            commandOptions.getHttpClientOptions().ifPresent(collectionCollectionOptions::httpClientOptions);
-            commandOptions.getObservers().forEach(collectionCollectionOptions::registerObserver);
-        }
-        return new Collection<>(this, collectionName, collectionCollectionOptions, documentClass);
+        return new Collection<>(this, collectionName, commandOptions, documentClass);
     }
 
     /**
@@ -354,7 +290,7 @@ public class Database extends AbstractCommandRunner {
      *      the instance of collection
      */
     public Collection<Document> createCollection(String collectionName) {
-        return createCollection(collectionName, null, null, Document.class);
+        return createCollection(collectionName, null, commandOptions, Document.class);
     }
 
     /**
@@ -501,8 +437,194 @@ public class Database extends AbstractCommandRunner {
     // -------     TABLES CRUD              -----
     // ------------------------------------------
 
+    /**
+     * Gets the names of all the tables in this database.
+     *
+     * @return
+     *      a stream containing all the names of all the collections in this database
+     */
+    public Stream<String> listTableNames() {
+        return runCommand(Command.create("listTables"))
+                .getStatusKeyAsList("tables", String.class)
+                .stream();
+    }
+
+    /**
+     * Finds all the tables in this database.
+     *
+     * @return
+     *      list of table definitions
+     */
+    public Stream<TableDescriptor> listTables() {
+        Command findTables = Command
+                .create("listTables")
+                .withOptions(new Document().append("explain", true));
+        return runCommand(findTables)
+                .getStatusKeyAsList("tables", TableDescriptor.class)
+                .stream();
+    }
+
+    /**
+     * Evaluate if a collection exists.
+     *
+     * @param tableName
+     *      table name.
+     * @return
+     *      if collections exists
+     */
+    public boolean tableExists(String tableName) {
+        return listTableNames().anyMatch(tableName::equals);
+    }
+
+    /**
+     * Gets a collection.
+     *
+     * @param tableName
+     *      the name of the table to return
+     * @return
+     *      the collection
+     * @throws IllegalArgumentException
+     *      if collectionName is invalid
+     */
+    public Table<Row> getTable(String tableName) {
+        return getTable(tableName, Row.class);
+    }
+
+    /**
+     * Gets a table, with a specific default document class.
+     *
+     * @param tableName
+     *      the name of the collection to return
+     * @param rowClass
+     *      the default class to cast any row returned from the database into.
+     * @param <T>
+     *      the type of the class to use instead of {@code Document}.
+     * @return
+     *      the collection
+     */
+    public <T> Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
+        return getTable(tableName, this.commandOptions, rowClass);
+    }
+
+    /**
+     * Gets a table with a specific default document class.
+     *
+     * @param tableName
+     *      the name of the table to return
+     * @param rowClass
+     *      the default class to cast any row returned from the database into.
+     * @param commandOptions
+     *      options to use when using this table
+     * @param <T>
+     *      the type of the class to use instead of {@code Row}.
+     * @return
+     *      the table
+     */
+    public <T> Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
+        hasLength(tableName, "tableName");
+        notNull(rowClass, "rowClass");
+        return new Table<>(this, tableName, commandOptions, rowClass);
+    }
+
+    /**
+     * Create a new table with the given description.
+     *
+     * @param tableDescriptor
+     *      table definition
+     */
+    public Table<Row> createTable(TableDescriptor tableDescriptor) {
+        return createTable(tableDescriptor, null, commandOptions, Row.class);
+    }
+
+    /**
+     * Create a new table with the given description.
+     *
+     * @param tableDescriptor
+     *      table definition
+     * @param options
+     *      collection options
+     */
+    public Table<Row> createTable(TableDescriptor tableDescriptor, TableOptions options) {
+        return createTable(tableDescriptor, options, commandOptions, Row.class);
+    }
+
+    /**
+     * Create a new table with the given description.
+     *
+     * @param tableDescriptor
+     *      table definition
+     * @param options
+     *      collection options
+     * @param documentClass
+     *      document class
+     * @return
+     *      the collection created
+     * @param <T>
+     *      working object for the document
+     */
+    public <T> Table<T> createTable(TableDescriptor tableDescriptor, TableOptions options,  Class<T> documentClass) {
+        return createTable(tableDescriptor, options, commandOptions, documentClass);
+    }
+
+    /**
+     * Create a new collection with the given name.
+     *
+     * @param tableDefinition
+     *      the definition for the new table to create
+     * @param tableOptions
+     *      various options for creating the table
+     * @param commandOptions
+     *      options to use when using this collection
+     * @return the collection
+     */
+    public Table<Row> createTable(TableDescriptor tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
+        return createTable(tableDefinition, tableOptions, commandOptions, Row.class);
+    }
+
+    /**
+     * Create a new table with the selected options
+     *
+     * @param tableDescriptor
+     *      the definition for the new table to create
+     * @param tableOptions
+     *      various options for creating the table
+     * @param rowClass
+     *     the default class to cast any row returned from the database into.
+     * @param commandOptions
+     *      options to use when using this collection
+     * @param <T>
+     *          working class for the document
+     * @return the collection
+     */
+    public <T> Table<T> createTable(TableDescriptor tableDescriptor, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
+        notNull(tableDescriptor, "tableDescriptor");
+        hasLength(tableDescriptor.getName(), "tablename");
+        notNull(rowClass, "rowClass");
+        Command createTable = Command
+                .create("createTable")
+                .append("name", tableDescriptor.getName())
+                .append("definition", tableDescriptor.getDefinition())
+                .append("options", tableOptions);
+        runCommand(createTable, commandOptions);
+        log.info("Table  '" + green("{}") + "' has been created", tableDescriptor.getName());
+        return getTable(tableDescriptor.getName(), commandOptions, rowClass);
+    }
+
+    /**
+     * Delete a collection.
+     *
+     * @param tableName
+     *      table name
+     */
+    public void dropTable(String tableName) {
+        runCommand(Command
+                .create("dropTable")
+                .append("name", tableName), commandOptions);
+        log.info("Table  '" + green("{}") + "' has been deleted", tableName);
+    }
+
     // ------------------------------------------
-    // ----    Generation Informations       ----
+    // ----    Generation Information        ----
     // ------------------------------------------
 
 

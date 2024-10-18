@@ -20,10 +20,10 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.model.http.Caller;
-import com.datastax.astra.client.model.http.HttpClientOptions;
 import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.model.http.Caller;
+import com.datastax.astra.client.model.http.HttpClientOptions;
 import com.datastax.astra.client.model.http.HttpProxy;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -80,10 +80,10 @@ public class DataAPIOptions {
     final EmbeddingHeadersProvider embeddingAuthProvider;
 
     /** Add headers to db calls. */
-    final Map<String, Object> databaseAdditionalHeaders;
+    final Map<String, String> databaseAdditionalHeaders;
 
     /** Add headers to admin calls. */
-    final Map<String, Object> adminAdditionalHeaders;
+    final Map<String, String> adminAdditionalHeaders;
 
     /** Observers for the commands. */
     final Map<String, CommandObserver> observers;
@@ -141,10 +141,10 @@ public class DataAPIOptions {
         private EmbeddingHeadersProvider embeddingAuthProvider;
 
         /** Add headers to admin calls. */
-        final Map<String, Object> databaseAdditionalHeaders = new HashMap<>();
+        final Map<String, String> databaseAdditionalHeaders = new HashMap<>();
 
         /** Add headers to admin calls. */
-        final Map<String, Object> adminAdditionalHeaders = new HashMap<>();
+        final Map<String, String> adminAdditionalHeaders = new HashMap<>();
 
         /** Observers for the commands. */
         private final Map<String, CommandObserver> observers = new TreeMap<>();
@@ -367,7 +367,7 @@ public class DataAPIOptions {
          * @return
          *      self reference
          */
-        public DataAPIClientOptionsBuilder addDatabaseAdditionalHeader(String key, Object value) {
+        public DataAPIClientOptionsBuilder addDatabaseAdditionalHeader(String key, String value) {
             databaseAdditionalHeaders.put(key, value);
             return this;
         }
@@ -390,7 +390,7 @@ public class DataAPIOptions {
          * @return
          *      self reference
          */
-        public DataAPIClientOptionsBuilder addAdminAdditionalHeader(String key, Object value) {
+        public DataAPIClientOptionsBuilder addAdminAdditionalHeader(String key, String value) {
             adminAdditionalHeaders.put(key, value);
             return this;
         }

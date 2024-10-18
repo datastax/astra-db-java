@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.columns;
 
 /*-
  * #%L
@@ -20,17 +20,26 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
+import com.datastax.astra.client.model.VectorServiceOptions;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor
-public class ColumnDefinitionApiSupport {
+@Data
+public class ColumnDefinitionVector extends ColumnDefinition {
 
-    private boolean createTable;
+    private Integer dimension;
 
-    private boolean insert;
+    /**
+     * Similarity metric.
+     */
+    private String metric;
 
-    private boolean read;
+    /**
+     * Service for vectorization
+     */
+    private VectorServiceOptions service;
 
-    private String cqlDefinition;
+    public ColumnDefinitionVector() {
+        super(ColumnTypes.VECTOR);
+    }
+
 }

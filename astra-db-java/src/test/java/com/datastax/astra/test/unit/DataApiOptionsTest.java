@@ -2,8 +2,6 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.collections.CollectionIdTypes;
-import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.DeleteOneOptions;
 import com.datastax.astra.client.model.DeleteResult;
 import com.datastax.astra.client.model.FindOneAndDeleteOptions;
@@ -18,6 +16,10 @@ import com.datastax.astra.client.model.SimilarityMetric;
 import com.datastax.astra.client.model.Update;
 import com.datastax.astra.client.model.UpdateOneOptions;
 import com.datastax.astra.client.model.Updates;
+import com.datastax.astra.client.model.VectorOptions;
+import com.datastax.astra.client.model.VectorServiceOptions;
+import com.datastax.astra.client.model.collections.CollectionIdTypes;
+import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.http.HttpProxy;
 import com.datastax.astra.client.model.query.Filter;
 import com.datastax.astra.client.model.query.FilterOperator;
@@ -173,13 +175,13 @@ class DataApiOptionsTest {
     void shouldTestCollectionOptions() {
         CollectionOptions c = new CollectionOptions();
 
-        CollectionOptions.VectorOptions v = new CollectionOptions.VectorOptions();
+        VectorOptions v = new VectorOptions();
 
-        CollectionOptions.Service s = new CollectionOptions.Service();
+        VectorServiceOptions s = new VectorServiceOptions();
         s.setProvider("OK");
         s.setModelName("OK");
 
-        CollectionOptions.Parameters p1 = new CollectionOptions.Parameters();
+        VectorServiceOptions.Parameters p1 = new VectorServiceOptions.Parameters();
         p1.setHelp("sample parama");
         p1.setType("String");
         p1.setRequired(true);

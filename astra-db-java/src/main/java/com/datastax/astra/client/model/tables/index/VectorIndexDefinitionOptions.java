@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.index;
 
 /*-
  * #%L
@@ -20,20 +20,28 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.datastax.astra.client.model.SimilarityMetric;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-
+/**
+ * Options for the Index definitions
+ * Using booleans as those flag could be null.
+ */
 @Data @NoArgsConstructor
-public class PrimaryKey {
+public class VectorIndexDefinitionOptions {
 
-    @JsonProperty("partitionBy")
-    private List<String> partitionBy = new ArrayList<>();
+    String metric;
 
-    @JsonProperty("partitionSort")
-    private LinkedHashMap<String, Integer> partitionSort;
+    String sourceModel;
+
+    public VectorIndexDefinitionOptions metric(SimilarityMetric metric) {
+        this.metric = metric.getValue();
+        return this;
+    }
+
+    public VectorIndexDefinitionOptions sourceModel(String sourceModel) {
+        this.sourceModel = sourceModel;
+        return this;
+    }
 }

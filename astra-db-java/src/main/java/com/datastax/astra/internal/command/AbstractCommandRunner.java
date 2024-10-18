@@ -79,6 +79,12 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
+    public ApiResponse runCommand(Command command) {
+        return runCommand(command, this.commandOptions);
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public ApiResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
 
         // === HTTP CLIENT ===
@@ -132,12 +138,22 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             builder.timeout(Duration.ofSeconds(requestHttpClient.getResponseTimeoutInSeconds()));
 
             // === Embedding KEY ===
-            // FIX ME EMBEDDING AUTHENTICATION PROVIDER
             if (commandOptions.getEmbeddingAuthProvider().isPresent()) {
                 commandOptions.getEmbeddingAuthProvider()
                         .get().getHeaders()
                         .forEach(builder::header);
             }
+
+            // === Extra Headers (Database) ====
+            if (commandOptions.getDatabaseAdditionalHeaders() != null) {
+                commandOptions.getDatabaseAdditionalHeaders().forEach(builder::header);
+            }
+
+            // === Extra Headers (Admin) ====
+            if (commandOptions.getAdminAdditionalHeaders() != null) {
+                commandOptions.getAdminAdditionalHeaders().forEach(builder::header);
+            }
+
             if (overridingOptions != null && overridingOptions.getEmbeddingAuthProvider().isPresent()) {
                 overridingOptions.getEmbeddingAuthProvider()
                         .get().getHeaders()
@@ -157,9 +173,14 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             if (jsonRes.getErrors() != null) {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
-            // Trace All Warning
+            // Trace All Warnings
             if (jsonRes.getStatus()!= null && jsonRes.getStatus().containsKey("warnings")) {
-                jsonRes.getStatusKeyAsStringStream("warnings").forEach(log::warn);
+                try {
+                    jsonRes.getStatusKeyAsStringStream("warnings").forEach(log::warn);
+                } catch(Exception e) {
+                    jsonRes.getStatusKeyAsMap("warnings", String.class)
+                           .forEach((k,v) -> log.warn("{}:{}", k, v));
+                }
             }
             return jsonRes;
         } catch(URISyntaxException e) {

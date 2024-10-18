@@ -20,6 +20,7 @@ package com.datastax.astra.client.model.command;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.model.http.HttpClientOptions;
@@ -63,10 +64,12 @@ public class CommandOptions<T extends CommandOptions<T>>{
     protected EmbeddingHeadersProvider embeddingAuthProvider;
 
     /** Add headers to db calls. */
-    protected Map<String, Object> databaseAdditionalHeaders = new HashMap<>();
+    @Getter
+    protected Map<String, String> databaseAdditionalHeaders = new HashMap<>();
 
     /** Add headers to admin calls. */
-    protected Map<String, Object> adminAdditionalHeaders  = new HashMap<>();
+    @Getter
+    protected Map<String, String> adminAdditionalHeaders  = new HashMap<>();
 
     /**
      * Provide the token.
@@ -79,6 +82,34 @@ public class CommandOptions<T extends CommandOptions<T>>{
     @SuppressWarnings("unchecked")
     public T token(String token) {
         this.token = token;
+        return (T) this;
+    }
+
+    /**
+     * Provide the token.
+     *
+     * @param params
+     *      additional headers
+     * @return
+     *      service key
+     */
+    @SuppressWarnings("unchecked")
+    public T databaseAdditionalHeaders(Map<String, String> params) {
+        this.adminAdditionalHeaders = params;
+        return (T) this;
+    }
+
+    /**
+     * Provide the token.
+     *
+     * @param params
+     *      additional headers
+     * @return
+     *      service key
+     */
+    @SuppressWarnings("unchecked")
+    public T adminAdditionalHeaders(Map<String, String> params) {
+        this.adminAdditionalHeaders = params;
         return (T) this;
     }
 
@@ -220,7 +251,7 @@ public class CommandOptions<T extends CommandOptions<T>>{
      *      self reference
      */
     @SuppressWarnings("unchecked")
-    public T addDatabaseAdditionalHeader(String key, Object value) {
+    public T addDatabaseAdditionalHeader(String key, String value) {
         databaseAdditionalHeaders.put(key, value);
         return (T) this;
     }
@@ -244,7 +275,7 @@ public class CommandOptions<T extends CommandOptions<T>>{
      *      self reference
      */
     @SuppressWarnings("unchecked")
-    public T addAdminAdditionalHeader(String key, Object value) {
+    public T addAdminAdditionalHeader(String key, String value) {
         adminAdditionalHeaders.put(key, value);
         return (T) this;
     }
@@ -254,6 +285,24 @@ public class CommandOptions<T extends CommandOptions<T>>{
      */
     public CommandOptions() {
         // left blank, jackson serialization
+    }
+
+    /**
+     * Default Constructor.
+     */
+    public CommandOptions(DataAPIOptions options) {
+       if (options != null) {
+           this.embeddingAuthProvider     = options.getEmbeddingAuthProvider();
+           this.adminAdditionalHeaders    = options.getAdminAdditionalHeaders();
+           this.databaseAdditionalHeaders = options.getDatabaseAdditionalHeaders();
+           this.httpClientOptions         = options.getHttpClientOptions();
+           for(Map.Entry<String, CommandObserver> entry : options.getObservers().entrySet()) {
+               // Avoid observers Duplication
+               if (!getObservers().containsKey(entry.getKey())) {
+                   registerObserver(entry.getKey(), entry.getValue());
+               }
+           }
+       }
     }
 
 }

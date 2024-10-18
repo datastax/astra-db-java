@@ -20,36 +20,17 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Represents the Table definition with its name and metadata.
+ * Set of options used when creating a table
  */
-@Getter @Setter
-public class TableInfo {
+@Data @NoArgsConstructor
+public class TableOptions {
 
     /**
-     * Name of the table.
+     * Condition to upsert the table.
      */
-    private String name;
-
-    /**
-     * Options for the table.
-     */
-    private TableDefinition definition;
-
-    /**
-     * Default constructor.
-     */
-    public TableInfo() {
-        // left blank, serialization with jackson
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public String toString() {
-        return JsonUtils.marshall(this);
-    }
+    boolean ifNotExists = true;
 }

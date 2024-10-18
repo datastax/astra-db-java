@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model;
 
 /*-
  * #%L
@@ -20,20 +20,45 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.Map;
 
+/**
+ * Subclass representing the vector options.
+ */
 @Data @NoArgsConstructor
-public class PrimaryKey {
+public class VectorOptions {
 
-    @JsonProperty("partitionBy")
-    private List<String> partitionBy = new ArrayList<>();
+    /**
+     * Size of the vector.
+     */
+    private Integer dimension;
 
-    @JsonProperty("partitionSort")
-    private LinkedHashMap<String, Integer> partitionSort;
+    /**
+     * Similarity metric.
+     */
+    private String metric;
+
+    /**
+     * Service for vectorization
+     */
+    private VectorServiceOptions service;
+
+    /**
+     * Get metric as an enum.
+     *
+     * @return
+     *      similarity metric
+     */
+    @JsonIgnore
+    public SimilarityMetric getSimilarityMetric() {
+        return SimilarityMetric.fromValue(metric);
+    }
 }
+

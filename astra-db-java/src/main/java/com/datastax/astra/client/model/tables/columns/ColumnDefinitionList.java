@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.columns;
 
 /*-
  * #%L
@@ -20,20 +20,20 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+@Getter @Setter
+public class ColumnDefinitionList extends ColumnDefinition {
 
-@Data @NoArgsConstructor
-public class PrimaryKey {
+    private ColumnTypes valueType;
 
-    @JsonProperty("partitionBy")
-    private List<String> partitionBy = new ArrayList<>();
+    public ColumnDefinitionList() {
+        super(ColumnTypes.LIST);
+    }
 
-    @JsonProperty("partitionSort")
-    private LinkedHashMap<String, Integer> partitionSort;
+    public ColumnDefinitionList(ColumnTypes valueType) {
+        this();
+        this.valueType = valueType;
+    }
 }

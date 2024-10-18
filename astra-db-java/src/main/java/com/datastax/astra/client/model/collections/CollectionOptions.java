@@ -21,6 +21,8 @@ package com.datastax.astra.client.model.collections;
  */
 
 import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.model.VectorOptions;
+import com.datastax.astra.client.model.VectorServiceOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -111,92 +113,6 @@ public class CollectionOptions {
         }
     }
 
-    /**
-     * Subclass representing the vector options.
-     */
-    @Getter @Setter
-    public static class VectorOptions {
-
-        /**
-         * Size of the vector.
-         */
-        private Integer dimension;
-
-        /**
-         * Similarity metric.
-         */
-        private String metric;
-
-        /**
-         * Service for vectorization
-         */
-        private Service service;
-
-        /** Default constructor. */
-        public VectorOptions() {
-            // left blank, serialization with jackson
-        }
-
-        /**
-         * Get metric as an enum.
-         *
-         * @return
-         *      similarity metric
-         */
-        @JsonIgnore
-        public SimilarityMetric getSimilarityMetric() {
-            return SimilarityMetric.fromValue(metric);
-        }
-    }
-
-    /**
-     * Subclass representing the services options.
-     */
-    @Getter @Setter
-    public static class Service {
-
-        /** LLM provider. */
-        private String provider;
-
-        /** LLM Model name. */
-        private String modelName;
-
-        /** Authentication information like keys and secrets. */
-        private Map<String, Object> authentication;
-
-        /** Free form parameters. */
-        private Map<String, Object> parameters;
-
-        /** Default constructor. */
-        public Service() {
-            // left blank, serialization with jackson
-        }
-    }
-
-    /**
-     * Subclass representing a parameters for LLM Services
-     */
-    @Getter @Setter
-    public static class Parameters {
-
-        /** Type for the parameters. */
-        private String type;
-
-        /** declare if mandatory or not. */
-        private boolean required;
-
-        /** the default value for the parameter. */
-        @JsonProperty("default")
-        private Object defaultValue;
-
-        /** description of the parameter. */
-        private String help;
-
-        /** Default constructor. */
-        public Parameters() {
-            // left blank, serialization with jackson
-        }
-    }
 
     /**
      * Gets a builder.
@@ -363,7 +279,7 @@ public class CollectionOptions {
          *      self reference
          */
         public CollectionOptionsBuilder vectorize(String provider, String modeName, String sharedSecretKey) {
-            Service embeddingService = new Service();
+            VectorServiceOptions embeddingService = new VectorServiceOptions();
             embeddingService.setProvider(provider);
             embeddingService.setModelName(modeName);
             if (sharedSecretKey != null) {

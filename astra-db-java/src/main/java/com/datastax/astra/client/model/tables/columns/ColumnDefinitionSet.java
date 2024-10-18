@@ -1,4 +1,4 @@
-package com.datastax.astra.client.model.tables;
+package com.datastax.astra.client.model.tables.columns;
 
 /*-
  * #%L
@@ -20,17 +20,20 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data @NoArgsConstructor
-public class ColumnDefinition {
+@Getter @Setter
+public class ColumnDefinitionSet extends ColumnDefinition {
 
-    private String type;
+    private ColumnTypes valueType;
 
-    private String keyType;
+    public ColumnDefinitionSet() {
+        super(ColumnTypes.SET);
+    }
 
-    private String valueType;
-
-    private ColumnDefinitionApiSupport apiSupport;
+    public ColumnDefinitionSet(ColumnTypes valueType) {
+        this();
+        this.valueType = valueType;
+    }
 }

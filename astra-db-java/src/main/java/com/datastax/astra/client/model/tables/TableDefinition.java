@@ -20,17 +20,103 @@ package com.datastax.astra.client.model.tables;
  * #L%
  */
 
+import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.model.VectorServiceOptions;
+import com.datastax.astra.client.model.query.Sort;
+import com.datastax.astra.client.model.tables.columns.ColumnDefinition;
+import com.datastax.astra.client.model.tables.columns.ColumnDefinitionList;
+import com.datastax.astra.client.model.tables.columns.ColumnDefinitionMap;
+import com.datastax.astra.client.model.tables.columns.ColumnDefinitionSet;
+import com.datastax.astra.client.model.tables.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.model.tables.columns.ColumnTypes;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 
 @Data @NoArgsConstructor
 public class TableDefinition {
 
-    private String name;
+    private LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
 
-    private LinkedHashMap<String, ColumnDefinition> columns;
+    private PrimaryKey primaryKey = new PrimaryKey();
 
-    private PrimaryKey primaryKey;
+    public TableDefinition addColumn(String columnName, ColumnDefinition columnDefinition) {
+        Assert.notNull(columnName, "Column columnName");
+        columns.put(columnName, columnDefinition);
+        return this;
+    }
+
+    public TableDefinition addColumn(String name, ColumnTypes type) {
+        columns.put(name, new ColumnDefinition(type));
+        return this;
+    }
+
+    public TableDefinition addColumnList(String name, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionList(valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnSet(String name, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionSet(valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnMap(String name,  ColumnTypes keyType, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionMap(keyType, valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnVector(String name, Integer dimension) {
+        return addColumnVector(name, dimension, null, null);
+    }
+
+    public TableDefinition addColumnVector(String name, Integer dimension, SimilarityMetric metric) {
+        return addColumnVector(name, dimension, metric, null);
+    }
+
+    public TableDefinition addColumnVector(String name, Integer dimension, SimilarityMetric metric, VectorServiceOptions service) {
+        ColumnDefinitionVector colDefVector = new ColumnDefinitionVector();
+        colDefVector.setDimension(dimension);
+        if (metric != null) {
+            colDefVector.setMetric(metric.getValue());
+        }
+        if (service != null) {
+            colDefVector.setService(service);
+        }
+        columns.put(name,colDefVector);
+        return this;
+    }
+
+    public TableDefinition withPartitionKey(String... partitionKeys) {
+        if (partitionKeys != null) {
+            primaryKey.getPartitionBy().clear();
+            Arrays.asList(partitionKeys).forEach(pk -> {
+                if (!columns.containsKey(pk)) {
+                    throw new IllegalArgumentException("Cannot create primaryKey: Column '" + pk + "' has not been found in table");
+                }
+                primaryKey.getPartitionBy().add(pk);
+            });
+        }
+        return this;
+    }
+
+    public TableDefinition withClusteringColumns(Sort... clusteringColumns) {
+        if (clusteringColumns != null) {
+            primaryKey.setPartitionSort(new LinkedHashMap<>());
+            Arrays.asList(clusteringColumns).forEach(cc -> {
+                    if (!columns.containsKey(cc.getField())) {
+                        throw new IllegalArgumentException("Cannot create primaryKey: Column '" + cc.getField() + "' has not been found in table");
+                    }
+                    primaryKey.getPartitionSort().put(cc.getField(), cc.getOrder().getCode());
+               }
+            );
+        }
+        return this;
+    }
+
+
+
 }

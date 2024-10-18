@@ -78,6 +78,7 @@ public class DataAPIClients {
                 new UsernamePasswordTokenProvider().getToken(),
                 DataAPIOptions.builder()
                         .withDestination(DataAPIDestination.CASSANDRA)
+                        .enableFeatureFlagTables()
                         .logRequests()
                         .withObserver(new LoggingCommandObserver(DataAPIClient.class))
                         .build());

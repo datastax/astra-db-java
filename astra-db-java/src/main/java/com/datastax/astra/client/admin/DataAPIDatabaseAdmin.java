@@ -77,6 +77,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      */
     public DataAPIDatabaseAdmin(Database db) {
         this.db             = db;
+
         this.commandOptions = new CommandOptions<>()
                 .token(db.getToken())
                 .embeddingAuthProvider(db.getOptions().getEmbeddingAuthProvider())
@@ -169,7 +170,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return db.getDbApiEndpoint();
+        return db.getDbApiEndpoint() + "/v1";
     }
 
     /**
