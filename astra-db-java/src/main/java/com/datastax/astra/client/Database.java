@@ -30,6 +30,7 @@ import com.datastax.astra.client.model.collections.CollectionOptions;
 import com.datastax.astra.client.model.collections.Document;
 import com.datastax.astra.client.model.command.Command;
 import com.datastax.astra.client.model.command.CommandOptions;
+import com.datastax.astra.client.model.tables.TableDefinition;
 import com.datastax.astra.client.model.tables.row.Row;
 import com.datastax.astra.client.model.tables.TableDescriptor;
 import com.datastax.astra.client.model.tables.TableOptions;
@@ -510,7 +511,7 @@ public class Database extends AbstractCommandRunner {
      * Gets a table with a specific default document class.
      *
      * @param tableName
-     *      the name of the table to return
+     *      the name of the table to
      * @param rowClass
      *      the default class to cast any row returned from the database into.
      * @param commandOptions
@@ -529,29 +530,35 @@ public class Database extends AbstractCommandRunner {
     /**
      * Create a new table with the given description.
      *
-     * @param tableDescriptor
+     * @param tableName
+     *      the name of the table to create
+     * @param tableDefinition
      *      table definition
      */
-    public Table<Row> createTable(TableDescriptor tableDescriptor) {
-        return createTable(tableDescriptor, null, commandOptions, Row.class);
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
+        return createTable(tableName, tableDefinition, null, commandOptions, Row.class);
     }
 
     /**
      * Create a new table with the given description.
      *
-     * @param tableDescriptor
+     * @param tableName
+     *      the name for the new table to create
+     * @param tableDefinition
      *      table definition
      * @param options
      *      collection options
      */
-    public Table<Row> createTable(TableDescriptor tableDescriptor, TableOptions options) {
-        return createTable(tableDescriptor, options, commandOptions, Row.class);
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions options) {
+        return createTable(tableName, tableDefinition, options, commandOptions, Row.class);
     }
 
     /**
      * Create a new table with the given description.
      *
-     * @param tableDescriptor
+     * @param tableName
+     *      the table name
+     * @param tableDefinition
      *      table definition
      * @param options
      *      collection options
@@ -562,13 +569,15 @@ public class Database extends AbstractCommandRunner {
      * @param <T>
      *      working object for the document
      */
-    public <T> Table<T> createTable(TableDescriptor tableDescriptor, TableOptions options,  Class<T> documentClass) {
-        return createTable(tableDescriptor, options, commandOptions, documentClass);
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions options,  Class<T> documentClass) {
+        return createTable(tableName, tableDefinition, options, commandOptions, documentClass);
     }
 
     /**
      * Create a new collection with the given name.
      *
+     * @param tableName
+     *      the definition for the new table to create
      * @param tableDefinition
      *      the definition for the new table to create
      * @param tableOptions
@@ -577,14 +586,16 @@ public class Database extends AbstractCommandRunner {
      *      options to use when using this collection
      * @return the collection
      */
-    public Table<Row> createTable(TableDescriptor tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
-        return createTable(tableDefinition, tableOptions, commandOptions, Row.class);
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
+        return createTable(tableName, tableDefinition, tableOptions, commandOptions, Row.class);
     }
 
     /**
      * Create a new table with the selected options
      *
-     * @param tableDescriptor
+     * @param tableName
+     *      the definition for the new table to create
+     * @param tableDefinition
      *      the definition for the new table to create
      * @param tableOptions
      *      various options for creating the table
@@ -596,18 +607,20 @@ public class Database extends AbstractCommandRunner {
      *          working class for the document
      * @return the collection
      */
-    public <T> Table<T> createTable(TableDescriptor tableDescriptor, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
-        notNull(tableDescriptor, "tableDescriptor");
-        hasLength(tableDescriptor.getName(), "tablename");
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
+        hasLength(tableName, "tableName");
+        notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
         Command createTable = Command
                 .create("createTable")
-                .append("name", tableDescriptor.getName())
-                .append("definition", tableDescriptor.getDefinition())
-                .append("options", tableOptions);
+                .append("name", tableName)
+                .append("definition", tableDefinition);
+        if (tableOptions != null) {
+            createTable.append("options", tableOptions);
+        }
         runCommand(createTable, commandOptions);
-        log.info("Table  '" + green("{}") + "' has been created", tableDescriptor.getName());
-        return getTable(tableDescriptor.getName(), commandOptions, rowClass);
+        log.info("Table  '" + green("{}") + "' has been created", tableName);
+        return getTable(tableName, commandOptions, rowClass);
     }
 
     /**

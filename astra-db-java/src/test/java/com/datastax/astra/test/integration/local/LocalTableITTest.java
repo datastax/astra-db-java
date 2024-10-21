@@ -10,6 +10,9 @@ import com.datastax.astra.client.model.tables.index.IndexDefinition;
 import com.datastax.astra.client.model.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.model.tables.index.IndexDescriptor;
 import com.datastax.astra.client.model.tables.index.IndexOptions;
+import com.datastax.astra.client.model.tables.index.VectorIndexDefinition;
+import com.datastax.astra.client.model.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.model.tables.index.VectorIndexDescriptor;
 import com.datastax.astra.client.model.tables.row.Row;
 import com.datastax.astra.client.model.tables.TableDefinition;
 import com.datastax.astra.client.model.tables.TableDescriptor;
@@ -29,6 +32,14 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  */
 public class LocalTableITTest extends AbstractTableITTest {
 
+    protected static String TABLE_SIMPLE       = "table_simple";
+    protected static String TABLE_COMPOSITE    = "table_composite_pk";
+    protected static String TABLE_TYPES        = "table_types";
+    protected static String TABLE_CASSIO       = "table_cassio";
+
+    protected static String INDEX_COUNTRY      = "country_index";
+    protected static String INDEX_VECTOR_TYPES = "idx_vector_types";
+
     @Override
     protected AstraEnvironment getAstraEnvironment() { return null; }
     @Override
@@ -47,69 +58,60 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     @Order(1)
     public void shouldInitiateDatabase() {
-        if (getDatabase().tableExists("table_simple")) {
+        if (getDatabase().tableExists(TABLE_SIMPLE)) {
             getDatabase()
-                    .getTable("table_simple")
-                    .dropIndex("country_index");
-            getDatabase().dropTable("table_simple");
+                    .getTable(TABLE_SIMPLE)
+                    .dropIndex(INDEX_COUNTRY);
+            getDatabase().dropTable(TABLE_SIMPLE);
         }
-        getDatabase().dropTable("table_composite_pk");
-        getDatabase().dropTable("table_types");
-        getDatabase().dropTable("table_cassio");
-        assertThat(getDatabase().tableExists("table_simple")).isFalse();
-        assertThat(getDatabase().tableExists("table_composite_pk")).isFalse();
-        assertThat(getDatabase().tableExists("table_types")).isFalse();
-        assertThat(getDatabase().tableExists("table_cassio")).isFalse();
+        getDatabase().dropTable(TABLE_COMPOSITE);
+        getDatabase().dropTable(TABLE_TYPES);
+        getDatabase().dropTable(TABLE_CASSIO);
+        assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isFalse();
+        assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isFalse();
+        assertThat(getDatabase().tableExists(TABLE_TYPES)).isFalse();
+        assertThat(getDatabase().tableExists(TABLE_CASSIO)).isFalse();
     }
 
     @Test
     @Order(2)
     public void shouldCreateTableSimple() {
         // Simple
-        Table<Row> tableSimple = getDatabase().createTable(new TableDescriptor().name("table_simple")
-                .definition(new TableDefinition()
-                        .addColumn("email", ColumnTypes.TEXT)
-                        .addColumn("age", ColumnTypes.INT)
-                        .addColumn("name", ColumnTypes.TEXT)
-                        .addColumn("country", ColumnTypes.TEXT)
-                        .addColumn("human", ColumnTypes.BOOLEAN)
-                        .withPartitionKey("email")));
-        assertThat(getDatabase().tableExists("table_simple")).isTrue();
+        Table<Row> tableSimple = getDatabase()
+                .createTable(TABLE_SIMPLE, new TableDefinition()
+                .addColumnText("email")
+                .addColumnInt("age")
+                .addColumnText("name")
+                .addColumnText("country")
+                .addColumnBoolean("human")
+                .withPartitionKey("email"));
+        assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isTrue();
 
         // Create Index Simple
-        tableSimple.createIndex(new IndexDescriptor()
-                .name("country_index")
-                .definition(new IndexDefinition()
+        tableSimple.createIndex(INDEX_COUNTRY, new IndexDefinition()
                     .column("country")
                     .options(new IndexDefinitionOptions()
                             .ascii(true)
                             .caseSensitive(true)
-                            .normalize(true))), new IndexOptions().ifNotExists());
-
-    }
-
-    @Test
-    @Order(2)
-    public void shouldDeleteIndexSimple() {
+                            .normalize(true)),
+                new IndexOptions().ifNotExists());
     }
 
     @Test
     @Order(3)
     public void shouldCreateTableComposite() {
-        getDatabase().createTable(new TableDescriptor().name("table_composite_pk")
-                .definition(new TableDefinition()
-                        .addColumn("id", ColumnTypes.TEXT)
-                        .addColumn("age", ColumnTypes.INT)
-                        .addColumn("name", ColumnTypes.TEXT)
-                        .withPartitionKey("id", "name")));
-        assertThat(getDatabase().tableExists("table_composite_pk")).isTrue();
+        getDatabase().createTable(TABLE_COMPOSITE, new TableDefinition()
+                        .addColumnText("id")
+                        .addColumnInt("age")
+                        .addColumnText("name")
+                        .withPartitionKey("id", "name"));
+        assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isTrue();
     }
 
     @Test
     @Order(4)
     public void shouldCreateTableAllTypes() {
-        getDatabase().createTable(new TableDescriptor().name("table_types")
-                .definition(new TableDefinition()
+        getDatabase().createTable(TABLE_TYPES, new TableDefinition()
                         .addColumn("p_ascii", ColumnTypes.ASCII)
                         .addColumn("p_boolean", ColumnTypes.BOOLEAN)
                         .addColumn("p_tinyint", ColumnTypes.TINYINT)
@@ -132,17 +134,21 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnMap("p_map", ColumnTypes.TEXT, ColumnTypes.TEXT)
                         .addColumnVector("vector", 1536, SimilarityMetric.COSINE)
                         .withPartitionKey("p_uuid")
-                        .withClusteringColumns(Sorts.ascending("p_text"), Sorts.descending("p_int"))));
-        assertThat(getDatabase().tableExists("table_types")).isTrue();
+                        .withClusteringColumns(Sorts.ascending("p_text"), Sorts.descending("p_int")));
+        assertThat(getDatabase().tableExists(TABLE_TYPES)).isTrue();
+
+        getDatabase().getTable(TABLE_TYPES)
+                     .createVectorIndex(INDEX_VECTOR_TYPES, new VectorIndexDefinition()
+                        .column("vector")
+                        .options(new VectorIndexDefinitionOptions().metric(SimilarityMetric.COSINE)));
     }
 
     @Test
     @Order(5)
     public void shouldCreateTableAllCassio() {
-        getDatabase().dropTable("table_cassio");
-        assertThat(getDatabase().tableExists("table_cassio")).isFalse();
-        getDatabase().createTable(new TableDescriptor().name("table_cassio")
-                .definition(new TableDefinition()
+        getDatabase().dropTable(TABLE_CASSIO);
+        assertThat(getDatabase().tableExists(TABLE_CASSIO)).isFalse();
+        getDatabase().createTable(TABLE_CASSIO, new TableDefinition()
                         .addColumn("partition_id", ColumnTypes.TEXT)
                         .addColumn("attributes_blob", ColumnTypes.TEXT)
                         .addColumn("body_blob", ColumnTypes.TEXT)
@@ -150,7 +156,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
                         .addColumnVector("vector", 1536, SimilarityMetric.COSINE)
                         .withPartitionKey("partition_id")
-                        .withClusteringColumns(Sorts.descending("row_id"))));
+                        .withClusteringColumns(Sorts.descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
 
     }

@@ -11,6 +11,4 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 public abstract class AbstractTableITTest extends AbstractDataAPITest {
 
 
-
-
 }

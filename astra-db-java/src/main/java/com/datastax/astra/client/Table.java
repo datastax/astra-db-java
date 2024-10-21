@@ -32,6 +32,7 @@ import com.datastax.astra.client.model.tables.TableOptions;
 import com.datastax.astra.client.model.tables.index.IndexDefinition;
 import com.datastax.astra.client.model.tables.index.IndexDescriptor;
 import com.datastax.astra.client.model.tables.index.IndexOptions;
+import com.datastax.astra.client.model.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.model.tables.index.VectorIndexDescriptor;
 import com.datastax.astra.client.model.tables.index.VectorIndexOptions;
 import com.datastax.astra.client.model.tables.row.Row;
@@ -211,91 +212,105 @@ public class Table<T>  extends AbstractCommandRunner {
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
      *      definition of the index
      */
-    public void createIndex(IndexDescriptor idxDescriptor) {
-        createIndex(idxDescriptor, null, commandOptions);
+    public void createIndex(String idxName, IndexDefinition idxDefinition) {
+        createIndex(idxName, idxDefinition, null, commandOptions);
     }
 
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
      *      definition of the index
      * @param options
      *      index options
      */
-    public void createIndex(IndexDescriptor idxDescriptor, IndexOptions options) {
-        createIndex(idxDescriptor, options, commandOptions);
+    public void createIndex(String idxName, IndexDefinition idxDefinition, IndexOptions options) {
+        createIndex(idxName, idxDefinition, options, commandOptions);
     }
 
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
      *      definition of the index
      * @param idxOptions
      *      index options
      * @param cmd
      *      override the default command options
      */
-    public void createIndex(IndexDescriptor idxDescriptor, IndexOptions idxOptions, CommandOptions<?> cmd) {
-        notNull(idxDescriptor, "idxDescriptor");
-        notNull(idxDescriptor.getDefinition(), "indexDefinition");
-        hasLength(idxDescriptor.getName(), "indexName");
+    public void createIndex(String idxName, IndexDefinition idxDefinition, IndexOptions idxOptions, CommandOptions<?> cmd) {
+        hasLength(idxName, "indexName");
+        notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
                 .create("createIndex")
-                .append("name", idxDescriptor.getName())
-                .append("definition", idxDescriptor.getDefinition())
-                .append("options", idxOptions);
+                .append("name", idxName)
+                .append("definition", idxDefinition);
+        if (idxOptions != null) {
+            createIndexCommand.append("options", idxOptions);
+        }
         runCommand(createIndexCommand, commandOptions);
-        log.info("Index  '" + green("{}") + "' has been created", idxDescriptor.getName());
+        log.info("Index  '" + green("{}") + "' has been created", idxName);
     }
 
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
      *      definition of the index
      */
-    public void createVectorIndex(VectorIndexDescriptor idxDescriptor) {
-        createVectorIndex(idxDescriptor, null, commandOptions);
+    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition) {
+        createVectorIndex(idxName, idxDefinition, null, commandOptions);
     }
 
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      index name
+     * @param idxDefinition
      *      definition of the index
      * @param options
      *      index options
      */
-    public void createVectorIndex(VectorIndexDescriptor idxDescriptor, VectorIndexOptions options) {
-        createVectorIndex(idxDescriptor, options, commandOptions);
+    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, VectorIndexOptions options) {
+        createVectorIndex(idxName, idxDefinition, options, commandOptions);
     }
 
     /**
      * Create a new index with the given description.
      *
-     * @param idxDescriptor
+     * @param idxName
+     *      index name
+     * @param idxDefinition
      *      definition of the index
      * @param idxOptions
      *      index options
      * @param cmd
      *      override the default command options
      */
-    public void createVectorIndex(VectorIndexDescriptor idxDescriptor, VectorIndexOptions idxOptions, CommandOptions<?> cmd) {
-        notNull(idxDescriptor, "idxDescriptor");
-        notNull(idxDescriptor.getDefinition(), "indexDefinition");
-        hasLength(idxDescriptor.getName(), "indexName");
+    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, VectorIndexOptions idxOptions, CommandOptions<?> cmd) {
+        hasLength(idxName, "indexName");
+        notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
                 .create("createVectorIndex")
-                .append("name", idxDescriptor.getName())
-                .append("definition", idxDescriptor.getDefinition())
-                .append("options", idxOptions);
+                .append("name", idxName)
+                .append("definition", idxDefinition);
+        if (idxOptions != null) {
+            createIndexCommand.append("options", idxOptions);
+        }
         runCommand(createIndexCommand, commandOptions);
-        log.info("Vector Index '" + green("{}") + "' has been created", idxDescriptor.getName());
+        log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
 

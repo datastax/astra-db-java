@@ -11,14 +11,14 @@ public class VectorIndexDefinition {
 
     String column;
 
-    IndexDefinitionOptions options;
+    VectorIndexDefinitionOptions options;
 
     public VectorIndexDefinition column(String column) {
         this.column = column;
         return this;
     }
 
-    public VectorIndexDefinition options(IndexDefinitionOptions options) {
+    public VectorIndexDefinition options(VectorIndexDefinitionOptions options) {
         this.options = options;
         return this;
     }

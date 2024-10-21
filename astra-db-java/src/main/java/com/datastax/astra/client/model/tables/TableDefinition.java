@@ -54,6 +54,18 @@ public class TableDefinition {
         return this;
     }
 
+    public TableDefinition addColumnText(String name) {
+        return addColumn(name, ColumnTypes.TEXT);
+    }
+
+    public TableDefinition addColumnInt(String name) {
+        return addColumn(name, ColumnTypes.INT);
+    }
+
+    public TableDefinition addColumnBoolean(String name) {
+        return addColumn(name, ColumnTypes.BOOLEAN);
+    }
+
     public TableDefinition addColumnList(String name, ColumnTypes valueType) {
         columns.put(name, new ColumnDefinitionList(valueType));
         return this;

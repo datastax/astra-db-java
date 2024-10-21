@@ -48,6 +48,7 @@ public enum ColumnTypes {
     TINYINT("tinyint"),
     VARINT("varint"),
     UUID("uuid"),
+    UNSUPPORTED("UNSUPPORTED"),
     VECTOR("vector");
 
     @Getter
