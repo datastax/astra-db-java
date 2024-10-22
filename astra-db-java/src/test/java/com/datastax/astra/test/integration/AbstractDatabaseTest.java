@@ -1,17 +1,17 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.model.collections.CollectionIdTypes;
-import com.datastax.astra.client.model.InsertManyResult;
-import com.datastax.astra.client.model.InsertOneResult;
-import com.datastax.astra.client.model.types.ObjectId;
-import com.datastax.astra.client.model.types.UUIDv6;
-import com.datastax.astra.client.model.types.UUIDv7;
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.CollectionIdTypes;
+import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.InsertOneResult;
+import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.types.UUIDv6;
+import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.collections.CollectionOptions;
-import com.datastax.astra.client.model.command.Command;
-import com.datastax.astra.client.model.collections.Document;
-import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -28,10 +28,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.model.collections.CollectionIdTypes.OBJECT_ID;
-import static com.datastax.astra.client.model.collections.CollectionIdTypes.UUIDV6;
-import static com.datastax.astra.client.model.collections.CollectionIdTypes.UUIDV7;
-import static com.datastax.astra.client.model.query.Filters.eq;
+import static com.datastax.astra.client.collections.CollectionIdTypes.OBJECT_ID;
+import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV6;
+import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV7;
+import static com.datastax.astra.client.core.query.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

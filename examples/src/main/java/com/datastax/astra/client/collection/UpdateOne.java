@@ -1,17 +1,15 @@
 package com.datastax.astra.client.collection;
 
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.Filters;
-import com.datastax.astra.client.model.Update;
-import com.datastax.astra.client.model.UpdateResult;
-import com.datastax.astra.client.model.Updates;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.core.Filter;
+import com.datastax.astra.client.core.Filters;
+import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.documents.Updates;
 
-import java.util.Optional;
-
-import static com.datastax.astra.client.model.Filters.lt;
+import static com.datastax.astra.client.core.Filters.lt;
 
 public class UpdateOne {
     // Given an existing collection

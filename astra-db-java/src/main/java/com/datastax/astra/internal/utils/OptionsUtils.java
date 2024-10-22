@@ -20,10 +20,10 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.model.types.DataAPIKeywords;
-import com.datastax.astra.client.model.collections.Document;
-import com.datastax.astra.client.model.query.Projection;
-import com.datastax.astra.client.model.query.Sort;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.query.Sort;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;

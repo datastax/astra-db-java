@@ -1,11 +1,11 @@
 package dev.langchain4j.store.embedding.astradb;
 
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.core.Document;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.langchain4j.store.embedding.AstraDbEmbeddingStore;
 import dev.langchain4j.data.document.Metadata;
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import java.util.List;
 import java.util.UUID;
 
-import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 import static com.dtsx.astra.sdk.utils.TestUtils.getAstraToken;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;

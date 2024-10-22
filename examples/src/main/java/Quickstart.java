@@ -1,14 +1,14 @@
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindIterable;
-import com.datastax.astra.client.model.FindOptions;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.commands.FindIterable;
+import com.datastax.astra.client.collections.commands.FindOptions;
 
 import java.util.List;
 
-import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 
 public class Quickstart {
 

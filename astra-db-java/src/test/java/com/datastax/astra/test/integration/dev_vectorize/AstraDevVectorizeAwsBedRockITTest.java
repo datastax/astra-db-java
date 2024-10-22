@@ -1,16 +1,16 @@
 package com.datastax.astra.test.integration.dev_vectorize;
 
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.auth.AWSEmbeddingHeadersProvider;
-import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
-import com.datastax.astra.client.model.collections.CollectionOptions;
-import com.datastax.astra.client.model.types.DataAPIKeywords;
-import com.datastax.astra.client.model.collections.Document;
-import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
-import com.datastax.astra.client.model.FindOneOptions;
-import com.datastax.astra.client.model.InsertManyOptions;
-import com.datastax.astra.client.model.InsertManyResult;
-import com.datastax.astra.client.model.query.Projections;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.core.auth.AWSEmbeddingHeadersProvider;
+import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.collections.commands.InsertManyOptions;
+import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

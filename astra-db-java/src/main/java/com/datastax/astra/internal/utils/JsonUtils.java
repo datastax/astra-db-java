@@ -37,10 +37,10 @@ package com.datastax.astra.internal.utils;
  */
 
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.tables.columns.ColumnTypes;
-import com.datastax.astra.client.model.types.ObjectId;
-import com.datastax.astra.client.model.types.UUIDv6;
-import com.datastax.astra.client.model.types.UUIDv7;
+import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.types.UUIDv6;
+import com.datastax.astra.client.core.types.UUIDv7;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;

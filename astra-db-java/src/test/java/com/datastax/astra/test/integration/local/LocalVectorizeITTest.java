@@ -1,13 +1,10 @@
 package com.datastax.astra.test.integration.local;
 
-import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.EmbeddingProvider;
+import com.datastax.astra.client.collections.commands.EmbeddingProvider;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 

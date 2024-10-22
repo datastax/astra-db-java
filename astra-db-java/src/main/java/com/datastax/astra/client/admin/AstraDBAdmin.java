@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.DatabaseInfo;
+import com.datastax.astra.client.databases.DatabaseInfo;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -338,14 +338,14 @@ public class AstraDBAdmin {
      * @return
      *      database client
      */
-    public com.datastax.astra.client.Database getDatabase(UUID databaseId, String keyspace) {
+    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, "databaseId");
         Assert.hasLength(keyspace, "keyspace");
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
-        return new com.datastax.astra.client.Database(
+        return new com.datastax.astra.client.databases.Database(
             new AstraApiEndpoint(databaseId, databaseRegion, env).getApiEndPoint(),
             token,keyspace, dataAPIOptions) {
         };
@@ -359,7 +359,7 @@ public class AstraDBAdmin {
      * @return
      *      database client
      */
-    public com.datastax.astra.client.Database getDatabase(UUID databaseId) {
+    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId) {
         return getDatabase(databaseId, DEFAULT_KEYSPACE);
     }
 

@@ -1,13 +1,13 @@
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindIterable;
-import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.commands.FindIterable;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 
 import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.CASSANDRA;
 import static com.datastax.astra.client.DataAPIOptions.builder;
-import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 
 public class QuickStartLocal {
 

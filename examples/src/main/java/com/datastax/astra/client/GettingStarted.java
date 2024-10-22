@@ -1,12 +1,14 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindIterable;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.commands.FindIterable;
 
 import java.util.List;
 
-import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.SimilarityMetric.EUCLIDEAN;
+import static com.datastax.astra.client.core.Filters.eq;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.EUCLIDEAN;
 
 public class GettingStarted {
  public static void main(String[] args) {

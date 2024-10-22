@@ -20,11 +20,11 @@ package com.datastax.astra.langchain4j.store.memory;
  * #L%
  */
 
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.FindOptions;
-import com.datastax.astra.client.model.Sorts;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.CollectionOptions;
+import com.datastax.astra.client.collections.commands.FindOptions;
+import com.datastax.astra.client.core.Sorts;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import lombok.Getter;
@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.model.Filters.eq;
+import static com.datastax.astra.client.core.Filters.eq;
 import static com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage.PROP_MESSAGE;
 
 @Slf4j

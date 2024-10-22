@@ -21,7 +21,8 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;

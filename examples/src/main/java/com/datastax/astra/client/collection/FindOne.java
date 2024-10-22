@@ -1,21 +1,20 @@
 package com.datastax.astra.client.collection;
 
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.Filter;
-import com.datastax.astra.client.model.Filters;
-import com.datastax.astra.client.model.FindOneOptions;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.core.Filter;
+import com.datastax.astra.client.core.Filters;
+import com.datastax.astra.client.collections.commands.FindOneOptions;
 
 import java.util.Optional;
 
-import static com.datastax.astra.client.model.Filters.and;
-import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.Filters.gt;
-import static com.datastax.astra.client.model.Filters.lt;
-import static com.datastax.astra.client.model.Projections.exclude;
-import static com.datastax.astra.client.model.Projections.include;
+import static com.datastax.astra.client.core.Filters.and;
+import static com.datastax.astra.client.core.Filters.eq;
+import static com.datastax.astra.client.core.Filters.gt;
+import static com.datastax.astra.client.core.Filters.lt;
+import static com.datastax.astra.client.core.Projections.exclude;
+import static com.datastax.astra.client.core.Projections.include;
 
 public class FindOne {
     public static void main(String[] args) {

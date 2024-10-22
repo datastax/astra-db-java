@@ -1,11 +1,11 @@
 package com.datastax.astra.client.database;
 
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.CollectionIdTypes;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.SimilarityMetric;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.CollectionIdTypes;
+import com.datastax.astra.client.core.CollectionOptions;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 
 public class CreateCollection {
   public static void main(String[] args) {

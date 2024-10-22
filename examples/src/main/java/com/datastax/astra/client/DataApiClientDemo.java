@@ -1,12 +1,14 @@
 package com.datastax.astra.client;
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.Document;
 
 import java.util.List;
 import java.util.UUID;
 
-import static com.datastax.astra.client.model.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 
 public class DataApiClientDemo {
     public static void main(String[] args) {

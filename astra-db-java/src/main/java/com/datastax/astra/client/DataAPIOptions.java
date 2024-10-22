@@ -20,11 +20,11 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.auth.EmbeddingHeadersProvider;
-import com.datastax.astra.client.model.http.Caller;
-import com.datastax.astra.client.model.http.HttpClientOptions;
-import com.datastax.astra.client.model.http.HttpProxy;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.http.Caller;
+import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.Getter;

@@ -1,7 +1,7 @@
 package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
-import com.datastax.astra.client.model.command.Command;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.internal.api.ApiResponse;
 import org.junit.jupiter.api.Test;
 

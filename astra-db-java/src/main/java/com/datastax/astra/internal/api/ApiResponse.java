@@ -20,7 +20,7 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.model.collections.Document;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -115,6 +115,10 @@ public class ApiResponse implements Serializable {
         return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
                 JsonUtils.getDataApiObjectMapper().getTypeFactory()
                         .constructMapType(Map.class, String.class, targetClass));
+    }
+
+    public <T> T getStatus(Class<T> targetClass) {
+        return JsonUtils.getDataApiObjectMapper().convertValue(status, targetClass);
     }
 
 }

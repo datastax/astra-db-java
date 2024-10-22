@@ -22,7 +22,7 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
@@ -55,7 +55,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     final AstraDBOpsClient devopsDbClient;
 
     /** Database if initialized from the DB. */
-    protected com.datastax.astra.client.Database db;
+    protected com.datastax.astra.client.databases.Database db;
 
     /**
      * Initialize a database admin from token and database id.
@@ -63,7 +63,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @param db
      *      target database
      */
-    public AstraDBDatabaseAdmin(com.datastax.astra.client.Database db) {
+    public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db) {
         this.databaseId = UUID.fromString(db.getDbApiEndpoint().substring(8, 44));
         this.env        = getEnvironment(db.getOptions().getDestination());
         this.token      = db.getToken();
@@ -88,7 +88,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         this.token          = token;
         this.databaseId     = databaseId;
         this.devopsDbClient = new AstraDBOpsClient(token, this.env);
-        this.db = new com.datastax.astra.client.Database(getApiEndpoint(), token, DEFAULT_KEYSPACE, options);
+        this.db = new com.datastax.astra.client.databases.Database(getApiEndpoint(), token, DEFAULT_KEYSPACE, options);
     }
 
     /**
@@ -149,7 +149,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @return
      *      client to interact with database DML.
      */
-    public com.datastax.astra.client.Database getDatabase(String keyspace) {
+    public com.datastax.astra.client.databases.Database getDatabase(String keyspace) {
         return db.useKeyspace(keyspace);
     }
 
@@ -162,8 +162,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @return
      *      client to interact with database DML.
      */
-    public com.datastax.astra.client.Database getDatabase(String keyspace, String tokenUser) {
-        return new com.datastax.astra.client.Database(getApiEndpoint(), tokenUser, keyspace, db.getOptions());
+    public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String tokenUser) {
+        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), tokenUser, keyspace, db.getOptions());
     }
 
     @Override
@@ -201,7 +201,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
 
     /** {@inheritDoc} */
     @Override
-    public com.datastax.astra.client.Database getDatabase() {
+    public com.datastax.astra.client.databases.Database getDatabase() {
         return db;
     }
 

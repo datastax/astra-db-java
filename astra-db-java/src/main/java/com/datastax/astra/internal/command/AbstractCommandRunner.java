@@ -21,9 +21,9 @@ package com.datastax.astra.internal.command;
  */
 
 import com.datastax.astra.client.exception.DataApiResponseException;
-import com.datastax.astra.client.model.command.Command;
-import com.datastax.astra.client.model.command.CommandOptions;
-import com.datastax.astra.client.model.command.CommandRunner;
+import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;

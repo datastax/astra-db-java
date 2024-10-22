@@ -1,7 +1,7 @@
 package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 
 public class InitializeDatabase {
   public static void main(String[] args) {

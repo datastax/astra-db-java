@@ -1,12 +1,11 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.model.KeyspaceOptions;
+import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

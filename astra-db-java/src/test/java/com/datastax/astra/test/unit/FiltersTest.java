@@ -1,11 +1,11 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.model.types.DataAPIKeywords;
-import com.datastax.astra.client.model.query.Filter;
-import com.datastax.astra.client.model.query.Filters;
-import com.datastax.astra.client.model.FindOptions;
-import com.datastax.astra.client.model.types.ObjectId;
-import com.datastax.astra.client.model.query.Projections;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.collections.commands.FindOptions;
+import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.internal.utils.JsonUtils;
 import org.junit.jupiter.api.Test;
 

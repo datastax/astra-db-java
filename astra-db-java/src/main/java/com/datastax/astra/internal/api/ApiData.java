@@ -20,7 +20,7 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.model.collections.Document;
+import com.datastax.astra.client.collections.documents.Document;
 import lombok.Getter;
 import lombok.Setter;
 

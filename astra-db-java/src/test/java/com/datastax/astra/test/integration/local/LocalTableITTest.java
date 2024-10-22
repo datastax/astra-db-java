@@ -1,22 +1,23 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.Table;
-import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.client.model.query.Sorts;
-import com.datastax.astra.client.model.tables.columns.ColumnTypes;
-import com.datastax.astra.client.model.tables.index.IndexDefinition;
-import com.datastax.astra.client.model.tables.index.IndexDefinitionOptions;
-import com.datastax.astra.client.model.tables.index.IndexDescriptor;
-import com.datastax.astra.client.model.tables.index.IndexOptions;
-import com.datastax.astra.client.model.tables.index.VectorIndexDefinition;
-import com.datastax.astra.client.model.tables.index.VectorIndexDefinitionOptions;
-import com.datastax.astra.client.model.tables.index.VectorIndexDescriptor;
-import com.datastax.astra.client.model.tables.row.Row;
-import com.datastax.astra.client.model.tables.TableDefinition;
-import com.datastax.astra.client.model.tables.TableDescriptor;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.core.query.Sorts;
+import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
+import com.datastax.astra.client.tables.commands.TableInsertOneResult;
+import com.datastax.astra.client.tables.index.IndexDefinition;
+import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.IndexOptions;
+import com.datastax.astra.client.tables.index.VectorIndexDefinition;
+import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.test.integration.AbstractTableITTest;
+import com.datastax.astra.test.model.TableSimpleRow;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Order;
@@ -32,13 +33,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  */
 public class LocalTableITTest extends AbstractTableITTest {
 
-    protected static String TABLE_SIMPLE       = "table_simple";
-    protected static String TABLE_COMPOSITE    = "table_composite_pk";
-    protected static String TABLE_TYPES        = "table_types";
-    protected static String TABLE_CASSIO       = "table_cassio";
+    public static final String TABLE_SIMPLE       = "table_simple";
+    public static final String TABLE_COMPOSITE    = "table_composite_pk";
+    public static final String TABLE_TYPES        = "table_types";
+    public static final String TABLE_CASSIO       = "table_cassio";
 
-    protected static String INDEX_COUNTRY      = "country_index";
-    protected static String INDEX_VECTOR_TYPES = "idx_vector_types";
+    public static final String INDEX_COUNTRY      = "country_index";
+    public static final String INDEX_VECTOR_TYPES = "idx_vector_types";
 
     @Override
     protected AstraEnvironment getAstraEnvironment() { return null; }
@@ -194,6 +195,23 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(desc.getName()).isEqualTo(tableName);
         assertThat(desc.getDefinition()).isNotNull();
         assertThat(desc.getDefinition().getPrimaryKey().getPartitionBy()).isEqualTo(List.of("email"));
+    }
+
+    @Test
+    public void shouldMapTableSimple() {
+        Table<Row> table = getDatabase().getTable(TABLE_SIMPLE);
+        Row row = new Row()
+                .addBoolean("human", true)
+                .addInt("age", 42)
+                .addText("name", "John")
+                .addText("country", "France")
+                .addText("email",  "cedrick@datastax.com");
+        TableInsertOneResult res = table.insertOne(row);
+        System.out.println(res.insertedIds());
+
+        Table<TableSimpleRow> table2 = getDatabase().getTable(TableSimpleRow.class);
+        table2.insertOne(new TableSimpleRow());
+
     }
 
 }

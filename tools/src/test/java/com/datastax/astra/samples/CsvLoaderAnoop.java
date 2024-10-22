@@ -1,9 +1,9 @@
 package com.datastax.astra.samples;
 
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.collections.Document;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.internal.utils.JsonUtils;
 import com.datastax.astra.tool.loader.csv.CsvLoader;
 import com.datastax.astra.tool.loader.csv.CsvLoaderSettings;
@@ -11,8 +11,8 @@ import com.datastax.astra.tool.loader.csv.CsvRowMapper;
 
 import java.util.List;
 
-import static com.datastax.astra.client.model.query.Filters.and;
-import static com.datastax.astra.client.model.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.and;
+import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class CsvLoaderAnoop {
 

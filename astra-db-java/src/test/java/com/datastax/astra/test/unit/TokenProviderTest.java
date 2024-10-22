@@ -1,7 +1,7 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.auth.StaticTokenProvider;
-import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.auth.StaticTokenProvider;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

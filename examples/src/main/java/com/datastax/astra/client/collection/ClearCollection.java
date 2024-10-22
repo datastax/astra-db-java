@@ -1,8 +1,8 @@
 package com.datastax.astra.client.collection;
 
-import com.datastax.astra.client.Collection;
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.Document;
 
 public class ClearCollection {
   public static void main(String[] args) {

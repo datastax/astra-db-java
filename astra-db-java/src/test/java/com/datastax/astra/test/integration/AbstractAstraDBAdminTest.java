@@ -1,10 +1,7 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.admin.AstraDBAdmin;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;

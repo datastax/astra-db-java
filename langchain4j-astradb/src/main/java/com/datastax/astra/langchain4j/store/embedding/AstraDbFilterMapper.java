@@ -20,7 +20,7 @@ package com.datastax.astra.langchain4j.store.embedding;
  * #L%
  */
 
-import com.datastax.astra.client.model.Filter;
+import com.datastax.astra.client.core.Filter;
 import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import dev.langchain4j.store.embedding.filter.comparison.IsGreaterThan;
 import dev.langchain4j.store.embedding.filter.comparison.IsGreaterThanOrEqualTo;
@@ -37,17 +37,17 @@ import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
-import static com.datastax.astra.client.model.Filters.and;
-import static com.datastax.astra.client.model.Filters.eq;
-import static com.datastax.astra.client.model.Filters.gt;
-import static com.datastax.astra.client.model.Filters.gte;
-import static com.datastax.astra.client.model.Filters.in;
-import static com.datastax.astra.client.model.Filters.lt;
-import static com.datastax.astra.client.model.Filters.lte;
-import static com.datastax.astra.client.model.Filters.ne;
-import static com.datastax.astra.client.model.Filters.nin;
-import static com.datastax.astra.client.model.Filters.not;
-import static com.datastax.astra.client.model.Filters.or;
+import static com.datastax.astra.client.core.Filters.and;
+import static com.datastax.astra.client.core.Filters.eq;
+import static com.datastax.astra.client.core.Filters.gt;
+import static com.datastax.astra.client.core.Filters.gte;
+import static com.datastax.astra.client.core.Filters.in;
+import static com.datastax.astra.client.core.Filters.lt;
+import static com.datastax.astra.client.core.Filters.lte;
+import static com.datastax.astra.client.core.Filters.ne;
+import static com.datastax.astra.client.core.Filters.nin;
+import static com.datastax.astra.client.core.Filters.not;
+import static com.datastax.astra.client.core.Filters.or;
 
 /**
  * This class is responsible for mapping {@link Filter} objects into AstraDB filter expressions.

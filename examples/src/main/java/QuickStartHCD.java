@@ -1,21 +1,21 @@
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.client.model.CollectionOptions;
-import com.datastax.astra.client.model.CommandOptions;
-import com.datastax.astra.client.model.Document;
-import com.datastax.astra.client.model.FindOneOptions;
-import com.datastax.astra.client.model.NamespaceOptions;
-import com.datastax.astra.client.model.SimilarityMetric;
-import com.datastax.astra.client.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.CollectionOptions;
+import com.datastax.astra.client.core.CommandOptions;
+import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.core.NamespaceOptions;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
 import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.HCD;
 import static com.datastax.astra.client.DataAPIOptions.builder;
-import static com.datastax.astra.client.model.Filters.eq;
+import static com.datastax.astra.client.core.Filters.eq;
 
 public class QuickStartHCD {
 

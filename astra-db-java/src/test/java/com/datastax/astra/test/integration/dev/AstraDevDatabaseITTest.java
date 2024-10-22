@@ -1,6 +1,5 @@
 package com.datastax.astra.test.integration.dev;
 
-import com.datastax.astra.client.Database;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

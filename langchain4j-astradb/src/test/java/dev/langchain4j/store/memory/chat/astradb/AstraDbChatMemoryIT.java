@@ -2,7 +2,7 @@ package dev.langchain4j.store.memory.chat.astradb;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.langchain4j.store.memory.AstraDbChatMemoryStore;

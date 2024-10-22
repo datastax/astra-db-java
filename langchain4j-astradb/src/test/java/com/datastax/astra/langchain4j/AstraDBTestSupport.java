@@ -1,7 +1,7 @@
 package com.datastax.astra.langchain4j;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;

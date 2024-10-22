@@ -20,10 +20,10 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.Database;
-import com.datastax.astra.client.model.command.CommandRunner;
-import com.datastax.astra.client.model.EmbeddingProvider;
-import com.datastax.astra.client.model.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.core.commands.CommandRunner;
+import com.datastax.astra.client.collections.commands.EmbeddingProvider;
+import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;

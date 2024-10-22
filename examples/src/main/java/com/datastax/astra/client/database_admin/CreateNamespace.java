@@ -1,6 +1,6 @@
 package com.datastax.astra.client.database_admin;
 
-import com.datastax.astra.client.Database;
+import com.datastax.astra.client.databases.Database;
 
 public class CreateNamespace {
   public static void main(String[] args) {

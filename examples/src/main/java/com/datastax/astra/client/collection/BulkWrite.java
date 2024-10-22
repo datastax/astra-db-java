@@ -1,11 +1,11 @@
 package com.datastax.astra.client.collection;
 
-import com.datastax.astra.client.Collection;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.model.BulkWriteOptions;
-import com.datastax.astra.client.model.BulkWriteResult;
-import com.datastax.astra.client.model.Command;
-import com.datastax.astra.client.model.Document;
+import com.datastax.astra.client.core.BulkWriteOptions;
+import com.datastax.astra.client.core.BulkWriteResult;
+import com.datastax.astra.client.core.Command;
+import com.datastax.astra.client.core.Document;
 import com.datastax.astra.internal.api.ApiResponse;
 
 import java.util.List;
