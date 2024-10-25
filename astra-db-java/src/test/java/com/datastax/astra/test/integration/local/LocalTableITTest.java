@@ -1,20 +1,21 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.core.query.Sorts;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.core.query.Sorts;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.TableDescriptor;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.mapping.IntrospectedBean;
+import com.datastax.astra.client.tables.mapping.IntrospectedField;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableSimpleRow;
@@ -209,9 +210,18 @@ public class LocalTableITTest extends AbstractTableITTest {
         TableInsertOneResult res = table.insertOne(row);
         System.out.println(res.insertedIds());
 
-        Table<TableSimpleRow> table2 = getDatabase().getTable(TableSimpleRow.class);
-        table2.insertOne(new TableSimpleRow());
+        //Table<TableSimpleRow> table2 = getDatabase().getTable(TableSimpleRow.class);
+        //table2.insertOne(new TableSimpleRow());
 
+    }
+
+    @Test
+    public void shouldIntrospectBean() {
+        IntrospectedBean<TableSimpleRow> rowDecorator = new IntrospectedBean<>(TableSimpleRow.class);
+        System.out.println("Table Name: " + rowDecorator.getName());
+        for (IntrospectedField field : rowDecorator.getFields().values()) {
+            System.out.println("Field: " + field.getName() + ", Type: " + field.getType().getName());
+        }
     }
 
 }

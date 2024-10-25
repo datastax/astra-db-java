@@ -1,13 +1,12 @@
-package com.datastax.astra.client.tables.annotations;
+package com.datastax.astra.client.tables.mapping;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Table {
-
-    String value();
+public @interface PartitionBy {
+    int value() default 0;
 }

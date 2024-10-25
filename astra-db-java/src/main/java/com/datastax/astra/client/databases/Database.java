@@ -512,8 +512,8 @@ public class Database extends AbstractCommandRunner {
     }
 
     public <T> Table<T> getTable(@NonNull Class<T> rowClass) {
-        com.datastax.astra.client.tables.annotations.Table ann = rowClass
-                .getAnnotation(com.datastax.astra.client.tables.annotations.Table.class);
+        com.datastax.astra.client.tables.mapping.Table ann = rowClass
+                .getAnnotation(com.datastax.astra.client.tables.mapping.Table.class);
         if (ann == null) {
                     throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
         }
@@ -566,6 +566,10 @@ public class Database extends AbstractCommandRunner {
      */
     public Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions options) {
         return createTable(tableName, tableDefinition, options, commandOptions, Row.class);
+    }
+
+    public <T> Table<T> createTable(Class<T> clazz) {
+       return null;
     }
 
     /**
