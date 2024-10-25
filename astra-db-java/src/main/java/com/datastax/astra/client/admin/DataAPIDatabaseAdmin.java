@@ -220,7 +220,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return db.getDbApiEndpoint();
+        return db.getDbApiEndpoint() + "/v1";
     }
 
     /**
