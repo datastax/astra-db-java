@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -26,32 +26,30 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Custom deserializer for EJson Date type.
  */
-public class CustomEJsonCalendarDeserializer extends JsonDeserializer<Calendar> {
+public class CustomEJsonDateDeserializer extends JsonDeserializer<Date> {
 
     /**
      * Default constructor.
      */
-    public CustomEJsonCalendarDeserializer() {
+    public CustomEJsonDateDeserializer() {
         // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
-    public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
+    public Date deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
         if (null == node.get("$date")) {
-            throw new IllegalArgumentException("Cannot convert the expression as an Calendar " + node);
+            throw new IllegalArgumentException("Cannot convert the expression as an Date " + node);
         }
         long timestamp = node.get("$date").asLong();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(timestamp);
-        return calendar;
+        return new Date(timestamp);
     }
 
 }

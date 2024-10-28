@@ -26,7 +26,7 @@ import com.datastax.astra.client.core.query.FilterOperator;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.query.Sorts;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpClient;
@@ -190,8 +190,8 @@ class DataApiOptionsTest {
 
         v.setService(s);
         c.setVector(v);
-        System.out.println(JsonUtils.marshall(c));
-        assertThat(JsonUtils.marshall(c)).isNotNull();
+        System.out.println(new DocumentSerializer().marshall(c));
+        assertThat(new DocumentSerializer().marshall(c)).isNotNull();
     }
 
     @Test

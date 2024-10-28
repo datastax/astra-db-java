@@ -41,7 +41,8 @@ import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +65,9 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  */
 @Slf4j
 public class Database extends AbstractCommandRunner {
+
+    /** Serializer for the Collections. */
+    private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
 
     /** Token to be used with the Database. */
     @Getter
@@ -418,7 +422,7 @@ public class Database extends AbstractCommandRunner {
                 .create("createCollection")
                 .append("name", collectionName);
         if (collectionOptions != null) {
-            createCollection.withOptions(JsonUtils.convertValue(collectionOptions, Document.class));
+            createCollection.withOptions(SERIALIZER.convertValue(collectionOptions, Document.class));
         }
         runCommand(createCollection, commandOptions);
         log.info("Collection  '" + green("{}") + "' has been created", collectionName);
@@ -659,6 +663,11 @@ public class Database extends AbstractCommandRunner {
     // ----    Generation Information        ----
     // ------------------------------------------
 
+    /** {@inheritDoc} */
+    @Override
+    protected DataAPISerializer getSerializer() {
+        return SERIALIZER;
+    }
 
     /** {@inheritDoc} */
     @Override

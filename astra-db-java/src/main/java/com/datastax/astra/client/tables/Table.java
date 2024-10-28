@@ -23,8 +23,6 @@ package com.datastax.astra.client.tables;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.collections.commands.InsertOneOptions;
-import com.datastax.astra.client.collections.commands.InsertOneResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
@@ -34,9 +32,10 @@ import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexOptions;
-import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -53,20 +52,26 @@ public class Table<T>  extends AbstractCommandRunner {
 
     /** parameters names. */
     private static final String ARG_DATABASE = "database";
+
     /** parameters names. */
     private static final String ARG_OPTIONS = "options";
+
     /** parameters names. */
     private static final String ARG_CLAZZ = "working class 'clazz'";
+
     /** parameters names. */
     private static final String ARG_TABLE_NAME = "collectionName";
+
     /** parameters names. */
     private static final String ROW = "row";
 
-    // Json Outputs
+    /** Serializer for the table. */
+    private static final RowSerializer SERIALIZER = new RowSerializer();
+
+    // -- Json Outputs
 
     /** parameters names. */
     private static final String RESULT_INSERTED_IDS = "insertedIds";
-
 
     /** Collection identifier. */
     @Getter
@@ -206,6 +211,12 @@ public class Table<T>  extends AbstractCommandRunner {
      */
     public String getName() {
         return tableName;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected DataAPISerializer getSerializer() {
+        return SERIALIZER;
     }
 
     /** {@inheritDoc} */

@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,22 +20,22 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.util.Calendar;
 
 /**
- * Object Id Could be
- * objectId|uuid|uuidv6|uuidv7
+ * Custom Serializer for EJson Date type.
  */
-public class CustomColumnTypeSerializer extends StdSerializer<ColumnTypes> {
+public class CustomEJsonCalendarSerializer extends StdSerializer<Calendar> {
+
     /**
      * Default constructor.
      */
-    public CustomColumnTypeSerializer() {
+    public CustomEJsonCalendarSerializer() {
         this(null);
     }
 
@@ -44,14 +44,17 @@ public class CustomColumnTypeSerializer extends StdSerializer<ColumnTypes> {
      * @param t
      *      type
      */
-    public CustomColumnTypeSerializer(Class<ColumnTypes> t) {
+    public CustomEJsonCalendarSerializer(Class<Calendar> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(ColumnTypes columnType, JsonGenerator gen, SerializerProvider provider)
-    throws IOException {
-        gen.writeString(columnType.getValue());
+    public void serialize(Calendar value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        gen.writeStartObject();
+        gen.writeNumberField("$date", value.getTime().getTime());
+        gen.writeEndObject();
     }
 }
+
+

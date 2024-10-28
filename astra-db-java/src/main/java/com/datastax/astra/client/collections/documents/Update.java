@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.documents;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -49,7 +49,7 @@ public class Update extends Document {
     @SuppressWarnings("unchecked")
     public Update(String json) {
         super();
-        this.documentMap.putAll(JsonUtils.unMarshallBean(json, Map.class));
+        this.documentMap.putAll(SERIALIZER.unMarshallBean(json, Map.class));
     }
 
     /**

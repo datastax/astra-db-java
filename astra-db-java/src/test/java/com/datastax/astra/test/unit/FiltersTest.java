@@ -6,7 +6,7 @@ import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.query.Projections;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -18,7 +18,7 @@ class FiltersTest {
     @Test
     void testFiltersSerializations() {
         Filter f = Filters.eq("hello", 3);
-        assertThat(JsonUtils.marshall(f)).isEqualTo("{\"hello\":3}");
+        assertThat(new DocumentSerializer().marshall(f)).isEqualTo("{\"hello\":3}");
     }
 
     @Test

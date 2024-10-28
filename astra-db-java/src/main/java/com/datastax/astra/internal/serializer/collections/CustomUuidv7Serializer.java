@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L

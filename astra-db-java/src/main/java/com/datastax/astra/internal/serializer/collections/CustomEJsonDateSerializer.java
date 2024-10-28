@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,22 +20,23 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.UUIDv6;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.util.Date;
 
 /**
- * Object Id Could be
- * objectId|uuid|uuidv6|uuidv7
+ * Custom Serializer for EJson Date type.
  */
-public class CustomUuidv6Serializer extends StdSerializer<UUIDv6> {
+public class CustomEJsonDateSerializer extends StdSerializer<Date> {
+
     /**
      * Default constructor.
      */
-    public CustomUuidv6Serializer() {
+    public CustomEJsonDateSerializer() {
         this(null);
     }
 
@@ -44,15 +45,17 @@ public class CustomUuidv6Serializer extends StdSerializer<UUIDv6> {
      * @param t
      *      type
      */
-    public CustomUuidv6Serializer(Class<UUIDv6> t) {
+    public CustomEJsonDateSerializer(Class<Date> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(UUIDv6 uuidv6, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(Date value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("$uuid", uuidv6.toString());
+        gen.writeNumberField("$date", value.getTime());
         gen.writeEndObject();
     }
 }
+
+

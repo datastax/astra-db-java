@@ -38,7 +38,8 @@ package com.datastax.astra.client.collections.documents;
 
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
@@ -60,6 +61,11 @@ import java.util.UUID;
  * Represents a document without schema constraints as a Map&lt;String, Object&gt;.(key/value)
  */
 public class Document implements Map<String, Object>, Serializable {
+
+    /**
+     * Serializer
+     */
+    protected static final DataAPISerializer SERIALIZER = new DocumentSerializer();
 
     /**
      * Data to be used in the document.
@@ -118,7 +124,7 @@ public class Document implements Map<String, Object>, Serializable {
      *      current type
      */
     public <T> T map(Class<T> clazz) {
-        return JsonUtils.convertValue(documentMap, clazz);
+        return SERIALIZER.convertValue(documentMap, clazz);
     }
 
     /**
@@ -140,7 +146,7 @@ public class Document implements Map<String, Object>, Serializable {
      */
     @SuppressWarnings("unchecked")
     public static Document parse(final String json) {
-        return new Document(JsonUtils.unMarshallBean(json, LinkedHashMap.class));
+        return new Document(SERIALIZER.unMarshallBean(json, LinkedHashMap.class));
     }
 
     /**
@@ -185,7 +191,7 @@ public class Document implements Map<String, Object>, Serializable {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return clazz.cast(JsonUtils.convertValue(documentMap.get(key), clazz));
+        return clazz.cast(SERIALIZER.convertValue(documentMap.get(key), clazz));
     }
 
     /**
@@ -535,7 +541,7 @@ public class Document implements Map<String, Object>, Serializable {
      */
     @Override
     public String toString() {
-        return JsonUtils.marshall(documentMap);
+        return SERIALIZER.marshall(documentMap);
     }
 
     /**

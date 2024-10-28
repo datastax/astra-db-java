@@ -23,7 +23,7 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.internal.api.ApiData;
 import com.datastax.astra.internal.api.ApiError;
 import com.datastax.astra.internal.utils.AnsiUtils;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -87,11 +87,11 @@ public class LoggingCommandObserver implements CommandObserver {
             log(AnsiUtils.magenta("[" + req + "][url]") + "=" +
                     AnsiUtils.yellow("{}"), executionInfo.getRequestUrl());
             log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),
-                    JsonUtils.marshall(executionInfo.getCommand()));
+                    executionInfo.getSerializer().marshall(executionInfo.getCommand()));
             log(AnsiUtils.magenta("[" + req + "][response-code]") + "=" + AnsiUtils.yellow("{}"),
                     executionInfo.getResponseHttpCode());
             log(AnsiUtils.magenta("[" + req + "][response-body]") + "=" + AnsiUtils.yellow("{}"),
-                    JsonUtils.marshall(executionInfo.getResponse()));
+                    executionInfo.getSerializer().marshall(executionInfo.getResponse()));
             log(AnsiUtils.magenta("[" + req + "][response-time]") + "=" + AnsiUtils.yellow("{}") + " millis.",
                     executionInfo.getExecutionTime());
             // Log Data

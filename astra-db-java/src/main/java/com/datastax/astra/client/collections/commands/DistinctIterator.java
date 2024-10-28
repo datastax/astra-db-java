@@ -22,7 +22,7 @@ package com.datastax.astra.client.collections.commands;
 
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.paging.PageableIterable;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
@@ -86,7 +86,7 @@ public class DistinctIterator<T, F> implements Iterator<F> {
      *      extraction of field from document
      */
     private F extractField(T t) {
-        return JsonUtils.convertValue(t, Document.class).get(fieldName, fieldClass);
+        return new DocumentSerializer().convertValue(t, Document.class).get(fieldName, fieldClass);
     }
 
     /** {@inheritDoc} */

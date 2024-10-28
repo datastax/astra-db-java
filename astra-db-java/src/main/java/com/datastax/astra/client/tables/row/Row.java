@@ -22,7 +22,8 @@ package com.datastax.astra.client.tables.row;
 
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.tables.RowSerializer;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
@@ -38,10 +39,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.datastax.astra.internal.utils.Assert.hasLength;
+
 /**
  * Record present in a Cassandra Table.
  */
 public class Row implements Map<String, Object>, Serializable {
+
+    private static final DataAPISerializer SERIALIZER = new RowSerializer();
 
     /**
      * Data to be used in the document.
@@ -77,7 +82,7 @@ public class Row implements Map<String, Object>, Serializable {
      *      current type
      */
     public <T> T map(Class<T> clazz) {
-        return JsonUtils.convertValue(columnMap, clazz);
+        return SERIALIZER.convertValue(columnMap, clazz);
     }
 
     /**
@@ -99,7 +104,7 @@ public class Row implements Map<String, Object>, Serializable {
      */
     @SuppressWarnings("unchecked")
     public static Row parse(final String json) {
-        return new Row(JsonUtils.unMarshallBean(json, LinkedHashMap.class));
+        return new Row(SERIALIZER.unMarshallBean(json, LinkedHashMap.class));
     }
 
     /**
@@ -112,38 +117,38 @@ public class Row implements Map<String, Object>, Serializable {
      * @return this
      */
     public Row set(final String key, final Object value) {
+        hasLength(key, "Key must not be null or empty");
         columnMap.put(key, value);
         return this;
     }
-
+    public Row add(final String key, final Object value) {
+        return set(key, value);
+    }
     public Row addText(final String key, final String value) {
-        return set(key, value);
+        return add(key, value);
     }
-    public Row addBoolean(final String key, final boolean value) {
-        return set(key, value);
+    public Row addBigInt(final String key, final Long value) {
+        return add(key, value);
     }
-    public Row addByte(final String key, final Byte value) {
+    public Row addBoolean(final String key, final Boolean value) {
+        return add(key, value);
+    }
+    public Row addBlob(final String key, final byte[] value) {
         return set(key, value);
     }
     public Row addInt(final String key, final Integer value) {
         return set(key, value);
     }
-
-    /**
-     * Put the given key/value pair into this Document and return this only if the value is not null
-     * <pre>
-     * doc.append("a", 1).append("b", 2)}
-     * </pre>
-     * @param key   key
-     * @param value value
-     * @return this
-     */
-    public Row appendIfNotNull(final String key, final Object value) {
-        if (value != null) {
-            return set(key, value);
-        }
-        return this;
+    public Row addFloat(final String key, final Float value) {
+        return set(key, value);
     }
+    public Row addDouble(final String key, final Double value) {
+        return set(key, value);
+    }
+    public Row addDate(final String key, final Date value) {
+        return set(key, value);
+    }
+
 
     /**
      * Gets the value of the given key, casting it to the given {@code Class<T>}.  This is useful to avoid having casts in client code,
@@ -157,7 +162,7 @@ public class Row implements Map<String, Object>, Serializable {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return clazz.cast(JsonUtils.convertValue(columnMap.get(key), clazz));
+        return clazz.cast(SERIALIZER.convertValue(columnMap.get(key), clazz));
     }
 
     /**
@@ -402,7 +407,7 @@ public class Row implements Map<String, Object>, Serializable {
      */
     @Override
     public String toString() {
-        return JsonUtils.marshall(columnMap);
+        return SERIALIZER.marshall(columnMap);
     }
 
     /**
@@ -507,5 +512,7 @@ public class Row implements Map<String, Object>, Serializable {
     public int hashCode() {
         return columnMap.hashCode();
     }
+
+
 }
 

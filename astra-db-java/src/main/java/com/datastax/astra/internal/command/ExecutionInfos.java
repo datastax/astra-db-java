@@ -23,6 +23,7 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
@@ -85,7 +86,10 @@ public class ExecutionInfos implements Serializable {
      */
     private final Instant executionDate;
 
-
+    /**
+     * The serializer used to serialize and deserialize data objects.
+     */
+    private final DataAPISerializer serializer;
 
     /**
      * Constructor with the builder.
@@ -102,6 +106,7 @@ public class ExecutionInfos implements Serializable {
         this.executionTime       = builder.executionTime;
         this.executionDate       = builder.executionDate;
         this.requestUrl          = builder.requestUrl;
+        this.serializer          = builder.serializer;
     }
 
     /**
@@ -126,6 +131,7 @@ public class ExecutionInfos implements Serializable {
         private Map<String, String> responseHttpHeaders;
         private final Instant executionDate;
         private String requestUrl;
+        private DataAPISerializer serializer;
 
         /**
          * Default constructor.
@@ -144,6 +150,19 @@ public class ExecutionInfos implements Serializable {
          */
         public DataApiExecutionInfoBuilder withCommand(Command command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Populate after http call.
+         *
+         * @param serializer
+         *      current serializer
+         * @return
+         *      current reference
+         */
+        public DataApiExecutionInfoBuilder withSerializer(DataAPISerializer serializer) {
+            this.serializer = serializer;
             return this;
         }
 

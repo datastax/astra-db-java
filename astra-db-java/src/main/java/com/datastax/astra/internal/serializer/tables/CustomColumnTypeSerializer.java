@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.tables;
 
 /*-
  * #%L
@@ -20,22 +20,22 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
-import java.time.Instant;
 
 /**
- * Custom Serializer for EJson Date type.
+ * Object Id Could be
+ * objectId|uuid|uuidv6|uuidv7
  */
-public class CustomEJsonInstantSerializer extends StdSerializer<Instant> {
-
+public class CustomColumnTypeSerializer extends StdSerializer<ColumnTypes> {
     /**
      * Default constructor.
      */
-    public CustomEJsonInstantSerializer() {
+    public CustomColumnTypeSerializer() {
         this(null);
     }
 
@@ -44,17 +44,14 @@ public class CustomEJsonInstantSerializer extends StdSerializer<Instant> {
      * @param t
      *      type
      */
-    public CustomEJsonInstantSerializer(Class<Instant> t) {
+    public CustomColumnTypeSerializer(Class<ColumnTypes> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(Instant value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        gen.writeStartObject();
-        gen.writeNumberField("$date", value.toEpochMilli());
-        gen.writeEndObject();
+    public void serialize(ColumnTypes columnType, JsonGenerator gen, SerializerProvider provider)
+    throws IOException {
+        gen.writeString(columnType.getValue());
     }
 }
-
-

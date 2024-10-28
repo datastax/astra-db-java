@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,32 +20,35 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * Custom deserializer for EJson Date type.
  */
-public class CustomColumnTypeDeserializer extends JsonDeserializer<ColumnTypes> {
+public class CustomUuidDeserializer extends JsonDeserializer<UUID> {
 
     /**
      * Default constructor.
      */
-    public CustomColumnTypeDeserializer() {
+    public CustomUuidDeserializer() {
         // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
-    public ColumnTypes deserialize(JsonParser jp, DeserializationContext ctxt)
+    public UUID deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        return ColumnTypes.valueOf(node.asText().toUpperCase());
+        if (null == node.get("$uuid")) {
+            throw new IllegalArgumentException("Cannot convert the expression as an UUID " + node);
+        }
+        return UUID.fromString(node.get("$uuid").asText());
     }
 
 }

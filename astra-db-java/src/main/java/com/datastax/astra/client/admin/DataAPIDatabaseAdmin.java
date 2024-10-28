@@ -30,6 +30,8 @@ import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +53,9 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
 
     /** parameters names. */
     private static final String ARG_KEYSPACE = "keyspaceName";
+
+    /** Serializer. */
+    protected static final DataAPISerializer SERIALIZER = new DocumentSerializer();
 
     /** Database if initialized from the DB. */
     protected Database db;
@@ -172,6 +177,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     protected String getApiEndpoint() {
         return db.getDbApiEndpoint() + "/v1";
     }
+
+    /** {@inheritDoc} */
+    @Override
+    protected DataAPISerializer getSerializer() {
+        return SERIALIZER;
+    }
+
+
 
     /**
      * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.

@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,22 +20,22 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.core.types.ObjectId;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
-import java.util.Calendar;
 
 /**
- * Custom Serializer for EJson Date type.
+ * Object Id Could be
+ * objectId|uuid|uuidv6|uuidv7
  */
-public class CustomEJsonCalendarSerializer extends StdSerializer<Calendar> {
-
+public class CustomObjectIdSerializer  extends StdSerializer<ObjectId> {
     /**
      * Default constructor.
      */
-    public CustomEJsonCalendarSerializer() {
+    public CustomObjectIdSerializer() {
         this(null);
     }
 
@@ -44,17 +44,16 @@ public class CustomEJsonCalendarSerializer extends StdSerializer<Calendar> {
      * @param t
      *      type
      */
-    public CustomEJsonCalendarSerializer(Class<Calendar> t) {
+    public CustomObjectIdSerializer(Class<ObjectId> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(Calendar value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(ObjectId objectId, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeNumberField("$date", value.getTime().getTime());
+        gen.writeStringField("$objectId", objectId.toHexString());
         gen.writeEndObject();
     }
+
 }
-
-

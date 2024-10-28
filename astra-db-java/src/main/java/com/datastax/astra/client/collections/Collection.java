@@ -38,31 +38,32 @@ import com.datastax.astra.client.collections.commands.InsertManyOptions;
 import com.datastax.astra.client.collections.commands.InsertManyResult;
 import com.datastax.astra.client.collections.commands.InsertOneOptions;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
-import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
-import com.datastax.astra.client.collections.documents.ReturnDocument;
-import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.commands.UpdateManyOptions;
 import com.datastax.astra.client.collections.commands.UpdateOneOptions;
 import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.documents.ReturnDocument;
+import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
+import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -84,9 +85,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
-import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -180,6 +181,9 @@ public class Collection<T> extends AbstractCommandRunner {
     private static final String INPUT_ORDERED = "ordered";
     /** json inputs */
     private static final String INPUT_PAGE_STATE = "pageState";
+
+    /** Serializer for the Collections. */
+    private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
 
     /** Collection identifier. */
     @Getter
@@ -482,7 +486,7 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final InsertOneResult insertOne(T document, InsertOneOptions insertOneOptions) {
         Assert.notNull(document, DOCUMENT);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class), insertOneOptions);
+        return internalInsertOne(SERIALIZER.convertValue(document, Document.class), insertOneOptions);
     }
 
     /**
@@ -612,7 +616,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, float[] embeddings,  InsertOneOptions options) {
         Assert.notNull(document, DOCUMENT);
         Assert.notNull(embeddings, ARG_EMBEDDINGS);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vector(embeddings), options);
+        return internalInsertOne(SERIALIZER.convertValue(document, Document.class).vector(embeddings), options);
     }
 
     /**
@@ -698,7 +702,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public final InsertOneResult insertOne(T document, String vectorize, InsertOneOptions options) {
         Assert.notNull(document, DOCUMENT);
         Assert.hasLength(vectorize, ARG_VECTORIZE);
-        return internalInsertOne(JsonUtils.convertValue(document, Document.class).vectorize(vectorize), options);
+        return internalInsertOne(SERIALIZER.convertValue(document, Document.class).vectorize(vectorize), options);
     }
 
     /**
@@ -1879,7 +1883,7 @@ public class Collection<T> extends AbstractCommandRunner {
         result.setMatchedCount(res.getMatchedCount());
         result.setModifiedCount(res.getModifiedCount());
         if (res.getDocument() != null) {
-            Document doc = JsonUtils.convertValue(res.getDocument(), Document.class);
+            Document doc = SERIALIZER.convertValue(res.getDocument(), Document.class);
             if (doc.getId(Object.class) != null) {
                 result.setUpsertedId(doc.getId(Object.class));
             }
@@ -2172,6 +2176,12 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    protected DataAPISerializer getSerializer() {
+        return SERIALIZER;
     }
 
     /** {@inheritDoc} */

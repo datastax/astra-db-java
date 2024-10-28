@@ -27,8 +27,8 @@ import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
 import com.datastax.astra.internal.utils.CompletableFutures;
-import com.datastax.astra.internal.utils.JsonUtils;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +77,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     protected AbstractCommandRunner() {
     }
 
+    protected abstract DataAPISerializer getSerializer();
+
     /** {@inheritDoc} */
     @Override
     public ApiResponse runCommand(Command command) {
@@ -124,7 +126,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
         try {
             // (Custom) Serialization
-            String jsonCommand = JsonUtils.marshall(command);
+            String jsonCommand = getSerializer().marshall(command);
+
             HttpRequest.Builder builder=  HttpRequest.newBuilder()
                         .uri(new URI(getApiEndpoint()))
                         .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
@@ -161,28 +164,32 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             }
 
             HttpRequest request = builder.build();
+            executionInfo.withSerializer(getSerializer());
             executionInfo.withRequestHeaders(request.headers().map());
             executionInfo.withRequestUrl(getApiEndpoint());
 
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
-            ApiResponse jsonRes = JsonUtils.unMarshallBean(httpRes.getBody(), ApiResponse.class);
-            executionInfo.withApiResponse(jsonRes);
+            ApiResponse apiResponse = getSerializer().unMarshallBean(httpRes.getBody(), ApiResponse.class);
+            // Passing Serializer
+            apiResponse.setSerializer(getSerializer());
+
+            executionInfo.withApiResponse(apiResponse);
             // Encapsulate Errors
-            if (jsonRes.getErrors() != null) {
+            if (apiResponse.getErrors() != null) {
                 throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
             }
             // Trace All Warnings
-            if (jsonRes.getStatus()!= null && jsonRes.getStatus().containsKey("warnings")) {
+            if (apiResponse.getStatus()!= null && apiResponse.getStatus().containsKey("warnings")) {
                 try {
-                    jsonRes.getStatusKeyAsStringStream("warnings").forEach(log::warn);
+                    apiResponse.getStatusKeyAsStringStream("warnings").forEach(log::warn);
                 } catch(Exception e) {
-                    jsonRes.getStatusKeyAsMap("warnings", String.class)
+                    apiResponse.getStatusKeyAsMap("warnings", String.class)
                            .forEach((k,v) -> log.warn("{}:{}", k, v));
                 }
             }
-            return jsonRes;
+            return apiResponse;
         } catch(URISyntaxException e) {
             throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);
         } finally {
@@ -211,7 +218,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /** {@inheritDoc} */
     @Override
     public <T> T runCommand(Command command, CommandOptions<?> options, Class<T> documentClass) {
-        return mapAsDocument(runCommand(command, options), documentClass);
+        return unmarshall(runCommand(command, options), documentClass);
     }
 
     /**
@@ -226,20 +233,20 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      * @param <T>
      *     document type
      */
-    protected <T> T mapAsDocument(ApiResponse api, Class<T> documentClass) {
+    protected <T> T unmarshall(ApiResponse api, Class<T> documentClass) {
         String payload;
         if (api.getData() != null) {
             if (api.getData().getDocument() != null) {
-                payload = JsonUtils.marshall(api.getData().getDocument());
+                payload = getSerializer().marshall(api.getData().getDocument());
             } else if (api.getData().getDocuments() != null) {
-                payload = JsonUtils.marshall(api.getData().getDocuments());
+                payload = getSerializer().marshall(api.getData().getDocuments());
             } else {
                 throw new IllegalStateException("Cannot marshall into '" + documentClass + "' no documents returned.");
             }
         } else {
-            payload = JsonUtils.marshall(api.getStatus());
+            payload = getSerializer().marshall(api.getStatus());
         }
-        return JsonUtils.unMarshallBean(payload, documentClass);
+        return getSerializer().unMarshallBean(payload, documentClass);
     }
 
     /**

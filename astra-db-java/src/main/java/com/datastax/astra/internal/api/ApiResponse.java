@@ -21,8 +21,9 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NonNull;
@@ -42,6 +43,11 @@ import java.util.stream.Stream;
 @Getter
 @Setter
 public class ApiResponse implements Serializable {
+
+    /**
+     * The {@link DataAPISerializer} instance used to serialize and deserialize data objects.
+     */
+    private DataAPISerializer serializer;
 
     /**
      * Holds status information returned by the API for all operations except those prefixed with 'find'.
@@ -96,8 +102,8 @@ public class ApiResponse implements Serializable {
      */
     public <T> List<T> getStatusKeyAsList(@NonNull String key, Class<T> targetClass) {
         Assert.isTrue(status.containsKey(key), "Key not found in status map");
-        return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
-               JsonUtils.getDataApiObjectMapper().getTypeFactory()
+        return serializer.getMapper().convertValue(status.get(key),
+               serializer.getMapper().getTypeFactory()
                         .constructCollectionType(List.class, targetClass));
     }
 
@@ -112,13 +118,13 @@ public class ApiResponse implements Serializable {
      */
     public <T> Map<String, T> getStatusKeyAsMap(@NonNull String key, Class<T> targetClass) {
         Assert.isTrue(status.containsKey(key), "Key not found in status map");
-        return JsonUtils.getDataApiObjectMapper().convertValue(status.get(key),
-                JsonUtils.getDataApiObjectMapper().getTypeFactory()
+        return serializer.getMapper().convertValue(status.get(key),
+               serializer.getMapper().getTypeFactory()
                         .constructMapType(Map.class, String.class, targetClass));
     }
 
     public <T> T getStatus(Class<T> targetClass) {
-        return JsonUtils.getDataApiObjectMapper().convertValue(status, targetClass);
+        return serializer.getMapper().convertValue(status, targetClass);
     }
 
 }

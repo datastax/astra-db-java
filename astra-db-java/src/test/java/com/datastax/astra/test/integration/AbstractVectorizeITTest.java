@@ -1,19 +1,19 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.commands.EmbeddingProvider;
 import com.datastax.astra.client.collections.commands.FindIterable;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.collections.commands.InsertManyOptions;
 import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;

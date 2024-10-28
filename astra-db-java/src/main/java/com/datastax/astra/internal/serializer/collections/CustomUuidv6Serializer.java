@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,22 +20,22 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.core.types.UUIDv6;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Object Id Could be
  * objectId|uuid|uuidv6|uuidv7
  */
-public class CustomUuidSerializer extends StdSerializer<UUID> {
+public class CustomUuidv6Serializer extends StdSerializer<UUIDv6> {
     /**
      * Default constructor.
      */
-    public CustomUuidSerializer() {
+    public CustomUuidv6Serializer() {
         this(null);
     }
 
@@ -44,15 +44,15 @@ public class CustomUuidSerializer extends StdSerializer<UUID> {
      * @param t
      *      type
      */
-    public CustomUuidSerializer(Class<UUID> t) {
+    public CustomUuidv6Serializer(Class<UUIDv6> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(UUID uuid, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(UUIDv6 uuidv6, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("$uuid", uuid.toString());
+        gen.writeStringField("$uuid", uuidv6.toString());
         gen.writeEndObject();
     }
 }

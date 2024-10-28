@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,22 +20,22 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.ObjectId;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.time.Instant;
 
 /**
- * Object Id Could be
- * objectId|uuid|uuidv6|uuidv7
+ * Custom Serializer for EJson Date type.
  */
-public class CustomObjectIdSerializer  extends StdSerializer<ObjectId> {
+public class CustomEJsonInstantSerializer extends StdSerializer<Instant> {
+
     /**
      * Default constructor.
      */
-    public CustomObjectIdSerializer() {
+    public CustomEJsonInstantSerializer() {
         this(null);
     }
 
@@ -44,16 +44,17 @@ public class CustomObjectIdSerializer  extends StdSerializer<ObjectId> {
      * @param t
      *      type
      */
-    public CustomObjectIdSerializer(Class<ObjectId> t) {
+    public CustomEJsonInstantSerializer(Class<Instant> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(ObjectId objectId, JsonGenerator gen, SerializerProvider provider) throws IOException {
+    public void serialize(Instant value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         gen.writeStartObject();
-        gen.writeStringField("$objectId", objectId.toHexString());
+        gen.writeNumberField("$date", value.toEpochMilli());
         gen.writeEndObject();
     }
-
 }
+
+

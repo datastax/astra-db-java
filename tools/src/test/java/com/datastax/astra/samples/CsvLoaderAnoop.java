@@ -4,7 +4,7 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import com.datastax.astra.tool.loader.csv.CsvLoader;
 import com.datastax.astra.tool.loader.csv.CsvLoaderSettings;
 import com.datastax.astra.tool.loader.csv.CsvRowMapper;
@@ -75,7 +75,7 @@ public class CsvLoaderAnoop {
             //   endValue.add(list);
             // }
             // }
-            return JsonUtils.unMarshallBean(carrier1, List.class).subList(0,5);
+            return DocumentSerializer.unMarshallBean(carrier1, List.class).subList(0,5);
         }
     }
 

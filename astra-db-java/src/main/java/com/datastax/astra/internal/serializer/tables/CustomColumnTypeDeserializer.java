@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.tables;
 
 /*-
  * #%L
@@ -20,36 +20,32 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
-import java.time.Instant;
 
 /**
  * Custom deserializer for EJson Date type.
  */
-public class CustomEJsonInstantDeserializer extends JsonDeserializer<Instant> {
+public class CustomColumnTypeDeserializer extends JsonDeserializer<ColumnTypes> {
 
     /**
      * Default constructor.
      */
-    public CustomEJsonInstantDeserializer() {
+    public CustomColumnTypeDeserializer() {
         // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
-    public Instant deserialize(JsonParser jp, DeserializationContext ctxt)
-        throws IOException {
+    public ColumnTypes deserialize(JsonParser jp, DeserializationContext ctxt)
+    throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        if (null == node.get("$date")) {
-            throw new IllegalArgumentException("Cannot convert the expression as an Instant " + node);
-        }
-        long timestamp = node.get("$date").asLong();
-        return Instant.ofEpochMilli(timestamp);
+        return ColumnTypes.valueOf(node.asText().toUpperCase());
     }
 
 }

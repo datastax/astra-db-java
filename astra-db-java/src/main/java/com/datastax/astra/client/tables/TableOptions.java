@@ -33,4 +33,9 @@ public class TableOptions {
      * Condition to upsert the table.
      */
     boolean ifNotExists = true;
+
+    public TableOptions ifNotExists() {
+        this.ifNotExists = true;
+        return this;
+    }
 }

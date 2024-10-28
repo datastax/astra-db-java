@@ -1,12 +1,11 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.core.query.Sorts;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
 import com.datastax.astra.client.tables.index.IndexDefinition;
@@ -14,6 +13,7 @@ import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.VectorIndexOptions;
 import com.datastax.astra.client.tables.mapping.IntrospectedBean;
 import com.datastax.astra.client.tables.mapping.IntrospectedField;
 import com.datastax.astra.client.tables.row.Row;
@@ -27,6 +27,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.query.Sorts.ascending;
+import static com.datastax.astra.client.core.query.Sorts.descending;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
@@ -38,9 +41,11 @@ public class LocalTableITTest extends AbstractTableITTest {
     public static final String TABLE_COMPOSITE    = "table_composite_pk";
     public static final String TABLE_TYPES        = "table_types";
     public static final String TABLE_CASSIO       = "table_cassio";
+    public static final String TABLE_ALL_RETURNS  = "table_all_returns";
 
     public static final String INDEX_COUNTRY      = "country_index";
-    public static final String INDEX_VECTOR_TYPES = "idx_vector_types";
+    public static final String INDEX_ALL_RETURNS_VECTOR = "idx_all_returns_pvector";
+    public static final String INDEX_ALL_RETURNS_PTEXT  = "idx_all_returns_ptext";
 
     @Override
     protected AstraEnvironment getAstraEnvironment() { return null; }
@@ -67,11 +72,11 @@ public class LocalTableITTest extends AbstractTableITTest {
             getDatabase().dropTable(TABLE_SIMPLE);
         }
         getDatabase().dropTable(TABLE_COMPOSITE);
-        getDatabase().dropTable(TABLE_TYPES);
+        getDatabase().dropTable(TABLE_ALL_RETURNS);
         getDatabase().dropTable(TABLE_CASSIO);
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isFalse();
         assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isFalse();
-        assertThat(getDatabase().tableExists(TABLE_TYPES)).isFalse();
+        assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isFalse();
         assertThat(getDatabase().tableExists(TABLE_CASSIO)).isFalse();
     }
 
@@ -113,36 +118,54 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     @Order(4)
     public void shouldCreateTableAllTypes() {
-        getDatabase().createTable(TABLE_TYPES, new TableDefinition()
-                        .addColumn("p_ascii", ColumnTypes.ASCII)
-                        .addColumn("p_boolean", ColumnTypes.BOOLEAN)
-                        .addColumn("p_tinyint", ColumnTypes.TINYINT)
-                        .addColumn("p_smallint", ColumnTypes.SMALLINT)
-                        .addColumn("p_duration", ColumnTypes.DURATION)
-                        .addColumn("p_inet", ColumnTypes.INET)
-                        .addColumn("p_blob", ColumnTypes.BLOB)
-                        .addColumn("p_double", ColumnTypes.DOUBLE)
-                        .addColumn("p_float", ColumnTypes.FLOAT)
-                        .addColumn("p_varint", ColumnTypes.VARINT)
-                        .addColumn("p_decimal", ColumnTypes.DECIMAL)
-                        .addColumn("p_text", ColumnTypes.TEXT)
-                        .addColumn("p_time", ColumnTypes.TIME)
-                        .addColumn("p_date", ColumnTypes.DATE)
-                        .addColumn("p_int", ColumnTypes.INT)
-                        .addColumn("p_bigint", ColumnTypes.BIGINT)
-                        .addColumn("p_uuid", ColumnTypes.UUID)
-                        .addColumnList("p_list", ColumnTypes.TEXT)
-                        .addColumnSet("p_set", ColumnTypes.INT)
-                        .addColumnMap("p_map", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                        .addColumnVector("vector", 1536, SimilarityMetric.COSINE)
-                        .withPartitionKey("p_uuid")
-                        .withClusteringColumns(Sorts.ascending("p_text"), Sorts.descending("p_int")));
-        assertThat(getDatabase().tableExists(TABLE_TYPES)).isTrue();
+        Table<Row> tableAllReturns = getDatabase().createTable(TABLE_ALL_RETURNS, new TableDefinition()
+                .addColumn("p_ascii", ColumnTypes.ASCII)
+                .addColumn("p_bigint", ColumnTypes.BIGINT)
+                .addColumn("p_blob", ColumnTypes.BLOB)
+                .addColumn("p_boolean", ColumnTypes.BOOLEAN)
+                .addColumn("p_date", ColumnTypes.DATE)
+                .addColumn("p_decimal", ColumnTypes.DECIMAL)
+                .addColumn("p_tinyint", ColumnTypes.TINYINT)
+                .addColumn("p_double", ColumnTypes.DOUBLE)
+                .addColumn("p_duration", ColumnTypes.DURATION)
+                .addColumn("p_float", ColumnTypes.FLOAT)
+                .addColumn("p_int", ColumnTypes.INT)
+                .addColumn("p_inet", ColumnTypes.INET)
+                .addColumn("p_smallint", ColumnTypes.SMALLINT)
+                .addColumn("p_text", ColumnTypes.TEXT)
+                .addColumn("p_text_nulled", ColumnTypes.TEXT)
+                .addColumn("p_text_omitted", ColumnTypes.TEXT)
+                .addColumn("p_time", ColumnTypes.TIME)
+                .addColumn("p_timestamp", ColumnTypes.TIMESTAMP)
+                .addColumn("p_tinyint", ColumnTypes.TINYINT)
+                .addColumn("p_uuid", ColumnTypes.UUID)
+                .addColumn("p_varint", ColumnTypes.VARINT)
+                .addColumnVector("p_vector", 3, COSINE)
+                .addColumnList("p_list_int", ColumnTypes.INT)
+                .addColumnSet("p_set_int", ColumnTypes.INT)
+                //.addColumnMap("p_map_text_text", ColumnTypes.TEXT, ColumnTypes.TEXT)
+                .addColumn("p_double_minf", ColumnTypes.DOUBLE)
+                .addColumn("p_double_pinf", ColumnTypes.DOUBLE)
+                .addColumn("p_float_nan", ColumnTypes.FLOAT)
+                .withPartitionKey("p_ascii", "p_bigint")
+                .withClusteringColumns(ascending("p_int"), descending("p_boolean")),
+                new TableOptions().ifNotExists());
+        assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isTrue();
 
-        getDatabase().getTable(TABLE_TYPES)
-                     .createVectorIndex(INDEX_VECTOR_TYPES, new VectorIndexDefinition()
-                        .column("vector")
-                        .options(new VectorIndexDefinitionOptions().metric(SimilarityMetric.COSINE)));
+        tableAllReturns
+                .createVectorIndex(INDEX_ALL_RETURNS_VECTOR,
+                        new VectorIndexDefinition()
+                        .column("p_vector")
+                        .options(new VectorIndexDefinitionOptions().metric(COSINE)),
+                        new VectorIndexOptions().ifNotExists());
+
+        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new IndexDefinition()
+                        .column("p_text")
+                        .options(new IndexDefinitionOptions()
+                                .ascii(true)
+                                .caseSensitive(true)
+                                .normalize(true)),
+                        new IndexOptions().ifNotExists());
     }
 
     @Test
@@ -156,11 +179,10 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumn("body_blob", ColumnTypes.TEXT)
                         .addColumn("row_id", ColumnTypes.UUID)
                         .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                        .addColumnVector("vector", 1536, SimilarityMetric.COSINE)
+                        .addColumnVector("vector", 1536, COSINE)
                         .withPartitionKey("partition_id")
-                        .withClusteringColumns(Sorts.descending("row_id")));
+                        .withClusteringColumns(descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
-
     }
 
     @Test
@@ -222,6 +244,28 @@ public class LocalTableITTest extends AbstractTableITTest {
         for (IntrospectedField field : rowDecorator.getFields().values()) {
             System.out.println("Field: " + field.getName() + ", Type: " + field.getType().getName());
         }
+    }
+
+    @Test
+    public void shouldInsertOneAllReturns() {
+        Table<Row> tableAllReturns = getDatabase().getTable(TABLE_ALL_RETURNS);
+        Row row = new Row()
+                .addText("p_ascii", "abc")
+                .addBigInt("p_bigint", 10002L)
+                .addInt("p_int", 987)
+                .addBoolean("p_boolean", false)
+                .addText("p_text", "Ålesund")
+                .addDouble("p_double_pinf", Double.MAX_VALUE);
+                //.addBlob("p_blob", "blob".getBytes());
+                //.addDate("p_date", LocalDate.now())
+                //.addDecimal("p_decimal", new BigDecimal("42.42"))
+                //.addByte("p_tinyint", (byte) 42)
+                //.addDouble("p_double", 987.6543)
+                //.addDuration("p_duration", Duration.ofSeconds(42))
+                //.addFloat("p_float", 42.42f)
+                //.addInt("p_int", 42)
+                //.addInet("p_inet", InetAddress.getByName("
+        getDatabase().getTable(TABLE_ALL_RETURNS).insertOne(row);
     }
 
 }

@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,6 +50,6 @@ public class CollectionDefinition {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return JsonUtils.marshall(this);
+        return new DocumentSerializer().marshall(this);
     }
 }

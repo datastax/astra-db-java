@@ -4,7 +4,7 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.internal.utils.JsonUtils;
+import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,12 +29,12 @@ class DocumentSerializationTest {
                     .vectorDimension(14)
                     .vectorSimilarity(SimilarityMetric.COSINE)
                     .build());
-        assertThat(JsonUtils.marshall(ccc)).contains(SimilarityMetric.COSINE.getValue());
+        assertThat(new DocumentSerializer().marshall(ccc)).contains(SimilarityMetric.COSINE.getValue());
     }
 
     @Test
     void shouldSerializeCommand2() {
-        assertThat(JsonUtils.marshall(new Object())).isEqualTo("{}");
+        assertThat(new DocumentSerializer().marshall(new Object())).isEqualTo("{}");
     }
 
     @Test

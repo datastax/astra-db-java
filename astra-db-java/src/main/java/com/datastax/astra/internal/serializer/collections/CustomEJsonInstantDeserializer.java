@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,33 +20,36 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.ObjectId;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
+import java.time.Instant;
 
 /**
  * Custom deserializer for EJson Date type.
  */
-public class CustomObjectIdDeserializer extends JsonDeserializer<ObjectId> {
+public class CustomEJsonInstantDeserializer extends JsonDeserializer<Instant> {
 
     /**
      * Default constructor.
      */
-    public CustomObjectIdDeserializer() {
+    public CustomEJsonInstantDeserializer() {
         // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
-    public ObjectId deserialize(JsonParser jp, DeserializationContext ctxt)
-    throws IOException {
+    public Instant deserialize(JsonParser jp, DeserializationContext ctxt)
+        throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        String hexString = node.get("$objectId").asText();
-        return new ObjectId(hexString);
+        if (null == node.get("$date")) {
+            throw new IllegalArgumentException("Cannot convert the expression as an Instant " + node);
+        }
+        long timestamp = node.get("$date").asLong();
+        return Instant.ofEpochMilli(timestamp);
     }
 
 }

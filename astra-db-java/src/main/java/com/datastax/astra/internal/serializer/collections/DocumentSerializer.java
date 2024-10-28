@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -36,14 +36,12 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataApiException;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.internal.serializer.DataAPISerializer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.StreamWriteFeature;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
@@ -59,10 +57,7 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
 import java.util.UUID;
-
-import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_SERIALIZATION;
 
 /**
  * Custom implementation of serialization : faster + no jackson dependency
@@ -70,19 +65,21 @@ import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_SE
  * @author Cedrick Lunven (@clunven)
  */
 @SuppressWarnings("deprecation")
-public class JsonUtils {
+public class DocumentSerializer implements DataAPISerializer {
 
     /** Object mapper with customization fo data API. */
-    private static ObjectMapper dataApiObjectMapper;
+    private ObjectMapper objectMapper;
 
     /**
-     * Building the data api specific object mapper.
-     *
-     * @return
-     *      object mapper.
+     * Default constructor
      */
-    public static synchronized ObjectMapper getDataApiObjectMapper() {
-        if (dataApiObjectMapper == null) {
+    public DocumentSerializer() {
+        // left blank, hiding constructor for utility class
+    }
+
+    @Override
+    public ObjectMapper getMapper() {
+        if (objectMapper == null) {
             JsonFactory jsonFactory = JsonFactory.builder()
                     .enable(JsonReadFeature.ALLOW_SINGLE_QUOTES)
                     .enable(JsonReadFeature.ALLOW_UNQUOTED_FIELD_NAMES)
@@ -90,7 +87,7 @@ public class JsonUtils {
                     .enable(StreamReadFeature.USE_FAST_DOUBLE_PARSER)
                     .enable(StreamWriteFeature.USE_FAST_DOUBLE_WRITER)
                     .build();
-            dataApiObjectMapper = new ObjectMapper(jsonFactory)
+            objectMapper = new ObjectMapper(jsonFactory)
                     .configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
@@ -101,9 +98,6 @@ public class JsonUtils {
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
-            // Custom type
-            module.addSerializer(ColumnTypes.class, new CustomColumnTypeSerializer());
-            module.addDeserializer(ColumnTypes.class, new CustomColumnTypeDeserializer());
             // Date
             module.addSerializer(Date.class, new CustomEJsonDateSerializer());
             module.addDeserializer(Date.class, new CustomEJsonDateDeserializer());
@@ -123,77 +117,8 @@ public class JsonUtils {
             // ObjectId
             module.addSerializer(ObjectId.class, new CustomObjectIdSerializer());
             module.addDeserializer(ObjectId.class, new CustomObjectIdDeserializer());
-            dataApiObjectMapper.registerModule(module);
+            objectMapper.registerModule(module);
         }
-        return dataApiObjectMapper;
-    }
-
-    /**
-     * Default constructor
-     */
-    private JsonUtils() {
-        // left blank, hiding constructor for utility class
-    }
-
-    /**
-     * Transform object as a String.
-     *
-     * @param o
-     *      object to be serialized.
-     * @return
-     *      body as String
-     */
-    public static String marshall(Object o) {
-        Objects.requireNonNull(o);
-        try {
-            if (o instanceof String) {
-                return (String) o;
-            }
-            return getDataApiObjectMapper().writeValueAsString(o);
-        } catch (Exception e) {
-            throw new DataApiException(ERROR_CODE_SERIALIZATION, "Cannot marshall object " + o, e);
-        }
-    }
-
-    /**
-     * Jackson deserialization.
-     * @param bean
-     *      current beam
-     * @param clazz
-     *      target class
-     * @return
-     *      serialized
-     * @param <T>
-     *     current type
-     */
-    @SuppressWarnings("unchecked")
-    public static <T> T convertValue(Object bean, Class<T> clazz) {
-        if (bean == null) {
-            return null;
-        }
-        if (bean.getClass() == clazz) {
-            return (T) bean;
-        }
-        return  getDataApiObjectMapper().convertValue(bean, clazz);
-    }
-
-    /**
-     * Load body as expected object.
-     *
-     * @param <T>
-     *      parameter
-     * @param body
-     *      response body as String
-     * @param ref
-     *      type Reference to map the result
-     * @return
-     *       expected objects
-     */
-    public static <T> T unMarshallBean(String body, Class<T> ref) {
-        try {
-            return getDataApiObjectMapper().readValue(body, ref);
-        } catch (JsonProcessingException e) {
-            throw new DataApiException(ERROR_CODE_SERIALIZATION, "Cannot unmarshall object " + body, e);
-        }
+        return objectMapper;
     }
 }

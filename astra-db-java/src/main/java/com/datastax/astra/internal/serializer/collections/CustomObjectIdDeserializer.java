@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.utils;
+package com.datastax.astra.internal.serializer.collections;
 
 /*-
  * #%L
@@ -20,35 +20,33 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
+import com.datastax.astra.client.core.types.ObjectId;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
-import java.util.UUID;
 
 /**
  * Custom deserializer for EJson Date type.
  */
-public class CustomUuidDeserializer extends JsonDeserializer<UUID> {
+public class CustomObjectIdDeserializer extends JsonDeserializer<ObjectId> {
 
     /**
      * Default constructor.
      */
-    public CustomUuidDeserializer() {
+    public CustomObjectIdDeserializer() {
         // left blank, will be populated by jackson
     }
 
     /** {@inheritDoc} */
     @Override
-    public UUID deserialize(JsonParser jp, DeserializationContext ctxt)
+    public ObjectId deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        if (null == node.get("$uuid")) {
-            throw new IllegalArgumentException("Cannot convert the expression as an UUID " + node);
-        }
-        return UUID.fromString(node.get("$uuid").asText());
+        String hexString = node.get("$objectId").asText();
+        return new ObjectId(hexString);
     }
 
 }
