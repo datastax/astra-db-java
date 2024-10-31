@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout & Build
-        uses: ./.github/actions/build-with-maven
+        uses: ./.github/actions/checkout-and-build
 
   run_dev_tests:
     needs: BUILD
