@@ -1,0 +1,35 @@
+name: 'Checkout & Build with Java'
+description: 'Checkout code, set up JDK, and build with Maven'
+inputs:
+  java_distribution:
+    description: 'JDK distribution to use'
+    required: true
+    default: 'adopt'
+  java_version:
+    description: 'JDK version to use'
+    required: true
+    default: '11.0'
+  cache_pkg_mgr_name:
+    description: 'Cache package manager to be used'
+    required: true
+    default: 'maven'
+  skip_tests_on_build:
+    description: 'Skip tests during Maven build'
+    required: false
+    default: 'true'
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK ${{ inputs.java_version }}
+      uses: actions/setup-java@v4
+      with:
+        distribution: ${{ inputs.java_distribution }}
+        java-version: ${{ inputs.java_version }}
+        cache: ${{ inputs.cache_pkg_mgr_name}}
+
+    - name: Build with Maven
+      run: |
+        mvn install -Dmaven.test.skip=${{ inputs.skip_tests_on_build }}
