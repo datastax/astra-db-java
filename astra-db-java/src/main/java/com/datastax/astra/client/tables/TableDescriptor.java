@@ -20,8 +20,7 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
-import com.datastax.astra.internal.serializer.tables.RowSerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Getter;
 import lombok.Setter;
 

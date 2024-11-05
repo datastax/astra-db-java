@@ -21,26 +21,56 @@ package com.datastax.astra.client.tables;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.collections.commands.InsertManyOptions;
+import com.datastax.astra.client.collections.commands.InsertManyResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.tables.commands.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.commands.TableDeleteResult;
+import com.datastax.astra.client.tables.commands.TableFindOneOptions;
+import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
+import com.datastax.astra.client.tables.commands.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexOptions;
+import com.datastax.astra.client.tables.row.PrimaryKey;
+import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
-import com.datastax.astra.internal.serializer.tables.RowSerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
+import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
+import static com.datastax.astra.internal.utils.AnsiUtils.yellow;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -51,16 +81,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 public class Table<T>  extends AbstractCommandRunner {
 
     /** parameters names. */
-    private static final String ARG_DATABASE = "database";
-
-    /** parameters names. */
-    private static final String ARG_OPTIONS = "options";
-
-    /** parameters names. */
-    private static final String ARG_CLAZZ = "working class 'clazz'";
-
-    /** parameters names. */
-    private static final String ARG_TABLE_NAME = "collectionName";
+    private static final String ARG_TABLE_NAME = "tableName";
 
     /** parameters names. */
     private static final String ROW = "row";
@@ -91,7 +112,6 @@ public class Table<T>  extends AbstractCommandRunner {
 
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
-
 
     /**
      * Constructs an instance of a table within the specified database. This constructor
@@ -192,12 +212,13 @@ public class Table<T>  extends AbstractCommandRunner {
      *         and configuration options. This object provides a comprehensive view of the collection's settings
      *         and identity within the database.
      */
-    public TableDescriptor getDefinition() {
+    public TableDefinition getDefinition() {
         return database
                 .listTables()
                 .filter(col -> col.getName().equals(tableName))
                 .findFirst()
-                .orElseThrow(() -> new DataApiException("[TABLE_NOT_EXIST] - Table does not exist, " +
+                .map(TableDescriptor::getDefinition)
+                .orElseThrow(() -> new DataAPIException("[TABLE_NOT_EXIST] - Table does not exist, " +
                         "table name: '" + tableName + "'", "TABLE_NOT_EXIST", null));
     }
 
@@ -226,7 +247,7 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     // --------------------------
-    // ---       INDICES     ----
+    // ---       INDEX       ----
     // --------------------------
 
     /**
@@ -346,22 +367,206 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     // --------------------------
-    // ---   Insert*         ----
+    // ---   insertOne       ----
     // --------------------------
 
     public final TableInsertOneResult insertOne(T row) {
-        return insertOne(row, (TableInsertOneOptions) null);
+        Row targetRow;
+        if (row instanceof Row) {
+            targetRow = (Row) row;
+        } else {
+            // Mapping as a Row
+            targetRow = SERIALIZER.convertValue(row, Row.class);
+        }
+        return insertOneDelegate(targetRow, (TableInsertOneOptions) null);
     }
 
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
-        Assert.notNull(row, ROW);
+        notNull(row, ROW);
         Command insertOne = Command.create("insertOne").withDocument(row);
         return runCommand(insertOne, insertOneOptions).getStatus(TableInsertOneResult.class);
     }
 
+    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row) {
+        return CompletableFuture.supplyAsync(() -> insertOne(row));
+    }
+
+    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row, TableInsertOneOptions options) {
+        return CompletableFuture.supplyAsync(() -> insertOne(row, options));
+    }
+
+    private TableInsertOneResult insertOneDelegate(Row row, TableInsertOneOptions insertOneOptions) {
+        notNull(row, ROW);
+        Command insertOne = Command
+                .create("insertOne")
+                .withDocument(row);
+        TableInsertManyResult result = runCommand(insertOne, insertOneOptions).getStatus(TableInsertManyResult.class);
+        return new TableInsertOneResult(result.getInsertedIds().get(0), result.getPrimaryKeySchema());
+    }
+
     // --------------------------
-    // ---   FindOne*        ----
+    // ---   insertMany      ----
     // --------------------------
+
+    public TableInsertManyResult insertMany(List<? extends T> rows) {
+        return insertMany(rows, new TableInsertManyOptions());
+    }
+
+    public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions options) {
+        Assert.isTrue(rows != null && !rows.isEmpty(), "rows list cannot be null or empty");
+        Assert.notNull(options, "insertMany options cannot be null");
+        if (options.getConcurrency() > 1 && options.isOrdered()) {
+            throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
+        }
+        if (options.getChunkSize() > dataAPIOptions.getMaxDocumentsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
+        }
+        long start = System.currentTimeMillis();
+        ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+        List<Future<TableInsertManyResult>> futures = new ArrayList<>();
+        for (int i = 0; i < rows.size(); i += options.getChunkSize()) {
+            futures.add(executor.submit(getInsertManyResultCallable(rows, options, i)));
+        }
+        executor.shutdown();
+
+        // Grouping All Insert ids in the same list.
+        TableInsertManyResult finalResult = new TableInsertManyResult();
+        try {
+            for (Future<TableInsertManyResult> future : futures) {
+                finalResult.getInsertedIds().addAll(future.get().getInsertedIds());
+            }
+
+            if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
+                log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
+                        System.currentTimeMillis() - start);
+            } else {
+                throw new DataAPIException(ERROR_CODE_TIMEOUT, "Request did not complete withing ");
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            if (e.getCause() instanceof DataAPIException) {
+                throw (DataAPIException) e.getCause();
+            }
+            Thread.currentThread().interrupt();
+            throw new DataAPIException(ERROR_CODE_INTERRUPTED, "Thread was interrupted while waiting", e);
+        }
+        return finalResult;
+    }
+
+    @SafeVarargs
+    public final TableInsertManyResult insertMany(T... rows) {
+        return insertMany(Arrays.asList(rows), new TableInsertManyOptions());
+    }
+
+    public CompletableFuture<TableInsertManyResult > insertManyAsync(List<? extends T> rows) {
+        return CompletableFuture.supplyAsync(() -> insertMany(rows));
+    }
+
+    /**
+     * Execute a 1 for 1 call to the Data API.
+     *
+     * @param rows
+     *      list of rows to be inserted
+     * @param insertManyOptions
+     *      options for insert many (chunk size and insertion order).
+     * @param start
+     *      offset in global list
+     * @return
+     *      insert many result for a paged call
+     */
+    private Callable<TableInsertManyResult> getInsertManyResultCallable(List<? extends T> rows, TableInsertManyOptions insertManyOptions, int start) {
+        int end = Math.min(start + insertManyOptions.getChunkSize(), rows.size());
+        return () -> {
+            log.debug("Insert block (" + cyan("size={}") + ") in table {}", end - start, green(getTableName()));
+            Command insertMany = new Command("insertMany")
+                    .withDocuments(rows.subList(start, end))
+                    .withOptions(new Document().append(INPUT_ORDERED, insertManyOptions.isOrdered()));
+            return runCommand(insertMany, insertManyOptions).getStatus(TableInsertManyResult.class);
+        };
+    }
+
+    // --------------------------
+    // ---   findOne         ----
+    // --------------------------
+
+    public Optional<T> findOne(Filter filter) {
+        return findOne(filter, new TableFindOneOptions());
+    }
+
+    public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
+        notNull(findOneOptions, ARG_OPTIONS);
+        Command findOne = Command
+                .create("findOne")
+                .withFilter(filter)
+                .withSort(findOneOptions.getSort())
+                .withProjection(findOneOptions.getProjection())
+                .withOptions(new Document()
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity())
+                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
+                );
+
+        return Optional.ofNullable(
+                runCommand(findOne, findOneOptions)
+                        .getData().getDocument()
+                        .map(getRowClass()));
+    }
+
+    public Optional<T> findOne(TableFindOneOptions findOneOptions) {
+        return findOne(null, findOneOptions);
+    }
+
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter) {
+        return CompletableFuture.supplyAsync(() -> findOne(filter));
+    }
+
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter, TableFindOneOptions findOneOptions) {
+        return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
+    }
+
+    public Optional<T> findByPrimaryKey(PrimaryKey id) {
+        return findOne(Filters.eq(id));
+    }
+
+    // -------------------------
+    // ---   DeleteOne*     ----
+    // -------------------------
+
+    /**
+     * Removes at most one document from the collection that matches the given filter.
+     * If no documents match, the collection is not modified.
+     *
+     * @param filter
+     *      the query filter to apply the delete operation
+     * @return
+     *      the result of the remove one operation
+     *
+     */
+    public TableDeleteResult deleteOne(Filter filter) {
+        return deleteOne(filter, new TableDeleteOneOptions());
+    }
+
+    /**
+     * Removes at most one document from the collection that matches the given filter.
+     * If no documents match, the collection is not modified.
+     *
+     * @param filter
+     *      the query filter to apply the delete operation
+     * @param deleteOneOptions
+     *      the option to driver the deletes (here sort)
+     * @return
+     *      the result of the remove one operation
+     *
+     */
+    public TableDeleteResult deleteOne(Filter filter, TableDeleteOneOptions deleteOneOptions) {
+        Command deleteOne = Command
+                .create("deleteOne")
+                .withFilter(filter)
+                .withSort(deleteOneOptions.getSort());
+
+        ApiResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
+        int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
+        return new TableDeleteResult(deletedCount);
+    }
+
 
     // --------------------------
     // ---   Listeners       ----

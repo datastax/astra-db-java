@@ -56,13 +56,13 @@ import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
-import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -86,8 +86,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
-import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_INTERRUPTED;
-import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -130,57 +130,27 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 public class Collection<T> extends AbstractCommandRunner {
 
     /** parameters names. */
-    private static final String ARG_OPTIONS = "options";
+    protected static final String ARG_OPTIONS = "options";
     /** parameters names. */
-    private static final String ARG_FILTER = "filter";
+    protected static final String ARG_FILTER = "filter";
     /** parameters names. */
-    private static final String ARG_DATABASE = "database";
+    protected static final String ARG_DATABASE = "database";
     /** parameters names. */
-    private static final String ARG_CLAZZ = "working class 'clazz'";
+    protected static final String ARG_CLAZZ = "working class 'clazz'";
     /** parameters names. */
-    private static final String ARG_COLLECTION_NAME = "collectionName";
+    protected static final String ARG_COLLECTION_NAME = "collectionName";
     /** parameters names. */
-    private static final String ARG_EMBEDDINGS = "vector embeddings";
+    protected static final String ARG_EMBEDDINGS = "vector embeddings";
     /** parameters names. */
-    private static final String ARG_VECTORIZE = "expression to vectorize";
+    protected static final String ARG_VECTORIZE = "expression to vectorize";
     /** parameters names. */
-    private static final String ARG_UPDATE = "update";
+    protected static final String ARG_UPDATE = "update";
     /** parameters names. */
-    private static final String ARG_COMMANDS = "commands";
+    protected static final String ARG_COMMANDS = "commands";
     /** parameters names. */
-    private static final String DOCUMENT = "document";
+    protected static final String DOCUMENT = "document";
 
     // Json Outputs
-
-    /** parameters names. */
-    private static final String RESULT_INSERTED_IDS = "insertedIds";
-    /** parsing output json */
-    public static final String RESULT_DELETED_COUNT = "deletedCount";
-    /** parsing output json */
-    public static final String RESULT_MATCHED_COUNT = "matchedCount";
-    /** parsing output json */
-    public static final String RESULT_MODIFIED_COUNT = "modifiedCount";
-    /** parsing output json */
-    public static final String RESULT_UPSERTED_ID = "upsertedId";
-    /** parsing output json */
-    public static final String RESULT_MORE_DATA = "moreData";
-    /** parsing output json */
-    public static final String RESULT_COUNT = "count";
-
-    // Json Inputs
-
-    /** json inputs */
-    public static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
-    /** json inputs */
-    public static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
-    /** json inputs */
-    private static final String INPUT_UPSERT = "upsert";
-    /** json inputs */
-    private static final String INPUT_RETURN_DOCUMENT = "returnDocument";
-    /** json inputs */
-    private static final String INPUT_ORDERED = "ordered";
-    /** json inputs */
-    private static final String INPUT_PAGE_STATE = "pageState";
 
     /** Serializer for the Collections. */
     private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
@@ -319,7 +289,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .listCollections()
                 .filter(col -> col.getName().equals(collectionName))
                 .findFirst()
-                .orElseThrow(() -> new DataApiException("[COLLECTION_NOT_EXIST] - Collection does not exist, " +
+                .orElseThrow(() -> new DataAPIException("[COLLECTION_NOT_EXIST] - Collection does not exist, " +
                         "collection name: '" + collectionName + "'", "COLLECTION_NOT_EXIST", null));
     }
 
@@ -428,7 +398,6 @@ public class Collection<T> extends AbstractCommandRunner {
         return insertOne(document, (InsertOneOptions) null);
     }
 
-
     /**
      * Inserts a single document into the collection as an atomic operation, ensuring that the
      * document is added in a single, indivisible step.
@@ -536,260 +505,6 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final CompletableFuture<InsertOneResult> insertOneAsync(T document, InsertOneOptions options) {
         return CompletableFuture.supplyAsync(() -> insertOne(document, options));
-    }
-
-    /**
-     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(Object)}
-     * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
-     * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
-     * of the insertion, maintaining the integrity and consistency of the collection.
-     *
-     * <p><b>Note:</b> Like the base {@code insertOne} method, if the {@code _id} field is explicitly provided and matches
-     * an existing document's {@code _id} in the collection, the insertion will fail with an error. If the {@code _id} field
-     * is not provided, it will be automatically generated by the server, ensuring the document's uniqueness within the
-     * collection. This variant of the method allows for the explicit addition of a "$vector" property to the document,
-     * storing the provided embeddings.</p>
-     *
-     * <p>The embeddings should be a float array representing the vector to be associated with the document. This vector
-     * can be utilized by the database for operations that require vector space computations. An array containing only
-     * zero is not valid as it would lead to computation error with division by zero.</p>
-     *
-     * @param document   The document to be inserted. This can include or omit the {@code _id} field. If omitted,
-     *                   an {@code _id} will be automatically generated.
-     * @param embeddings The vector embeddings to be associated with the document, expressed as an array of floats.
-     *                   This array populates the "$vector" property of the document, enabling vector-based operations.
-     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
-     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Document without an explicit _id and embeddings for vector-based operations
-     * Document newDocument = new Document().append("name", "Jane Doe").append("age", 25);
-     * float[] embeddings = new float[]{0.12f, 0.34f, 0.56f, 0.78f};
-     * InsertOneResult result = collection.insertOne(newDocument, embeddings);
-     * System.out.println("Inserted document id: " + result.getInsertedId());
-     * }
-     * </pre>
-     */
-    public final InsertOneResult insertOne(T document, float[] embeddings) {
-        return insertOne(document, embeddings, null);
-    }
-
-    /**
-     * Inserts a single document into the collection in an atomic operation, similar to the {@link #insertOne(Object)}
-     * method, but with the additional capability to include vector embeddings. These embeddings are typically used for
-     * advanced querying capabilities, such as similarity search or machine learning models. This method ensures atomicity
-     * of the insertion, maintaining the integrity and consistency of the collection.
-     *
-     * <p><b>Note:</b> Like the base {@code insertOne} method, if the {@code _id} field is explicitly provided and matches
-     * an existing document's {@code _id} in the collection, the insertion will fail with an error. If the {@code _id} field
-     * is not provided, it will be automatically generated by the server, ensuring the document's uniqueness within the
-     * collection. This variant of the method allows for the explicit addition of a "$vector" property to the document,
-     * storing the provided embeddings.</p>
-     *
-     * <p>The embeddings should be a float array representing the vector to be associated with the document. This vector
-     * can be utilized by the database for operations that require vector space computations. An array containing only
-     * zero is not valid as it would lead to computation error with division by zero.</p>
-     *
-     * @param document   The document to be inserted. This can include or omit the {@code _id} field. If omitted,
-     *                   an {@code _id} will be automatically generated.
-     * @param embeddings The vector embeddings to be associated with the document, expressed as an array of floats.
-     *                   This array populates the "$vector" property of the document, enabling vector-based operations.
-     * @param options
-     *                   the options to apply to the insert operation. If left blank the default collection
-     *                   options will be used. If collection option is blank DataAPIOptions will be used.
-     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
-     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Document without an explicit _id and embeddings for vector-based operations
-     * Document newDocument = new Document().append("name", "Jane Doe").append("age", 25);
-     * float[] embeddings = new float[]{0.12f, 0.34f, 0.56f, 0.78f};
-     * InsertOneResult result = collection.insertOne(newDocument, embeddings);
-     * System.out.println("Inserted document id: " + result.getInsertedId());
-     * }
-     * </pre>
-     */
-    public final InsertOneResult insertOne(T document, float[] embeddings,  InsertOneOptions options) {
-        Assert.notNull(document, DOCUMENT);
-        Assert.notNull(embeddings, ARG_EMBEDDINGS);
-        return internalInsertOne(SERIALIZER.convertValue(document, Document.class).vector(embeddings), options);
-    }
-
-    /**
-     * Asynchronously inserts a single document into the collection with vector embeddings. This method mirrors the
-     * functionality of {@link #insertOne(Object,float[])}, operating asynchronously to return a
-     * {@link CompletableFuture} that completes with the insertion result. It is designed for use cases where
-     * non-blocking operations are essential, enabling other processes to continue while the document insertion
-     * is executed in the background.
-     *
-     * <p>This method provides a convenient way to insert documents along with their associated vector embeddings
-     * without halting the execution of your application, making it particularly suitable for applications that
-     * require high levels of responsiveness or for operations where immediate confirmation of completion is not
-     * critical.</p>
-     *
-     * <p>For a comprehensive understanding of the behavior, parameters, including the purpose and use of vector
-     * embeddings, refer to the synchronous {@link #insertOne(Object,float[] embeddings)} method. This
-     * asynchronous variant adopts all the behaviors and properties of its synchronous counterpart.</p>
-     *
-     * @param document   The document to be inserted, potentially without an {@code _id} field which, if omitted,
-     *                   will be automatically generated.
-     * @param embeddings The vector embeddings associated with the document, intended to be used for advanced
-     *                   database operations such as similarity search.
-     * @return A {@link CompletableFuture} that, upon completion, contains the result of the insert operation as an
-     *         {@link InsertOneResult}. This future may be completed with a successful result or an exception in
-     *         case of insertion failure.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Asynchronously inserting a document with embeddings
-     * Document newDocument = new Document().append("title", "Async Insert with Embeddings").append("content", "Content for embeddings");
-     * float[] embeddings = {0.1f, 0.2f, 0.3f};
-     * CompletableFuture<InsertOneResult> futureResult = collection.insertOneAsync(newDocument, embeddings);
-     * futureResult.thenAccept(result -> System.out.println("Inserted document id: " + result.getInsertedId()))
-     *              .exceptionally(error -> { System.err.println("Insertion failed: " + error.getMessage()); return null; });
-     * }
-     * </pre>
-     */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, float[] embeddings) {
-        return CompletableFuture.supplyAsync(() -> insertOne(document, embeddings));
-    }
-
-    /**
-     * Inserts a single document into the collection in an atomic operation, extending the base functionality of
-     * the {@link #insertOne(Object)} method by adding the capability to compute and include a vector of embeddings
-     * directly within the document. This is achieved through a specified expression, which the service translates
-     * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
-     * vector similarity.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-     *
-     * <p><b>Note:</b> As with the base {@code insertOne} method, providing an {@code _id} field that matches an existing
-     * document's {@code _id} in the collection will cause the insertion to fail with an error. If the {@code _id} field
-     * is not present, it will be automatically generated, ensuring the document's uniqueness. This method variant
-     * introduces the ability to automatically compute embeddings based on the provided {@code vectorize} string,
-     * populating the "$vectorize" property of the document for later use in vector-based operations.</p>
-     *
-     * <p>The {@code vectorize} parameter should be a string that conveys meaningful information about the document,
-     * which will be converted into a vector representation by the database's embedding service. This functionality
-     * is especially useful for enabling semantic searches or clustering documents based on their content similarity.</p>
-     *
-     * @param document  The document to be inserted. It can optionally include the {@code _id} field. If omitted,
-     *            an {@code _id} will be automatically generated.
-     * @param vectorize The expression to be translated into a vector of embeddings. This string is processed by
-     *            the service to generate vector embeddings that are stored in the document under the "$vectorize"
-     *            property.
-     * @param options
-     *            the options to apply to the insert operation. If left blank the default collection
-     *            options will be used. If collection option is blank DataAPIOptions will be used.
-     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
-     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Document without an explicit _id and a string to be vectorized
-     * Document newDocument = new Document().append("title", "How to Use Vectorization");
-     * String vectorizeExpression = "This is a guide on vectorization.";
-     * InsertOneResult result = collection.insertOne(newDocument, vectorizeExpression);
-     * System.out.println("Inserted document id: " + result.getInsertedId());
-     * }
-     * </pre>
-     */
-    public final InsertOneResult insertOne(T document, String vectorize, InsertOneOptions options) {
-        Assert.notNull(document, DOCUMENT);
-        Assert.hasLength(vectorize, ARG_VECTORIZE);
-        return internalInsertOne(SERIALIZER.convertValue(document, Document.class).vectorize(vectorize), options);
-    }
-
-    /**
-     * Inserts a single document into the collection in an atomic operation, extending the base functionality of
-     * the {@link #insertOne(Object)} method by adding the capability to compute and include a vector of embeddings
-     * directly within the document. This is achieved through a specified expression, which the service translates
-     * into vector embeddings. These embeddings can then be utilized for advanced database operations that leverage
-     * vector similarity.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-     *
-     * <p><b>Note:</b> As with the base {@code insertOne} method, providing an {@code _id} field that matches an existing
-     * document's {@code _id} in the collection will cause the insertion to fail with an error. If the {@code _id} field
-     * is not present, it will be automatically generated, ensuring the document's uniqueness. This method variant
-     * introduces the ability to automatically compute embeddings based on the provided {@code vectorize} string,
-     * populating the "$vectorize" property of the document for later use in vector-based operations.</p>
-     *
-     * <p>The {@code vectorize} parameter should be a string that conveys meaningful information about the document,
-     * which will be converted into a vector representation by the database's embedding service. This functionality
-     * is especially useful for enabling semantic searches or clustering documents based on their content similarity.</p>
-     *
-     * @param document  The document to be inserted. It can optionally include the {@code _id} field. If omitted,
-     *                  an {@code _id} will be automatically generated.
-     * @param vectorize The expression to be translated into a vector of embeddings. This string is processed by
-     *                  the service to generate vector embeddings that are stored in the document under the "$vectorize"
-     *                  property.
-     *
-     * @return An {@code InsertOneResult} object that contains information about the result of the insertion, including
-     *         the {@code _id} of the newly inserted document, whether it was explicitly provided or generated.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Document without an explicit _id and a string to be vectorized
-     * Document newDocument = new Document().append("title", "How to Use Vectorization");
-     * String vectorizeExpression = "This is a guide on vectorization.";
-     * InsertOneResult result = collection.insertOne(newDocument, vectorizeExpression);
-     * System.out.println("Inserted document id: " + result.getInsertedId());
-     * }
-     * </pre>
-     */
-    public final InsertOneResult insertOne(T document, String vectorize) {
-        Assert.notNull(document, DOCUMENT);
-        Assert.hasLength(vectorize, ARG_VECTORIZE);
-        return insertOne(document, vectorize, null);
-    }
-
-    /**
-     * Asynchronously inserts a single document into the collection with a vectorization expression. This method
-     * provides an asynchronous counterpart to {@link #insertOne(Object,String)}, allowing for
-     * non-blocking operations while a document, along with its vectorization based on the provided string, is
-     * inserted into the collection.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-     *
-     * <p>Utilizing this method facilitates the insertion of documents in scenarios where application responsiveness
-     * is crucial. It allows the application to continue with other tasks while the document insertion, including
-     * its vectorization, is processed in the background. This is particularly useful for operations that can
-     * benefit from parallel execution or when the insertion time is not critical to the application's flow.</p>
-     *
-     * <p>For detailed information on the behavior and parameters, especially the purpose and processing of the
-     * {@code vectorize} string, refer to the documentation of the synchronous
-     * {@link #insertOne(Object,String)} method. This asynchronous method inherits all functionalities
-     * and behaviors from its synchronous counterpart, ensuring consistency across the API.</p>
-     *
-     * @param document  The document to be inserted into the collection. The requirements and options regarding the
-     *                  {@code _id} field and the document structure are identical to those described in the synchronous
-     *                  version.
-     * @param vectorize The string expression that will be used to compute the vector embeddings. This parameter enables
-     *                  the automatic generation of embeddings to be associated with the document, enhancing its
-     *                  usefulness for vector-based operations within the database.
-     * @return A {@link CompletableFuture} that, when completed, provides the {@link InsertOneResult} indicating the
-     *         outcome of the insert operation. The future may complete normally with the insertion result or exceptionally
-     *         in case of an error.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Asynchronously inserting a document with a vectorization expression
-     * Document newDocument = new Document().append("title", "Async Insert with Vectorization").append("description", "Description for vectorization");
-     * String vectorizationExpression = "Description for vectorization";
-     * CompletableFuture<InsertOneResult> futureResult = collection.insertOneAsync(newDocument, vectorizationExpression);
-     * futureResult.thenAccept(result -> System.out.println("Inserted document id: " + result.getInsertedId()))
-     *              .exceptionally(error -> { System.err.println("Insertion failed: " + error.getMessage()); return null; });
-     * }
-     * </pre>
-     */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, String vectorize) {
-        return CompletableFuture.supplyAsync(() -> insertOne(document, vectorize));
     }
 
     /**
@@ -939,14 +654,14 @@ public class Collection<T> extends AbstractCommandRunner {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
-                throw new DataApiException(ERROR_CODE_TIMEOUT, "Request did not complete withing ");
+                throw new DataAPIException(ERROR_CODE_TIMEOUT, "Request did not complete withing ");
             }
         } catch (InterruptedException | ExecutionException e) {
-            if (e.getCause() instanceof DataApiException) {
-                throw (DataApiException) e.getCause();
+            if (e.getCause() instanceof DataAPIException) {
+                throw (DataAPIException) e.getCause();
             }
             Thread.currentThread().interrupt();
-            throw new DataApiException(ERROR_CODE_INTERRUPTED, "Thread was interrupted while waiting", e);
+            throw new DataAPIException(ERROR_CODE_INTERRUPTED, "Thread was interrupted while waiting", e);
         }
         return finalResult;
     }

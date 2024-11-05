@@ -7,7 +7,7 @@ import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.AuthenticationException;
-import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.http.HttpProxy;
@@ -63,7 +63,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
             //getDatabase().registerListener("demo", new MockCommandObserver());
             getDatabase().runCommand(new Command("invalid", new Document()));
             //getDatabase().deleteListener("demo");
-        } catch(DataApiResponseException dat) {
+        } catch(DataAPIResponseException dat) {
             assertThat(dat.getMessage()).contains("No \"invalid\" command found ");
             assertThat(dat.getApiErrors()).isNotEmpty();
             assertThat(dat.getCommandsList()).isNotEmpty();

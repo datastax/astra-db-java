@@ -21,9 +21,9 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NonNull;
@@ -47,6 +47,7 @@ public class ApiResponse implements Serializable {
     /**
      * The {@link DataAPISerializer} instance used to serialize and deserialize data objects.
      */
+    @JsonIgnore
     private DataAPISerializer serializer;
 
     /**

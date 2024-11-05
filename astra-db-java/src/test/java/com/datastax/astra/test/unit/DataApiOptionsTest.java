@@ -26,7 +26,7 @@ import com.datastax.astra.client.core.query.FilterOperator;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.query.Sorts;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.net.http.HttpClient;

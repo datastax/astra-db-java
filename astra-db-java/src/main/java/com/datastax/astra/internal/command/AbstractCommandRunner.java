@@ -20,14 +20,14 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.CompletableFutures;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
@@ -62,6 +62,47 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT
 @Slf4j
 @Getter
 public abstract class AbstractCommandRunner implements CommandRunner {
+
+    // --- Arguments ---
+
+    /** parameters names. */
+    protected static final String ARG_DATABASE = "database";
+    /** parameters names. */
+    protected static final String ARG_OPTIONS = "options";
+    /** parameters names. */
+    protected static final String ARG_CLAZZ = "working class 'clazz'";
+
+    // --- Read Outputs ---
+
+    /** parameters names. */
+    protected static final String RESULT_INSERTED_IDS = "insertedIds";
+    /** parsing output json */
+    protected static final String RESULT_DELETED_COUNT = "deletedCount";
+    /** parsing output json */
+    protected static final String RESULT_MATCHED_COUNT = "matchedCount";
+    /** parsing output json */
+    protected static final String RESULT_MODIFIED_COUNT = "modifiedCount";
+    /** parsing output json */
+    protected static final String RESULT_UPSERTED_ID = "upsertedId";
+    /** parsing output json */
+    protected static final String RESULT_MORE_DATA = "moreData";
+    /** parsing output json */
+    protected static final String RESULT_COUNT = "count";
+
+    // --- Build Requests --
+
+    /** json inputs */
+    protected static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
+    /** json inputs */
+    protected static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
+    /** json inputs */
+    protected static final String INPUT_UPSERT = "upsert";
+    /** json inputs */
+    protected static final String INPUT_RETURN_DOCUMENT = "returnDocument";
+    /** json inputs */
+    protected static final String INPUT_ORDERED = "ordered";
+    /** json inputs */
+    protected static final String INPUT_PAGE_STATE = "pageState";
 
     /** Http client reused when properties not override. */
     protected RetryHttpClient httpClient;
@@ -178,7 +219,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             executionInfo.withApiResponse(apiResponse);
             // Encapsulate Errors
             if (apiResponse.getErrors() != null) {
-                throw new DataApiResponseException(Collections.singletonList(executionInfo.build()));
+                throw new DataAPIResponseException(Collections.singletonList(executionInfo.build()));
             }
             // Trace All Warnings
             if (apiResponse.getStatus()!= null && apiResponse.getStatus().containsKey("warnings")) {

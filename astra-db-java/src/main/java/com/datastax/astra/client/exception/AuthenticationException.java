@@ -41,7 +41,7 @@ package com.datastax.astra.client.exception;
  *
  * @author Cedrick LUNVEN (@clunven)
  */
-public class AuthenticationException extends DataApiException {
+public class AuthenticationException extends DataAPIException {
     
     /** Serial. */
     private static final long serialVersionUID = -4491748257797687008L;

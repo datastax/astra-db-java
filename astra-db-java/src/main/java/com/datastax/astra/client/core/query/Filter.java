@@ -22,12 +22,10 @@ package com.datastax.astra.client.core.query;
 
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Filter Builder.
@@ -42,6 +40,12 @@ public class Filter extends Document {
         super();
     }
 
+    public Filter(Map<String, Object> conditions) {
+        super();
+        if (conditions != null) {
+            documentMap.putAll(conditions);
+        }
+    }
     /**
      * Create a filter from a where clause.
      *

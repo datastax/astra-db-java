@@ -1,7 +1,7 @@
 package dev.langchain4j.store.embedding.astradb;
 
+import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.CollectionOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.langchain4j.Assistant;
 import com.datastax.astra.langchain4j.AstraDBTestSupport;

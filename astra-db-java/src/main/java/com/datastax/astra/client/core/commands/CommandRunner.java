@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.internal.api.ApiResponse;
 
 /**
@@ -37,7 +37,7 @@ public interface CommandRunner {
      *
      * @param command
      *     command to execute
-     * @throws DataApiResponseException
+     * @throws DataAPIResponseException
      *     if the returned object contains error response is encapsulated in a DataApiResponseException.
      * @return
      *     result as a document map
@@ -53,13 +53,13 @@ public interface CommandRunner {
      *     command to execute
      * @param options
      *      options when running the command
-     * @throws DataApiResponseException
+     * @throws DataAPIResponseException
      *     if the returned object contains error response is encapsulated in a DataApiResponseException.
      * @return
      *     result as a document map
      */
     ApiResponse runCommand(Command command, CommandOptions<?> options)
-    throws DataApiResponseException;
+    throws DataAPIResponseException;
 
     /**
      * Extension point to run any command with typing constraints.
@@ -67,7 +67,7 @@ public interface CommandRunner {
      *      command as a json Payload
      * @param documentClass
      *      document class to use for marshalling
-     * @throws DataApiResponseException
+     * @throws DataAPIResponseException
      *     if the returned object contains error response is encapsulated in a DataApiResponseException.
      * @return
      *      instance of expecting type.
@@ -86,7 +86,7 @@ public interface CommandRunner {
      *      document class to use for marshalling
      * @param options
      *      options when running the command
-     * @throws DataApiResponseException
+     * @throws DataAPIResponseException
      *     if the returned object contains error response is encapsulated in a DataApiResponseException.
      * @return
      *      instance of expecting type.
@@ -94,5 +94,5 @@ public interface CommandRunner {
      *      document type to use
      */
     <T> T runCommand(Command command, CommandOptions<?> options, Class<T> documentClass)
-    throws DataApiResponseException;
+    throws DataAPIResponseException;
 }

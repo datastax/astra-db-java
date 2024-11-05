@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.types;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataAPIException;
 import lombok.Getter;
 
 import java.io.InvalidObjectException;
@@ -31,7 +31,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_RANDOM;
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_RANDOM;
 import static com.datastax.astra.internal.utils.Assert.isTrue;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -313,7 +313,7 @@ public final class ObjectId implements Comparable<ObjectId>, Serializable {
             RANDOM_VALUE1 = secureRandom.nextInt(0x01000000);
             RANDOM_VALUE2 = (short) secureRandom.nextInt(0x00008000);
         } catch (Exception e) {
-            throw new DataApiException(ERROR_CODE_RANDOM, "Cannot initialize ObjectId class", e);
+            throw new DataAPIException(ERROR_CODE_RANDOM, "Cannot initialize ObjectId class", e);
         }
     }
 

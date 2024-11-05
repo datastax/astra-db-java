@@ -3,7 +3,7 @@ package com.datastax.astra.test.integration.local;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataApiResponseException;
+import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
@@ -125,7 +125,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         try {
             InsertManyResult res = getCollectionSimple().insertMany(players,
                     new InsertManyOptions().ordered(true));
-        } catch (DataApiResponseException res) {
+        } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
             List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);
@@ -135,7 +135,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         try {
             getCollectionSimple().deleteAll();
             InsertManyResult res = getCollectionSimple().insertMany(players, new InsertManyOptions().ordered(false));
-        } catch (DataApiResponseException res) {
+        } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
             List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);
@@ -146,7 +146,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
             getCollectionSimple().deleteAll();
             InsertManyResult res = getCollectionSimple().insertMany(players,
                     new InsertManyOptions().ordered(false).timeout(10000).chunkSize(10).concurrency(1));
-        } catch (DataApiResponseException res) {
+        } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
             List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);

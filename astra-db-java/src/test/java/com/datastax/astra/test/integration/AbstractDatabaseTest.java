@@ -7,7 +7,7 @@ import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
@@ -166,10 +166,10 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(collection).isNotNull();
         assertThat(getDatabase().collectionExists("invalid")).isFalse();
         assertThatThrownBy(collection::getOptions)
-                .isInstanceOf(DataApiException.class)
+                .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
         assertThatThrownBy(collection::getOptions)
-                .isInstanceOf(DataApiException.class)
+                .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST")
                 .extracting("errorCode")  // Extract the errorCode attribute
                 .isEqualTo("COLLECTION_NOT_EXIST");  // Replace EXPECTED_ERROR_CODE with the expected error code
@@ -183,7 +183,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(invalid).isNotNull();
         final Document doc = new Document().append("hello", "world");
         assertThatThrownBy(() -> invalid.insertOne(doc))
-                .isInstanceOf(DataApiException.class)
+                .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
     }
 

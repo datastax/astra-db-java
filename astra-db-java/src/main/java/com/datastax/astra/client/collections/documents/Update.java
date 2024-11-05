@@ -20,8 +20,6 @@ package com.datastax.astra.client.collections.documents;
  * #L%
  */
 
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;

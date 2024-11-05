@@ -20,7 +20,7 @@ package com.datastax.astra.client.keyspaces;
  * #L%
  */
 
-import com.datastax.astra.internal.serializer.tables.RowSerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Getter;
 import lombok.Setter;
 

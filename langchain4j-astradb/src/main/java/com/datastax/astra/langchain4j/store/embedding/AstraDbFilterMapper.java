@@ -20,7 +20,6 @@ package com.datastax.astra.langchain4j.store.embedding;
  * #L%
  */
 
-import com.datastax.astra.client.core.Filter;
 import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
 import dev.langchain4j.store.embedding.filter.comparison.IsGreaterThan;
 import dev.langchain4j.store.embedding.filter.comparison.IsGreaterThanOrEqualTo;
@@ -32,25 +31,25 @@ import dev.langchain4j.store.embedding.filter.comparison.IsNotIn;
 import dev.langchain4j.store.embedding.filter.logical.And;
 import dev.langchain4j.store.embedding.filter.logical.Not;
 import dev.langchain4j.store.embedding.filter.logical.Or;
-
+import com.datastax.astra.client.core.query.Filter;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
-import static com.datastax.astra.client.core.Filters.and;
-import static com.datastax.astra.client.core.Filters.eq;
-import static com.datastax.astra.client.core.Filters.gt;
-import static com.datastax.astra.client.core.Filters.gte;
-import static com.datastax.astra.client.core.Filters.in;
-import static com.datastax.astra.client.core.Filters.lt;
-import static com.datastax.astra.client.core.Filters.lte;
-import static com.datastax.astra.client.core.Filters.ne;
-import static com.datastax.astra.client.core.Filters.nin;
-import static com.datastax.astra.client.core.Filters.not;
-import static com.datastax.astra.client.core.Filters.or;
+import static com.datastax.astra.client.core.query.Filters.and;
+import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.gt;
+import static com.datastax.astra.client.core.query.Filters.gte;
+import static com.datastax.astra.client.core.query.Filters.in;
+import static com.datastax.astra.client.core.query.Filters.lt;
+import static com.datastax.astra.client.core.query.Filters.lte;
+import static com.datastax.astra.client.core.query.Filters.ne;
+import static com.datastax.astra.client.core.query.Filters.nin;
+import static com.datastax.astra.client.core.query.Filters.not;
+import static com.datastax.astra.client.core.query.Filters.or;
 
 /**
- * This class is responsible for mapping {@link Filter} objects into AstraDB filter expressions.
+ * This class is responsible for mapping {@link com.datastax.astra.client.core.query.Filter} objects into AstraDB filter expressions.
  */
 class AstraDbFilterMapper {
 

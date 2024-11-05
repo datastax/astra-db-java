@@ -21,13 +21,12 @@ package com.datastax.astra.langchain4j.store.embedding;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.core.DataAPIKeywords;
-import com.datastax.astra.client.core.Document;
-import com.datastax.astra.client.core.Filter;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.core.Projections;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -46,8 +45,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.datastax.astra.client.core.Filters.eq;
-import static com.datastax.astra.client.core.Filters.in;
+import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.in;
+
 
 /**
  * Implementation of {@link EmbeddingStore} using AstraDB.

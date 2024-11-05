@@ -38,8 +38,8 @@ package com.datastax.astra.client.collections.documents;
 
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 

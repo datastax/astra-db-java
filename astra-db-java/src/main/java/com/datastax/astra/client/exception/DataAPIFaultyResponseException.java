@@ -25,7 +25,7 @@ import com.datastax.astra.internal.api.ApiResponse;
 import lombok.Getter;
 
 /**
- * Represents a specific kind of {@link DataApiException} that is thrown when the response
+ * Represents a specific kind of {@link DataAPIException} that is thrown when the response
  * received from the Data API does not match the expected format or content. This exception
  * is typically thrown in situations where the API response is either malformed, incomplete,
  * or contains an error code indicating a failure that needs to be addressed by the client application.
@@ -51,10 +51,10 @@ import lombok.Getter;
  * }
  * </pre>
  *
- * @see DataApiException
+ * @see DataAPIException
  */
 @Getter
-public class DataAPIFaultyResponseException extends DataApiException {
+public class DataAPIFaultyResponseException extends DataAPIException {
 
     /** Command which triggered the error. */
     private final Command command;

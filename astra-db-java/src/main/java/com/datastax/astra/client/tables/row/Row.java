@@ -22,14 +22,24 @@ package com.datastax.astra.client.tables.row;
 
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
-import com.datastax.astra.internal.serializer.tables.RowSerializer;
+import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.tables.TableDuration;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.Period;
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -46,11 +56,10 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
  */
 public class Row implements Map<String, Object>, Serializable {
 
+    /** Serializer for the Rows. */
     private static final DataAPISerializer SERIALIZER = new RowSerializer();
 
-    /**
-     * Data to be used in the document.
-     */
+    /** Data to be used in the document. */
     @JsonUnwrapped
     public transient Map<String, Object> columnMap;
 
@@ -116,39 +125,94 @@ public class Row implements Map<String, Object>, Serializable {
      * @param value value
      * @return this
      */
-    public Row set(final String key, final Object value) {
+    public Row add(final String key, final Object value) {
         hasLength(key, "Key must not be null or empty");
         columnMap.put(key, value);
         return this;
     }
-    public Row add(final String key, final Object value) {
-        return set(key, value);
-    }
     public Row addText(final String key, final String value) {
         return add(key, value);
     }
+    public Row addAscii(final String key, final String value) {
+        return addText(key, value);
+    }
+
+    // Integers
+
+    public Row addVarInt(final String key, final BigInteger value) {
+        return add(key, value);
+    }
     public Row addBigInt(final String key, final Long value) {
+        return add(key, value);
+    }
+    public Row addInt(final String key, final Integer value) {
+        return add(key, value);
+    }
+    public Row addSmallInt(final String key, final Short value) {
+        return add(key, value);
+    }
+    public Row addTinyInt(final String key, final Byte value) {
         return add(key, value);
     }
     public Row addBoolean(final String key, final Boolean value) {
         return add(key, value);
     }
     public Row addBlob(final String key, final byte[] value) {
-        return set(key, value);
-    }
-    public Row addInt(final String key, final Integer value) {
-        return set(key, value);
+        return add(key, value);
     }
     public Row addFloat(final String key, final Float value) {
-        return set(key, value);
+        return add(key, value);
+    }
+    public Row addDecimal(String pDecimal, BigDecimal big) {
+        return add(pDecimal, big);
     }
     public Row addDouble(final String key, final Double value) {
-        return set(key, value);
+        return add(key, value);
     }
     public Row addDate(final String key, final Date value) {
-        return set(key, value);
+        return add(key, value);
+    }
+    public Row addDate(final String key, final LocalDate localDate) {
+        if (localDate == null) {
+            return add(key, null);
+        }
+        return addDate(key, Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
 
+
+    public Row addInet(final String key, final InetAddress value) {
+        return add(key, value);
+    }
+    public Row addDuration(final String key, final Duration value) {
+        return add(key, TableDuration.of(Period.ZERO, value));
+    }
+    public Row addDuration(final String key, final Period period, final Duration duration) {
+        return add(key, TableDuration.of(period, duration));
+    }
+    public Row addDuration(final String key, final Period period) {
+        return add(key, TableDuration.of(period, Duration.ZERO));
+    }
+    public Row addTableDuration(final String key, final TableDuration value) {
+        return add(key, value);
+    }
+    public Row addUUID(final String key, final UUID value) {
+        return add(key, value);
+    }
+    public Row addTimeStamp(String key, Instant instant) {
+        return add(key, instant);
+    }
+    public Row addTime(String key, LocalTime ltime) {
+        return add(key, ltime);
+    }
+    public Row addVector(String key, DataAPIVector<?> vector) {
+        return add(key, vector);
+    }
+    public <T> Row addList(String key, List<T> list) {
+        return add(key, list);
+    }
+    public <T> Row addSet(String key, Set<T> set) {
+        return add(key, set);
+    }
 
     /**
      * Gets the value of the given key, casting it to the given {@code Class<T>}.  This is useful to avoid having casts in client code,
@@ -177,21 +241,6 @@ public class Row implements Map<String, Object>, Serializable {
     }
 
     /**
-     * Gets the value of the given key as a Long.
-     *
-     * @param key the key
-     * @return the value as a long, which may be null
-     * @throws ClassCastException if the value is not a long
-     */
-    public Long getLong(final String key) {
-        Object o = get(key);
-        if (o instanceof Integer) {
-            return ((Integer) o).longValue();
-        }
-        return (Long) get(key);
-    }
-
-    /**
      * Gets the value of the given key as a Double.
      *
      * @param key the key
@@ -209,8 +258,15 @@ public class Row implements Map<String, Object>, Serializable {
      * @return the value as a String, which may be null
      * @throws ClassCastException if the value is not a String
      */
-    public String getString(final String key) {
+    public String getAscii(final String key) {
         return (String) get(key);
+    }
+    public String getText(final String key) {
+        return (String) get(key);
+    }
+    public Long getBigInt(final String key) {
+        System.out.println(get(key));
+        return Long.parseLong(String.valueOf(get(key)));
     }
 
     /**
@@ -512,6 +568,7 @@ public class Row implements Map<String, Object>, Serializable {
     public int hashCode() {
         return columnMap.hashCode();
     }
+
 
 
 }

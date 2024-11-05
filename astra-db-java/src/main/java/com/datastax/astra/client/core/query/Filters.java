@@ -416,6 +416,27 @@ public class Filters {
     }
 
     /**
+     * Creates a filter that performs a logical AND of the provided list of filters.
+     *
+     * <blockquote><pre>
+     *    and(eq("x", 1), lt("y", 3))
+     * </pre></blockquote>
+     *
+     * will generate a MongoDB query like:
+     * <blockquote><pre>
+     *    { $and: [{x : 1}, {y : {$lt : 3}}]}
+     * </pre></blockquote>
+     *
+     * @param filters the list of filters to and together
+     * @return the filter
+     */
+    public static Filter eq(final Iterable<Filter> filters) {
+        Filter andFilter = new Filter();
+        andFilter.documentMap.put("$and", filters);
+        return andFilter;
+    }
+
+    /**
      * Creates a filter that performs a logical OR of the provided list of filters.
      *
      * <blockquote><pre>

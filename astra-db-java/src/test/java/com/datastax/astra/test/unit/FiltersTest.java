@@ -6,7 +6,7 @@ import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.query.Projections;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;

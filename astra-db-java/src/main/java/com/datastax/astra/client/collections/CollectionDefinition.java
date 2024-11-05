@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import lombok.Getter;
 import lombok.Setter;
 

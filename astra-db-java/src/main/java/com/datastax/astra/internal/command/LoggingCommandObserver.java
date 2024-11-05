@@ -23,7 +23,6 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.internal.api.ApiData;
 import com.datastax.astra.internal.api.ApiError;
 import com.datastax.astra.internal.utils.AnsiUtils;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -83,6 +82,7 @@ public class LoggingCommandObserver implements CommandObserver {
         if (executionInfo != null) {
             String req = UUID.randomUUID().toString().substring(30);
             // Log Command
+
             log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
             log(AnsiUtils.magenta("[" + req + "][url]") + "=" +
                     AnsiUtils.yellow("{}"), executionInfo.getRequestUrl());

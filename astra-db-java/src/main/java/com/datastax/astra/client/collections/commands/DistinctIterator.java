@@ -22,7 +22,7 @@ package com.datastax.astra.client.collections.commands;
 
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.paging.PageableIterable;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;

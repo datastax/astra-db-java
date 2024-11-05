@@ -22,7 +22,7 @@ package com.datastax.astra.internal.http;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.exception.AuthenticationException;
-import com.datastax.astra.client.exception.DataApiException;
+import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.internal.api.ApiResponseHttp;
@@ -48,7 +48,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.exception.DataApiException.ERROR_CODE_HTTP;
+import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_HTTP;
 
 /**
  * Http Client using JDK11 client with a retry mechanism.
@@ -310,7 +310,7 @@ public class RetryHttpClient {
                 if (res.getCode() == HttpURLConnection.HTTP_UNAVAILABLE) {
                     throw new IllegalStateException(res.getBody() + " (http:" + res.getCode() + ")");
                 }
-                throw new DataApiException(ERROR_CODE_HTTP, res.getBody() + " (http:" + res.getCode() + ")");
+                throw new DataAPIException(ERROR_CODE_HTTP, res.getBody() + " (http:" + res.getCode() + ")");
         }
     }
 

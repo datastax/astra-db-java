@@ -23,7 +23,7 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.internal.api.ApiResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 

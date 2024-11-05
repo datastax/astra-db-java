@@ -33,16 +33,16 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.mapping.Table;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.TableDescriptor;
 import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.serializer.DataAPISerializer;
-import com.datastax.astra.internal.serializer.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +67,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 public class Database extends AbstractCommandRunner {
 
     /** Serializer for the Collections. */
-    private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
+    private static final DatabaseSerializer SERIALIZER = new DatabaseSerializer();
 
     /** Token to be used with the Database. */
     @Getter
@@ -495,7 +495,7 @@ public class Database extends AbstractCommandRunner {
      * @throws IllegalArgumentException
      *      if collectionName is invalid
      */
-    public Table<Row> getTable(String tableName) {
+    public com.datastax.astra.client.tables.Table<Row> getTable(String tableName) {
         return getTable(tableName, Row.class);
     }
 
@@ -511,13 +511,13 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      the collection
      */
-    public <T> Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
+    public <T> com.datastax.astra.client.tables.Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
         return getTable(tableName, this.commandOptions, rowClass);
     }
 
-    public <T> Table<T> getTable(@NonNull Class<T> rowClass) {
-        com.datastax.astra.client.tables.mapping.Table ann = rowClass
-                .getAnnotation(com.datastax.astra.client.tables.mapping.Table.class);
+    public <T> com.datastax.astra.client.tables.Table<T> getTable(@NonNull Class<T> rowClass) {
+        Table ann = rowClass
+                .getAnnotation(Table.class);
         if (ann == null) {
                     throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
         }
@@ -540,10 +540,10 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      the table
      */
-    public <T> Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
+    public <T> com.datastax.astra.client.tables.Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        return new Table<>(this, tableName, commandOptions, rowClass);
+        return new com.datastax.astra.client.tables.Table<>(this, tableName, commandOptions, rowClass);
     }
 
     /**
@@ -554,7 +554,7 @@ public class Database extends AbstractCommandRunner {
      * @param tableDefinition
      *      table definition
      */
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
+    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
         return createTable(tableName, tableDefinition, null, commandOptions, Row.class);
     }
 
@@ -568,11 +568,11 @@ public class Database extends AbstractCommandRunner {
      * @param options
      *      collection options
      */
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions options) {
+    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions options) {
         return createTable(tableName, tableDefinition, options, commandOptions, Row.class);
     }
 
-    public <T> Table<T> createTable(Class<T> clazz) {
+    public <T> com.datastax.astra.client.tables.Table<T> createTable(Class<T> clazz) {
        return null;
     }
 
@@ -592,7 +592,7 @@ public class Database extends AbstractCommandRunner {
      * @param <T>
      *      working object for the document
      */
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions options,  Class<T> documentClass) {
+    public <T> com.datastax.astra.client.tables.Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions options, Class<T> documentClass) {
         return createTable(tableName, tableDefinition, options, commandOptions, documentClass);
     }
 
@@ -609,7 +609,7 @@ public class Database extends AbstractCommandRunner {
      *      options to use when using this collection
      * @return the collection
      */
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
+    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
         return createTable(tableName, tableDefinition, tableOptions, commandOptions, Row.class);
     }
 
@@ -630,7 +630,7 @@ public class Database extends AbstractCommandRunner {
      *          working class for the document
      * @return the collection
      */
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
+    public <T> com.datastax.astra.client.tables.Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
