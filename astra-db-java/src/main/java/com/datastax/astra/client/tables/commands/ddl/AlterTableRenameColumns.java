@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -20,22 +20,10 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+public class AlterTableRenameColumns implements AlterTableOperation{
 
-@Getter @Setter
-@Accessors(fluent = true)
-public class ColumnDefinitionSet extends ColumnDefinition {
-
-    private ColumnTypes valueType;
-
-    public ColumnDefinitionSet() {
-        super(ColumnTypes.SET);
-    }
-
-    public ColumnDefinitionSet(ColumnTypes valueType) {
-        this();
-        this.valueType = valueType;
+    @Override
+    public String getOperationName() {
+        return "rename";
     }
 }

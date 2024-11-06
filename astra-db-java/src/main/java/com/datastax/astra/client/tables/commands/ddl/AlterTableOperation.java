@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.mapping;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -20,17 +20,13 @@ package com.datastax.astra.client.tables.mapping;
  * #L%
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Table {
+public interface AlterTableOperation {
 
-    /**
-     * Table Name, if not provided the class name will be used
-     */
-    String value() default "";
+    @JsonIgnore
+    String getOperationName();
+
 }

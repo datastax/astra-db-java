@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables.mapping;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 
 import java.lang.annotation.ElementType;
@@ -34,10 +35,28 @@ public @interface Column {
     /**
      * Column Name, if not provided the field name will be used
      */
-    String name() default "";
+    String value();
 
     /**
-     * Making the Type "Unsupported" will enforce to use the type() attribute
+     * Column Type, if not provided the field type will be used
      */
-    ColumnTypes type() default ColumnTypes.UNSUPPORTED;
+    ColumnTypes type() default ColumnTypes.UNDEFINED;
+
+    /**
+     * Column Type, if not provided the field type will be used
+     */
+    ColumnTypes valueType() default ColumnTypes.UNDEFINED;
+
+    /**
+     * Column Type, if not provided the field type will be used
+     */
+    ColumnTypes keyType() default ColumnTypes.UNDEFINED;
+
+    /**
+     * Column Type, if not provided the field type will be used
+     */
+    int dimension() default -1;
+
+    /** Similarity metric */
+    SimilarityMetric metric() default SimilarityMetric.COSINE;
 }

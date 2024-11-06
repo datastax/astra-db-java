@@ -25,10 +25,12 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
+import java.util.HashMap;
 import java.util.Map;
 
-@Data @NoArgsConstructor
+@Getter @Setter
 public class VectorServiceOptions {
 
     /** LLM provider. */
@@ -43,11 +45,38 @@ public class VectorServiceOptions {
     /** Free form parameters. */
     private Map<String, Object> parameters;
 
+    public VectorServiceOptions addAuthentication(String key, Object value) {
+        if (authentication == null) {
+            authentication = new HashMap<>();
+        }
+        authentication.put(key, value);
+        return this;
+    }
+
+    public VectorServiceOptions authentication(Map<String, Object> auth) {
+        this.authentication = auth;
+        return this;
+    }
+
+    public VectorServiceOptions modelName(String modelName) {
+        this.modelName = modelName;
+        return this;
+    }
+
+    public VectorServiceOptions provider(String provider) {
+        this.provider = provider;
+        return this;
+    }
+
+    public VectorServiceOptions parameters(Map<String, Object> parameters) {
+        this.parameters = parameters;
+        return this;
+    }
+
     /**
      * Subclass representing a parameters for LLM Services
      */
-    @Getter
-    @Setter
+    @Getter @Setter
     public static class Parameters {
 
         /** Type for the parameters. */
@@ -66,6 +95,26 @@ public class VectorServiceOptions {
         /** Default constructor. */
         public Parameters() {
             // left blank, serialization with jackson
+        }
+
+        public Parameters defaultValue(Object defaultValue) {
+            this.defaultValue = defaultValue;
+            return this;
+        }
+
+        public Parameters type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public Parameters help(String help) {
+            this.help = help;
+            return this;
+        }
+
+        public Parameters required(boolean required) {
+            this.required = required;
+            return this;
         }
     }
 }

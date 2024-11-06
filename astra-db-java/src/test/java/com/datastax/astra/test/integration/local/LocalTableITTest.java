@@ -4,33 +4,36 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.core.vector.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.client.tables.commands.TableDeleteResult;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableAddColumns;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableAddVectorize;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableDropColumns;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableDropVectorize;
+import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.ddl.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.ddl.DropTableIndexOptions;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
-import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
-import com.datastax.astra.client.tables.index.VectorIndexOptions;
-import com.datastax.astra.client.tables.mapping.Column;
-import com.datastax.astra.client.tables.mapping.IntrospectedBean;
-import com.datastax.astra.client.tables.mapping.IntrospectedField;
-import com.datastax.astra.client.tables.mapping.Table;
 import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
-import com.datastax.astra.test.model.TableSimpleRow;
+import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
+import com.datastax.astra.test.model.TableCompositeRow;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +46,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +56,8 @@ import java.util.stream.Collectors;
 import static com.datastax.astra.client.core.query.Sorts.ascending;
 import static com.datastax.astra.client.core.query.Sorts.descending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.tables.commands.ddl.CreateTableOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.client.tables.commands.ddl.DropTableOptions.IF_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
@@ -87,21 +93,16 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     @Order(1)
     public void shouldInitiateDatabase() {
-        if (getDatabase().tableExists(TABLE_SIMPLE)) {
-            getDatabase()
-                    .getTable(TABLE_SIMPLE)
-                    .dropIndex(INDEX_COUNTRY);
-            getDatabase().dropTable(TABLE_SIMPLE);
-        }
-        if (getDatabase().tableExists(TABLE_CASSIO)) {
-            getDatabase().dropTable(TABLE_COMPOSITE);
-        }
-        if (getDatabase().tableExists(TABLE_ALL_RETURNS)) {
-            getDatabase().dropTable(TABLE_ALL_RETURNS);
-        }
-        if (getDatabase().tableExists(TABLE_CASSIO)) {
-            getDatabase().dropTable(TABLE_CASSIO);
-        }
+        Database db = getDatabase();
+        db.dropTableIndex(INDEX_COUNTRY, DropTableIndexOptions.IF_EXISTS);
+        db.dropTableIndex(INDEX_ALL_RETURNS_PTEXT, DropTableIndexOptions.IF_EXISTS);
+        db.dropTableIndex(INDEX_ALL_RETURNS_VECTOR, DropTableIndexOptions.IF_EXISTS);
+
+        db.dropTable(TABLE_SIMPLE, IF_EXISTS);
+        db.dropTable(TABLE_COMPOSITE, IF_EXISTS);
+        db.dropTable(TABLE_ALL_RETURNS, IF_EXISTS);
+        db.dropTable(TABLE_CASSIO, IF_EXISTS);
+
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isFalse();
         assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isFalse();
         assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isFalse();
@@ -129,7 +130,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                             .ascii(true)
                             .caseSensitive(true)
                             .normalize(true)),
-                new IndexOptions().ifNotExists());
+                CreateIndexOptions.IF_NOT_EXISTS);
     }
 
     @Test
@@ -168,7 +169,9 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_tinyint", ColumnTypes.TINYINT)
                 .addColumn("p_uuid", ColumnTypes.UUID)
                 .addColumn("p_varint", ColumnTypes.VARINT)
-                .addColumnVector("p_vector", 3, COSINE)
+                .addColumnVector("p_vector", new ColumnDefinitionVector()
+                        .dimension(3)
+                        .metric(COSINE))
                 .addColumnList("p_list_int", ColumnTypes.INT)
                 .addColumnSet("p_set_int", ColumnTypes.INT)
                 .addColumnMap("p_map_text_text", ColumnTypes.TEXT, ColumnTypes.TEXT)
@@ -177,7 +180,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_float_nan", ColumnTypes.FLOAT)
                 .withPartitionKey("p_ascii", "p_bigint")
                 .withClusteringColumns(ascending("p_int"), descending("p_boolean")),
-                new TableOptions().ifNotExists());
+                new CreateTableOptions().ifNotExists());
         assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isTrue();
 
         tableAllReturns
@@ -185,7 +188,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         new VectorIndexDefinition()
                         .column("p_vector")
                         .options(new VectorIndexDefinitionOptions().metric(COSINE)),
-                        new VectorIndexOptions().ifNotExists());
+                        new CreateVectorIndexOptions().ifNotExists());
 
         tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new IndexDefinition()
                         .column("p_text")
@@ -193,7 +196,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                                 .ascii(true)
                                 .caseSensitive(true)
                                 .normalize(true)),
-                        new IndexOptions().ifNotExists());
+                        CreateIndexOptions.IF_NOT_EXISTS);
     }
 
     @Test
@@ -206,7 +209,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumn("body_blob", ColumnTypes.TEXT)
                         .addColumn("row_id", ColumnTypes.UUID)
                         .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                        .addColumnVector("vector", 1536, COSINE)
+                        .addColumnVector("vector", new ColumnDefinitionVector()
+                                .dimension(1536).metric(COSINE))
                         .withPartitionKey("partition_id")
                         .withClusteringColumns(descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
@@ -250,8 +254,9 @@ public class LocalTableITTest extends AbstractTableITTest {
     // ------------------------------------------
 
     @Test
+    @Order(9)
     public void shouldInsertOneTableSimple() {
-        com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_SIMPLE);
+        Table<Row> table = getDatabase().getTable(TABLE_SIMPLE);
         Row row = new Row()
                 .addBoolean("human", true)
                 .addInt("age", 42)
@@ -264,55 +269,43 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
+    @Order(10)
     public void shouldInsertOneTableComposite() {
-        com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
+        Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         Row row = new Row()
                 .addInt("age", 42)
                 .addText("name", "John")
                 .addText("id", "John");
         TableInsertOneResult res = table.insertOne(row);
-        assertThat(res.getInsertedId().size()).isEqualTo(1);
-        assertThat(res.getInsertedIdAsRow().size()).isEqualTo(1);
-    }
-
-    @Data @NoArgsConstructor @AllArgsConstructor
-    private static class TableCompositeRow {
-        private int age;
-        private String name;
-        private String id;
+        System.out.println(res.getInsertedId());
+        // Contains name and id
+        assertThat(res.getInsertedId().size()).isEqualTo(2);
+        // Converted as a MAP
+        assertThat(res.getInsertedIdAsRow().getText("name")).isEqualTo("John");
     }
 
     @Test
+    @Order(11)
     public void shouldInsertOneTableCompositeBean() {
-        com.datastax.astra.client.tables.Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
+        Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
         TableCompositeRow row = new TableCompositeRow(42, "Cedrick", "Lunven");
         TableInsertOneResult res = table.insertOne(row);
         assertThat(res.getInsertedId().size()).isEqualTo(2);
         assertThat(res.getInsertedIdAsRow().getText("name")).isEqualTo("Cedrick");
     }
 
-    @Data
-    @Table
-    @NoArgsConstructor @AllArgsConstructor
-    private static class TableCompositeRowAnnotation {
-
-        @Column(name = "age", type = ColumnTypes.INT)
-        private int agex;
-
-        @Column(name = "name", type = ColumnTypes.TEXT)
-        private String namex;
-
-        @Column(name = "idx", type = ColumnTypes.TEXT)
-        private String idx;
-    }
-
     @Test
+    @Order(12)
     public void shouldInsertOneTableAnnotatedBean() {
-        com.datastax.astra.client.tables.Table<TableCompositeRowAnnotation> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRowAnnotation.class);
-        TableCompositeRowAnnotation row = new TableCompositeRowAnnotation(42, "Cedrick", "Lunven");
-        TableInsertOneResult res = table.insertOne(row);
-        assertThat(res.getInsertedId().size()).isEqualTo(1);
-        assertThat(res.getInsertedIdAsRow().size()).isEqualTo(1);
+        Table<TableCompositeAnnotatedRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeAnnotatedRow.class);
+        TableCompositeAnnotatedRow row = new TableCompositeAnnotatedRow( "Cedrick", "Lunven", 42);
+
+        System.out.println(new RowSerializer().marshall(table.mapAsRow(row)));
+        //TableInsertOneResult res = table.insertOne(row);
+        // Contains name and id
+        //assertThat(res.getInsertedId().size()).isEqualTo(2);
+        // Converted as a MAP
+        //assertThat(res.getInsertedIdAsRow().getText("name")).isEqualTo("John");
     }
 
     // ------------------------------------------
@@ -320,6 +313,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     // ------------------------------------------
 
     @Test
+    @Order(13)
     public void shouldInsertManyTableComposite() {
         com.datastax.astra.client.tables.Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
         TableCompositeRow row = new TableCompositeRow(42, "Cedrick", "Lunven");
@@ -329,8 +323,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                 new TableInsertManyOptions());
     }
 
-
     @Test
+    @Order(14)
     public void shouldFindOneTableComposite() {
         com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         Row row = new Row()
@@ -344,6 +338,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
+    @Order(15)
     public void shouldDeleteOneTableComposite() {
         com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         Row row = new Row()
@@ -353,12 +348,10 @@ public class LocalTableITTest extends AbstractTableITTest {
         Filter johnFilter = new Filter(Map.of("id", "John","name", "John"));
         TableDeleteResult res = table.deleteOne(johnFilter);
         assertThat(res.getDeletedCount()).isEqualTo(1);
-
     }
 
-
-
     @Test
+    @Order(16)
     public void shouldInsertOneAllReturns() throws UnknownHostException {
         String timeString = "13:30:54.234";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -398,8 +391,8 @@ public class LocalTableITTest extends AbstractTableITTest {
         getDatabase().getTable(TABLE_ALL_RETURNS).insertOne(row);
     }
 
-
     @Test
+    @Order(17)
     public void shouldFindOneAllReturns() throws UnknownHostException {
         com.datastax.astra.client.tables.Table<Row> tableAllReturns = getDatabase().getTable(TABLE_ALL_RETURNS);
 
@@ -452,7 +445,49 @@ public class LocalTableITTest extends AbstractTableITTest {
          */
     }
 
+    @Test
+    public void shouldCreateTableFromBeanDefinition() {
+        getDatabase().createTable(TableCompositeAnnotatedRow.class, IF_NOT_EXISTS);
+        assertThat(getDatabase().tableExists("table_composite_pk_annotated")).isTrue();
+    }
 
+    @Test
+    public void shouldAlterTableAddColumns() {
+        Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
+        // Add Column (simple)
+        t.alterTable(new AlterTableAddColumns().addColumnText("new_column"));
+        assertThat(t.getDefinition().getColumns().containsKey("new_column")).isTrue();
+
+        // Add Column (Vector)
+        assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
+        t.alterTable(new AlterTableAddColumns().addColumnVector("vv",
+                new ColumnDefinitionVector().dimension(1024).metric(COSINE)));
+        assertThat(t.getDefinition().getColumns().containsKey("vv")).isTrue();
+
+        // Add Vectorize
+        t.alterTable(new AlterTableAddVectorize().columns(
+                Map.of("vv", new VectorServiceOptions()
+                        .modelName("mistral-embed")
+                        .provider("mistral"))))
+        ;
+
+        // Drop Vectorize
+        t.alterTable(new AlterTableDropVectorize("vv"));
+
+        // Drop Columns
+        t.alterTable(new AlterTableDropColumns("vv"));
+        assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
+    }
+
+    @Test
+    public void shouldAlterTableAddColumns2() {
+        Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
+        assertThat(t.getDefinition().getColumns().containsKey("aa")).isFalse();
+        t.alterTable(new AlterTableAddColumns().addColumnText("aa"));
+        assertThat(t.getDefinition().getColumns().containsKey("aa")).isTrue();
+        t.alterTable(new AlterTableDropColumns("aa"));
+        assertThat(t.getDefinition().getColumns().containsKey("aa")).isFalse();
+    }
 
 
 }

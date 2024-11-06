@@ -28,5 +28,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PartitionBy {
-    int value() default 0;
+    int value();
 }

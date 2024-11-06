@@ -31,7 +31,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PartitionSort {
 
-    int position() default 0;
+    int position();
 
     SortOrder order() default SortOrder.ASCENDING;
 

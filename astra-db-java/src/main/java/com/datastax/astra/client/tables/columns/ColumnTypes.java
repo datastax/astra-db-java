@@ -49,6 +49,7 @@ public enum ColumnTypes {
     VARINT("varint"),
     UUID("uuid"),
     UNSUPPORTED("UNSUPPORTED"),
+    UNDEFINED("undefined"),
     VECTOR("vector");
 
     @Getter

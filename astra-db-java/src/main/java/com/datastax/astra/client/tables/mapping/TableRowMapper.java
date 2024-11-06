@@ -28,12 +28,12 @@ public class TableRowMapper<T> {
 
     public TableRowMapper(Class<T> clazz) {
         this.beanClass = clazz;
-        if (beanClass.getAnnotation(Table.class) == null) {
+        if (beanClass.getAnnotation(EntityTable.class) == null) {
             throw new IllegalArgumentException("Class " + beanClass.getName() + " is not annotated with @Table");
         }
-        IntrospectedBean<T> rowDecorator = new IntrospectedBean<>(beanClass);
+        EntityBeanDefinition<T> rowDecorator = new EntityBeanDefinition<>(beanClass);
         System.out.println("Table Name: " + rowDecorator.getName());
-        for (IntrospectedField field : rowDecorator.getFields().values()) {
+        for (EntityFieldDefinition field : rowDecorator.getFields().values()) {
             System.out.println("Field: " + field.getName() + ", Type: " + field.getType().getName());
         }
     }

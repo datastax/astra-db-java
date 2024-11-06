@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.mapping;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -20,31 +20,25 @@ package com.datastax.astra.client.tables.mapping;
  * #L%
  */
 
-import com.datastax.astra.client.core.query.SortOrder;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.lang.reflect.Method;
+/**
+ * Set of options used when creating a table
+ */
+@Data @NoArgsConstructor
+public class CreateTableOptions {
 
-@Data
-public class IntrospectedField {
+    /** Improve syntax. */
+    public static final CreateTableOptions IF_NOT_EXISTS = new CreateTableOptions().ifNotExists();
 
-    private String name;
+    /**
+     * Condition to upsert the table.
+     */
+    boolean ifNotExists = true;
 
-    private Class<?> type;
-
-    private Method getter;
-
-    private Method setter;
-
-    // @Column
-    private String      columnName;
-    private ColumnTypes columnType;
-
-    // @PartitionBy
-    private Integer     partitionByPosition;
-
-    // @PartitionSort
-    private Integer     partitionSortPosition;
-    private SortOrder   partitionSortOrder;
+    public CreateTableOptions ifNotExists() {
+        this.ifNotExists = true;
+        return this;
+    }
 }

@@ -20,20 +20,20 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+@Getter @Setter
+@NoArgsConstructor
 public class ColumnDefinition {
 
     private ColumnTypes type;
 
     private ColumnDefinitionApiSupport apiSupport;
 
-    public ColumnDefinition() {}
-
     public ColumnDefinition(ColumnTypes type) {
         this.type = type;
     }
-
 
 }

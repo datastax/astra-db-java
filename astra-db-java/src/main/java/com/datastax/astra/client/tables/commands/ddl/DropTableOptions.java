@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -20,22 +20,25 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter @Setter
-@Accessors(fluent = true)
-public class ColumnDefinitionSet extends ColumnDefinition {
+@Data
+@NoArgsConstructor
+public class DropTableOptions {
 
-    private ColumnTypes valueType;
+    /** Improve syntax. */
+    public static final DropTableOptions IF_EXISTS = new DropTableOptions().ifExists();
 
-    public ColumnDefinitionSet() {
-        super(ColumnTypes.SET);
+    /**
+     * Condition to upsert the table.
+     */
+    boolean ifExists = true;
+
+    public DropTableOptions ifExists() {
+        this.ifExists = true;
+        return this;
     }
 
-    public ColumnDefinitionSet(ColumnTypes valueType) {
-        this();
-        this.valueType = valueType;
-    }
+
 }

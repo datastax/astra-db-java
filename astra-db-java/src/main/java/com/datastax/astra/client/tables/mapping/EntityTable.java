@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.index;
+package com.datastax.astra.client.tables.mapping;
 
 /*-
  * #%L
@@ -20,22 +20,17 @@ package com.datastax.astra.client.tables.index;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * Set of options used when creating a table
- */
-@Data @NoArgsConstructor
-public class VectorIndexOptions {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface EntityTable {
 
     /**
-     * Condition to upsert the table.
+     * Table Name, if not provided the class name will be used
      */
-    boolean ifNotExists = true;
-
-    public VectorIndexOptions ifNotExists() {
-        this.ifNotExists = true;
-        return this;
-    }
+    String value() default "";
 }

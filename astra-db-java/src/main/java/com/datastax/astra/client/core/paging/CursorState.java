@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables;
+package com.datastax.astra.client.core.paging;
 
 /*-
  * #%L
@@ -20,22 +20,8 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-/**
- * Set of options used when creating a table
- */
-@Data @NoArgsConstructor
-public class TableOptions {
-
-    /**
-     * Condition to upsert the table.
-     */
-    boolean ifNotExists = true;
-
-    public TableOptions ifNotExists() {
-        this.ifNotExists = true;
-        return this;
-    }
+public enum CursorState {
+    IDLE,
+    STARTED,
+    CLOSED
 }

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -20,22 +20,25 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Getter @Setter
-@Accessors(fluent = true)
-public class ColumnDefinitionSet extends ColumnDefinition {
+/**
+ * Set of options used when creating a table
+ */
+@Data @NoArgsConstructor
+public class CreateVectorIndexOptions {
 
-    private ColumnTypes valueType;
+    /** Improve syntax. */
+    public static final CreateVectorIndexOptions IF_NOT_EXISTS = new CreateVectorIndexOptions().ifNotExists();
 
-    public ColumnDefinitionSet() {
-        super(ColumnTypes.SET);
-    }
+    /**
+     * Condition to upsert the table.
+     */
+    boolean ifNotExists = true;
 
-    public ColumnDefinitionSet(ColumnTypes valueType) {
-        this();
-        this.valueType = valueType;
+    public CreateVectorIndexOptions ifNotExists() {
+        this.ifNotExists = true;
+        return this;
     }
 }

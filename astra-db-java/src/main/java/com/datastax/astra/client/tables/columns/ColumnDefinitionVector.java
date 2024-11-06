@@ -20,18 +20,27 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorServiceOptions;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-@Data
+@Getter @Setter
 public class ColumnDefinitionVector extends ColumnDefinition {
 
+    /**
+     * Vector dimension.
+     */
     private Integer dimension;
 
     /**
      * Similarity metric.
      */
-    private String metric;
+    private SimilarityMetric metric;
 
     /**
      * Service for vectorization
@@ -41,5 +50,22 @@ public class ColumnDefinitionVector extends ColumnDefinition {
     public ColumnDefinitionVector() {
         super(ColumnTypes.VECTOR);
     }
+
+    public ColumnDefinitionVector dimension(int dimension) {
+        this.dimension = dimension;
+        return this;
+    }
+
+    public ColumnDefinitionVector metric(SimilarityMetric m) {
+        this.metric = m;
+        return this;
+    }
+
+    public ColumnDefinitionVector service(VectorServiceOptions service) {
+        this.service = service;
+        return this;
+    }
+
+
 
 }

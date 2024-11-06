@@ -37,11 +37,13 @@ package com.datastax.astra.internal.serdes.tables;
  */
 
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.TableDuration;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.internal.serdes.Base64FloatVectorSerializer;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DataAPIVectorSerializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.StreamWriteFeature;
@@ -100,6 +102,7 @@ public class RowSerializer implements DataAPISerializer {
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
@@ -114,6 +117,7 @@ public class RowSerializer implements DataAPISerializer {
             module.addSerializer(Duration.class, new DurationSerializer());
             module.addSerializer(TableDuration.class, new TableDurationSerializer());
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
+            module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
              //.addDeserializer(float[].class, new Base64FloatVectorDeserializer())
             module.addSerializer(float[].class, new Base64FloatVectorSerializer());
 
@@ -125,6 +129,7 @@ public class RowSerializer implements DataAPISerializer {
             module.addDeserializer(double.class, new DoubleDeserializer());
             module.addDeserializer(byte[].class, new ByteArrayDeserializer());
             module.addDeserializer(Duration.class, new DurationDeserializer());
+            module.addDeserializer(SimilarityMetric.class, new SimilarityMetricDeserializer());
             objectMapper.registerModule(module);
 
             // Java 8 Time

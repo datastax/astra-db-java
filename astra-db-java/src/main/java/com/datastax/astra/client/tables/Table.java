@@ -21,9 +21,6 @@ package com.datastax.astra.client.tables;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
@@ -38,10 +35,14 @@ import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableOperation;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableOptions;
+import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.ddl.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.index.IndexDefinition;
-import com.datastax.astra.client.tables.index.IndexOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
-import com.datastax.astra.client.tables.index.VectorIndexOptions;
+import com.datastax.astra.client.tables.mapping.EntityTable;
+import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
 import com.datastax.astra.client.tables.row.PrimaryKey;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.internal.api.ApiResponse;
@@ -50,9 +51,11 @@ import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -272,7 +275,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param options
      *      index options
      */
-    public void createIndex(String idxName, IndexDefinition idxDefinition, IndexOptions options) {
+    public void createIndex(String idxName, IndexDefinition idxDefinition, CreateIndexOptions options) {
         createIndex(idxName, idxDefinition, options, commandOptions);
     }
 
@@ -288,7 +291,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param cmd
      *      override the default command options
      */
-    public void createIndex(String idxName, IndexDefinition idxDefinition, IndexOptions idxOptions, CommandOptions<?> cmd) {
+    public void createIndex(String idxName, IndexDefinition idxDefinition, CreateIndexOptions idxOptions, CommandOptions<?> cmd) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -324,7 +327,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param options
      *      index options
      */
-    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, VectorIndexOptions options) {
+    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, CreateVectorIndexOptions options) {
         createVectorIndex(idxName, idxDefinition, options, commandOptions);
     }
 
@@ -340,7 +343,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param cmd
      *      override the default command options
      */
-    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, VectorIndexOptions idxOptions, CommandOptions<?> cmd) {
+    public void createVectorIndex(String idxName, VectorIndexDefinition idxDefinition, CreateVectorIndexOptions idxOptions, CommandOptions<?> cmd) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -354,16 +357,18 @@ public class Table<T>  extends AbstractCommandRunner {
         log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
-    /**
-     * Delete an index by name.
-     *
-     * @param indexName
-     *      index name
-     */
-    public void dropIndex(String indexName) {
-        Command dropIndexCommand = Command.create("dropIndex").append("indexName", indexName);
-        runCommand(dropIndexCommand, commandOptions);
-        log.info("Index  '" + green("{}") + "' has been dropped", indexName);
+    public final void alterTable(AlterTableOperation operation) {
+        alterTable(operation, null);
+    }
+
+    public final void alterTable(AlterTableOperation operation, AlterTableOptions options) {
+        notNull(operation, "operation");
+        Command alterTable = Command.create("alterTable")
+                .append("operation", new Document().append(operation.getOperationName(), operation));
+        if (options != null) {
+            alterTable.append("options", options);
+        }
+        runCommand(alterTable, commandOptions);
     }
 
     // --------------------------
@@ -371,14 +376,7 @@ public class Table<T>  extends AbstractCommandRunner {
     // --------------------------
 
     public final TableInsertOneResult insertOne(T row) {
-        Row targetRow;
-        if (row instanceof Row) {
-            targetRow = (Row) row;
-        } else {
-            // Mapping as a Row
-            targetRow = SERIALIZER.convertValue(row, Row.class);
-        }
-        return insertOneDelegate(targetRow, (TableInsertOneOptions) null);
+        return insertOneDelegate(mapAsRow(row), (TableInsertOneOptions) null);
     }
 
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
@@ -567,6 +565,44 @@ public class Table<T>  extends AbstractCommandRunner {
         return new TableDeleteResult(deletedCount);
     }
 
+    // --------------------------
+    // ---   Utilities       ----
+    // --------------------------
+
+    /**
+     * Map any object as a Row
+     *
+     * @param input
+     *      input object
+     * @return
+     *      a row
+     */
+    public Row mapAsRow(T input) {
+        if (input == null || input instanceof Row) {
+            return (Row) input;
+        }
+        EntityTable annTable = input.getClass().getAnnotation(EntityTable.class);
+        // Custom Serialization with annotations
+        if (annTable != null) {
+            if (Utils.hasLength(annTable.value()) && !annTable.value().equals(tableName)) {
+                throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + annTable.value() + "'");
+            }
+            EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
+            Row row = new Row();
+            bean.getFields().forEach((name, field) -> {
+                try {
+                    row.put(field.getColumnName(), field.getGetter().invoke(input));
+                } catch (IllegalAccessException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            return row;
+        } else {
+            // Defaults mapping as a Row
+            return SERIALIZER.convertValue(input, Row.class);
+        }
+    }
+
 
     // --------------------------
     // ---   Listeners       ----
@@ -593,5 +629,7 @@ public class Table<T>  extends AbstractCommandRunner {
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }
+
+
 
 }

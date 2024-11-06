@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.index;
+package com.datastax.astra.client.tables.commands.ddl;
 
 /*-
  * #%L
@@ -23,19 +23,22 @@ package com.datastax.astra.client.tables.index;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Set of options used when creating a table
- */
-@Data @NoArgsConstructor
-public class IndexOptions {
+@Data
+@NoArgsConstructor
+public class AlterTableOptions {
+
+    /** Improve syntax. */
+    public static final AlterTableOptions IF_EXISTS = new AlterTableOptions().ifExists();
 
     /**
      * Condition to upsert the table.
      */
-    boolean ifNotExists = true;
+    boolean ifExists = true;
 
-    public IndexOptions ifNotExists() {
-        this.ifNotExists = true;
+    public AlterTableOptions ifExists() {
+        this.ifExists = true;
         return this;
     }
+
+
 }

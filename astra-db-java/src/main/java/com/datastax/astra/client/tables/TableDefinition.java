@@ -81,23 +81,7 @@ public class TableDefinition {
         return this;
     }
 
-    public TableDefinition addColumnVector(String name, Integer dimension) {
-        return addColumnVector(name, dimension, null, null);
-    }
-
-    public TableDefinition addColumnVector(String name, Integer dimension, SimilarityMetric metric) {
-        return addColumnVector(name, dimension, metric, null);
-    }
-
-    public TableDefinition addColumnVector(String name, Integer dimension, SimilarityMetric metric, VectorServiceOptions service) {
-        ColumnDefinitionVector colDefVector = new ColumnDefinitionVector();
-        colDefVector.setDimension(dimension);
-        if (metric != null) {
-            colDefVector.setMetric(metric.getValue());
-        }
-        if (service != null) {
-            colDefVector.setService(service);
-        }
+    public TableDefinition addColumnVector(String name, ColumnDefinitionVector colDefVector) {
         columns.put(name,colDefVector);
         return this;
     }

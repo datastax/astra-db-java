@@ -278,12 +278,11 @@ public class CollectionOptions {
          */
         public CollectionOptionsBuilder vectorize(String provider, String modeName, String sharedSecretKey) {
             VectorServiceOptions embeddingService = new VectorServiceOptions();
-            embeddingService.setProvider(provider);
-            embeddingService.setModelName(modeName);
+            embeddingService.provider(provider).modelName(modeName);
             if (sharedSecretKey != null) {
                 // --> Since 1.3.1 the suffix is not needed anymore
                 //embeddingService.setAuthentication(Map.of("providerKey", keyName + ".providerKey"));
-                embeddingService.setAuthentication(Map.of("providerKey", sharedSecretKey));
+                embeddingService.authentication(Map.of("providerKey", sharedSecretKey));
                 // <--- Since 1.3.1 the suffix is not needed anymore
             }
             getVector().setService(embeddingService);
@@ -306,7 +305,7 @@ public class CollectionOptions {
          */
         public CollectionOptionsBuilder vectorize(String provider, String modeName, String sharedSecretKey, Map<String, Object> parameters) {
             vectorize(provider, modeName, sharedSecretKey);
-            getVector().getService().setParameters(parameters);
+            getVector().getService().parameters(parameters);
             return this;
         }
 

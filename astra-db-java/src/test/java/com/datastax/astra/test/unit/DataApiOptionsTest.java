@@ -178,15 +178,15 @@ class DataApiOptionsTest {
         VectorOptions v = new VectorOptions();
 
         VectorServiceOptions s = new VectorServiceOptions();
-        s.setProvider("OK");
-        s.setModelName("OK");
+        s.provider("OK");
+        s.modelName("OK");
 
         VectorServiceOptions.Parameters p1 = new VectorServiceOptions.Parameters();
-        p1.setHelp("sample parama");
-        p1.setType("String");
-        p1.setRequired(true);
-        p1.setDefaultValue("OK");
-        s.setParameters(Map.of("ok", p1));
+        p1.help("sample parama");
+        p1.type("String");
+        p1.required(true);
+        p1.defaultValue("OK");
+        s.parameters(Map.of("ok", p1));
 
         v.setService(s);
         c.setVector(v);

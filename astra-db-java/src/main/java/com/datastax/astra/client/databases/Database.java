@@ -33,22 +33,31 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableOperation;
+import com.datastax.astra.client.tables.commands.ddl.AlterTableOptions;
+import com.datastax.astra.client.tables.commands.ddl.DropTableIndexOptions;
+import com.datastax.astra.client.tables.commands.ddl.DropTableOptions;
 import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.mapping.Table;
+import com.datastax.astra.client.tables.index.IndexDescriptor;
+import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
+import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.TableDescriptor;
-import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.commands.ddl.CreateTableOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
+import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Stream;
 
+import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
@@ -495,7 +504,7 @@ public class Database extends AbstractCommandRunner {
      * @throws IllegalArgumentException
      *      if collectionName is invalid
      */
-    public com.datastax.astra.client.tables.Table<Row> getTable(String tableName) {
+    public Table<Row> getTable(String tableName) {
         return getTable(tableName, Row.class);
     }
 
@@ -511,20 +520,18 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      the collection
      */
-    public <T> com.datastax.astra.client.tables.Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
+    public <T> Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
         return getTable(tableName, this.commandOptions, rowClass);
     }
 
-    public <T> com.datastax.astra.client.tables.Table<T> getTable(@NonNull Class<T> rowClass) {
-        Table ann = rowClass
-                .getAnnotation(Table.class);
+    public <T> Table<T> getTable(@NonNull Class<T> rowClass) {
+        EntityTable ann = rowClass
+                .getAnnotation(EntityTable.class);
         if (ann == null) {
                     throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
         }
         return getTable(ann.value(), this.commandOptions, rowClass);
     }
-
-
 
     /**
      * Gets a table with a specific default document class.
@@ -540,7 +547,7 @@ public class Database extends AbstractCommandRunner {
      * @return
      *      the table
      */
-    public <T> com.datastax.astra.client.tables.Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
+    public <T> Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
         return new com.datastax.astra.client.tables.Table<>(this, tableName, commandOptions, rowClass);
@@ -554,7 +561,7 @@ public class Database extends AbstractCommandRunner {
      * @param tableDefinition
      *      table definition
      */
-    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
         return createTable(tableName, tableDefinition, null, commandOptions, Row.class);
     }
 
@@ -568,12 +575,8 @@ public class Database extends AbstractCommandRunner {
      * @param options
      *      collection options
      */
-    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions options) {
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions options) {
         return createTable(tableName, tableDefinition, options, commandOptions, Row.class);
-    }
-
-    public <T> com.datastax.astra.client.tables.Table<T> createTable(Class<T> clazz) {
-       return null;
     }
 
     /**
@@ -592,7 +595,7 @@ public class Database extends AbstractCommandRunner {
      * @param <T>
      *      working object for the document
      */
-    public <T> com.datastax.astra.client.tables.Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions options, Class<T> documentClass) {
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions options, Class<T> documentClass) {
         return createTable(tableName, tableDefinition, options, commandOptions, documentClass);
     }
 
@@ -609,8 +612,32 @@ public class Database extends AbstractCommandRunner {
      *      options to use when using this collection
      * @return the collection
      */
-    public com.datastax.astra.client.tables.Table<Row> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions) {
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions tableOptions, CommandOptions<?> commandOptions) {
         return createTable(tableName, tableDefinition, tableOptions, commandOptions, Row.class);
+    }
+
+    public <T> Table<T> createTable(Class<T> rowClass) {
+        return createTable(getTableName(rowClass), rowClass);
+    }
+
+    public <T> Table<T> createTable(@NonNull Class<T> rowClass, CreateTableOptions tableOptions) {
+        return createTable(getTableName(rowClass), rowClass, tableOptions);
+    }
+
+    public <T> Table<T> createTable(String tableName, @NonNull Class<T> rowClass) {
+        return createTable(tableName, rowClass, null);
+    }
+
+    public <T> Table<T> createTable(String tableName, @NonNull Class<T> rowClass, CreateTableOptions tableOptions) {
+        hasLength(tableName, "tableName");
+        notNull(rowClass, "rowClass");
+        Command createTable = new Command("createTable", createTableCommand(tableName, rowClass));
+        if (tableOptions != null) {
+            createTable.append("options", tableOptions);
+        }
+        runCommand(createTable, commandOptions);
+        log.info("Table  '" + green("{}") + "' has been created", tableName);
+        return getTable(tableName, commandOptions, rowClass);
     }
 
     /**
@@ -630,7 +657,7 @@ public class Database extends AbstractCommandRunner {
      *          working class for the document
      * @return the collection
      */
-    public <T> com.datastax.astra.client.tables.Table<T> createTable(String tableName, TableDefinition tableDefinition, TableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions tableOptions, CommandOptions<?> commandOptions, Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
@@ -646,6 +673,18 @@ public class Database extends AbstractCommandRunner {
         return getTable(tableName, commandOptions, rowClass);
     }
 
+    private <T> String getTableName(Class<T> rowClass) {
+        notNull(rowClass, "rowClass");
+        EntityTable ann = rowClass.getAnnotation(EntityTable.class);
+        if (ann == null) {
+            throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
+        }
+        if (!Utils.hasLength(ann.value())) {
+            throw new IllegalArgumentException("Annotation @Table on class " + rowClass.getName() + " has no name");
+        }
+        return ann.value();
+    }
+
     /**
      * Delete a collection.
      *
@@ -653,10 +692,83 @@ public class Database extends AbstractCommandRunner {
      *      table name
      */
     public void dropTable(String tableName) {
-        runCommand(Command
+        dropTable(tableName, null);
+    }
+
+    /**
+     * Delete a collection.
+     *
+     * @param tableName
+     *      table name
+     */
+    public void dropTable(String tableName, DropTableOptions dropTableOptions) {
+        hasLength(tableName, "tableName");
+        Command dropTableCmd = Command
                 .create("dropTable")
-                .append("name", tableName), commandOptions);
+                .append("name", tableName);
+        if (dropTableOptions != null) {
+            dropTableCmd.withOptions(dropTableOptions);
+        }
+        runCommand(dropTableCmd, commandOptions);
         log.info("Table  '" + green("{}") + "' has been deleted", tableName);
+    }
+
+    // ------------------------------------------
+    // ----     Indexes CRUD                  ---
+    // ------------------------------------------
+
+    /**
+     * Gets the names of indices in the selected keyspace.
+     *
+     * @return
+     *      a stream containing all the names of all the collections in this database
+     */
+    public Stream<String> listIndexesNames() {
+        return runCommand(Command.create("listIndexes"))
+                .getStatusKeyAsList("indexes", String.class)
+                .stream();
+    }
+
+    /**
+     * Finds all the indices in the selected keyspace.
+     *
+     * @return
+     *      list of table definitions
+     */
+    public Stream<IndexDescriptor> listIndexes() {
+        Command findTables = Command
+                .create("listIndexes")
+                .withOptions(new Document().append("explain", true));
+        return runCommand(findTables)
+                .getStatusKeyAsList("indexes", IndexDescriptor.class)
+                .stream();
+    }
+
+    /**
+     * Delete an index by name.
+     *
+     * @param indexName
+     *      index name
+     */
+    public void dropTableIndex(String indexName) {
+        dropTableIndex(indexName, null);
+    }
+
+    /**
+     * Delete an index by name.
+     *
+     * @param indexName
+     *      index name
+     * @param dropIndexOptions
+     *      flag to drop index
+     */
+    public void dropTableIndex(String indexName, DropTableIndexOptions dropIndexOptions) {
+        Command dropIndexCommand = Command.create("dropIndex").append("name", indexName);
+        if (dropIndexOptions != null) {
+            dropIndexCommand.withOptions(dropIndexOptions);
+        }
+        runCommand(dropIndexCommand, commandOptions);
+        log.info("Index  '" + green("{}") + "' has been dropped", indexName);
     }
 
     // ------------------------------------------
@@ -715,4 +827,5 @@ public class Database extends AbstractCommandRunner {
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }
+
 }

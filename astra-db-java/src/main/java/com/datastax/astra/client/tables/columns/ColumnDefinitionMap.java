@@ -22,8 +22,10 @@ package com.datastax.astra.client.tables.columns;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @Getter @Setter
+@Accessors(fluent = true)
 public class ColumnDefinitionMap extends ColumnDefinition {
 
     private ColumnTypes keyType;
