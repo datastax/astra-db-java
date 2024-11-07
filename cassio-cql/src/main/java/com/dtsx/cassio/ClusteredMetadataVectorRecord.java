@@ -17,8 +17,8 @@ import java.util.UUID;
  *     row_id timeuuid,
  *     attributes_blob text,
  *     body_blob text,
- *     metadata_s map<text, text>,
- *     vector vector<float, 1536>,
+ *     metadata_s map&lt;text, text&gt;,
+ *     vector vector&lt;float, 1536&gt;,
  *     PRIMARY KEY (partition_id, row_id)
  * ) WITH CLUSTERING ORDER BY (row_id DESC);
  * --------------------------------------------------------------------------

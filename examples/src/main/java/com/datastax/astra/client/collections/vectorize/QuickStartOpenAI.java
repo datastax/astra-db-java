@@ -2,10 +2,11 @@ package com.datastax.astra.client.collections.vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.CollectionOptions;
-import com.datastax.astra.client.core.Document;
+
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
@@ -15,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_NAMESPACE;
+import static com.datastax.astra.client.DataAPIDestination.CASSANDRA;
+import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;;
 
 /**
  * This demo want to illustrate how to use the java client in GenAI Context
@@ -34,7 +35,7 @@ public class QuickStartOpenAI {
 
         // Create the Client, option is provided at top level and will be available
         DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIOptions.builder()
-              .withDestination(DataAPIOptions.DataAPIDestination.CASSANDRA)
+              .withDestination(CASSANDRA)
               .withEmbeddingAPIKey(embeddingApiKey)
               .withObserver(new LoggingCommandObserver(DataAPIClient.class))
               .build());

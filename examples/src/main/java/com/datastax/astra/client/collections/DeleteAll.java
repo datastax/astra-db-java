@@ -2,7 +2,7 @@ package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
-import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.documents.Document;
 
 public class DeleteAll {
     public static void main(String[] args) {

@@ -1,21 +1,22 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.client.core.CollectionOptions;
-import com.datastax.astra.client.core.CommandOptions;
-import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.core.NamespaceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.client.core.options.DataAPIOptions.DataAPIDestination.HCD;
+import static com.datastax.astra.client.DataAPIDestination.HCD;
 import static com.datastax.astra.client.core.options.DataAPIOptions.builder;
-import static com.datastax.astra.client.core.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class QuickStartHCD {
 
@@ -46,7 +47,7 @@ public class QuickStartHCD {
         ((DataAPIDatabaseAdmin) client
                 .getDatabase(dataApiUrl)
                 .getDatabaseAdmin())
-                .createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
+                .createKeyspace(keyspaceName, KeyspaceOptions.simpleStrategy(1));
         System.out.println("3/7 - Keyspace '" + keyspaceName + "'created ");
 
         Database db = client.getDatabase(dataApiUrl, keyspaceName);
@@ -58,7 +59,7 @@ public class QuickStartHCD {
                 .vectorDimension(openAiEmbeddingDimension)
                 .vectorize(openAiProvider, openAiModel)
                 .build(),
-                new CommandOptions<>().embeddingAPIKey(openAiKey));
+                new CommandOptions<>().embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(openAiKey)));
         System.out.println("5/7 - Collection created with OpenAI embeddings");
 
         // Insert some documents

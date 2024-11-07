@@ -1,19 +1,19 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.Document;
-import com.datastax.astra.client.core.Filter;
-import com.datastax.astra.client.core.Filters;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 
 import java.util.Optional;
 
-import static com.datastax.astra.client.core.Filters.and;
-import static com.datastax.astra.client.core.Filters.eq;
-import static com.datastax.astra.client.core.Filters.gt;
-import static com.datastax.astra.client.core.Filters.lt;
-import static com.datastax.astra.client.core.Projections.exclude;
-import static com.datastax.astra.client.core.Projections.include;
+import static com.datastax.astra.client.core.query.Filters.and;
+import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.gt;
+import static com.datastax.astra.client.core.query.Filters.lt;
+import static com.datastax.astra.client.core.query.Projections.exclude;
+import static com.datastax.astra.client.core.query.Projections.include;
 
 public class FindOne {
     public static void main(String[] args) {
@@ -23,10 +23,10 @@ public class FindOne {
                 .getCollection("COLLECTION_NAME");
 
         // Complete FindOne
-        Filter filter = Filters.and(
-                Filters.gt("field2", 10),
+        Filter filter = and(
+                gt("field2", 10),
                 lt("field3", 20),
-                Filters.eq("field4", "value"));
+                eq("field4", "value"));
         FindOneOptions options = new FindOneOptions()
                 .projection(include("field", "field2", "field3"))
                 .projection(exclude("_id"))

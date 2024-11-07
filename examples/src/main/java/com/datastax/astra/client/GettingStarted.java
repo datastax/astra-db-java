@@ -1,13 +1,13 @@
 package com.datastax.astra.client;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.FindIterable;
 
 import java.util.List;
 
-import static com.datastax.astra.client.core.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.EUCLIDEAN;
 
 public class GettingStarted {

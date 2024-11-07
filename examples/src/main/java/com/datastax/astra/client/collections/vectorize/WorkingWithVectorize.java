@@ -2,11 +2,11 @@ package com.datastax.astra.client.collections.vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.core.Sort;
-import com.datastax.astra.client.core.Sorts;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.query.Sorts;
 
 public class WorkingWithVectorize {
 

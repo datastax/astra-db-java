@@ -623,8 +623,6 @@ public class Table<T>  extends AbstractCommandRunner {
      *      the query filter to apply the delete operation
      * @param options
      *      the options to apply to the operation
-     * @return
-     *      the result of the remove many operation
      */
     public void deleteMany(Filter filter, TableDeleteManyOptions options) {
         AtomicInteger totalCount = new AtomicInteger(0);

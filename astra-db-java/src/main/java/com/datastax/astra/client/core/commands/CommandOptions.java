@@ -142,23 +142,6 @@ public class CommandOptions<T extends CommandOptions<T>> {
     }
 
     /**
-     * Provide the embedding service API key.
-     *
-     * @param embeddingServiceApiKey
-     *      embedding service key
-     * @return
-     *      service key
-     * @deprecated
-     *      has been replaced by {@link #embeddingAuthProvider(EmbeddingHeadersProvider)}
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public T embeddingAPIKey(String embeddingServiceApiKey) {
-        this.embeddingAuthProvider = new EmbeddingAPIKeyHeaderProvider(embeddingServiceApiKey);
-        return (T) this;
-    }
-
-    /**
      * Allow to register a listener for the command.
      * @param name
      *      name of the observer
