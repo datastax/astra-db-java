@@ -26,6 +26,8 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
@@ -54,7 +56,7 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
 /**
  * Record present in a Cassandra Table.
  */
-public class Row implements Map<String, Object>, Serializable {
+public class Row implements Serializable {
 
     /** Serializer for the Rows. */
     private static final DataAPISerializer SERIALIZER = new RowSerializer();
@@ -68,6 +70,16 @@ public class Row implements Map<String, Object>, Serializable {
      */
     public Row() {
         columnMap = new LinkedHashMap<>();
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getColumnMap() {
+        return columnMap;
+    }
+
+    @JsonAnySetter
+    public void setProperty(String key, Object value) {
+        columnMap.put(key, value);
     }
 
     /**
@@ -479,74 +491,49 @@ public class Row implements Map<String, Object>, Serializable {
     // Vanilla Map methods delegate to map field
 
     /** {@inheritDoc} */
-    @Override
-    public int size() {
-        return columnMap.size();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean isEmpty() {
-        return columnMap.isEmpty();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean containsValue(final Object value) {
-        return columnMap.containsValue(value);
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public boolean containsKey(final Object key) {
         return columnMap.containsKey(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object get(final Object key) {
         return columnMap.get(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object put(final String key, final Object value) {
         return columnMap.put(key, value);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object remove(final Object key) {
         return columnMap.remove(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public void putAll(final Map<? extends String, ?> map) {
         columnMap.putAll(map);
     }
 
+    public void putAll(Row row) {
+        if (row !=null) {
+            columnMap.putAll(row.getColumnMap());
+        }
+
+    }
+
     /** {@inheritDoc} */
-    @Override
     public void clear() {
         columnMap.clear();
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Set<String> keySet() {
-        return columnMap.keySet();
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public Collection<Object> values() {
         return columnMap.values();
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
+    public Set<Map.Entry<String, Object>> entrySet() {
         return columnMap.entrySet();
     }
 
@@ -568,8 +555,6 @@ public class Row implements Map<String, Object>, Serializable {
     public int hashCode() {
         return columnMap.hashCode();
     }
-
-
 
 }
 

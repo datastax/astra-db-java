@@ -50,7 +50,7 @@ public class DataAPIOptions {
     public static final String DEFAULT_VERSION = "v1";
 
     /** Number of documents for a count. */
-    public static final int DEFAULT_MAX_DOCUMENTS_COUNT = 1000;
+    public static final int DEFAULT_MAX_COUNT = 1000;
 
     /** Maximum number of documents in a page. */
     public static final  int DEFAULT_MAX_PAGE_SIZE = 20;
@@ -59,13 +59,13 @@ public class DataAPIOptions {
     public static final int DEFAULT_MAX_CHUNK_SIZE = 100;
 
     /** When operating a count operation, the maximum number of documents that can be returned. */
-    final int maxDocumentCount;
+    final int maxRecordCount;
 
     /** The maximum number of documents that can be returned in a single page. */
     final int maxPageSize;
 
     /** The maximum number of documents that can be inserted in a single operation. */
-    final int maxDocumentsInInsert;
+    final int maxRecordsInInsert;
 
     /** Set the API version like 'v1' */
     final String apiVersion;
@@ -105,14 +105,14 @@ public class DataAPIOptions {
      *      current builder
      */
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
-        this.apiVersion            = builder.apiVersion;
-        this.destination           = builder.destination;
-        this.maxDocumentCount      = builder.maxDocumentCount;
-        this.maxPageSize           = builder.maxPageSize;
-        this.maxDocumentsInInsert  = builder.maxDocumentsInInsert;
-        this.embeddingAuthProvider = builder.embeddingAuthProvider;
-        this.httpClientOptions     = builder.httpClientOptions;
-        this.observers             = builder.observers;
+        this.apiVersion                = builder.apiVersion;
+        this.destination               = builder.destination;
+        this.maxRecordCount            = builder.maxDocumentCount;
+        this.maxPageSize               = builder.maxPageSize;
+        this.maxRecordsInInsert        = builder.maxDocumentsInInsert;
+        this.embeddingAuthProvider     = builder.embeddingAuthProvider;
+        this.httpClientOptions         = builder.httpClientOptions;
+        this.observers                 = builder.observers;
         this.databaseAdditionalHeaders = builder.databaseAdditionalHeaders;
         this.adminAdditionalHeaders    = builder.adminAdditionalHeaders;
     }
@@ -126,7 +126,7 @@ public class DataAPIOptions {
         private String apiVersion = DEFAULT_VERSION;
 
         /** When operating a count operation, the maximum number of documents that can be returned. */
-        private int maxDocumentCount = DEFAULT_MAX_DOCUMENTS_COUNT;
+        private int maxDocumentCount = DEFAULT_MAX_COUNT;
 
         /** The maximum number of documents that can be returned in a single page. */
         private int maxPageSize = DEFAULT_MAX_PAGE_SIZE;
@@ -196,8 +196,8 @@ public class DataAPIOptions {
             if (maxDocumentCount <= 0) {
                 throw new IllegalArgumentException("Max document count must be a positive number");
             }
-            if (maxDocumentCount > DEFAULT_MAX_DOCUMENTS_COUNT) {
-                log.warn("Setting the maximum document count to a value greater than the default value of {} may impact performance.", DEFAULT_MAX_DOCUMENTS_COUNT);
+            if (maxDocumentCount > DEFAULT_MAX_COUNT) {
+                log.warn("Setting the maximum document count to a value greater than the default value of {} may impact performance.", DEFAULT_MAX_COUNT);
             }
             this.maxDocumentCount = maxDocumentCount;
             return this;

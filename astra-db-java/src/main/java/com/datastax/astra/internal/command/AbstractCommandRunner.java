@@ -20,11 +20,12 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
+import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.commands.CommandRunner;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -122,13 +123,13 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public ApiResponse runCommand(Command command) {
+    public DataAPIResponse runCommand(Command command) {
         return runCommand(command, this.commandOptions);
     }
 
     /** {@inheritDoc} */
     @Override
-    public ApiResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
+    public DataAPIResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
 
         // === HTTP CLIENT ===
         if (httpClient == null && (overridingOptions == null || overridingOptions.getHttpClientOptions().isEmpty())) {
@@ -212,7 +213,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
-            ApiResponse apiResponse = getSerializer().unMarshallBean(httpRes.getBody(), ApiResponse.class);
+            DataAPIResponse apiResponse = getSerializer().unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
             // Passing Serializer
             apiResponse.setSerializer(getSerializer());
 
@@ -222,12 +223,13 @@ public abstract class AbstractCommandRunner implements CommandRunner {
                 throw new DataAPIResponseException(Collections.singletonList(executionInfo.build()));
             }
             // Trace All Warnings
-            if (apiResponse.getStatus()!= null && apiResponse.getStatus().containsKey("warnings")) {
+            if (apiResponse.getStatus()!= null && apiResponse.getStatus().getWarnings() != null) {
                 try {
-                    apiResponse.getStatusKeyAsStringStream("warnings").forEach(log::warn);
+                    apiResponse.getStatus().getWarnings().stream()
+                            .map(getSerializer()::marshall).forEach(log::warn);
                 } catch(Exception e) {
-                    apiResponse.getStatusKeyAsMap("warnings", String.class)
-                           .forEach((k,v) -> log.warn("{}:{}", k, v));
+                    apiResponse.getStatusKeyAsList("warnings", Object.class)
+                           .forEach(error -> log.warn(getSerializer().marshall(error)));
                 }
             }
             return apiResponse;
@@ -274,7 +276,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
      * @param <T>
      *     document type
      */
-    protected <T> T unmarshall(ApiResponse api, Class<T> documentClass) {
+    protected <T> T unmarshall(DataAPIResponse api, Class<T> documentClass) {
         String payload;
         if (api.getData() != null) {
             if (api.getData().getDocument() != null) {

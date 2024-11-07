@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
@@ -102,6 +103,8 @@ public class RowSerializer implements DataAPISerializer {
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
+                    .registerModule(new JavaTimeModule())
+                    .registerModule(new Jdk8Module())
                     .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 

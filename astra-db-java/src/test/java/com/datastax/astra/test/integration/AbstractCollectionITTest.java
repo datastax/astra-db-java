@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.commands.DeleteOneOptions;
@@ -22,7 +22,7 @@ import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.commands.UpdateResult;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
@@ -155,11 +155,11 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     protected void testRunCommand() {
         getCollectionSimple().deleteAll();
 
-        ApiResponse res = getCollectionSimple().runCommand(Command
+        DataAPIResponse res = getCollectionSimple().runCommand(Command
                 .create("insertOne")
                 .withDocument(new Document().id(1).append("name", "hello")));
         assertThat(res).isNotNull();
-        assertThat(res.getStatus().getList("insertedIds", Object.class).get(0)).isEqualTo(1);
+        assertThat(res.getStatus().getInsertedIds().get(0)).isEqualTo(1);
 
         Command findOne = Command.create("findOne").withFilter(eq(1));
         res = getCollectionSimple().runCommand(findOne);
@@ -244,7 +244,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
         // Add a filter
         assertThat(getCollectionSimple()
-                .countDocuments(gt("indice", 3), getCollectionSimple().getDataAPIOptions().getMaxDocumentCount())    )
+                .countDocuments(gt("indice", 3), getCollectionSimple().getDataAPIOptions().getMaxRecordCount())    )
                 .isEqualTo(6);
 
         // Filter + limit
@@ -258,7 +258,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
         // More than 1000 items
         assertThatThrownBy(() -> getCollectionSimple()
-                .countDocuments(getCollectionSimple().getDataAPIOptions().getMaxDocumentCount()))
+                .countDocuments(getCollectionSimple().getDataAPIOptions().getMaxRecordCount()))
                 .isInstanceOf(TooManyDocumentsToCountException.class)
                 .hasMessageContaining("server");
     }
@@ -428,13 +428,13 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         Optional<Document> opt1 = getCollectionSimple()
                 .findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
         assertThat(opt1).isPresent();
-        assertThat(opt1.get()).containsEntry("hello", "world2");
+        assertThat(opt1.get().getDocumentMap()).containsEntry("hello", "world2");
 
         // Matched 1, modified 0, document is present
         Optional<Document> opt2 = getCollectionSimple()
                 .findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
         assertThat(opt2).isPresent();
-        assertThat(opt2.get()).containsEntry("hello", "world2");
+        assertThat(opt2.get().getDocumentMap()).containsEntry("hello", "world2");
 
         // Matched 0, modified 0, no document returned
         Optional<Document> opt3 = getCollectionSimple()

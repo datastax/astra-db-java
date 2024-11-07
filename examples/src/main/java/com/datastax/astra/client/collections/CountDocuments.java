@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.core.Filter;
 import com.datastax.astra.client.core.Filters;

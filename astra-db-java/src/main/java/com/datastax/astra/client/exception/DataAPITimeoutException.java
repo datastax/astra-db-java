@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.exception;
 
 /*-
  * #%L
@@ -20,25 +20,15 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+public class DataAPITimeoutException extends DataAPIException {
 
-@Getter @Setter
-public class ColumnDefinitionMap extends ColumnDefinition {
-
-    private ColumnTypes keyType;
-
-    private ColumnTypes valueType;
-
-    public ColumnDefinitionMap() {
-        super(ColumnTypes.MAP);
+    /**
+     * Constructors providing all arguments and a parent exception.
+     *
+     * @param errorMessage
+     *      error message
+     */
+    public DataAPITimeoutException(String errorMessage) {
+        super(DataAPIErrorCode.TIMEOUT, errorMessage);
     }
-
-    public ColumnDefinitionMap(ColumnTypes keyType, ColumnTypes valueType) {
-        this();
-        this.keyType = keyType;
-        this.valueType = valueType;
-    }
-
 }

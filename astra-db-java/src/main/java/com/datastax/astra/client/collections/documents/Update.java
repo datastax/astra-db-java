@@ -121,7 +121,7 @@ public class Update extends Document {
      *      reference to self
      */
     public Update set(Document fields) {
-        if (fields !=null) fields.forEach(this::set);
+        if (fields !=null) fields.getDocumentMap().forEach(this::set);
         return this;
     }
 

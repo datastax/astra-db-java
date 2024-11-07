@@ -32,6 +32,7 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
+import com.datastax.astra.test.model.TableCompositeRowGenerator;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Order;
@@ -314,7 +315,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     @Order(13)
     public void shouldInsertManyTableComposite() {
-        com.datastax.astra.client.tables.Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
+        Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
         TableCompositeRow row = new TableCompositeRow(42, "Cedrick", "Lunven");
         TableInsertManyResult res = table.insertMany(List.of(
                 new TableCompositeRow(42, "Cedrick", "Lunven"),
@@ -325,7 +326,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     @Order(14)
     public void shouldFindOneTableComposite() {
-        com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
+        Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         Row row = new Row()
                 .addInt("age", 42)
                 .addText("name", "John")
@@ -451,41 +452,61 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
-    public void shouldAlterTableAddColumns() {
+    public void shouldAlterAddColumns() {
         Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
         // Add Column (simple)
-        t.alterTable(new AlterTableAddColumns().addColumnText("new_column"));
+        t.alter(new AlterTableAddColumns().addColumnText("new_column"));
         assertThat(t.getDefinition().getColumns().containsKey("new_column")).isTrue();
 
         // Add Column (Vector)
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
-        t.alterTable(new AlterTableAddColumns().addColumnVector("vv",
+        t.alter(new AlterTableAddColumns().addColumnVector("vv",
                 new ColumnDefinitionVector().dimension(1024).metric(COSINE)));
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isTrue();
 
         // Add Vectorize
-        t.alterTable(new AlterTableAddVectorize().columns(
+        t.alter(new AlterTableAddVectorize().columns(
                 Map.of("vv", new VectorServiceOptions()
                         .modelName("mistral-embed")
                         .provider("mistral"))))
         ;
 
         // Drop Vectorize
-        t.alterTable(new AlterTableDropVectorize("vv"));
+        t.alter(new AlterTableDropVectorize("vv"));
 
         // Drop Columns
-        t.alterTable(new AlterTableDropColumns("vv"));
+        t.alter(new AlterTableDropColumns("vv", "new_column"));
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
+        assertThat(t.getDefinition().getColumns().containsKey("new_column")).isFalse();
     }
 
     @Test
-    public void shouldAlterTableAddColumns2() {
-        Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
-        assertThat(t.getDefinition().getColumns().containsKey("aa")).isFalse();
-        t.alterTable(new AlterTableAddColumns().addColumnText("aa"));
-        assertThat(t.getDefinition().getColumns().containsKey("aa")).isTrue();
-        t.alterTable(new AlterTableDropColumns("aa"));
-        assertThat(t.getDefinition().getColumns().containsKey("aa")).isFalse();
+    public void should_find_one() {
+        Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
+
+        // Creating a few records
+//        Row row1 = new Row().addInt("age", 22).addText("name", "John").addText("id", "Connor");
+//        Row row2 = new Row().addInt("age", 50).addText("name", "Sara").addText("id", "Connor");
+//        Row row3 = new Row().addInt("age", 50).addText("name", "Doctor").addText("id", "Silberman");
+//        TableInsertManyResult res = table.insertMany(row1, row2, row3);
+//        System.out.println(res.getInsertedIds());
+
+
+        // FindOne by the PK
+        table.findOne(new Filter()
+                .where("id").isEqualsTo("Connor")
+                //);
+                .where("name").isEqualsTo("Sara"));
+
+    }
+
+    @Test
+    public void should_work_with_cursors() {
+        Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
+        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(300));
+
+
+
     }
 
 

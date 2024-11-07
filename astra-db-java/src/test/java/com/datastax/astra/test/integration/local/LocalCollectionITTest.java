@@ -4,7 +4,7 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataAPIResponseException;
-import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.commands.FindIterable;
@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Allow to test Collection information.
  */
-@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
+//@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalCollectionITTest extends AbstractCollectionITTest {
 
     @Override
@@ -128,7 +128,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
-            List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);
+            List<Integer> insertedIds = res.getCommandsList().get(0)
+                    .getResponse().getStatus().getInsertedIds(Integer.class);
             assertThat(insertedIds).hasSize(5);
         }
 
@@ -138,7 +139,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
-            List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);
+            List<Integer> insertedIds = res.getCommandsList().get(0)
+                    .getResponse().getStatus().getInsertedIds(Integer.class);
             assertThat(insertedIds).hasSize(7);
         }
 
@@ -149,7 +151,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
-            List<Integer> insertedIds = res.getCommandsList().get(0).getResponse().getStatus().getList("insertedIds", Integer.class);
+            List<Integer> insertedIds = res.getCommandsList().get(0).getResponse()
+                    .getStatus().getInsertedIds(Integer.class);
             assertThat(insertedIds).hasSize(7);
         }
     }

@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.api;
+package com.datastax.astra.client.exception;
 
 /*-
  * #%L
@@ -23,6 +23,8 @@ package com.datastax.astra.internal.api;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 /**
  * Encapsulates error details from a JSON API response. This class is used to represent error information
  * such as messages, codes, and exception classes associated with an API request failure. It allows for
@@ -30,7 +32,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ApiError {
+public class DataAPIErrorDescriptor extends RuntimeException {
 
     /**
      * The detailed message describing the error. This message is intended to provide developers and
@@ -51,11 +53,19 @@ public class ApiError {
      */
     String exceptionClass;
 
+    String familty;
+
+    String scope;
+
+    String title;
+
+    UUID id;
+
     /**
-     * Default constructor for {@link ApiError}. Initializes a new instance of the class without setting any properties.
+     * Default constructor for {@link DataAPIErrorDescriptor}. Initializes a new instance of the class without setting any properties.
      * Properties should be set via their setters or directly, depending on the usage context and the framework's conventions.
      */
-    public ApiError() {
+    public DataAPIErrorDescriptor() {
         // left blank, will be populated by jackson
     }
 

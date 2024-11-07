@@ -20,8 +20,7 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import com.datastax.astra.internal.api.ApiError;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.ExecutionInfos;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
@@ -89,11 +88,11 @@ public class DataAPIResponseException extends DataAPIException {
      * @return
      *      list of errors
      */
-    public List<ApiError> getApiErrors() {
+    public List<DataAPIErrorDescriptor> getApiErrors() {
         return commandsList.stream()
                     .map(ExecutionInfos::getResponse)
                     .filter(Objects::nonNull)
-                    .map(ApiResponse::getErrors)
+                    .map(DataAPIResponse::getErrors)
                     .filter(Objects::nonNull)
                     .flatMap(List::stream)
                     .collect(Collectors.toList());
@@ -109,7 +108,7 @@ public class DataAPIResponseException extends DataAPIException {
      */
     public static String getErrorMessage(List<ExecutionInfos> commands) {
         Assert.notNull(commands, "commandList");
-        return findFirstError(commands).map(ApiError::getErrorMessage).orElse(DEFAULT_ERROR_MESSAGE);
+        return findFirstError(commands).map(DataAPIErrorDescriptor::getErrorMessage).orElse(DEFAULT_ERROR_MESSAGE);
     }
 
     /**
@@ -122,7 +121,7 @@ public class DataAPIResponseException extends DataAPIException {
      */
     public static String getErrorCode(List<ExecutionInfos> commands) {
         Assert.notNull(commands, "commandList");
-        return findFirstError(commands).map(ApiError::getErrorCode).orElse(DEFAULT_ERROR_CODE);
+        return findFirstError(commands).map(DataAPIErrorDescriptor::getErrorCode).orElse(DEFAULT_ERROR_CODE);
     }
 
     /**
@@ -133,7 +132,7 @@ public class DataAPIResponseException extends DataAPIException {
      * @return
      *      first error if exists
      */
-    private static Optional<ApiError> findFirstError(List<ExecutionInfos> commands) {
+    private static Optional<DataAPIErrorDescriptor> findFirstError(List<ExecutionInfos> commands) {
         for (ExecutionInfos command :commands) {
             if (command.getResponse() != null
                     && command.getResponse().getErrors()!= null

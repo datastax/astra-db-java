@@ -1,4 +1,4 @@
-package com.datastax.astra.client.exception;
+package com.datastax.astra.client.tables.commands;
 
 /*-
  * #%L
@@ -20,27 +20,21 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.commands.CommandOptions;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * Error when too many documents in the collection
+ * List Options for a FindOne command.
  */
-public class TooManyDocumentsToCountException extends Exception {
+@Getter
+@Setter
+public class EstimatedCountRowsOptions extends CommandOptions<EstimatedCountRowsOptions> {
 
     /**
      * Default constructor.
      */
-    public TooManyDocumentsToCountException() {
-        super("Document count exceeds '" + DataAPIOptions.DEFAULT_MAX_DOCUMENTS_COUNT + ", the maximum allowed by the server");
-    }
-
-    /**
-     * Default constructor.
-     *
-     * @param upperLimit
-     *      what it the most the count can return
-     */
-    public TooManyDocumentsToCountException(int upperLimit) {
-        super("Document count exceeds upper bound set in method call " + upperLimit);
+    public EstimatedCountRowsOptions() {
+        // left blank, jackson serialization
     }
 }

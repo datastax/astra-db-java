@@ -28,6 +28,8 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.tables.commands.CountRowsOptions;
+import com.datastax.astra.client.tables.commands.EstimatedCountRowsOptions;
 import com.datastax.astra.client.tables.commands.TableDeleteOneOptions;
 import com.datastax.astra.client.tables.commands.TableDeleteResult;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
@@ -39,13 +41,14 @@ import com.datastax.astra.client.tables.commands.ddl.AlterTableOperation;
 import com.datastax.astra.client.tables.commands.ddl.AlterTableOptions;
 import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
 import com.datastax.astra.client.tables.row.PrimaryKey;
 import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -90,18 +93,18 @@ public class Table<T>  extends AbstractCommandRunner {
     private static final String ROW = "row";
 
     /** Serializer for the table. */
-    private static final RowSerializer SERIALIZER = new RowSerializer();
+    public static final RowSerializer SERIALIZER = new RowSerializer();
 
     // -- Json Outputs
 
     /** parameters names. */
     private static final String RESULT_INSERTED_IDS = "insertedIds";
 
-    /** Collection identifier. */
+    /** table identifier. */
     @Getter
     private final String tableName;
 
-    /** Working class representing documents of the collection. The default value is {@link Document}. */
+    /** Working class representing rows of the table. The default value is {@link Row}. */
     @Getter
     protected final Class<T> rowClass;
 
@@ -119,12 +122,12 @@ public class Table<T>  extends AbstractCommandRunner {
     /**
      * Constructs an instance of a table within the specified database. This constructor
      * initializes the table with a given name and associates it with a specific class type
-     * that represents the schema of documents within the table. This setup is designed for
+     * that represents the schema of rows within the table. This setup is designed for
      * CRUD (Create, Read, Update, Delete) operations.
      *
      * @param db The {@code Database} instance representing the client's keyspace for HTTP
      *           communication with the database. It encapsulates the configuration and management
-     *           of the database connection, ensuring that operations on this collection are
+     *           of the database connection, ensuring that operations on this table are
      *           executed within the context of this database.
      * @param tableName A {@code String} that uniquely identifies the table within the
      *                       database. This name is used to route operations to the correct
@@ -132,7 +135,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param clazz The {@code Class<DOC>} object that represents the model for rows within
      *              this table. This class is used for serialization and deserialization of
      *              rows to and from the database. It ensures type safety and facilitates
-     *              the mapping of database documents to Java objects.
+     *              the mapping of database rows to Java objects.
      * @param commandOptions the options to apply to the command operation. If left blank the default table
      *
      * <p>Example usage:</p>
@@ -142,8 +145,8 @@ public class Table<T>  extends AbstractCommandRunner {
      * DataAPIClient client = new DataAPIClient("token");
      * // Given a database
      * Database myDb = client.getDatabase("myDb");
-     * // Initialize a collection with a working class
-     * Table<MyDocumentClass> myTable = new Table<>(myDb, "myTableName", MyDocumentClass.class);
+     * // Initialize a table with a working class
+     * Table<MyRowClass> myTable = new Table<>(myDb, "myTableName", MyRowClass.class);
      * }
      * </pre>
      */
@@ -164,22 +167,22 @@ public class Table<T>  extends AbstractCommandRunner {
     // ----------------------------
 
     /**
-     * Retrieves the name of the parent keyspace associated with this collection. A keyspace in
+     * Retrieves the name of the parent keyspace associated with this table. A keyspace in
      * this context typically refers to a higher-level categorization or grouping mechanism within
-     * the database that encompasses one or more collections. This method allows for identifying
-     * the broader context in which this collection exists, which can be useful for operations
+     * the database that encompasses one or more tables. This method allows for identifying
+     * the broader context in which this table exists, which can be useful for operations
      * requiring knowledge of the database structure or for dynamic database interaction patterns.
      *
      * @return A {@code String} representing the name of the parent keyspace of the current
-     *         collection. This name serves as an identifier for the keyspace and can be used
+     *         table. This name serves as an identifier for the keyspace and can be used
      *         to navigate or query the database structure.
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * Collection myCollection = ... // assume myCollection is already initialized
-     * String keyspaceName = myCollection.getKeyspaceName();
-     * System.out.println("The collection belongs to the keyspace: " + namespaceName);
+     * Table myTable = ... // assume myTable is already initialized
+     * String keyspaceName = myTable.getKeyspaceName();
+     * System.out.println("The table belongs to the keyspace: " + keyspaceName);
      * }
      * </pre>
      */
@@ -188,31 +191,31 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     /**
-     * Retrieves the full definition of the collection, encompassing both its name and its configuration options.
-     * This comprehensive information is encapsulated in a {@code CollectionInfo} object, providing access to the
-     * collection's metadata and settings.
+     * Retrieves the full definition of the table, encompassing both its name and its configuration options.
+     * This comprehensive information is encapsulated in a {@code TableDefinition} object, providing access to the
+     * table's metadata and settings.
      *
-     * <p>The returned {@code CollectionInfo} includes details such as the collection's name, which serves as its
+     * <p>The returned {@code TableDefinition} includes details such as the table's name, which serves as its
      * unique identifier within the database, and a set of options that describe its configuration. These options
      * may cover aspects like indexing preferences, read/write permissions, and other customizable settings that
-     * were specified at the time of collection creation.</p>
+     * were specified at the time of table creation.</p>
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * // Given a collection
+     * // Given a table
      * Table<Row> table;
      * // Access its Definition
      * TableDefinition definition = table.getDefinition();
      * System.out.println("Name=" + definition.getName());
      * if (options != null) {
-     *   // Operations based on collection options
+     *   // Operations based on table options
      * }
      * }
      * </pre>
      *
-     * @return A {@code CollectionInfo} object containing the full definition of the collection, including its name
-     *         and configuration options. This object provides a comprehensive view of the collection's settings
+     * @return A {@code TableDefinition} object containing the full definition of the table, including its name
+     *         and configuration options. This object provides a comprehensive view of the table's settings
      *         and identity within the database.
      */
     public TableDefinition getDefinition() {
@@ -227,7 +230,7 @@ public class Table<T>  extends AbstractCommandRunner {
 
     /**
      * Retrieves the name of the table. This name serves as a unique identifier within the database and is
-     * used to reference the collection in database operations such as queries, updates, and deletions. The table
+     * used to reference the table in database operations such as queries, updates, and deletions. The table
      * name is defined at the time of table creation and is immutable.
      *
      * @return A {@code String} representing the name of the table. This is the same name that was specified
@@ -250,7 +253,25 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     // --------------------------
-    // ---       INDEX       ----
+    // ---    alterTable     ----
+    // --------------------------
+
+    public final void alter(AlterTableOperation operation) {
+        alter(operation, null);
+    }
+
+    public final void alter(AlterTableOperation operation, AlterTableOptions options) {
+        notNull(operation, "operation");
+        Command alterTable = Command.create("alterTable")
+                .append("operation", new Document().append(operation.getOperationName(), operation));
+        if (options != null) {
+            alterTable.append("options", options);
+        }
+        runCommand(alterTable, commandOptions);
+    }
+
+    // --------------------------
+    // ---    createIndex    ----
     // --------------------------
 
     /**
@@ -305,6 +326,10 @@ public class Table<T>  extends AbstractCommandRunner {
         log.info("Index  '" + green("{}") + "' has been created", idxName);
     }
 
+    // --------------------------
+    // --- createVectorIndex ----
+    // --------------------------
+
     /**
      * Create a new index with the given description.
      *
@@ -357,20 +382,6 @@ public class Table<T>  extends AbstractCommandRunner {
         log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
-    public final void alterTable(AlterTableOperation operation) {
-        alterTable(operation, null);
-    }
-
-    public final void alterTable(AlterTableOperation operation, AlterTableOptions options) {
-        notNull(operation, "operation");
-        Command alterTable = Command.create("alterTable")
-                .append("operation", new Document().append(operation.getOperationName(), operation));
-        if (options != null) {
-            alterTable.append("options", options);
-        }
-        runCommand(alterTable, commandOptions);
-    }
-
     // --------------------------
     // ---   insertOne       ----
     // --------------------------
@@ -416,8 +427,8 @@ public class Table<T>  extends AbstractCommandRunner {
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > dataAPIOptions.getMaxDocumentsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
+        if (options.getChunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
@@ -519,17 +530,43 @@ public class Table<T>  extends AbstractCommandRunner {
         return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
-    public Optional<T> findByPrimaryKey(PrimaryKey id) {
-        return findOne(Filters.eq(id));
-    }
+    // -------------------------
+    // --- findOneAndDelete ----
+    // -------------------------
+
+    // FIXME
 
     // -------------------------
-    // ---   DeleteOne*     ----
+    // --- findOneAndReplace ---
+    // -------------------------
+
+    // FIXME
+
+    // -------------------------
+    // --- findOneAndUpdate ----
+    // -------------------------
+
+    // FIXME
+
+    // -------------------------
+    // ---   find           ----
+    // -------------------------
+
+    // FIXME
+
+    // -------------------------
+    // ---   updateOne      ----
+    // -------------------------
+
+    // FIXME
+
+    // -------------------------
+    // ---   deleteOne      ----
     // -------------------------
 
     /**
-     * Removes at most one document from the collection that matches the given filter.
-     * If no documents match, the collection is not modified.
+     * Removes at most one rows from the table that matches the given filter.
+     * If no rows match, the table is not modified.
      *
      * @param filter
      *      the query filter to apply the delete operation
@@ -542,8 +579,8 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     /**
-     * Removes at most one document from the collection that matches the given filter.
-     * If no documents match, the collection is not modified.
+     * Removes at most one row from the table that matches the given filter.
+     * If no rows match, the table is not modified.
      *
      * @param filter
      *      the query filter to apply the delete operation
@@ -559,9 +596,143 @@ public class Table<T>  extends AbstractCommandRunner {
                 .withFilter(filter)
                 .withSort(deleteOneOptions.getSort());
 
-        ApiResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
+        DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
         return new TableDeleteResult(deletedCount);
+    }
+
+    // -------------------------
+    // ---   deleteMany     ----
+    // -------------------------
+
+    // FIXME
+
+    // --------------------------------
+    // --- estimatedDocumentCount  ----
+    // --------------------------------
+
+    /**
+     * Calling an estimatedRowCount with default options. @see {@link #estimatedRowCount(EstimatedCountRowsOptions)}
+     *
+     * @return the estimated number of rows in the table.
+     */
+    public long estimatedRowCount() {
+        return estimatedRowCount(new EstimatedCountRowsOptions());
+    }
+
+    /**
+     * Executes the "estimatedRowCount" command to estimate the number of rowse
+     * in a table.
+     * <p>
+     * This method sends a command to estimate the row count and parses the count
+     * from the command's response. It handles the execution of the command and the extraction
+     * of the row count from the response.
+     * </p>
+     * @param options
+     *     the options to apply to the operation
+     * @return the estimated number of rows in the table.
+     */
+    public long estimatedRowCount(EstimatedCountRowsOptions options) {
+        Command command = new Command("estimatedDocumentCount");
+        // Run command
+        DataAPIResponse response = runCommand(command, options);
+        // Build Result
+        return response.getStatus().getInteger(RESULT_COUNT);
+    }
+
+    // ----------------------------
+    // ---   countDocuments    ----
+    // ----------------------------
+
+    /**
+     * Counts the number of rows in the table.
+     *
+     * <p>
+     * Takes in a `upperBound` option which dictates the maximum number of rows that may be present before a
+     * {@link com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
+     * Data API, a {@link com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException} will be thrown anyway (i.e. `1000`).
+     * </p>
+     * <p>
+     * Count operations are expensive: for this reason, the best practice is to provide a reasonable `upperBound`
+     * according to the caller expectations. Moreover, indiscriminate usage of count operations for sizeable amounts
+     * of rows (i.e. in the thousands and more) is discouraged in favor of alternative application-specific
+     * solutions. Keep in mind that the Data API has a hard upper limit on the amount of rows it will count,
+     * and that an exception will be thrown by this method if this limit is encountered.
+     * </p>
+     *
+     * @param upperBound
+     *      The maximum number of rows to count.
+     * @return
+     *      The number of rows in the tables.
+     * @throws com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException
+     *      If the number of rows counted exceeds the provided limit.
+     */
+    public int countRows(int upperBound) throws TooManyRowsToCountException {
+        return countRows(null, upperBound);
+    }
+
+    /**
+     * Counts the number of rows in the table with a filter.
+     *
+     * <p>
+     * Takes in a `upperBound` option which dictates the maximum number of rows that may be present before a
+     * {@link TooManyRowsToCountException} is thrown. If the limit is higher than the highest limit accepted by the
+     * Data API, a {@link TooManyRowsToCountException} will be thrown anyway (i.e. `1000`).
+     * </p>
+     * <p>
+     * Count operations are expensive: for this reason, the best practice is to provide a reasonable `upperBound`
+     * according to the caller expectations. Moreover, indiscriminate usage of count operations for sizeable amounts
+     * of rows (i.e. in the thousands and more) is discouraged in favor of alternative application-specific
+     * solutions. Keep in mind that the Data API has a hard upper limit on the amount of rows it will count,
+     * and that an exception will be thrown by this method if this limit is encountered.
+     * </p>
+     *
+     * @param filter
+     *      A filter to select the row to count. If not provided, all rows will be counted.
+     * @param upperBound
+     *      The maximum number of rows to count.
+     * @param options
+     *      overriding options for the count operation.
+     * @return
+     *      The number of rows in the table.
+     * @throws TooManyRowsToCountException
+     *      If the number of rows counted exceeds the provided limit.
+     */
+    public int countRows(Filter filter, int upperBound, CountRowsOptions options)
+    throws TooManyRowsToCountException {
+        // Argument Validation
+        if (upperBound<1 || upperBound> dataAPIOptions.getMaxRecordCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxRecordCount());
+        }
+        // Build command
+        Command command = new Command("countDocuments").withFilter(filter);
+        // Run command
+        DataAPIResponse response = runCommand(command, options);
+        // Build Result
+        Boolean moreData = response.getStatus().getBoolean(RESULT_MORE_DATA);
+        Integer count    = response.getStatus().getInteger(RESULT_COUNT);
+        if (moreData != null && moreData) {
+            throw new TooManyRowsToCountException();
+        } else if (count > upperBound) {
+            throw new TooManyRowsToCountException(upperBound);
+        }
+        return count;
+    }
+
+    /**
+     * Implementation of the @see {@link #countRows(Filter, int, CountRowsOptions)} method with default options.
+     * @param filter
+     *      filter to count
+     * @param upperBound
+     *      The maximum number of rows to count. It must be lower than the maximum limit accepted by the Data API.
+     * @return
+     *      The number of rows in the table.
+     * @throws TooManyRowsToCountException
+     *      If the number of rows counted exceeds the provided limit.
+     */
+    public int countRows(Filter filter, int upperBound)
+    throws TooManyRowsToCountException {
+        return countRows(filter, upperBound, new CountRowsOptions());
     }
 
     // --------------------------
@@ -602,13 +773,12 @@ public class Table<T>  extends AbstractCommandRunner {
         }
     }
 
-
     // --------------------------
     // ---   Listeners       ----
     // --------------------------
 
     /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     * Register a listener to execute commands on the table. Please now use {@link CommandOptions}.
      *
      * @param logger
      *      name for the logger
@@ -620,7 +790,7 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     * Register a listener to execute commands on the table. Please now use {@link CommandOptions}.
      *
      * @param name
      *      name for the observer
@@ -628,7 +798,5 @@ public class Table<T>  extends AbstractCommandRunner {
     public void deleteListener(String name) {
         this.commandOptions.unregisterObserver(name);
     }
-
-
 
 }

@@ -21,10 +21,10 @@ package com.datastax.astra.internal.http;
  */
 
 import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.exception.AuthenticationException;
-import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exception.DataAPIHttpException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
@@ -215,7 +215,6 @@ public class RetryHttpClient {
         }
     }
 
-
     /**
      * Parse HTTP response as a ApiResponseHttp.
      *
@@ -299,11 +298,11 @@ public class RetryHttpClient {
         switch(res.getCode()) {
             // 401
             case HttpURLConnection.HTTP_UNAUTHORIZED:
-                throw new AuthenticationException("Error Code=" + res.getCode() +
+                throw new DataAPIHttpException("Error Code=" + res.getCode() +
                         ", (HTTP_UNAUTHORIZED) Invalid Credentials Check your token: " +
                         res.getBody());
             case 422:
-                throw new IllegalArgumentException("Error Code=" + res.getCode() +
+                throw new DataAPIHttpException("Error Code=" + res.getCode() +
                         "(422) Invalid information provided to create DB: "
                         + res.getBody());
             default:

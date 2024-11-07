@@ -5,7 +5,7 @@ import com.datastax.astra.client.core.BulkWriteOptions;
 import com.datastax.astra.client.core.BulkWriteResult;
 import com.datastax.astra.client.core.Command;
 import com.datastax.astra.client.core.Document;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ public class BulkWrite {
         BulkWriteResult result = collection.bulkWrite(List.of(cmd1, cmd2), options1);
 
         // Retrieve the LIST of responses
-        for(ApiResponse res : result.getResponses()) {
+        for(DataAPIResponse res : result.getResponses()) {
             System.out.println(res.getData());
         }
     }

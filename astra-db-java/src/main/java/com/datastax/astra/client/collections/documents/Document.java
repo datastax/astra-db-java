@@ -40,6 +40,9 @@ import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
@@ -60,7 +63,7 @@ import java.util.UUID;
 /**
  * Represents a document without schema constraints as a Map&lt;String, Object&gt;.(key/value)
  */
-public class Document implements Map<String, Object>, Serializable {
+public class Document implements Serializable {
 
     /**
      * Serializer
@@ -70,7 +73,7 @@ public class Document implements Map<String, Object>, Serializable {
     /**
      * Data to be used in the document.
      */
-    @JsonUnwrapped
+    //@JsonUnwrapped
     public transient Map<String, Object> documentMap;
 
     /**
@@ -78,6 +81,16 @@ public class Document implements Map<String, Object>, Serializable {
      */
     public Document() {
         documentMap = new LinkedHashMap<>();
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getDocumentMap() {
+        return documentMap;
+    }
+
+    @JsonAnySetter
+    public void setProperty(String key, Object value) {
+        documentMap.put(key, value);
     }
 
     /**
@@ -207,7 +220,6 @@ public class Document implements Map<String, Object>, Serializable {
         return get(DataAPIKeywords.ID.getKeyword(), clazz);
     }
 
-
     /**
      * Set value for the identifier.
      *
@@ -234,12 +246,14 @@ public class Document implements Map<String, Object>, Serializable {
         return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), text);
     }
 
+
     /**
      * Access attribute with vectorize name if any.
      *
      * @return
      *      value for vectorize
      */
+    @JsonIgnore
     public Optional<String> getVectorize() {
         return Optional.ofNullable(get(DataAPIKeywords.VECTORIZE.getKeyword(), String.class));
     }
@@ -250,6 +264,7 @@ public class Document implements Map<String, Object>, Serializable {
      * @return
      *      vector list
      */
+    @JsonIgnore
     public Optional<float[]>  getVector() {
         return Optional.ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class));
     }
@@ -272,6 +287,7 @@ public class Document implements Map<String, Object>, Serializable {
      * @return
      *      vector list
      */
+    @JsonIgnore
     public Optional<Double> getSimilarity() {
         return Optional.ofNullable(get(DataAPIKeywords.SIMILARITY.getKeyword(), Double.class));
     }
@@ -503,22 +519,6 @@ public class Document implements Map<String, Object>, Serializable {
         return constructValuesList(key, clazz, null);
     }
 
-    /**
-     * Gets the list value of the given key, casting the list elements to {@code Class<T>} or returning the default list value if null.
-     * This is useful to avoid having casts in client code, though the effect is the same.
-     *
-     * @param key   the key
-     * @param clazz the non-null class to cast the list value to
-     * @param defaultValue what to return if the value is null
-     * @param <T>   the type of the class
-     * @return the list value of the given key, or the default list value if the instance does not contain this key.
-     * @throws ClassCastException if the value of the given key is not of type T
-     * @since 3.10
-     */
-    public <T> List<T> getList(final String key, final Class<T> clazz, final List<T> defaultValue) {
-        return constructValuesList(key, clazz, defaultValue);
-    }
-
     @SuppressWarnings("unchecked")
     private <T> List<T> constructValuesList(final String key, final Class<T> clazz, final List<T> defaultValue) {
         List<T> value = get(key, List.class);
@@ -554,77 +554,48 @@ public class Document implements Map<String, Object>, Serializable {
         return toString();
     }
 
-    // Vanilla Map methods delegate to map field
-
     /** {@inheritDoc} */
-    @Override
-    public int size() {
-        return documentMap.size();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean isEmpty() {
-        return documentMap.isEmpty();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public boolean containsValue(final Object value) {
-        return documentMap.containsValue(value);
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public boolean containsKey(final Object key) {
         return documentMap.containsKey(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object get(final Object key) {
         return documentMap.get(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object put(final String key, final Object value) {
         return documentMap.put(key, value);
     }
 
     /** {@inheritDoc} */
-    @Override
     public Object remove(final Object key) {
         return documentMap.remove(key);
     }
 
     /** {@inheritDoc} */
-    @Override
     public void putAll(final Map<? extends String, ?> map) {
         documentMap.putAll(map);
     }
 
     /** {@inheritDoc} */
-    @Override
+    public void putAll(Document doc) {
+        documentMap.putAll(doc.getDocumentMap());
+    }
+
+    /** {@inheritDoc} */
     public void clear() {
         documentMap.clear();
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Set<String> keySet() {
-        return documentMap.keySet();
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public Collection<Object> values() {
         return documentMap.values();
     }
 
     /** {@inheritDoc} */
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
+    public Set<Map.Entry<String, Object>> entrySet() {
         return documentMap.entrySet();
     }
 

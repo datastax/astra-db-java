@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.exception;
 
 /*-
  * #%L
@@ -21,24 +21,22 @@ package com.datastax.astra.client.tables.columns;
  */
 
 import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
-@Getter @Setter
-public class ColumnDefinitionMap extends ColumnDefinition {
+@Getter
+public enum DataAPIErrorCode {
+    ERROR("CLIENT_ERROR"),
+    HTTP("CLIENT_HTTP"),
+    ENVIRONMENT("ENVIRONMENT"),
+    TIMEOUT("CLIENT_TIMEOUT"),
+    INTERRUPTED("CLIENT_INTERRUPTED"),
+    RANDOM("CLIENT_RANDOM"),
+    CURSOR("CLIENT_CURSOR"),
 
-    private ColumnTypes keyType;
+    SERIALIZATION("CLIENT_SERIALIZATION");
 
-    private ColumnTypes valueType;
+    private final String code;
 
-    public ColumnDefinitionMap() {
-        super(ColumnTypes.MAP);
+    DataAPIErrorCode(String code) {
+        this.code = code;
     }
-
-    public ColumnDefinitionMap(ColumnTypes keyType, ColumnTypes valueType) {
-        this();
-        this.keyType = keyType;
-        this.valueType = valueType;
-    }
-
 }

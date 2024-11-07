@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.devops.exceptions;
 
 /*-
  * #%L
@@ -20,25 +20,8 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
+public class DevOpsAPIResponseException extends DevopsAPIException {
 
-@Getter @Setter
-public class ColumnDefinitionMap extends ColumnDefinition {
-
-    private ColumnTypes keyType;
-
-    private ColumnTypes valueType;
-
-    public ColumnDefinitionMap() {
-        super(ColumnTypes.MAP);
+    public DevOpsAPIResponseException() {
     }
-
-    public ColumnDefinitionMap(ColumnTypes keyType, ColumnTypes valueType) {
-        this();
-        this.keyType = keyType;
-        this.valueType = valueType;
-    }
-
 }

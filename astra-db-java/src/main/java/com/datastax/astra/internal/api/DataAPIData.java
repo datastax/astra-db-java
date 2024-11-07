@@ -34,7 +34,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class ApiData {
+public class DataAPIData {
 
     /**
      * A list of {@link Document} objects representing a collection of documents returned by the API. This could be the result of
@@ -59,10 +59,10 @@ public class ApiData {
     String nextPageState;
 
     /**
-     * Default constructor for {@link ApiData}. Initializes a new instance of the class without setting any properties.
+     * Default constructor for {@link DataAPIData}. Initializes a new instance of the class without setting any properties.
      * Fields should be set via their setters or directly, depending on the usage context and the framework's conventions.
      */
-    public ApiData() {
+    public DataAPIData() {
         // left blank, will be populated by jackson
     }
 }

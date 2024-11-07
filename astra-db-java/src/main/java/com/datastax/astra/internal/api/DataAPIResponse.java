@@ -21,6 +21,7 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
  */
 @Getter
 @Setter
-public class ApiResponse implements Serializable {
+public class DataAPIResponse implements Serializable {
 
     /**
      * The {@link DataAPISerializer} instance used to serialize and deserialize data objects.
@@ -56,26 +57,26 @@ public class ApiResponse implements Serializable {
      * The inclusion of this field in the response is conditional and based on the presence of status information.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Document status;
+    private DataAPIStatus status;
 
     /**
-     * Contains a list of {@link ApiError} objects representing errors that occurred during the API call.
+     * Contains a list of {@link DataAPIErrorDescriptor} objects representing errors that occurred during the API call.
      * This field is especially relevant for batch operations where multiple items are processed, and individual errors
      * may occur for each item. The inclusion of this field is conditional and based on the presence of errors.
      */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private transient List<ApiError> errors;
+    private transient List<DataAPIErrorDescriptor> errors;
 
     /**
      * Encapsulates the data retrieved by operations prefixed with 'find'. This field is populated with the results
-     * from such queries, packaging the returned data within an {@link ApiData} object.
+     * from such queries, packaging the returned data within an {@link DataAPIData} object.
      */
-    private transient ApiData data;
+    private transient DataAPIData data;
 
     /**
-     * Default constructor for {@link ApiResponse}. Initializes a new instance of the class without setting any properties.
+     * Default constructor for {@link DataAPIResponse}. Initializes a new instance of the class without setting any properties.
      */
-    public ApiResponse() {
+    public DataAPIResponse() {
         // left blank, will be populated by jackson
     }
 

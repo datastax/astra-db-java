@@ -20,7 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -57,10 +57,10 @@ public class ExecutionInfos implements Serializable {
     private final String requestUrl;
 
     /**
-     * The raw {@link ApiResponse} received in response to the command execution. This field contains the
+     * The raw {@link DataAPIResponse} received in response to the command execution. This field contains the
      * complete response from the server, including any data, errors, or status information returned.
      */
-    private final ApiResponse response;
+    private final DataAPIResponse response;
 
     /**
      * The HTTP status code returned by the server in response to the command execution. This code provides
@@ -124,7 +124,7 @@ public class ExecutionInfos implements Serializable {
      */
     public static class DataApiExecutionInfoBuilder {
         private Command command;
-        private ApiResponse response;
+        private DataAPIResponse response;
         private long executionTime;
         private int responseHttpCode;
         private Map<String, List<String>> requestHttpHeaders;
@@ -197,7 +197,7 @@ public class ExecutionInfos implements Serializable {
          *
          * @param response current response
          */
-        public void withApiResponse(ApiResponse response) {
+        public void withApiResponse(DataAPIResponse response) {
             this.response = response;
         }
 

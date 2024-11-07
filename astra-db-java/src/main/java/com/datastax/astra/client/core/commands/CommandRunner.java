@@ -21,7 +21,7 @@ package com.datastax.astra.client.core.commands;
  */
 
 import com.datastax.astra.client.exception.DataAPIResponseException;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 
 /**
  * Use to initialize the HTTPClient.
@@ -42,7 +42,7 @@ public interface CommandRunner {
      * @return
      *     result as a document map
      */
-    default ApiResponse runCommand(Command command) {
+    default DataAPIResponse runCommand(Command command) {
         return runCommand(command, new CommandOptions<>());
     }
 
@@ -58,7 +58,7 @@ public interface CommandRunner {
      * @return
      *     result as a document map
      */
-    ApiResponse runCommand(Command command, CommandOptions<?> options)
+    DataAPIResponse runCommand(Command command, CommandOptions<?> options)
     throws DataAPIResponseException;
 
     /**

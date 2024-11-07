@@ -54,6 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.text.SimpleDateFormat;
@@ -96,6 +97,7 @@ public class DocumentSerializer implements DataAPISerializer {
                     .configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, false)
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     .registerModule(new JavaTimeModule())
+                    .registerModule(new Jdk8Module())
                     .setDateFormat(new SimpleDateFormat("dd/MM/yyyy"))
                     .setSerializationInclusion(Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());

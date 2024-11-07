@@ -20,8 +20,8 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.internal.api.ApiData;
-import com.datastax.astra.internal.api.ApiError;
+import com.datastax.astra.internal.api.DataAPIData;
+import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
 import com.datastax.astra.internal.utils.AnsiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,7 +95,7 @@ public class LoggingCommandObserver implements CommandObserver {
             log(AnsiUtils.magenta("[" + req + "][response-time]") + "=" + AnsiUtils.yellow("{}") + " millis.",
                     executionInfo.getExecutionTime());
             // Log Data
-            ApiData data = executionInfo.getResponse().getData();
+            DataAPIData data = executionInfo.getResponse().getData();
             if (data != null && data.getDocument() != null) {
                 log(AnsiUtils.magenta("[" + req + "][apiData/document]") + "=" + AnsiUtils.yellow("1 document retrieved, id='{}'"), data.getDocument().getId(Object.class));
             }
@@ -104,10 +104,10 @@ public class LoggingCommandObserver implements CommandObserver {
             }
 
             // Log Errors
-            List<ApiError> errors = executionInfo.getResponse().getErrors();
+            List<DataAPIErrorDescriptor> errors = executionInfo.getResponse().getErrors();
             if (errors != null) {
                 log(AnsiUtils.magenta("[" + req + "][errors]") + "="+ AnsiUtils.yellow("{}") +" errors detected.", errors.size());
-                for (ApiError error : errors) {
+                for (DataAPIErrorDescriptor error : errors) {
                     log(AnsiUtils.magenta("[" + req + "][errors]")+ "="+ AnsiUtils.yellow("{} [code={}]"), error.getErrorMessage(), error.getErrorCode());
                 }
             }

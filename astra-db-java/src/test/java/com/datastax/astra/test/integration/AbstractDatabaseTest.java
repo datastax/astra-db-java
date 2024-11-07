@@ -12,7 +12,7 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -142,7 +142,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(7)
     public void shouldRunCommand() {
         // Create From String
-        ApiResponse res = getDatabase().runCommand(
+        DataAPIResponse res = getDatabase().runCommand(
                Command.create("createCollection").append("name", "collection_simple"));
         assertThat(res).isNotNull();
         assertThat(res.getStatus().getInteger("ok")).isEqualTo(1);

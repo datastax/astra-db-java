@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.columns;
+package com.datastax.astra.client.tables.commands;
 
 /*-
  * #%L
@@ -20,25 +20,20 @@ package com.datastax.astra.client.tables.columns;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandOptions;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
+/**
+ * List Options for a FindOne command.
+ */
 @Getter @Setter
-public class ColumnDefinitionMap extends ColumnDefinition {
+public class CountRowsOptions extends CommandOptions<CountRowsOptions> {
 
-    private ColumnTypes keyType;
-
-    private ColumnTypes valueType;
-
-    public ColumnDefinitionMap() {
-        super(ColumnTypes.MAP);
+    /**
+     * Default constructor.
+     */
+    public CountRowsOptions() {
+        // Left blank as sort is populated in static way
     }
-
-    public ColumnDefinitionMap(ColumnTypes keyType, ColumnTypes valueType) {
-        this();
-        this.keyType = keyType;
-        this.valueType = valueType;
-    }
-
 }

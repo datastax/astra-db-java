@@ -25,7 +25,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Getter @Setter
-@Accessors(fluent = true)
 public class ColumnDefinitionSet extends ColumnDefinition {
 
     private ColumnTypes valueType;

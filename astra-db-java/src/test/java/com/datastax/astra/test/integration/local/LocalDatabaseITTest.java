@@ -6,7 +6,7 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.client.exception.AuthenticationException;
+import com.datastax.astra.client.exception.DataAPIHttpException;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
@@ -54,7 +54,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Test
     void shouldThrowAuthenticationCode() {
         UsernamePasswordTokenProvider tokenProvider = new UsernamePasswordTokenProvider("invalid", "invalid");
-        assertThatThrownBy(tokenProvider::getToken).isInstanceOf(AuthenticationException.class);
+        assertThatThrownBy(tokenProvider::getToken).isInstanceOf(DataAPIHttpException.class);
     }
 
     @Test

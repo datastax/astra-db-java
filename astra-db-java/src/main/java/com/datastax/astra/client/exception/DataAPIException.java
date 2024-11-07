@@ -50,9 +50,6 @@ import lombok.Getter;
 @Getter
 public class DataAPIException extends RuntimeException {
 
-    /** Serial. */
-    private static final long serialVersionUID = 1L;
-
     /** Default error message. */
     public static final String DEFAULT_ERROR_MESSAGE = "Unexpected error occurred for Data API";
 
@@ -78,7 +75,7 @@ public class DataAPIException extends RuntimeException {
     private final String errorCode;
 
     /**
-     *Constructors providing all arguments and a parent exception.
+     * Constructors providing all arguments and a parent exception.
      *
      * @param errorMessage
      *      error message
@@ -88,6 +85,19 @@ public class DataAPIException extends RuntimeException {
     public DataAPIException(String errorCode, String errorMessage) {
         super("[" + errorCode + "] - " + errorMessage);
         this.errorCode = errorCode;
+    }
+
+    /**
+     *Constructors providing all arguments and a parent exception.
+     *
+     * @param errorMessage
+     *      error message
+     * @param errorCode
+     *      error code
+     */
+    public DataAPIException(DataAPIErrorCode errorCode, String errorMessage) {
+        super("[" + errorCode + "] - " + errorMessage);
+        this.errorCode = errorCode.getCode();
     }
 
     /**

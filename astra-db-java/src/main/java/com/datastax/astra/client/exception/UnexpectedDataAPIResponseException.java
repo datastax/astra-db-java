@@ -21,7 +21,7 @@ package com.datastax.astra.client.exception;
  */
 
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import lombok.Getter;
 
 /**
@@ -54,13 +54,13 @@ import lombok.Getter;
  * @see DataAPIException
  */
 @Getter
-public class DataAPIFaultyResponseException extends DataAPIException {
+public class UnexpectedDataAPIResponseException extends DataAPIException {
 
     /** Command which triggered the error. */
     private final Command command;
 
     /** The Data API response associated with the error. */
-    private final ApiResponse response;
+    private final DataAPIResponse response;
 
     /**
      * Constructs a new exception with the specified command that triggered the error,
@@ -70,7 +70,7 @@ public class DataAPIFaultyResponseException extends DataAPIException {
      * @param res The actual response received from the Data API which was not as expected.
      * @param msg The detailed error message explaining the nature of the fault.
      */
-    public DataAPIFaultyResponseException(Command cmd, ApiResponse res, String msg) {
+    public UnexpectedDataAPIResponseException(Command cmd, DataAPIResponse res, String msg) {
         super(DEFAULT_ERROR_CODE, msg);
         this.command = cmd;
         this.response = res;

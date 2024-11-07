@@ -55,10 +55,11 @@ import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataAPIFaultyResponseException;
+import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.exception.TooManyDocumentsToCountException;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.internal.api.DataAPIResponse;
+import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -632,8 +633,8 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > dataAPIOptions.getMaxDocumentsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxDocumentsInInsert() + " at a time.");
+        if (options.getChunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
@@ -1175,7 +1176,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
                         .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.getIncludeSortVector())
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
-        ApiResponse apiResponse = runCommand(findCommand, options);
+        DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
         float[] sortVector = null;
@@ -1313,7 +1314,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public long estimatedDocumentCount(EstimatedCountDocumentsOptions options) {
         Command command = new Command("estimatedDocumentCount");
         // Run command
-        ApiResponse response = runCommand(command, options);
+        DataAPIResponse response = runCommand(command, options);
         // Build Result
         return response.getStatus().getInteger(RESULT_COUNT);
     }
@@ -1348,13 +1349,13 @@ public class Collection<T> extends AbstractCommandRunner {
     public int countDocuments(Filter filter, int upperBound, CountDocumentsOptions options)
     throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIOptions.getMaxDocumentCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxDocumentCount());
+        if (upperBound<1 || upperBound> dataAPIOptions.getMaxRecordCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxRecordCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);
         // Run command
-        ApiResponse response = runCommand(command, options);
+        DataAPIResponse response = runCommand(command, options);
         // Build Result
         Boolean moreData = response.getStatus().getBoolean(RESULT_MORE_DATA);
         Integer count    = response.getStatus().getInteger(RESULT_COUNT);
@@ -1418,7 +1419,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withFilter(filter)
                 .withSort(deleteOneOptions.getSort());
 
-        ApiResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
+        DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
         return new DeleteResult(deletedCount);
     }
@@ -1441,8 +1442,8 @@ public class Collection<T> extends AbstractCommandRunner {
                     .create("deleteMany")
                     .withFilter(filter);
 
-            ApiResponse apiResponse = runCommand(deleteMany, options);
-            Document status = apiResponse.getStatus();
+            DataAPIResponse apiResponse = runCommand(deleteMany, options);
+            DataAPIStatus status = apiResponse.getStatus();
             if (status != null) {
                 if (status.containsKey(RESULT_DELETED_COUNT)) {
                     totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
@@ -1542,7 +1543,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
-        ApiResponse res = runCommand(findOneAndReplace, options);
+        DataAPIResponse res = runCommand(findOneAndReplace, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()
@@ -1616,11 +1617,11 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, CommandOptions<?> options) {
         // Run Command
-        ApiResponse apiResponse = runCommand(cmd, options);
+        DataAPIResponse apiResponse = runCommand(cmd, options);
         // Parse Command Result
         FindOneAndReplaceResult<T> result = new FindOneAndReplaceResult<>();
         if (apiResponse.getData() == null) {
-            throw new DataAPIFaultyResponseException(cmd, apiResponse,"Faulty response from find_one_and_replace API command.");
+            throw new UnexpectedDataAPIResponseException(cmd, apiResponse,"Faulty response from find_one_and_replace API command.");
         }
         if (apiResponse.getData().getDocument() != null) {
             result.setDocument(apiResponse
@@ -1628,7 +1629,7 @@ public class Collection<T> extends AbstractCommandRunner {
                     .getDocument()
                     .map(getDocumentClass()));
         }
-        Document status = apiResponse.getStatus();
+        DataAPIStatus status = apiResponse.getStatus();
         if (status != null) {
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
                 result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
@@ -1684,7 +1685,7 @@ public class Collection<T> extends AbstractCommandRunner {
                         .append(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
                 );
 
-        ApiResponse res = runCommand(cmd, options);
+        DataAPIResponse res = runCommand(cmd, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()
@@ -1742,9 +1743,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    private static UpdateResult getUpdateResult(ApiResponse apiResponse) {
+    private static UpdateResult getUpdateResult(DataAPIResponse apiResponse) {
         UpdateResult result = new UpdateResult();
-        Document status = apiResponse.getStatus();
+        DataAPIStatus status = apiResponse.getStatus();
         if (status != null) {
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
                 result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
@@ -1800,13 +1801,13 @@ public class Collection<T> extends AbstractCommandRunner {
                     .withOptions(new Document()
                             .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
                             .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
-            ApiResponse res = runCommand(cmd, options);
+            DataAPIResponse res = runCommand(cmd, options);
             // Data
             if (res.getData() != null) {
                 nextPageState = res.getData().getNextPageState();
             }
             // Status
-            Document status = res.getStatus();
+            DataAPIStatus status = res.getStatus();
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
                 result.setMatchedCount(result.getMatchedCount() + status.getInteger(RESULT_MATCHED_COUNT));
             }
@@ -1861,7 +1862,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 .withSort(options.getSort())
                 .withProjection(options.getProjection());
 
-        ApiResponse res = runCommand(findOneAndReplace, options);
+        DataAPIResponse res = runCommand(findOneAndReplace, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {
             return Optional.ofNullable(res
                     .getData()

@@ -22,6 +22,7 @@ package com.datastax.astra.client.collections.commands;
 
 import com.datastax.astra.client.DataAPIOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.http.HttpClientOptions;
 import lombok.Getter;
 
 /**
@@ -48,13 +49,15 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
     /**
      * If the flag is set to true the command is failing on first error
      */
-    private long timeout = httpClientOptions.getRequestTimeout().getSeconds();
+    private long timeout;
 
     /**
      * Populate insertMany options
      */
     public InsertManyOptions() {
         // left blank, jackson serialization
+        this.httpClientOptions = new HttpClientOptions();
+        this.timeout = httpClientOptions.getRequestTimeout().getSeconds();
     }
 
     /**

@@ -27,7 +27,7 @@ import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.collections.commands.EmbeddingProvider;
 import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
-import com.datastax.astra.internal.api.ApiResponse;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -106,7 +106,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
-        ApiResponse res = runCommand(Command.create("findEmbeddingProviders"));
+        DataAPIResponse res = runCommand(Command.create("findEmbeddingProviders"));
         return new FindEmbeddingProvidersResult(
                 res.getStatusKeyAsMap("embeddingProviders",
                 EmbeddingProvider.class));
