@@ -8,7 +8,7 @@ import com.datastax.astra.client.core.CollectionOptions;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.FindIterable;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 
 import java.util.HashMap;
@@ -57,7 +57,7 @@ public class QuickStartAzureOpenAI {
                 .createCollection("vectorize_test", builder.build());
 
         collection.deleteAll();
-        InsertManyResult insertResult = collection.insertMany(
+        CollectionInsertManyResult insertResult = collection.insertMany(
                 new Document()
                         .id(UUID.fromString("018e65c9-df45-7913-89f8-175f28bd7f74"))
                         .vectorize("Chat bot integrated sneakers that talk to you"),

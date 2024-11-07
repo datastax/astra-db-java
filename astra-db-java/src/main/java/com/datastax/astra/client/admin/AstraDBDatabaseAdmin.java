@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;

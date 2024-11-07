@@ -29,12 +29,12 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class DeleteManyOptions extends CommandOptions<DeleteManyOptions> {
+public class CollectionDeleteManyOptions extends CommandOptions<CollectionDeleteManyOptions> {
 
     /**
      * Default constructor.
      */
-    public DeleteManyOptions() {
+    public CollectionDeleteManyOptions() {
         // Left blank as sort is populated in static way
     }
 

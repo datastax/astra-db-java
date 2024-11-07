@@ -20,18 +20,17 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.tables.commands.CountRowsOptions;
 import com.datastax.astra.client.tables.commands.EstimatedCountRowsOptions;
+import com.datastax.astra.client.tables.commands.TableDeleteManyOptions;
 import com.datastax.astra.client.tables.commands.TableDeleteOneOptions;
-import com.datastax.astra.client.tables.commands.TableDeleteResult;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
@@ -46,9 +45,10 @@ import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
-import com.datastax.astra.client.tables.row.PrimaryKey;
 import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
+import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -70,6 +70,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
@@ -441,8 +442,19 @@ public class Table<T>  extends AbstractCommandRunner {
         // Grouping All Insert ids in the same list.
         TableInsertManyResult finalResult = new TableInsertManyResult();
         try {
+            boolean first = true;
             for (Future<TableInsertManyResult> future : futures) {
-                finalResult.getInsertedIds().addAll(future.get().getInsertedIds());
+                TableInsertManyResult res = future.get();
+                if (first) {
+                    finalResult.setPrimaryKeySchema(res.getPrimaryKeySchema());
+                    first = false;
+                }
+                if (!res.getInsertedIds().isEmpty()) {
+                    finalResult.getInsertedIds().addAll(res.getInsertedIds());
+                }
+                if (!res.getDocumentResponses().isEmpty()) {
+                    finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
+                }
             }
 
             if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
@@ -488,8 +500,11 @@ public class Table<T>  extends AbstractCommandRunner {
             log.debug("Insert block (" + cyan("size={}") + ") in table {}", end - start, green(getTableName()));
             Command insertMany = new Command("insertMany")
                     .withDocuments(rows.subList(start, end))
-                    .withOptions(new Document().append(INPUT_ORDERED, insertManyOptions.isOrdered()));
-            return runCommand(insertMany, insertManyOptions).getStatus(TableInsertManyResult.class);
+                    .withOptions(new Document()
+                            .append(INPUT_ORDERED, insertManyOptions.isOrdered())
+                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, insertManyOptions.isReturnDocumentResponses()));
+            return runCommand(insertMany, insertManyOptions)
+                    .getStatus(TableInsertManyResult.class);
         };
     }
 
@@ -511,11 +526,11 @@ public class Table<T>  extends AbstractCommandRunner {
                         .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
             );
         }
-
-        return Optional.ofNullable(
-                runCommand(findOne, findOneOptions)
-                        .getData().getDocument()
-                        .map(getRowClass()));
+        DataAPIData data = runCommand(findOne, findOneOptions).getData();
+        if (data.getDocument() == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(data.getDocument().map(getRowClass()));
     }
 
     public Optional<T> findOne(TableFindOneOptions findOneOptions) {
@@ -570,12 +585,9 @@ public class Table<T>  extends AbstractCommandRunner {
      *
      * @param filter
      *      the query filter to apply the delete operation
-     * @return
-     *      the result of the remove one operation
-     *
      */
-    public TableDeleteResult deleteOne(Filter filter) {
-        return deleteOne(filter, new TableDeleteOneOptions());
+    public void deleteOne(Filter filter) {
+        deleteOne(filter, new TableDeleteOneOptions());
     }
 
     /**
@@ -586,26 +598,70 @@ public class Table<T>  extends AbstractCommandRunner {
      *      the query filter to apply the delete operation
      * @param deleteOneOptions
      *      the option to driver the deletes (here sort)
-     * @return
-     *      the result of the remove one operation
-     *
      */
-    public TableDeleteResult deleteOne(Filter filter, TableDeleteOneOptions deleteOneOptions) {
+    public void deleteOne(Filter filter, TableDeleteOneOptions deleteOneOptions) {
         Command deleteOne = Command
                 .create("deleteOne")
                 .withFilter(filter)
                 .withSort(deleteOneOptions.getSort());
-
+        runCommand(deleteOne, deleteOneOptions);
+        /*
         DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
         return new TableDeleteResult(deletedCount);
+         */
     }
 
     // -------------------------
     // ---   deleteMany     ----
     // -------------------------
 
-    // FIXME
+    /**
+     * Removes all rows from the tables that match the given query filter. If no rows match, the table is not modified.
+     *
+     * @param filter
+     *      the query filter to apply the delete operation
+     * @param options
+     *      the options to apply to the operation
+     * @return
+     *      the result of the remove many operation
+     */
+    public void deleteMany(Filter filter, TableDeleteManyOptions options) {
+        AtomicInteger totalCount = new AtomicInteger(0);
+        boolean moreData = false;
+        do {
+            Command deleteMany = Command
+                    .create("deleteMany")
+                    .withFilter(filter);
+
+            DataAPIResponse apiResponse = runCommand(deleteMany, options);
+            DataAPIStatus status = apiResponse.getStatus();
+            if (status != null) {
+                if (status.containsKey(RESULT_DELETED_COUNT)) {
+                    totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
+                }
+                moreData = status.containsKey(RESULT_MORE_DATA);
+            }
+        } while(moreData);
+        System.out.println(totalCount);
+    }
+
+    /**
+     * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
+     *
+     * @param filter
+     *      the query filter to apply the delete operation
+     */
+    public void deleteMany(Filter filter) {
+        deleteMany(filter, null);
+    }
+
+    /**
+     * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
+     */
+    public void deleteAll() {
+        deleteMany(new Filter());
+    }
 
     // --------------------------------
     // --- estimatedDocumentCount  ----

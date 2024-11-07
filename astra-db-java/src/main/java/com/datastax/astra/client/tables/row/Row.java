@@ -62,7 +62,6 @@ public class Row implements Serializable {
     private static final DataAPISerializer SERIALIZER = new RowSerializer();
 
     /** Data to be used in the document. */
-    @JsonUnwrapped
     public transient Map<String, Object> columnMap;
 
     /**

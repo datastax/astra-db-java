@@ -3,7 +3,7 @@ package com.datastax.astra.test.integration.local;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.DataAPIHttpException;

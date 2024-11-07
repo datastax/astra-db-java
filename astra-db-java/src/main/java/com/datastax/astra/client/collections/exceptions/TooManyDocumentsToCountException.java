@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.exceptions;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.exception.DataAPIErrorCode;
 import com.datastax.astra.client.exception.DataAPIException;
 

@@ -24,9 +24,8 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Filters;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.core.query.Filters.eq;
-import static com.datastax.astra.client.core.query.Filters.in;
 
 
 /**
@@ -157,7 +155,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                 .collect(Collectors.toList());
 
         // Ids are Generated
-        InsertManyOptions options = new InsertManyOptions()
+        CollectionInsertManyOptions options = new CollectionInsertManyOptions()
                 .chunkSize(itemsPerChunk)
                 .concurrency(concurrentThreads)
                 .ordered(false);
@@ -199,7 +197,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                 .collect(Collectors.toList());
 
         // Set options for distributed treatment
-        InsertManyOptions options = new InsertManyOptions()
+        CollectionInsertManyOptions options = new CollectionInsertManyOptions()
                 .chunkSize(itemsPerChunk)
                 .concurrency(concurrentThreads)
                 .ordered(false);

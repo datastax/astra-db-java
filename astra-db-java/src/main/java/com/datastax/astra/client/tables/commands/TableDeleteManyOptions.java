@@ -1,4 +1,4 @@
-package com.datastax.astra.client.collections.commands;
+package com.datastax.astra.client.tables.commands;
 
 /*-
  * #%L
@@ -20,30 +20,22 @@ package com.datastax.astra.client.collections.commands;
  * #L%
  */
 
-
-import lombok.AllArgsConstructor;
+import com.datastax.astra.client.core.commands.CommandOptions;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Represents the result returned by command 'insertMany()', mainly the insertedIds.
+ * Options to delete many documents.
  */
 @Getter
 @Setter
-@AllArgsConstructor
-public class InsertManyResult {
-
-    /** Inserted Ids. */
-    List<Object> insertedIds =  new ArrayList<>();
+public class TableDeleteManyOptions extends CommandOptions<TableDeleteManyOptions> {
 
     /**
      * Default constructor.
      */
-    public InsertManyResult() {
-        // left blank as fields are populated by jackson
+    public TableDeleteManyOptions() {
+        // Left blank as sort is populated in static way
     }
 
 }

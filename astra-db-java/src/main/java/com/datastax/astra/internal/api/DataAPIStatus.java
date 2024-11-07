@@ -51,6 +51,11 @@ public class DataAPIStatus {
     private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
 
     /**
+     * Returned when insertMany with flag
+     */
+    private List<DataAPIDocumentResponse> documentResponses;
+
+    /**
      * Warnings returned
      */
     private List<DataAPIErrorDescriptor> warnings;

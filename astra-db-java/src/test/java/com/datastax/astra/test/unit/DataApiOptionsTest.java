@@ -1,15 +1,15 @@
 package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.DataAPIOptions;
-import com.datastax.astra.client.collections.commands.DeleteOneOptions;
-import com.datastax.astra.client.collections.commands.DeleteResult;
+import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
 import com.datastax.astra.client.collections.commands.FindOneAndDeleteOptions;
 import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
 import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
@@ -17,7 +17,7 @@ import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.commands.UpdateOneOptions;
 import com.datastax.astra.client.collections.documents.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.collections.CollectionIdTypes;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.http.HttpProxy;
@@ -34,7 +34,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import static com.datastax.astra.client.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
+import static com.datastax.astra.client.core.options.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -57,10 +57,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeInsertManyOptions() {
-        assertThat(new InsertManyOptions().chunkSize(10)).isNotNull();
-        assertThat(new InsertManyOptions().timeout(10)).isNotNull();
-        assertThat(new InsertManyOptions().ordered(true).timeout(10)).isNotNull();
-        assertThat(new InsertManyOptions().concurrency(2).timeout(10)).isNotNull();
+        assertThat(new CollectionInsertManyOptions().chunkSize(10)).isNotNull();
+        assertThat(new CollectionInsertManyOptions().timeout(10)).isNotNull();
+        assertThat(new CollectionInsertManyOptions().ordered(true).timeout(10)).isNotNull();
+        assertThat(new CollectionInsertManyOptions().concurrency(2).timeout(10)).isNotNull();
     }
 
     @Test
@@ -150,9 +150,9 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestDeleteOneOptions() {
-        assertThat(new DeleteOneOptions().sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(new DeleteOneOptions().sort(new float[]{})).isNotNull();
-        assertThat(new DeleteOneOptions().sort("OK")
+        assertThat(new CollectionDeleteOneOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new CollectionDeleteOneOptions().sort(new float[]{})).isNotNull();
+        assertThat(new CollectionDeleteOneOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .sort("ok")
                 .sort(new float[]{}))
@@ -242,7 +242,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestDeleteResult() {
-        assertThat(new DeleteResult(20).getDeletedCount()).isEqualTo(20);
+        assertThat(new CollectionDeleteResult(20).getDeletedCount()).isEqualTo(20);
     }
 
     @Test
@@ -267,7 +267,7 @@ class DataApiOptionsTest {
         FindOptions options1 = new FindOptions().projection(p1,p2);
         FindOptions options2 = new FindOptions().projection(Projections.include("field1", "field2"));
 
-        InsertManyOptions insertManyOptions = new InsertManyOptions().chunkSize(100);
+        CollectionInsertManyOptions collectionInsertManyOptions = new CollectionInsertManyOptions().chunkSize(100);
         //DataAPIClient client = new DataAPIClient("token", options);
 
     }

@@ -13,8 +13,8 @@ import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-import static com.datastax.astra.client.DataAPIOptions.DataAPIDestination.HCD;
-import static com.datastax.astra.client.DataAPIOptions.builder;
+import static com.datastax.astra.client.core.options.DataAPIOptions.DataAPIDestination.HCD;
+import static com.datastax.astra.client.core.options.DataAPIOptions.builder;
 import static com.datastax.astra.client.core.Filters.eq;
 
 public class QuickStartHCD {

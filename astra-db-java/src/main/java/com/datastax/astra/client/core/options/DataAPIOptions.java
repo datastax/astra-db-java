@@ -1,4 +1,4 @@
-package com.datastax.astra.client;
+package com.datastax.astra.client.core.options;
 
 /*-
  * #%L
@@ -20,6 +20,8 @@ package com.datastax.astra.client;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.http.Caller;
@@ -70,6 +72,8 @@ public class DataAPIOptions {
     /** Set the API version like 'v1' */
     final String apiVersion;
 
+    final TimeoutOptions timeoutOptions;
+
     /** Group options and parameters for http client. */
     final HttpClientOptions httpClientOptions;
 
@@ -115,6 +119,7 @@ public class DataAPIOptions {
         this.observers                 = builder.observers;
         this.databaseAdditionalHeaders = builder.databaseAdditionalHeaders;
         this.adminAdditionalHeaders    = builder.adminAdditionalHeaders;
+        this.timeoutOptions = new TimeoutOptions();
     }
 
     /**

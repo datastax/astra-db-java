@@ -2,7 +2,7 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.collections.commands.EmbeddingProvider;
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.commands;
+package com.datastax.astra.client.collections.commands;
 
 /*-
  * #%L
@@ -20,26 +20,29 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
+
+import com.datastax.astra.internal.api.DataAPIDocumentResponse;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Hold the result of delete commands (deleteOne, deleteMany).
+ * Represents the result returned by command 'insertMany()', mainly the insertedIds.
  */
 @Getter
-public class TableDeleteResult {
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class CollectionInsertManyResult {
 
-    /**
-     * NUmber of documents deleted.
-     */
-    private final int deletedCount;
+    /** Inserted Ids. */
+    List<Object> insertedIds =  new ArrayList<>();
 
-    /**
-     * Default constructor.
-     *
-     * @param deletedCount
-     *      number of items deleted
-     */
-    public TableDeleteResult(int deletedCount) {
-        this.deletedCount = deletedCount;
-    }
+    /** Document Response with flag is there. */
+    List<DataAPIDocumentResponse> documentResponses = new ArrayList<>();
+
 }

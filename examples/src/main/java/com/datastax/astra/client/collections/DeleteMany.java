@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.DeleteResult;
+import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.core.Filter;
 import com.datastax.astra.client.core.Filters;
@@ -19,7 +19,7 @@ public class DeleteMany {
                 Filters.gt("field2", 10),
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
-        DeleteResult result = collection.deleteMany(filter);
+        CollectionDeleteResult result = collection.deleteMany(filter);
         System.out.println("Deleted Count:" + result.getDeletedCount());
 
     }

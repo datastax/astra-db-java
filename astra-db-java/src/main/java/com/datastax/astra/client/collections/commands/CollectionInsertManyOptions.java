@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.commands;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import lombok.Getter;
@@ -29,7 +29,7 @@ import lombok.Getter;
  * Options for InsertMany
  */
 @Getter
-public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
+public class CollectionInsertManyOptions extends CommandOptions<CollectionInsertManyOptions> {
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -40,6 +40,16 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
      * If the flag is set to true the command is failing on first error
      */
     private int concurrency = 1;
+
+    /**
+     * When `true`, response will contain an additional field: 'documentResponses'"
+     * with is an array of Document Response Objects. Each Document Response Object"
+     * contains the `_id` of the document and the `status` of the operation (one of"
+     * `OK`, `ERROR` or `SKIPPED`). Additional `errorsIdx` field is present when the"
+     * " status is `ERROR` and contains the index of the error in the main `errors` array.",
+     * defaultValue = "false").
+     */
+    private boolean returnDocumentResponses = false;
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -54,7 +64,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
     /**
      * Populate insertMany options
      */
-    public InsertManyOptions() {
+    public CollectionInsertManyOptions() {
         // left blank, jackson serialization
         this.httpClientOptions = new HttpClientOptions();
         this.timeout = httpClientOptions.getRequestTimeout().getSeconds();
@@ -68,11 +78,23 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
      * @return
      *      insert many options
      */
-    public InsertManyOptions ordered(boolean ordered) {
+    public CollectionInsertManyOptions ordered(boolean ordered) {
         this.ordered = ordered;
         return this;
     }
 
+    /**
+     * Setter for ordered.
+     *
+     * @param returnDocumentResponses
+     *      enabled return document
+     * @return
+     *      insert many options
+     */
+    public CollectionInsertManyOptions returnDocumentResponses(boolean returnDocumentResponses) {
+        this.returnDocumentResponses = returnDocumentResponses;
+        return this;
+    }
 
     /**
      * Setter for concurrency.
@@ -82,7 +104,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
      * @return
      *      insert many options
      */
-    public InsertManyOptions concurrency(int concurrency) {
+    public CollectionInsertManyOptions concurrency(int concurrency) {
         this.concurrency = concurrency;
         return this;
     }
@@ -95,7 +117,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
      * @return
      *      insert many options
      */
-    public InsertManyOptions chunkSize(int chunkSize) {
+    public CollectionInsertManyOptions chunkSize(int chunkSize) {
         this.chunkSize = chunkSize;
         return this;
     }
@@ -108,7 +130,7 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
      * @return
      *      insert many options
      */
-    public InsertManyOptions timeout(int timeout) {
+    public CollectionInsertManyOptions timeout(int timeout) {
         this.timeout = timeout;
         return this;
     }
@@ -131,40 +153,40 @@ public class InsertManyOptions extends CommandOptions<InsertManyOptions> {
          * Initializes the building process with ordered options.
          *
          * @param ordered The ordered criteria to be applied to the insertMany operation.
-         * @return A new {@link InsertManyOptions} instance configured with the provided ordered criteria.
+         * @return A new {@link CollectionInsertManyOptions} instance configured with the provided ordered criteria.
          */
-        public static InsertManyOptions ordered(boolean ordered) {
-            return new InsertManyOptions().ordered(ordered);
+        public static CollectionInsertManyOptions ordered(boolean ordered) {
+            return new CollectionInsertManyOptions().ordered(ordered);
         }
 
         /**
          * Initializes the building process with concurrency options.
          *
          * @param concurrency The concurrency criteria to be applied to the insertMany operation.
-         * @return A new {@link InsertManyOptions} instance configured with the provided concurrency criteria.
+         * @return A new {@link CollectionInsertManyOptions} instance configured with the provided concurrency criteria.
          */
-        public static InsertManyOptions concurrency(int concurrency) {
-            return new InsertManyOptions().concurrency(concurrency);
+        public static CollectionInsertManyOptions concurrency(int concurrency) {
+            return new CollectionInsertManyOptions().concurrency(concurrency);
         }
 
         /**
          * Initializes the building process with chunkSize options.
          *
          * @param chunkSize The chunkSize criteria to be applied to the insertMany operation.
-         * @return A new {@link InsertManyOptions} instance configured with the provided chunkSize criteria.
+         * @return A new {@link CollectionInsertManyOptions} instance configured with the provided chunkSize criteria.
          */
-        public static InsertManyOptions chunkSize(int chunkSize) {
-            return new InsertManyOptions().chunkSize(chunkSize);
+        public static CollectionInsertManyOptions chunkSize(int chunkSize) {
+            return new CollectionInsertManyOptions().chunkSize(chunkSize);
         }
 
         /**
          * Initializes the building process with timeout options.
          *
          * @param timeout The timeout criteria to be applied to the insertMany operation.
-         * @return A new {@link InsertManyOptions} instance configured with the provided timeout criteria.
+         * @return A new {@link CollectionInsertManyOptions} instance configured with the provided timeout criteria.
          */
-        public static InsertManyOptions timeout(int timeout) {
-            return new InsertManyOptions().timeout(timeout);
+        public static CollectionInsertManyOptions timeout(int timeout) {
+            return new CollectionInsertManyOptions().timeout(timeout);
         }
 
     }

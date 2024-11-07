@@ -8,8 +8,8 @@ import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
@@ -86,7 +86,7 @@ public class AstraDevVectorizeAwsBedRockITTest extends AbstractVectorizeITTest {
                 new Document(8).vectorize("Anyway, what you gonna do about it?")
         );
 
-        InsertManyResult res = collection.insertMany(entries, new InsertManyOptions().embeddingAuthProvider(awsAuthProvider));
+        CollectionInsertManyResult res = collection.insertMany(entries, new CollectionInsertManyOptions().embeddingAuthProvider(awsAuthProvider));
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,

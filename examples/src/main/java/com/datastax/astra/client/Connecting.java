@@ -1,5 +1,6 @@
 package com.datastax.astra.client;
 
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 
 import java.util.UUID;

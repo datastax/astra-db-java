@@ -1,6 +1,6 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.CollectionOptions;
 import com.datastax.astra.client.core.Document;

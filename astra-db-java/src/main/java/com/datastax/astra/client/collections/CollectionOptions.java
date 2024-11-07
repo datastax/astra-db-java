@@ -22,7 +22,7 @@ package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;

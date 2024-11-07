@@ -20,8 +20,6 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.tables.columns.ColumnDefinition;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionList;

@@ -20,7 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.DatabaseInfo;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;

@@ -2,12 +2,12 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.commands.EmbeddingProvider;
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.collections.commands.FindIterable;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
@@ -125,7 +125,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         );
 
         // Ingestion
-        InsertManyResult res = collection.insertMany(entries);
+        CollectionInsertManyResult res = collection.insertMany(entries);
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
@@ -159,7 +159,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         );
 
         // Ingestion
-        InsertManyResult res = collection.insertMany(entries, new InsertManyOptions().embeddingAuthProvider(authProvider));
+        CollectionInsertManyResult res = collection.insertMany(entries, new CollectionInsertManyOptions().embeddingAuthProvider(authProvider));
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,

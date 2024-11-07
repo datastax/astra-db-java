@@ -20,7 +20,7 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
@@ -36,6 +36,16 @@ public class TableInsertManyOptions extends CommandOptions<TableInsertManyOption
      * If the flag is set to true the command is failing on first error
      */
     private boolean ordered = false;
+
+    /**
+     * When `true`, response will contain an additional field: 'documentResponses'"
+     * with is an array of Document Response Objects. Each Document Response Object"
+     * contains the `_id` of the document and the `status` of the operation (one of"
+     * `OK`, `ERROR` or `SKIPPED`). Additional `errorsIdx` field is present when the"
+     * " status is `ERROR` and contains the index of the error in the main `errors` array.",
+     * defaultValue = "false").
+     */
+    private boolean returnDocumentResponses = false;
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -69,6 +79,19 @@ public class TableInsertManyOptions extends CommandOptions<TableInsertManyOption
      */
     public TableInsertManyOptions ordered(boolean ordered) {
         this.ordered = ordered;
+        return this;
+    }
+
+    /**
+     * Setter for ordered.
+     *
+     * @param returnDocumentResponses
+     *      enabled return document
+     * @return
+     *      insert many options
+     */
+    public TableInsertManyOptions returnDocumentResponses(boolean returnDocumentResponses) {
+        this.returnDocumentResponses = returnDocumentResponses;
         return this;
     }
 

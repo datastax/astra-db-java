@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.datastax.astra.client.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
+import static com.datastax.astra.client.core.options.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
 
 /**
  * Options that will be provided to all commands for this collection.
@@ -40,7 +40,7 @@ import static com.datastax.astra.client.DataAPIOptions.HEADER_FEATURE_FLAG_TABLE
  * @param <T>
  *     the sub-class implementing the command options
  */
-public class CommandOptions<T extends CommandOptions<T>>{
+public class CommandOptions<T extends CommandOptions<T>> {
 
     /**
      * List of observers to notify.

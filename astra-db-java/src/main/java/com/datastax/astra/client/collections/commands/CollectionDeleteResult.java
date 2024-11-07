@@ -26,7 +26,7 @@ import lombok.Getter;
  * Hold the result of delete commands (deleteOne, deleteMany).
  */
 @Getter
-public class DeleteResult {
+public class CollectionDeleteResult {
 
     /**
      * NUmber of documents deleted.
@@ -39,7 +39,7 @@ public class DeleteResult {
      * @param deletedCount
      *      number of items deleted
      */
-    public DeleteResult(int deletedCount) {
+    public CollectionDeleteResult(int deletedCount) {
         this.deletedCount = deletedCount;
     }
 }

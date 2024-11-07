@@ -4,13 +4,12 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.vector.DataAPIVector;
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.commands.TableDeleteResult;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
@@ -28,7 +27,6 @@ import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
@@ -294,26 +292,12 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(res.getInsertedIdAsRow().getText("name")).isEqualTo("Cedrick");
     }
 
-    @Test
-    @Order(12)
-    public void shouldInsertOneTableAnnotatedBean() {
-        Table<TableCompositeAnnotatedRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeAnnotatedRow.class);
-        TableCompositeAnnotatedRow row = new TableCompositeAnnotatedRow( "Cedrick", "Lunven", 42);
-
-        System.out.println(new RowSerializer().marshall(table.mapAsRow(row)));
-        //TableInsertOneResult res = table.insertOne(row);
-        // Contains name and id
-        //assertThat(res.getInsertedId().size()).isEqualTo(2);
-        // Converted as a MAP
-        //assertThat(res.getInsertedIdAsRow().getText("name")).isEqualTo("John");
-    }
-
     // ------------------------------------------
     // InsertMany
     // ------------------------------------------
 
     @Test
-    @Order(13)
+    @Order(12)
     public void shouldInsertManyTableComposite() {
         Table<TableCompositeRow> table = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
         TableCompositeRow row = new TableCompositeRow(42, "Cedrick", "Lunven");
@@ -324,30 +308,25 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
-    @Order(14)
+    @Order(13)
     public void shouldFindOneTableComposite() {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         Row row = new Row()
                 .addInt("age", 42)
                 .addText("name", "John")
                 .addText("id", "John");
-        Filter johnFilter = new Filter(Map.of("id", "John","name", "John"));
+        Filter johnFilter = new Filter(Map.of("id", "Lunven","name", "Cedrick"));
         Optional<Row> res = table.findOne(johnFilter,
                 new TableFindOneOptions().projection(Projections.include("id", "age")));
         assertThat(res).isPresent();
     }
 
     @Test
-    @Order(15)
+    @Order(14)
     public void shouldDeleteOneTableComposite() {
-        com.datastax.astra.client.tables.Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
-        Row row = new Row()
-                .addInt("age", 42)
-                .addText("name", "John")
-                .addText("id", "John");
-        Filter johnFilter = new Filter(Map.of("id", "John","name", "John"));
-        TableDeleteResult res = table.deleteOne(johnFilter);
-        assertThat(res.getDeletedCount()).isEqualTo(1);
+        Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
+        Filter johnFilter = new Filter(Map.of("id", "Lunven","name", "Cedrick"));
+        table.deleteOne(johnFilter);
     }
 
     @Test
@@ -481,33 +460,45 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
-    public void should_find_one() {
+    public void should_insert_many() {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
 
         // Creating a few records
-//        Row row1 = new Row().addInt("age", 22).addText("name", "John").addText("id", "Connor");
-//        Row row2 = new Row().addInt("age", 50).addText("name", "Sara").addText("id", "Connor");
-//        Row row3 = new Row().addInt("age", 50).addText("name", "Doctor").addText("id", "Silberman");
-//        TableInsertManyResult res = table.insertMany(row1, row2, row3);
-//        System.out.println(res.getInsertedIds());
+        Row row1 = new Row().addInt("age", 22).addText("name", "John").addText("id", "Connor");
+        Row row2 = new Row().addInt("age", 50).addText("name", "Sara").addText("id", "Connor");
+        Row row3 = new Row().addInt("age", 50).addText("name", "Doctor").addText("id", "Silberman");
+        TableInsertManyResult res = table.insertMany(
+                List.of(row1, row2, row3), new TableInsertManyOptions()
+                .ordered(false)
+                .returnDocumentResponses(true));
+        System.out.println(res.getInsertedIds());
+        System.out.println(res.getPrimaryKeySchema());
+        System.out.println(res.getDocumentResponses());
+    }
 
+    @Test
+    public void should_delete_many() {
+        Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
+        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(75));
 
-        // FindOne by the PK
-        table.findOne(new Filter()
-                .where("id").isEqualsTo("Connor")
-                //);
-                .where("name").isEqualsTo("Sara"));
-
+        t.deleteMany(new Filter().where("id").isEqualsTo("lunven"));
     }
 
     @Test
     public void should_work_with_cursors() {
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(300));
+        //t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(75));
+        t.deleteAll();
+        TableInsertManyResult res = t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(3),
+                new TableInsertManyOptions()
+                        .ordered(false)
+                        .returnDocumentResponses(false));
+        System.out.println(res.getInsertedIds());
+        System.out.println(res.getPrimaryKeySchema());
+        System.out.println(res.getDocumentResponses().size());
 
-
+        //t2.deleteAll();
 
     }
-
 
 }

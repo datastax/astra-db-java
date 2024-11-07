@@ -18,7 +18,8 @@ public class TableCompositeRowGenerator {
         while (rows.size() < x) {
             int age = random.nextInt(100); // Age between 0 and 99
             String firstName = generateRandomAlphabeticString(NAME_LENGTH, random);
-            String lastName = generateRandomAlphabeticString(NAME_LENGTH, random);
+            //String lastName = generateRandomAlphabeticString(NAME_LENGTH, random);
+            String lastName = "lunven";
             String uniqueKey = firstName + "_" + lastName;
             if (!generatedNames.contains(uniqueKey)) {
                 generatedNames.add(uniqueKey);

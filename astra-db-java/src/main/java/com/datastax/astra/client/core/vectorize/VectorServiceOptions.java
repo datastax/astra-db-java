@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.vector;
+package com.datastax.astra.client.core.vectorize;
 
 /*-
  * #%L
@@ -21,11 +21,8 @@ package com.datastax.astra.client.core.vector;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.Map;

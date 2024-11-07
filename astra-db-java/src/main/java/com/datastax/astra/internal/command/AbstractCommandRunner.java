@@ -103,6 +103,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /** json inputs */
     protected static final String INPUT_ORDERED = "ordered";
     /** json inputs */
+    protected static final String INPUT_RETURN_DOCUMENT_RESPONSES = "returnDocumentResponses";
+    /** json inputs */
     protected static final String INPUT_PAGE_STATE = "pageState";
 
     /** Http client reused when properties not override. */

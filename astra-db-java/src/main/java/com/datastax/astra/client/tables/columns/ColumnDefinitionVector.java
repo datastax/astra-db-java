@@ -21,13 +21,9 @@ package com.datastax.astra.client.tables.columns;
  */
 
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
-import lombok.Builder;
-import lombok.Data;
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
 @Getter @Setter
 public class ColumnDefinitionVector extends ColumnDefinition {

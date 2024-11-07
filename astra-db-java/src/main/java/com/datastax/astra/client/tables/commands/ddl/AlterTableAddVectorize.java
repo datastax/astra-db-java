@@ -20,7 +20,7 @@ package com.datastax.astra.client.tables.commands.ddl;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.VectorServiceOptions;
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

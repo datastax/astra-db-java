@@ -20,6 +20,7 @@ package com.datastax.astra.client.collections.commands;
  * #L%
  */
 
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

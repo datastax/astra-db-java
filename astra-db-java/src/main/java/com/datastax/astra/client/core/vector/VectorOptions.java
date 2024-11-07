@@ -20,6 +20,7 @@ package com.datastax.astra.client.core.vector;
  * #L%
  */
 
+import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;

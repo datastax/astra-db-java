@@ -20,7 +20,7 @@ package com.datastax.astra.internal.http;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.exception.DataAPIException;

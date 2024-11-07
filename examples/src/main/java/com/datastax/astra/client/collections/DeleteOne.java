@@ -1,8 +1,8 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.DeleteOneOptions;
-import com.datastax.astra.client.collections.commands.DeleteResult;
+import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.core.Filter;
 import com.datastax.astra.client.core.Filters;
@@ -23,9 +23,9 @@ public class DeleteOne {
                 Filters.eq("field4", "value"));
 
         // Delete one options
-        DeleteOneOptions options = new DeleteOneOptions()
+        CollectionDeleteOneOptions options = new CollectionDeleteOneOptions()
                 .sort(Sorts.ascending("field2"));
-        DeleteResult result = collection.deleteOne(filter, options);
+        CollectionDeleteResult result = collection.deleteOne(filter, options);
         System.out.println("Deleted Count:" + result.getDeletedCount());
     }
 }

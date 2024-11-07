@@ -1,6 +1,6 @@
 package com.datastax.astra.test.integration.local;
 
-import com.datastax.astra.client.collections.commands.EmbeddingProvider;
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

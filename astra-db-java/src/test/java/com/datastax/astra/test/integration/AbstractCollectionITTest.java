@@ -4,7 +4,7 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.commands.DeleteOneOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
 import com.datastax.astra.client.collections.commands.DistinctIterable;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
@@ -14,7 +14,7 @@ import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.query.Projection;
@@ -217,7 +217,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
     @Test
     protected void testCountDocument() throws TooManyDocumentsToCountException {
-        new InsertManyOptions().ordered(false)
+        new CollectionInsertManyOptions().ordered(false)
                 .concurrency(5) // recommended
                 .chunkSize(20)  // maximum chunk size is 20
                 .timeout(100);  // global timeout
@@ -310,7 +310,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        getCollectionSimple().insertMany(docList, new InsertManyOptions().concurrency(5));
+        getCollectionSimple().insertMany(docList, new CollectionInsertManyOptions().concurrency(5));
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 
@@ -405,7 +405,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                 .collect(Collectors.toList()));
         getCollectionSimple().deleteOne(
                 eq("test", "test"),
-                new DeleteOneOptions().sort(descending("indice")));;
+                new CollectionDeleteOneOptions().sort(descending("indice")));;
         results = getCollectionSimple()
                 .find().all()
                 .stream().collect(Collectors

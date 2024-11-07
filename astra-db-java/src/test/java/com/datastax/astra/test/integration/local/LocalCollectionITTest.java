@@ -9,8 +9,8 @@ import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.commands.FindIterable;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.collections.commands.UpdateManyOptions;
 import com.datastax.astra.client.collections.commands.UpdateResult;
@@ -18,7 +18,6 @@ import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -108,8 +107,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Test
     void shouldTestInsertMany() {
         getCollectionSimple().deleteAll();
-        InsertManyResult res = getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM,
-                new InsertManyOptions().ordered(true));
+        CollectionInsertManyResult res = getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM,
+                new CollectionInsertManyOptions().ordered(true));
         assertThat(res.getInsertedIds()).hasSize(FRENCH_SOCCER_TEAM.size());
         assertThat(res.getInsertedIds().get(0)).isEqualTo(1);
     }
@@ -123,8 +122,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         players.addAll(FRENCH_SOCCER_TEAM.subList(5,7));
 
         try {
-            InsertManyResult res = getCollectionSimple().insertMany(players,
-                    new InsertManyOptions().ordered(true));
+            CollectionInsertManyResult res = getCollectionSimple().insertMany(players,
+                    new CollectionInsertManyOptions().ordered(true));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -135,7 +134,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         try {
             getCollectionSimple().deleteAll();
-            InsertManyResult res = getCollectionSimple().insertMany(players, new InsertManyOptions().ordered(false));
+            CollectionInsertManyResult res = getCollectionSimple().insertMany(players, new CollectionInsertManyOptions().ordered(false));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -146,8 +145,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         try {
             getCollectionSimple().deleteAll();
-            InsertManyResult res = getCollectionSimple().insertMany(players,
-                    new InsertManyOptions().ordered(false).timeout(10000).chunkSize(10).concurrency(1));
+            CollectionInsertManyResult res = getCollectionSimple().insertMany(players,
+                    new CollectionInsertManyOptions().ordered(false).timeout(10000).chunkSize(10).concurrency(1));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -166,7 +165,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
             documents.add(new Document().id(i).append("idx", i));
         }
         getCollectionSimple().deleteAll();
-        getCollectionSimple().insertMany(documents, new InsertManyOptions().ordered(false).concurrency(5));
+        getCollectionSimple().insertMany(documents, new CollectionInsertManyOptions().ordered(false).concurrency(5));
         assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(nbDocs);
 
         getCollectionSimple().deleteMany(gt("idx", 500));

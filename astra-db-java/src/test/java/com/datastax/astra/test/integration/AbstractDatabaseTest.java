@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
@@ -233,7 +233,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
                 new Document().append("idx", 1),
                 new Document().append("idx", 2),
                 new Document().append("idx", 3));
-        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        CollectionInsertManyResult resultsList = collectionUUID.insertMany(docs);
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUID.class));
     }
@@ -265,7 +265,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
                 new Document().append("idx", 1),
                 new Document().append("idx", 2),
                 new Document().append("idx", 3));
-        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        CollectionInsertManyResult resultsList = collectionUUID.insertMany(docs);
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(ObjectId.class));
 
@@ -310,7 +310,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
                 new Document().append("idx", 1),
                 new Document().append("idx", 2),
                 new Document().append("idx", 3));
-        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        CollectionInsertManyResult resultsList = collectionUUID.insertMany(docs);
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv6.class));
     }
@@ -340,7 +340,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
                 new Document().append("idx", 1),
                 new Document().append("idx", 2),
                 new Document().append("idx", 3));
-        InsertManyResult resultsList = collectionUUID.insertMany(docs);
+        CollectionInsertManyResult resultsList = collectionUUID.insertMany(docs);
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv7.class));
     }

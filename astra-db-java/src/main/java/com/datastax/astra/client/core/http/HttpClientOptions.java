@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.http;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 

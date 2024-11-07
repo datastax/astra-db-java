@@ -20,11 +20,12 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.DataAPIOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.CountDocumentsOptions;
-import com.datastax.astra.client.collections.commands.DeleteManyOptions;
-import com.datastax.astra.client.collections.commands.DeleteOneOptions;
-import com.datastax.astra.client.collections.commands.DeleteResult;
+import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
 import com.datastax.astra.client.collections.commands.DistinctIterable;
 import com.datastax.astra.client.collections.commands.EstimatedCountDocumentsOptions;
 import com.datastax.astra.client.collections.commands.FindIterable;
@@ -34,8 +35,6 @@ import com.datastax.astra.client.collections.commands.FindOneAndReplaceResult;
 import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertManyResult;
 import com.datastax.astra.client.collections.commands.InsertOneOptions;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
 import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
@@ -45,8 +44,10 @@ import com.datastax.astra.client.collections.commands.UpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
 import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -55,9 +56,8 @@ import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -588,14 +588,14 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * <p>Documents are then split into chunks, each processed in parallel, according to the concurrency level
      * specified in {@code options}. The results of these insertions are aggregated into a single
-     * {@link InsertManyResult}.</p>
+     * {@link CollectionInsertManyResult}.</p>
      *
      * <p><b>Timeout Handling:</b> The method attempts to complete all insertion tasks within the specified
      * timeout. If tasks do not complete in time, a {@link TimeoutException} is thrown.</p>
      *
      * <p><b>Error Handling:</b> Exceptions encountered during insertion or result aggregation are captured,
      * and a {@link RuntimeException} is thrown, indicating an issue with merging results into a single
-     * {@link InsertManyResult}.</p>
+     * {@link CollectionInsertManyResult}.</p>
      *
      * <p><b>Example usage:</b> Inserting a list of 100 documents </p>
      * <pre>
@@ -622,12 +622,12 @@ public class Collection<T> extends AbstractCommandRunner {
      *                  be null.
      * @param options   Detailed options for the insert many operation, including concurrency level, chunk size,
      *                  and whether the inserts should be ordered.
-     * @return An {@link InsertManyResult} object containing the IDs of all successfully inserted documents.
+     * @return An {@link CollectionInsertManyResult} object containing the IDs of all successfully inserted documents.
      * @throws IllegalArgumentException if the documents list is null or empty, any document is null, or if
      *                                  the options specified are invalid.
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
-    public InsertManyResult insertMany(List<? extends T> documents, InsertManyOptions options) {
+    public CollectionInsertManyResult insertMany(List<? extends T> documents, CollectionInsertManyOptions options) {
         Assert.isTrue(documents != null && !documents.isEmpty(), "documents list cannot be null or empty");
         Assert.notNull(options, "insertMany options cannot be null");
         if (options.getConcurrency() > 1 && options.isOrdered()) {
@@ -638,19 +638,20 @@ public class Collection<T> extends AbstractCommandRunner {
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
-        List<Future<InsertManyResult>> futures = new ArrayList<>();
+        List<Future<CollectionInsertManyResult>> futures = new ArrayList<>();
         for (int i = 0; i < documents.size(); i += options.getChunkSize()) {
             futures.add(executor.submit(getInsertManyResultCallable(documents, options, i)));
         }
         executor.shutdown();
 
         // Grouping All Insert ids in the same list.
-        InsertManyResult finalResult = new InsertManyResult();
+        CollectionInsertManyResult finalResult = new CollectionInsertManyResult();
         try {
-            for (Future<InsertManyResult> future : futures) {
-                finalResult.getInsertedIds().addAll(future.get().getInsertedIds());
+            for (Future<CollectionInsertManyResult> future : futures) {
+                CollectionInsertManyResult res = future.get();
+                finalResult.getInsertedIds().addAll(res.getInsertedIds());
+                finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
-
             if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
@@ -669,8 +670,8 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Asynchronously inserts a batch of documents into the collection with customizable insertion options.
-     * This method is the asynchronous counterpart to {@link #insertMany(List, InsertManyOptions)}, allowing
-     * for non-blocking operations. It employs default or specified {@link InsertManyOptions} to optimize the
+     * This method is the asynchronous counterpart to {@link #insertMany(List, CollectionInsertManyOptions)}, allowing
+     * for non-blocking operations. It employs default or specified {@link CollectionInsertManyOptions} to optimize the
      * insertion process for large datasets, utilizing concurrency and batch processing to enhance performance.
      *
      * <p>Utilizing {@link CompletableFuture}, this method facilitates the insertion of multiple documents
@@ -705,78 +706,78 @@ public class Collection<T> extends AbstractCommandRunner {
      *                  should be null.
      * @param options   Detailed options for the insert many operation, allowing customization of concurrency
      *                  level, chunk size, and insertion order.
-     * @return A {@link CompletableFuture} that, upon completion, contains the {@link InsertManyResult} indicating
+     * @return A {@link CompletableFuture} that, upon completion, contains the {@link CollectionInsertManyResult} indicating
      *         the outcome of the insert operation. The future may complete normally with the insertion result
      *         or exceptionally in case of an error.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      */
-    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends T> documents, InsertManyOptions options) {
+    public CompletableFuture<CollectionInsertManyResult> insertManyAsync(List<? extends T> documents, CollectionInsertManyOptions options) {
         return CompletableFuture.supplyAsync(() -> insertMany(documents, options));
     }
 
     /**
      * Inserts a batch of documents into the collection using default insertion options. This method is a
-     * simplified version of {@link #insertMany(List, InsertManyOptions)}, intended for use cases where
+     * simplified version of {@link #insertMany(List, CollectionInsertManyOptions)}, intended for use cases where
      * default settings for concurrency, chunk size, and insertion order are sufficient. It provides an
      * efficient way to insert multiple documents concurrently, optimizing the insertion process with
      * predefined settings.
      *
-     * <p>The default {@link InsertManyOptions} used by this method assumes non-concurrent (sequential)
+     * <p>The default {@link CollectionInsertManyOptions} used by this method assumes non-concurrent (sequential)
      * insertion, with no specific chunk size or timeout constraints. This is suitable for general use
      * cases where the simplicity of invocation is prioritized over the customization of insertion
      * parameters. For more advanced control over the insertion process, including the ability to specify
      * concurrency levels, chunk sizes, and operation timeouts, use the overloaded
-     * {@link #insertMany(List, InsertManyOptions)} method.</p>
+     * {@link #insertMany(List, CollectionInsertManyOptions)} method.</p>
      *
      * <p>This method leverages the same underlying insertion logic as its overloaded counterpart,
      * ensuring consistent behavior and error handling. It automatically handles validation of the
      * input documents list, chunking of documents based on default settings, and aggregation of
-     * insertion results into a single {@link InsertManyResult}.</p>
+     * insertion results into a single {@link CollectionInsertManyResult}.</p>
      *
      * <p><b>Usage:</b> Ideal for inserting a collection of documents without the need for custom
      * insertion options. Simplifies the insertion process for basic use cases.</p>
      *
      * @param documents A list of documents to be inserted. Must not be null or empty, and no document should
      *                  be null.
-     * @return An {@link InsertManyResult} object containing the IDs of all successfully inserted documents.
+     * @return An {@link CollectionInsertManyResult} object containing the IDs of all successfully inserted documents.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
-    public InsertManyResult insertMany(List<? extends T> documents) {
-        return insertMany(documents, new InsertManyOptions());
+    public CollectionInsertManyResult insertMany(List<? extends T> documents) {
+        return insertMany(documents, new CollectionInsertManyOptions());
     }
 
     /**
      * Inserts a batch of documents into the collection using default insertion options. This method is a
-     * simplified version of {@link #insertMany(List, InsertManyOptions)}, intended for use cases where
+     * simplified version of {@link #insertMany(List, CollectionInsertManyOptions)}, intended for use cases where
      * default settings for concurrency, chunk size, and insertion order are sufficient. It provides an
      * efficient way to insert multiple documents concurrently, optimizing the insertion process with
      * predefined settings.
      *
-     * <p>The default {@link InsertManyOptions} used by this method assumes non-concurrent (sequential)
+     * <p>The default {@link CollectionInsertManyOptions} used by this method assumes non-concurrent (sequential)
      * insertion, with no specific chunk size or timeout constraints. This is suitable for general use
      * cases where the simplicity of invocation is prioritized over the customization of insertion
      * parameters. For more advanced control over the insertion process, including the ability to specify
      * concurrency levels, chunk sizes, and operation timeouts, use the overloaded
-     * {@link #insertMany(List, InsertManyOptions)} method.</p>
+     * {@link #insertMany(List, CollectionInsertManyOptions)} method.</p>
      *
      * <p>This method leverages the same underlying insertion logic as its overloaded counterpart,
      * ensuring consistent behavior and error handling. It automatically handles validation of the
      * input documents list, chunking of documents based on default settings, and aggregation of
-     * insertion results into a single {@link InsertManyResult}.</p>
+     * insertion results into a single {@link CollectionInsertManyResult}.</p>
      *
      * <p><b>Usage:</b> Ideal for inserting a collection of documents without the need for custom
      * insertion options. Simplifies the insertion process for basic use cases.</p>
      *
      * @param documents A list of documents to be inserted. Must not be null or empty, and no document should
      *                  be null.
-     * @return An {@link InsertManyResult} object containing the IDs of all successfully inserted documents.
+     * @return An {@link CollectionInsertManyResult} object containing the IDs of all successfully inserted documents.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      * @throws RuntimeException if there is an error in merging the results of concurrent insertions.
      */
     @SafeVarargs
-    public final InsertManyResult insertMany(T... documents) {
-        return insertMany(Arrays.asList(documents), new InsertManyOptions());
+    public final CollectionInsertManyResult insertMany(T... documents) {
+        return insertMany(Arrays.asList(documents), new CollectionInsertManyOptions());
     }
 
     /**
@@ -791,7 +792,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * <p>This method inherits the core logic and validations from its synchronous counterpart, ensuring consistent behavior
      * and error handling. It automatically manages the input documents list, applying default options for chunking and
-     * concurrency, and aggregates the results into a single {@link InsertManyResult} asynchronously.</p>
+     * concurrency, and aggregates the results into a single {@link CollectionInsertManyResult} asynchronously.</p>
      *
      * <p><b>Usage:</b> Ideal for applications that benefit from asynchronous document insertion, especially when inserting
      * a large number of documents under default settings. This method simplifies asynchronous batch insertions, making it
@@ -812,12 +813,12 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param documents A list of documents to be inserted. Must not be null or empty, and no document within the list should
      *                  be null.
-     * @return A {@link CompletableFuture} that, upon completion, contains the {@link InsertManyResult} indicating the
+     * @return A {@link CompletableFuture} that, upon completion, contains the {@link CollectionInsertManyResult} indicating the
      *         outcome of the insert operation. The future may complete with the insertion results or exceptionally in
      *         case of an error.
      * @throws IllegalArgumentException if the documents list is null or empty, or if any document is null.
      */
-    public CompletableFuture<InsertManyResult > insertManyAsync(List<? extends T> documents) {
+    public CompletableFuture<CollectionInsertManyResult> insertManyAsync(List<? extends T> documents) {
         return CompletableFuture.supplyAsync(() -> insertMany(documents));
     }
 
@@ -826,27 +827,33 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param documents
      *      list of documents to be inserted
-     * @param insertManyOptions
+     * @param collectionInsertManyOptions
      *      options for insert many (chunk size and insertion order).
      * @param start
      *      offset in global list
      * @return
      *      insert many result for a paged call
      */
-    private Callable<InsertManyResult> getInsertManyResultCallable(List<? extends T> documents, InsertManyOptions insertManyOptions, int start) {
-        int end = Math.min(start + insertManyOptions.getChunkSize(), documents.size());
+    private Callable<CollectionInsertManyResult> getInsertManyResultCallable(List<? extends T> documents, CollectionInsertManyOptions collectionInsertManyOptions, int start) {
+        int end = Math.min(start + collectionInsertManyOptions.getChunkSize(), documents.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
 
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
-                    .withOptions(new Document().append(INPUT_ORDERED, insertManyOptions.isOrdered()));
+                    .withOptions(new Document()
+                            .append(INPUT_ORDERED, collectionInsertManyOptions.isOrdered())
+                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
 
-            return new InsertManyResult(runCommand(insertMany, insertManyOptions)
-                    .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
-                    .stream()
-                    .map(this::unmarshallDocumentId)
-                    .collect(Collectors.toList()));
+            DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
+            CollectionInsertManyResult result = new CollectionInsertManyResult();
+            if (status.getInsertedIds()!= null && !status.getInsertedIds().isEmpty()) {
+                result.setInsertedIds(status.getInsertedIds().stream().map(this::unmarshallDocumentId).toList());
+            }
+            if (status.getDocumentResponses()!= null && !status.getDocumentResponses().isEmpty()) {
+                result.setDocumentResponses(status.getDocumentResponses());
+            }
+            return result;
         };
     }
 
@@ -1397,8 +1404,8 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the result of the remove one operation
      *
      */
-    public DeleteResult deleteOne(Filter filter) {
-        return deleteOne(filter, new DeleteOneOptions());
+    public CollectionDeleteResult deleteOne(Filter filter) {
+        return deleteOne(filter, new CollectionDeleteOneOptions());
     }
 
     /**
@@ -1407,21 +1414,21 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter
      *      the query filter to apply the delete operation
-     * @param deleteOneOptions
+     * @param collectionDeleteOneOptions
      *      the option to driver the deletes (here sort)
      * @return
      *      the result of the remove one operation
      *
      */
-    public DeleteResult deleteOne(Filter filter, DeleteOneOptions deleteOneOptions) {
+    public CollectionDeleteResult deleteOne(Filter filter, CollectionDeleteOneOptions collectionDeleteOneOptions) {
         Command deleteOne = Command
                 .create("deleteOne")
                 .withFilter(filter)
-                .withSort(deleteOneOptions.getSort());
+                .withSort(collectionDeleteOneOptions.getSort());
 
-        DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
+        DataAPIResponse apiResponse = runCommand(deleteOne, collectionDeleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
-        return new DeleteResult(deletedCount);
+        return new CollectionDeleteResult(deletedCount);
     }
 
     /**
@@ -1434,7 +1441,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the remove many operation
      */
-    public DeleteResult deleteMany(Filter filter, DeleteManyOptions options) {
+    public CollectionDeleteResult deleteMany(Filter filter, CollectionDeleteManyOptions options) {
         AtomicInteger totalCount = new AtomicInteger(0);
         boolean moreData = false;
         do {
@@ -1451,7 +1458,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 moreData = status.containsKey(RESULT_MORE_DATA);
             }
         } while(moreData);
-        return new DeleteResult(totalCount.get());
+        return new CollectionDeleteResult(totalCount.get());
     }
 
     /**
@@ -1462,8 +1469,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the remove many operation
      */
-    public DeleteResult deleteMany(Filter filter) {
-        return deleteMany(filter, new DeleteManyOptions());
+    public CollectionDeleteResult deleteMany(Filter filter) {
+        return deleteMany(filter, new CollectionDeleteManyOptions());
     }
 
     /**
@@ -1472,7 +1479,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the remove many operation
      */
-    public DeleteResult deleteAll() {
+    public CollectionDeleteResult deleteAll() {
         return deleteMany(new Filter());
     }
 

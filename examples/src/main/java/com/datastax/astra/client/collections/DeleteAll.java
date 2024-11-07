@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.DeleteResult;
+import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
 import com.datastax.astra.client.core.Document;
 
 public class DeleteAll {
@@ -11,7 +11,7 @@ public class DeleteAll {
                 .getCollection("COLLECTION_NAME");
 
         // Show the deleted count
-        DeleteResult result = collection.deleteAll();
+        CollectionDeleteResult result = collection.deleteAll();
         System.out.println("Deleted Count:" + result.getDeletedCount());
     }
 }

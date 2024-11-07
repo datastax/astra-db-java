@@ -1,4 +1,4 @@
-package com.datastax.astra.client.collections.commands;
+package com.datastax.astra.client.core.vectorize;
 
 /*-
  * #%L

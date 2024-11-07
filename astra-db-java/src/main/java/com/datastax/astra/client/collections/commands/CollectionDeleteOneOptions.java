@@ -33,7 +33,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
+public class CollectionDeleteOneOptions extends CommandOptions<CollectionDeleteOneOptions> {
 
     /**
      * Order by.
@@ -43,7 +43,7 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
     /**
      * Default constructor.
      */
-    public DeleteOneOptions() {
+    public CollectionDeleteOneOptions() {
         // Left blank as sort is populated in static way
     }
 
@@ -55,7 +55,7 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
      * @return
      *      current command.
      */
-    public DeleteOneOptions sort(Sort... sort) {
+    public CollectionDeleteOneOptions sort(Sort... sort) {
         setSort(OptionsUtils.sort(sort));
         return this;
     }
@@ -67,7 +67,7 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public DeleteOneOptions sort(String vectorize, Sort ... sorts) {
+    public CollectionDeleteOneOptions sort(String vectorize, Sort ... sorts) {
         setSort(Sorts.vectorize(vectorize));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -82,7 +82,7 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
      * @param sorts The sort criteria to be applied to the findOne operation.
      * @return current command
      */
-    public DeleteOneOptions sort(float[] vector, Sort... sorts) {
+    public CollectionDeleteOneOptions sort(float[] vector, Sort... sorts) {
         setSort(Sorts.vector(vector));
         if (sorts != null) {
             getSort().putAll(OptionsUtils.sort(sorts));
@@ -91,7 +91,7 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
     }
 
     /**
-     * Builder for creating {@link DeleteOneOptions} instances with a fluent API.
+     * Builder for creating {@link CollectionDeleteOneOptions} instances with a fluent API.
      */
     @Deprecated
     public static class Builder {
@@ -105,10 +105,10 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
          * Initializes the building process with sorting options.
          *
          * @param sort The sort criteria to be applied to the delete operation.
-         * @return A new {@link DeleteOneOptions} instance configured with the provided sort criteria.
+         * @return A new {@link CollectionDeleteOneOptions} instance configured with the provided sort criteria.
          */
-        public static DeleteOneOptions sort(Sort... sort) {
-            return new DeleteOneOptions().sort(sort);
+        public static CollectionDeleteOneOptions sort(Sort... sort) {
+            return new CollectionDeleteOneOptions().sort(sort);
         }
 
         /**
@@ -116,10 +116,10 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
          *
          * @param vectorize The vectorize criteria to be applied to the findOne operation
          * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link DeleteOneOptions} instance configured with the provided vectorize criteria.
+         * @return A new {@link CollectionDeleteOneOptions} instance configured with the provided vectorize criteria.
          */
-        public static DeleteOneOptions vectorize(String vectorize, Sort... sorts) {
-            return new DeleteOneOptions().sort(vectorize, sorts);
+        public static CollectionDeleteOneOptions vectorize(String vectorize, Sort... sorts) {
+            return new CollectionDeleteOneOptions().sort(vectorize, sorts);
         }
 
         /**
@@ -127,10 +127,10 @@ public class DeleteOneOptions extends CommandOptions<DeleteOneOptions> {
          *
          * @param vector The vector criteria to be applied to the findOne operation
          * @param sorts The sort criteria to be applied to the findOne operation.
-         * @return A new {@link DeleteOneOptions} instance configured with the provided vector criteria.
+         * @return A new {@link CollectionDeleteOneOptions} instance configured with the provided vector criteria.
          */
-        public static DeleteOneOptions vector(float[] vector, Sort... sorts) {
-            return new DeleteOneOptions().sort(vector, sorts);
+        public static CollectionDeleteOneOptions vector(float[] vector, Sort... sorts) {
+            return new CollectionDeleteOneOptions().sort(vector, sorts);
         }
     }
 
