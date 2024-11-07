@@ -1,18 +1,18 @@
-package com.datastax.astra.client.collection;
+package com.datastax.astra.client.collections;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.core.Filter;
 import com.datastax.astra.client.core.Filters;
+import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
 import com.datastax.astra.client.core.Projections;
-import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
 import com.datastax.astra.client.core.Sorts;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+
+import java.util.Optional;
 
 import static com.datastax.astra.client.core.Filters.lt;
 
-public class ReplaceOne {
+public class FindOneAndReplace {
     public static void main(String[] args) {
         Collection<Document> collection = new DataAPIClient("TOKEN")
                 .getDatabase("API_ENDPOINT")
@@ -24,7 +24,11 @@ public class ReplaceOne {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        ReplaceOneOptions options = new ReplaceOneOptions().upsert(true);
+        FindOneAndReplaceOptions options = new FindOneAndReplaceOptions()
+                .projection(Projections.include("field1"))
+                .sort(Sorts.ascending("field1"))
+                .upsert(true)
+                .returnDocumentAfter();
 
         Document docForReplacement = new Document()
                 .append("field1", "value1")
@@ -33,10 +37,7 @@ public class ReplaceOne {
                 .append("field4", "value4");
 
         // It will return the document before deleting it
-        UpdateResult res = collection.replaceOne(filter, docForReplacement, options);
-        System.out.println("How many matches ?"+ res.getMatchedCount());
-        System.out.println("How many has been modified ?"+ res.getModifiedCount());
-        System.out.println("How many have been inserted ?"+ res.getUpsertedId());
-
+        Optional<Document> docBeforeReplace = collection
+                .findOneAndReplace(filter, docForReplacement, options);
     }
 }

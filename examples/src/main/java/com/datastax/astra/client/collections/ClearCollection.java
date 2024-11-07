@@ -1,6 +1,5 @@
-package com.datastax.astra.client.collection;
+package com.datastax.astra.client.collections;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.Document;
 

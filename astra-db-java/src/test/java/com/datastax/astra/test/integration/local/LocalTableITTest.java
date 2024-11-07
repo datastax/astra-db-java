@@ -46,7 +46,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,7 +84,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.createDefaultLocalDatabase();
+            database = DataAPIClients.defaultLocalDatabase();
         }
         return database;
     }

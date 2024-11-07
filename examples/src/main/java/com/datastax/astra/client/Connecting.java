@@ -12,8 +12,6 @@ public class Connecting {
         // Overriding the default options
         DataAPIClient client1 = new DataAPIClient("TOKEN", DataAPIOptions
                 .builder()
-                .withMaxTimeMS(10)
-                .withHttpConnectTimeout(10)
                 .build());
 
         // Access the Database from its endpoint
@@ -26,7 +24,7 @@ public class Connecting {
         Database db4 = client.getDatabase(databaseId, "*KEYSPACE*");
         Database db5 = client.getDatabase(databaseId, "*KEYSPACE*", "us-east-2");
 
-        db5.useNamespace("yet_another");
+        db5.useKeyspace("yet_another");
 
     }
 }

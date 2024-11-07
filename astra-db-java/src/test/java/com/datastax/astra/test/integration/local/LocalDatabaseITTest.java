@@ -41,7 +41,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.createDefaultLocalDatabase();
+            database = DataAPIClients.defaultLocalDatabase();
         }
         return database;
     }

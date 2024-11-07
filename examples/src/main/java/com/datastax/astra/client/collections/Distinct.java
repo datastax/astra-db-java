@@ -1,19 +1,16 @@
-package com.datastax.astra.client.collection;
+package com.datastax.astra.client.collections;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.commands.DistinctIterable;
 import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.core.Filter;
 import com.datastax.astra.client.core.Filters;
-import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.collections.commands.UpdateManyOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
-import com.datastax.astra.client.collections.documents.Updates;
 
 import static com.datastax.astra.client.core.Filters.lt;
+import static com.datastax.astra.client.core.Projections.exclude;
+import static com.datastax.astra.client.core.Projections.include;
 
-public class UpdateMany {
-
+public class Distinct {
     public static void main(String[] args) {
         // Given an existing collection
         Collection<Document> collection = new DataAPIClient("TOKEN")
@@ -26,13 +23,15 @@ public class UpdateMany {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        Update update = Updates.set("field1", "value1")
-                .inc("field2", 1d)
-                .unset("field3");
+        // Execute a find operation
+        DistinctIterable<Document, String> result = collection
+                .distinct("field", String.class);
+        DistinctIterable<Document, String> result2 = collection
+                .distinct("field", filter, String.class);
 
-        UpdateManyOptions options =
-                new UpdateManyOptions().upsert(true);
-
-        UpdateResult result = collection.updateMany(filter, update, options);
+        // Iterate over the result
+        for (String fieldValue : result) {
+            System.out.println(fieldValue);
+        }
     }
 }

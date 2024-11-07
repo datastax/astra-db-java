@@ -174,6 +174,7 @@ public class DataAPIOptions {
 
         /**
          * Sets the maximum number of documents that can be returned by the count function.
+         *
          * <p>
          * If not explicitly set, the default value is defined by {@code MAX_DOCUMENTS_COUNT},
          * which is 1000 documents.

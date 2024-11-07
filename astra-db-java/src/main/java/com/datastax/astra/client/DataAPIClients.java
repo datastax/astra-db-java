@@ -96,7 +96,7 @@ public class DataAPIClients {
      *         interaction with the database. This client enables developers to focus on their application logic rather
      *         than the intricacies of database connectivity and command execution.
      */
-    public static Database createDefaultLocalDatabase() {
+    public static Database defaultLocalDatabase() {
         Database db = createForLocal().getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_KEYSPACE);
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
         dbAdmin.createKeyspace(DEFAULT_KEYSPACE);

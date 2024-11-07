@@ -1,4 +1,4 @@
-package com.datastax.astra.client.collection.vectorize;
+package com.datastax.astra.client.collections.vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;

@@ -487,20 +487,19 @@ public class Table<T>  extends AbstractCommandRunner {
     // --------------------------
 
     public Optional<T> findOne(Filter filter) {
-        return findOne(filter, new TableFindOneOptions());
+        return findOne(filter, null);
     }
 
     public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
-        notNull(findOneOptions, ARG_OPTIONS);
-        Command findOne = Command
-                .create("findOne")
-                .withFilter(filter)
-                .withSort(findOneOptions.getSort())
-                .withProjection(findOneOptions.getProjection())
-                .withOptions(new Document()
+        Command findOne = Command.create("findOne").withFilter(filter);
+        if (findOneOptions != null) {
+            findOne.withSort(findOneOptions.getSort())
+                   .withProjection(findOneOptions.getProjection())
+                    .withOptions(new Document()
                         .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity())
                         .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
-                );
+            );
+        }
 
         return Optional.ofNullable(
                 runCommand(findOne, findOneOptions)
