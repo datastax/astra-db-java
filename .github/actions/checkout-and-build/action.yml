@@ -31,5 +31,6 @@ runs:
         cache: ${{ inputs.cache_pkg_mgr_name}}
 
     - name: Build with Maven
+      shell: bash
       run: |
         mvn install -Dmaven.test.skip=${{ inputs.skip_tests_on_build }}
