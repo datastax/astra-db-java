@@ -1,6 +1,9 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.vector.DataAPIVector;
@@ -10,6 +13,7 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.commands.TableFindOneAndDeleteOptions;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
@@ -27,12 +31,14 @@ import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
 import com.datastax.astra.test.model.TableCompositeRowGenerator;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
@@ -51,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Sorts.ascending;
 import static com.datastax.astra.client.core.query.Sorts.descending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
@@ -499,6 +506,27 @@ public class LocalTableITTest extends AbstractTableITTest {
 
         //t2.deleteAll();
 
+    }
+
+    @Test
+    public void should_updateOne() {
+        Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
+        table.deleteAll();
+
+        Row row = new Row()
+                .addInt("age", 42)
+                .addText("name", "Cedrick")
+                .addText("id", "Lunven");
+        table.insertOne(row);
+        Filter johnFilter = new Filter(Map.of("id", "Lunven","name", "Cedrick"));
+        assertThat(table.findOne(johnFilter)).isPresent();
+
+        // Update the document
+        UpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
+                .set("name", "new"));
+                //.updateMul(Map.of("price", 1.1d)));
+        Assertions.assertThat(u1.getMatchedCount()).isEqualTo(1);
+        Assertions.assertThat(u1.getModifiedCount()).isEqualTo(1);
     }
 
 }

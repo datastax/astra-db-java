@@ -20,6 +20,10 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
+import com.datastax.astra.client.collections.commands.FindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.commands.UpdateOneOptions;
+import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
@@ -31,11 +35,13 @@ import com.datastax.astra.client.tables.commands.CountRowsOptions;
 import com.datastax.astra.client.tables.commands.EstimatedCountRowsOptions;
 import com.datastax.astra.client.tables.commands.TableDeleteManyOptions;
 import com.datastax.astra.client.tables.commands.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.commands.TableFindOneAndDeleteOptions;
 import com.datastax.astra.client.tables.commands.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
 import com.datastax.astra.client.tables.commands.TableInsertOneResult;
+import com.datastax.astra.client.tables.commands.TableUpdateOneOptions;
 import com.datastax.astra.client.tables.commands.ddl.AlterTableOperation;
 import com.datastax.astra.client.tables.commands.ddl.AlterTableOptions;
 import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
@@ -46,6 +52,7 @@ import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
 import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
@@ -546,24 +553,6 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     // -------------------------
-    // --- findOneAndDelete ----
-    // -------------------------
-
-    // FIXME
-
-    // -------------------------
-    // --- findOneAndReplace ---
-    // -------------------------
-
-    // FIXME
-
-    // -------------------------
-    // --- findOneAndUpdate ----
-    // -------------------------
-
-    // FIXME
-
-    // -------------------------
     // ---   find           ----
     // -------------------------
 
@@ -573,7 +562,70 @@ public class Table<T>  extends AbstractCommandRunner {
     // ---   updateOne      ----
     // -------------------------
 
-    // FIXME
+    /**
+     * Update a single row in the table according to the specified arguments.
+     *
+     * @param filter
+     *      a row describing the query filter, which may not be null.
+     * @param update
+     *      a row describing the update, which may not be null. The update to apply must include at least one update operator.
+     * @return
+     *      the result of the update one operation
+     */
+    public UpdateResult updateOne(Filter filter, TableUpdate update) {
+        return updateOne(filter, update, new TableUpdateOneOptions());
+    }
+
+    /**
+     * Update a single document in the collection according to the specified arguments.
+     *
+     * @param filter
+     *      a document describing the query filter, which may not be null.
+     * @param update
+     *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
+     * @param updateOptions
+     *      the options to apply to the update operation
+     * @return
+     *      the result of the update one operation
+     */
+    public UpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
+        notNull(update, ARG_UPDATE);
+        notNull(updateOptions, ARG_OPTIONS);
+        Command cmd = Command
+                .create("updateOne")
+                .withFilter(filter)
+                .withUpdate(update)
+                .withSort(updateOptions.getSort())
+                .withOptions(new Document()
+                        .appendIfNotNull(INPUT_UPSERT, updateOptions.getUpsert())
+                );
+        return getUpdateResult(runCommand(cmd, updateOptions));
+    }
+
+    /**
+     * Update all documents in the collection according to the specified arguments.
+     *
+     * @param apiResponse
+     *       response for the API
+     * @return
+     *      the result of the update many operation
+     */
+    private static UpdateResult getUpdateResult(DataAPIResponse apiResponse) {
+        UpdateResult result = new UpdateResult();
+        DataAPIStatus status = apiResponse.getStatus();
+        if (status != null) {
+            if (status.containsKey(RESULT_MATCHED_COUNT)) {
+                result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
+            }
+            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
+                result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
+            }
+            if (status.containsKey(RESULT_UPSERTED_ID)) {
+                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
+            }
+        }
+        return result;
+    }
 
     // -------------------------
     // ---   deleteOne      ----

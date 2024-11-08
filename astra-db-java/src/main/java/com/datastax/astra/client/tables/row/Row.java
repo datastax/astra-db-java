@@ -59,7 +59,7 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
 public class Row implements Serializable {
 
     /** Serializer for the Rows. */
-    private static final DataAPISerializer SERIALIZER = new RowSerializer();
+    protected static final DataAPISerializer SERIALIZER = new RowSerializer();
 
     /** Data to be used in the document. */
     public transient Map<String, Object> columnMap;

@@ -71,6 +71,8 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /** parameters names. */
     protected static final String ARG_OPTIONS = "options";
     /** parameters names. */
+    protected static final String ARG_UPDATE = "update";
+    /** parameters names. */
     protected static final String ARG_CLAZZ = "working class 'clazz'";
 
     // --- Read Outputs ---

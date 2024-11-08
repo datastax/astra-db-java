@@ -23,6 +23,7 @@ package com.datastax.astra.client.core.commands;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -197,6 +198,19 @@ public class Command implements Serializable {
      *      self-reference
      */
     public Command withUpdate(Update update) {
+        payload.appendIfNotNull("update", update);
+        return this;
+    }
+
+    /**
+     * Builder pattern,  Update.
+     *
+     * @param update
+     *      update of the command
+     * @return
+     *      self-reference
+     */
+    public Command withUpdate(TableUpdate update) {
         payload.appendIfNotNull("update", update);
         return this;
     }
