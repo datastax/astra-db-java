@@ -340,6 +340,12 @@
             <email>cedrick.lunven@gmail.com</email>
             <url>https://github.com/clun</url>
         </developer>
+        <developer>
+            <id>msmygit</id>
+            <name>Madhavan Sridharan</name>
+            <email>madhavan_5k@yahoo.com</email>
+            <url>https://github.com/msmygit</url>
+        </developer>
     </developers>
 
     <profiles>

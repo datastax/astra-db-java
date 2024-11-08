@@ -11,6 +11,7 @@ on:
         description: 'JDK distribution to use'
         required: true
         default: 'adopt'
+        type: choice
         options: ['adopt', 'temurin']
       java_version:
         description: 'JDK version to use'
@@ -28,6 +29,7 @@ on:
         description: 'Test to run'
         required: true
         default: 'AstraDevCollectionITTest'
+        type: choice
         options:
           - 'AstraDevCollectionITTest'
           - 'AstraDevDatabaseITTest'
