@@ -20,27 +20,27 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.collections.commands.CollectionDeleteManyOptions;
-import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.CountDocumentsOptions;
-import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
-import com.datastax.astra.client.collections.commands.DistinctIterable;
-import com.datastax.astra.client.collections.commands.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.collections.commands.FindIterable;
-import com.datastax.astra.client.collections.commands.FindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.commands.FindOneAndReplaceResult;
-import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.InsertOneOptions;
-import com.datastax.astra.client.collections.commands.InsertOneResult;
-import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
-import com.datastax.astra.client.collections.commands.UpdateManyOptions;
-import com.datastax.astra.client.collections.commands.UpdateOneOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.options.CollectionDeleteManyOptions;
+import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.options.CountDocumentsOptions;
+import com.datastax.astra.client.collections.results.CollectionDeleteResult;
+import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
+import com.datastax.astra.client.collections.options.EstimatedCountDocumentsOptions;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertOneOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.options.UpdateOneOptions;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
 import com.datastax.astra.client.collections.documents.Update;
@@ -141,13 +141,7 @@ public class Collection<T> extends AbstractCommandRunner {
     /** parameters names. */
     protected static final String ARG_COLLECTION_NAME = "collectionName";
     /** parameters names. */
-    protected static final String ARG_EMBEDDINGS = "vector embeddings";
-    /** parameters names. */
-    protected static final String ARG_VECTORIZE = "expression to vectorize";
-    /** parameters names. */
     protected static final String ARG_UPDATE = "update";
-    /** parameters names. */
-    protected static final String ARG_COMMANDS = "commands";
     /** parameters names. */
     protected static final String DOCUMENT = "document";
 
@@ -395,8 +389,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final InsertOneResult insertOne(T document) {
-        return insertOne(document, (InsertOneOptions) null);
+    public final CollectionInsertOneResult insertOne(T document) {
+        return insertOne(document, (CollectionInsertOneOptions) null);
     }
 
     /**
@@ -428,7 +422,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param document the document to be inserted into the collection. This parameter should represent
      *                 the document in its entirety. The {@code _id} field is optional and, if omitted,
      *                 will be automatically generated.
-     * @param insertOneOptions
+     * @param collectionInsertOneOptions
      *                 the options to apply to the insert operation. If left blank the default collection
      *                 options will be used. If collection option is blank DataAPIOptions will be used.
      * @return An {@code InsertOneResult} object that contains information about the result of the
@@ -454,9 +448,9 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final InsertOneResult insertOne(T document, InsertOneOptions insertOneOptions) {
+    public final CollectionInsertOneResult insertOne(T document, CollectionInsertOneOptions collectionInsertOneOptions) {
         Assert.notNull(document, DOCUMENT);
-        return internalInsertOne(SERIALIZER.convertValue(document, Document.class), insertOneOptions);
+        return internalInsertOne(SERIALIZER.convertValue(document, Document.class), collectionInsertOneOptions);
     }
 
     /**
@@ -475,7 +469,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param document The document to be inserted into the collection. The specifications regarding the document
      *                 structure and the {@code _id} field are the same as described in {@link #insertOne(Object)}.
      * @return A {@link CompletableFuture} that, upon completion, contains the result of the insert operation as an
-     *         {@link InsertOneResult}. The completion may occur with a result in case of success or with an exception
+     *         {@link CollectionInsertOneResult}. The completion may occur with a result in case of success or with an exception
      *         in case of failure.
      *
      * <p>Example usage:</p>
@@ -489,12 +483,12 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(T document) {
+    public final CompletableFuture<CollectionInsertOneResult> insertOneAsync(T document) {
         return CompletableFuture.supplyAsync(() -> insertOne(document));
     }
 
     /**
-     * Asynchronous implementation of {@link #insertOne(Object, InsertOneOptions)}.
+     * Asynchronous implementation of {@link #insertOne(Object, CollectionInsertOneOptions)}.
      *
      * @param document
      *      document to insert
@@ -504,7 +498,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      result for insertion
      */
-    public final CompletableFuture<InsertOneResult> insertOneAsync(T document, InsertOneOptions options) {
+    public final CompletableFuture<CollectionInsertOneResult> insertOneAsync(T document, CollectionInsertOneOptions options) {
         return CompletableFuture.supplyAsync(() -> insertOne(document, options));
     }
 
@@ -513,18 +507,18 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param document
      *      the document to be inserted.
-     * @param insertOneOptions
+     * @param collectionInsertOneOptions
      *      override default configuration for the insert operation.
      * @return
      *      object wrapping the returned identifier
      */
-    private InsertOneResult internalInsertOne(Document document, InsertOneOptions insertOneOptions) {
+    private CollectionInsertOneResult internalInsertOne(Document document, CollectionInsertOneOptions collectionInsertOneOptions) {
         Assert.notNull(document, DOCUMENT);
         Command insertOne = Command.create("insertOne").withDocument(document);
-        Object documentId = runCommand(insertOne, insertOneOptions)
+        Object documentId = runCommand(insertOne, collectionInsertOneOptions)
                 .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
                 .get(0);
-        return new InsertOneResult(unmarshallDocumentId(documentId));
+        return new CollectionInsertOneResult(unmarshallDocumentId(documentId));
     }
 
     /**
@@ -630,16 +624,16 @@ public class Collection<T> extends AbstractCommandRunner {
     public CollectionInsertManyResult insertMany(List<? extends T> documents, CollectionInsertManyOptions options) {
         Assert.isTrue(documents != null && !documents.isEmpty(), "documents list cannot be null or empty");
         Assert.notNull(options, "insertMany options cannot be null");
-        if (options.getConcurrency() > 1 && options.isOrdered()) {
+        if (options.concurrency() > 1 && options.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
+        if (options.chunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
             throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+        ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
         List<Future<CollectionInsertManyResult>> futures = new ArrayList<>();
-        for (int i = 0; i < documents.size(); i += options.getChunkSize()) {
+        for (int i = 0; i < documents.size(); i += options.chunkSize()) {
             futures.add(executor.submit(getInsertManyResultCallable(documents, options, i)));
         }
         executor.shutdown();
@@ -652,7 +646,10 @@ public class Collection<T> extends AbstractCommandRunner {
                 finalResult.getInsertedIds().addAll(res.getInsertedIds());
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
-            if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
+            // Set a default timeouts for the overall operation
+            if (executor.awaitTermination(
+                    options.getTimeoutOptions().dataOperationTimeoutMillis(),
+                    TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
@@ -835,15 +832,15 @@ public class Collection<T> extends AbstractCommandRunner {
      *      insert many result for a paged call
      */
     private Callable<CollectionInsertManyResult> getInsertManyResultCallable(List<? extends T> documents, CollectionInsertManyOptions collectionInsertManyOptions, int start) {
-        int end = Math.min(start + collectionInsertManyOptions.getChunkSize(), documents.size());
+        int end = Math.min(start + collectionInsertManyOptions.chunkSize(), documents.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
 
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, collectionInsertManyOptions.isOrdered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
+                            .append(INPUT_ORDERED, collectionInsertManyOptions.ordered())
+                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.returnDocumentResponses()));
 
             DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
             CollectionInsertManyResult result = new CollectionInsertManyResult();
@@ -899,7 +896,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *         that retrieval operations can be performed safely without the concern of {@link java.util.NoSuchElementException}.
      */
     public Optional<T> findOne(Filter filter) {
-        return findOne(filter, new FindOneOptions());
+        return findOne(filter, new CollectionFindOneOptions());
     }
 
     /**
@@ -930,21 +927,21 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter The {@link Filter} instance containing the criteria used to identify the desired document.
      *               It specifies the conditions that a document must meet to be considered a match.
-     * @param findOneOptions The {@link FindOneOptions} instance containing additional options for the find operation,
+     * @param findOneOptions The {@link CollectionFindOneOptions} instance containing additional options for the find operation,
      * @return An {@link Optional} that contains the found document if one exists that matches
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
-    public Optional<T> findOne(Filter filter, FindOneOptions findOneOptions) {
+    public Optional<T> findOne(Filter filter, CollectionFindOneOptions findOneOptions) {
         notNull(findOneOptions, ARG_OPTIONS);
         Command findOne = Command
                 .create("findOne")
                 .withFilter(filter)
-                .withSort(findOneOptions.getSort())
-                .withProjection(findOneOptions.getProjection())
+                .withSort(findOneOptions.getSortArray())
+                .withProjection(findOneOptions.getProjectionArray())
                 .withOptions(new Document()
-                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity())
-                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
+                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                 );
 
         return Optional.ofNullable(
@@ -954,7 +951,7 @@ public class Collection<T> extends AbstractCommandRunner {
     }
 
     /**
-     * Syntax sugar to provide a findOne command without a filter @see {@link #findOne(Filter, FindOneOptions)}.
+     * Syntax sugar to provide a findOne command without a filter @see {@link #findOne(Filter, CollectionFindOneOptions)}.
      *
      * @param findOneOptions
      *      find one without a filter
@@ -962,7 +959,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *         the filter criteria. Returns an empty {@link Optional} if no matching document is found,
      *         enabling safe retrieval operations without the risk of {@link java.util.NoSuchElementException}.
      */
-    public Optional<T> findOne(FindOneOptions findOneOptions) {
+    public Optional<T> findOne(CollectionFindOneOptions findOneOptions) {
         return findOne(null, findOneOptions);
     }
 
@@ -989,13 +986,13 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /**
      * Asynchronously attempts to find a single document within the collection that matches the given filter criteria,
-     * utilizing the specified {@link FindOneOptions} for the query. This method offers a non-blocking approach to
+     * utilizing the specified {@link CollectionFindOneOptions} for the query. This method offers a non-blocking approach to
      * querying the database, making it well-suited for applications requiring efficient I/O operations without
      * compromising the responsiveness of the application.
      *
      * <p>By executing the search operation in an asynchronous manner, this method allows other tasks to proceed
      * concurrently, effectively utilizing system resources and improving application throughput. The query leverages
-     * a {@link Filter} instance to define the search criteria, and {@link FindOneOptions} to specify query
+     * a {@link Filter} instance to define the search criteria, and {@link CollectionFindOneOptions} to specify query
      * customizations, such as projection or sort parameters.</p>
      *
      * <p>In cases where no document matches the filter, the method returns a {@link CompletableFuture} completed with
@@ -1005,7 +1002,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter  The {@link Filter} instance encapsulating the criteria used to identify the desired document.
      *                It defines the conditions that a document must meet to be considered a match.
-     * @param findOneOptions The {@link FindOneOptions} providing additional query configurations such as projection
+     * @param findOneOptions The {@link CollectionFindOneOptions} providing additional query configurations such as projection
      *                and sort criteria to tailor the search operation.
      * @return A {@link CompletableFuture} that, upon completion, contains an {@link Optional}
      *         with the found document if one exists matching the filter criteria. If no matching document is found,
@@ -1021,8 +1018,22 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter, FindOneOptions findOneOptions) {
+    public CompletableFuture<Optional<T>> findOneASync(Filter filter, CollectionFindOneOptions findOneOptions) {
         return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
+    }
+
+
+    /**
+     * Retrieves all documents in the collection.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all documents in the collection,
+     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
+     * </p>
+     *
+     * @return A {@link FindIterable} for iterating over all documents in the collection.
+     */
+    public FindIterable<T> findAll() {
+        return find(null, new CollectionFindOptions());
     }
 
     /**
@@ -1051,102 +1062,19 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(Filter filter, FindOptions options) {
+    public FindIterable<T> find(Filter filter, CollectionFindOptions options) {
         return new FindIterable<>(this, filter, options);
     }
 
     /**
-     * Retrieves all documents in the collection.
-     * <p>
-     * This method returns an iterable interface that allows iterating over all documents in the collection,
-     * without applying any filters. It leverages the default {@link FindOptions} for query execution.
-     * </p>
-     *
-     * @return A {@link FindIterable} for iterating over all documents in the collection.
+     * Finds all documents in the collection.
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
      */
-    public FindIterable<T> find() {
-        return find(null, new FindOptions());
-    }
-
-    /**
-     * Retrieves documents in the collection that match the specified filter.
-     * <p>
-     * This method returns an iterable interface for documents that meet the criteria defined by the {@code filter}.
-     * It uses default {@link FindOptions} for query execution, allowing for customization of the query if needed.
-     * </p>
-     *
-     * @param filter The query filter to apply when retrieving documents.
-     * @return A {@link FindIterable} for iterating over the documents that match the filter.
-     */
-    public FindIterable<T> find(Filter filter) {
-        return find(filter, new FindOptions());
-    }
-
-    /**
-     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
-     * to a provided vector, limiting the number of results returned.
-     * <p>
-     * This method is particularly useful for vector-based search operations where documents are ranked according
-     * to their distance from a reference vector. The {@code limit} parameter controls the maximum number of documents
-     * to return, allowing for efficient retrieval of the most relevant documents.
-     * </p>
-     *
-     * @param filter The query filter to apply when retrieving documents.
-     * @param vector A float array representing the vector used to sort the documents.
-     * @param limit The maximum number of documents to return.
-     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
-     */
-    public FindIterable<T> find(Filter filter, float[] vector, int limit) {
-        return find(filter, new FindOptions().sort(vector).limit(limit));
-    }
-
-    /**
-     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
-     * to a provided vector, limiting the number of results returned.
-     * <p>
-     * This method is particularly useful for vector-based search operations where documents are ranked according
-     * to their distance from a reference vector. The {@code limit} parameter controls the maximum number of documents
-     * to return, allowing for efficient retrieval of the most relevant documents.
-     * </p>
-     *
-     * @param vector A float array representing the vector used to sort the documents.
-     * @param limit The maximum number of documents to return.
-     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
-     */
-    public FindIterable<T> find(float[] vector, int limit) {
-        return find(null, new FindOptions().sort(vector).limit(limit));
-    }
-
-    /**
-     * Finds documents in the collection that match the specified filter and sorts them based on their similarity
-     * to a provided vector, limiting the number of results returned.
-     * <p><i style='color: orange;'><b>Note</b> : This feature is under current development.</i></p>
-     * <p>
-     * This method leverage the 'vectorization' to compute the embeddings on the fly in order to execute the search.
-     * </p>
-     *
-     * @param filter The query filter to apply when retrieving documents.
-     * @param vectorize A float array representing the vector used to sort the documents.
-     * @param limit The maximum number of documents to return.
-     * @return A {@link FindIterable} for iterating over the sorted and limited documents.
-     */
-    public FindIterable<T> find(Filter filter, String vectorize, int limit) {
-        return find(filter, new FindOptions().sort(vectorize).limit(limit));
-    }
-
-    /**
-     * Finds all documents in the collection, applying the specified find options.
-     * <p>
-     * This method allows for detailed control over the query execution through {@link FindOptions}, which can
-     * specify sorting, projection, limits, and other query parameters. If no filter is applied, all documents
-     * in the collection are considered.
-     * </p>
-     *
-     * @param options The {@link FindOptions} to apply when executing the find operation.
-     * @return A {@link FindIterable} for iterating over the documents according to the specified options.
-     */
-    public FindIterable<T> find(FindOptions options) {
-        return find(null, options);
+    public FindIterable<T> find(CollectionFindOptions options) {
+        return new FindIterable<>(this, null, options);
     }
 
     /**
@@ -1168,26 +1096,26 @@ public class Collection<T> extends AbstractCommandRunner {
      * </p>
      *
      * @param filter The filter criteria used to select documents from the collection.
-     * @param options The {@link FindOptions} providing additional query parameters, such as sorting and pagination.
+     * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.
      */
-    public Page<T> findPage(Filter filter, FindOptions options) {
+    public Page<T> findPage(Filter filter, CollectionFindOptions options) {
         Command findCommand = Command
                 .create("find")
                 .withFilter(filter)
-                .withSort(options.getSort())
-                .withProjection(options.getProjection())
+                .withSort(options.getSortArray())
+                .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull("skip", options.getSkip())
-                        .appendIfNotNull("limit", options.getLimit())
-                        .appendIfNotNull(INPUT_PAGE_STATE, options.getPageState())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.getIncludeSortVector())
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.getIncludeSimilarity()));
+                        .appendIfNotNull("skip", options.skip())
+                        .appendIfNotNull("limit", options.limit())
+                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
+                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
         float[] sortVector = null;
-        if (options.getIncludeSortVector() != null &&
+        if (options.includeSortVector() != null &&
                 apiResponse.getStatus() != null &&
                 apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
             sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
@@ -1220,10 +1148,10 @@ public class Collection<T> extends AbstractCommandRunner {
      * </p>
      *
      * @param filter The filter criteria used to select documents from the collection.
-     * @param options The {@link FindOptions} providing additional query parameters, such as sorting and pagination.
+     * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.
      */
-    public CompletableFuture<Page<T>> findPageASync(Filter filter, FindOptions options) {
+    public CompletableFuture<Page<T>> findPageASync(Filter filter, CollectionFindOptions options) {
         return CompletableFuture.supplyAsync(() -> findPage(filter, options));
     }
 
@@ -1244,7 +1172,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      an iterable of distinct values
      */
-    public <F> DistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
+    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
         return distinct(fieldName, null, resultClass);
     }
 
@@ -1262,8 +1190,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      an iterable of distinct values
      */
-    public <F> DistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-        return new DistinctIterable<>(this, fieldName, filter, resultClass);
+    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
+        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
     }
 
     // ----------------------------
@@ -1356,8 +1284,8 @@ public class Collection<T> extends AbstractCommandRunner {
     public int countDocuments(Filter filter, int upperBound, CountDocumentsOptions options)
     throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIOptions.getMaxRecordCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxRecordCount());
+        if (upperBound<1 || upperBound> dataAPIOptions.getMaxCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);
@@ -1424,7 +1352,7 @@ public class Collection<T> extends AbstractCommandRunner {
         Command deleteOne = Command
                 .create("deleteOne")
                 .withFilter(filter)
-                .withSort(collectionDeleteOneOptions.getSort());
+                .withSort(collectionDeleteOneOptions.getSortArray());
 
         DataAPIResponse apiResponse = runCommand(deleteOne, collectionDeleteOneOptions);
         int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
@@ -1519,7 +1447,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the document that was replaced.  Depending on the value of the {@code returnOriginal} property, this will either be the document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be returned
      */
     public Optional<T> findOneAndReplace(Filter filter, T replacement) {
-        return findOneAndReplace(filter, replacement, new FindOneAndReplaceOptions());
+        return findOneAndReplace(filter, replacement, new CollectionFindOneAndReplaceOptions());
     }
 
     /**
@@ -1537,17 +1465,17 @@ public class Collection<T> extends AbstractCommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    public Optional<T> findOneAndReplace(Filter filter, T replacement, FindOneAndReplaceOptions options) {
+    public Optional<T> findOneAndReplace(Filter filter, T replacement, CollectionFindOneAndReplaceOptions options) {
 
         Command findOneAndReplace = Command
                 .create("findOneAndReplace")
                 .withFilter(filter)
                 .withReplacement(replacement)
-                .withSort(options.getSort())
-                .withProjection(options.getProjection())
+                .withSort(options.getSortArray())
+                .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
-                        .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
+                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
+                        .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(findOneAndReplace, options);
@@ -1571,8 +1499,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      result of the replace one operation
      */
-    public UpdateResult replaceOne(Filter filter, T replacement) {
-        return replaceOne(filter, replacement, new ReplaceOneOptions());
+    public CollectionUpdateResult replaceOne(Filter filter, T replacement) {
+        return replaceOne(filter, replacement, new CollectionReplaceOneOptions());
     }
 
     /**
@@ -1582,27 +1510,27 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the query filter to apply the replace operation
      * @param replacement
      *      the replacement document
-     * @param replaceOneOptions
+     * @param collectionReplaceOneOptions
      *      the options to apply to the replace operation
      * @return
      *      the result of the replace one operation
      */
-    public UpdateResult replaceOne(Filter filter, T replacement, ReplaceOneOptions replaceOneOptions) {
+    public CollectionUpdateResult replaceOne(Filter filter, T replacement, CollectionReplaceOneOptions collectionReplaceOneOptions) {
 
         Command findOneAndReplace = Command
                 .create("findOneAndReplace")
                 .withFilter(filter)
                 .withReplacement(replacement)
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, replaceOneOptions.getUpsert())
+                        .appendIfNotNull(INPUT_UPSERT, collectionReplaceOneOptions.upsert())
                         .append(INPUT_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
                 );
 
         // Execute the `findOneAndReplace`
-        FindOneAndReplaceResult<T> res = executeFindOneAndReplace(findOneAndReplace, replaceOneOptions);
+        FindOneAndReplaceResult<T> res = executeFindOneAndReplace(findOneAndReplace, collectionReplaceOneOptions);
 
         // Parse the result for a replace one
-        UpdateResult result = new UpdateResult();
+        CollectionUpdateResult result = new CollectionUpdateResult();
         result.setMatchedCount(res.getMatchedCount());
         result.setModifiedCount(res.getModifiedCount());
         if (res.getDocument() != null) {
@@ -1660,7 +1588,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * returned
      */
     public Optional<T> findOneAndUpdate(Filter filter, Update update) {
-        return findOneAndUpdate(filter, update, new FindOneAndUpdateOptions());
+        return findOneAndUpdate(filter, update, new CollectionFindOneAndUpdateOptions());
     }
 
     /**
@@ -1678,18 +1606,18 @@ public class Collection<T> extends AbstractCommandRunner {
      * document as it was before the update or as it is after the update.  If no documents matched the query filter, then null will be
      * returned
      */
-    public Optional<T> findOneAndUpdate(Filter filter, Update update, FindOneAndUpdateOptions options) {
+    public Optional<T> findOneAndUpdate(Filter filter, Update update, CollectionFindOneAndUpdateOptions options) {
         notNull(update, ARG_UPDATE);
         notNull(options, ARG_OPTIONS);
         Command cmd = Command
                 .create("findOneAndUpdate")
                 .withFilter(filter)
                 .withUpdate(update)
-                .withSort(options.getSort())
-                .withProjection(options.getProjection())
+                .withSort(options.getSortArray())
+                .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
-                        .append(INPUT_RETURN_DOCUMENT, options.getReturnDocument())
+                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
+                        .append(INPUT_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(cmd, options);
@@ -1712,7 +1640,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public UpdateResult updateOne(Filter filter, Update update) {
+    public CollectionUpdateResult updateOne(Filter filter, Update update) {
         return updateOne(filter, update, new UpdateOneOptions());
     }
 
@@ -1728,16 +1656,16 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public UpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
+    public CollectionUpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
                 .create("updateOne")
                 .withFilter(filter)
                 .withUpdate(update)
-                .withSort(updateOptions.getSort())
+                .withSort(updateOptions.getSortArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.getUpsert())
+                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
                 );
         return getUpdateResult(runCommand(cmd, updateOptions));
     }
@@ -1750,8 +1678,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    private static UpdateResult getUpdateResult(DataAPIResponse apiResponse) {
-        UpdateResult result = new UpdateResult();
+    private static CollectionUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
+        CollectionUpdateResult result = new CollectionUpdateResult();
         DataAPIStatus status = apiResponse.getStatus();
         if (status != null) {
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
@@ -1777,8 +1705,8 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    public UpdateResult updateMany(Filter filter, Update update) {
-        return updateMany(filter, update, new UpdateManyOptions());
+    public CollectionUpdateResult updateMany(Filter filter, Update update) {
+        return updateMany(filter, update, new CollectionUpdateManyOptions());
     }
 
     /**
@@ -1793,11 +1721,11 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    public UpdateResult updateMany(Filter filter, Update update, UpdateManyOptions options) {
+    public CollectionUpdateResult updateMany(Filter filter, Update update, CollectionUpdateManyOptions options) {
         notNull(update, ARG_UPDATE);
         notNull(options, ARG_OPTIONS);
         String nextPageState = null;
-        UpdateResult result = new UpdateResult();
+        CollectionUpdateResult result = new CollectionUpdateResult();
         result.setMatchedCount(0);
         result.setModifiedCount(0);
         do {
@@ -1806,7 +1734,7 @@ public class Collection<T> extends AbstractCommandRunner {
                     .withFilter(filter)
                     .withUpdate(update)
                     .withOptions(new Document()
-                            .appendIfNotNull(INPUT_UPSERT, options.getUpsert())
+                            .appendIfNotNull(INPUT_UPSERT, options.upsert())
                             .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
             DataAPIResponse res = runCommand(cmd, options);
             // Data
@@ -1837,7 +1765,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the document that was removed.  If no documents matched the query filter, then null will be returned
      */
     public Optional<T> findOneAndDelete(Filter filter) {
-        return findOneAndDelete(filter, new FindOneAndDeleteOptions());
+        return findOneAndDelete(filter, new CollectionFindOneAndDeleteOptions());
     }
 
     /**
@@ -1862,12 +1790,12 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      the document that was removed.  If no documents matched the query filter, then null will be returned
      */
-    public Optional<T> findOneAndDelete(Filter filter, FindOneAndDeleteOptions options) {
+    public Optional<T> findOneAndDelete(Filter filter, CollectionFindOneAndDeleteOptions options) {
         Command findOneAndReplace = Command
                 .create("findOneAndDelete")
                 .withFilter(filter)
-                .withSort(options.getSort())
-                .withProjection(options.getProjection());
+                .withSort(options.getSortArray())
+                .withProjection(options.getProjectionArray());
 
         DataAPIResponse res = runCommand(findOneAndReplace, options);
         if (res.getData()!= null && res.getData().getDocument() != null) {

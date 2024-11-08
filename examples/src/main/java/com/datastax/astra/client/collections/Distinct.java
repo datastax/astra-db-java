@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.DistinctIterable;
+import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -22,9 +22,9 @@ public class Distinct {
                 Filters.eq("field4", "value"));
 
         // Execute a find operation
-        DistinctIterable<Document, String> result = collection
+        CollectionDistinctIterable<Document, String> result = collection
                 .distinct("field", String.class);
-        DistinctIterable<Document, String> result2 = collection
+        CollectionDistinctIterable<Document, String> result2 = collection
                 .distinct("field", filter, String.class);
 
         // Iterate over the result

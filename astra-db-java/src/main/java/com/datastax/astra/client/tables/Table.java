@@ -20,37 +20,37 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.collections.commands.FindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.commands.UpdateOneOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
-import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.paging.TableCursor;
+import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.tables.commands.CountRowsOptions;
-import com.datastax.astra.client.tables.commands.EstimatedCountRowsOptions;
-import com.datastax.astra.client.tables.commands.TableDeleteManyOptions;
-import com.datastax.astra.client.tables.commands.TableDeleteOneOptions;
-import com.datastax.astra.client.tables.commands.TableFindOneAndDeleteOptions;
-import com.datastax.astra.client.tables.commands.TableFindOneOptions;
-import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
-import com.datastax.astra.client.tables.commands.TableInsertManyResult;
-import com.datastax.astra.client.tables.commands.TableInsertOneOptions;
-import com.datastax.astra.client.tables.commands.TableInsertOneResult;
-import com.datastax.astra.client.tables.commands.TableUpdateOneOptions;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableOperation;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableOptions;
-import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
-import com.datastax.astra.client.tables.commands.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.options.CountRowsOptions;
+import com.datastax.astra.client.tables.options.EstimatedCountRowsOptions;
+import com.datastax.astra.client.tables.options.TableDeleteManyOptions;
+import com.datastax.astra.client.tables.options.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.options.TableFindOptions;
+import com.datastax.astra.client.tables.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.options.TableInsertOneOptions;
+import com.datastax.astra.client.tables.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.options.TableUpdateOneOptions;
+import com.datastax.astra.client.tables.ddl.AlterTableOperation;
+import com.datastax.astra.client.tables.ddl.AlterTableOptions;
+import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
+import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
-import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
+import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.api.DataAPIData;
@@ -78,7 +78,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
@@ -432,16 +434,16 @@ public class Table<T>  extends AbstractCommandRunner {
     public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions options) {
         Assert.isTrue(rows != null && !rows.isEmpty(), "rows list cannot be null or empty");
         Assert.notNull(options, "insertMany options cannot be null");
-        if (options.getConcurrency() > 1 && options.isOrdered()) {
+        if (options.concurrency() > 1 && options.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.getChunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
+        if (options.chunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
             throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
+        ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
         List<Future<TableInsertManyResult>> futures = new ArrayList<>();
-        for (int i = 0; i < rows.size(); i += options.getChunkSize()) {
+        for (int i = 0; i < rows.size(); i += options.chunkSize()) {
             futures.add(executor.submit(getInsertManyResultCallable(rows, options, i)));
         }
         executor.shutdown();
@@ -464,7 +466,7 @@ public class Table<T>  extends AbstractCommandRunner {
                 }
             }
 
-            if (executor.awaitTermination(options.getTimeout(), TimeUnit.MILLISECONDS)) {
+            if (executor.awaitTermination(options.getTimeoutOptions().dataOperationTimeoutMillis(), TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
@@ -502,14 +504,14 @@ public class Table<T>  extends AbstractCommandRunner {
      *      insert many result for a paged call
      */
     private Callable<TableInsertManyResult> getInsertManyResultCallable(List<? extends T> rows, TableInsertManyOptions insertManyOptions, int start) {
-        int end = Math.min(start + insertManyOptions.getChunkSize(), rows.size());
+        int end = Math.min(start + insertManyOptions.chunkSize(), rows.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in table {}", end - start, green(getTableName()));
             Command insertMany = new Command("insertMany")
                     .withDocuments(rows.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, insertManyOptions.isOrdered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, insertManyOptions.isReturnDocumentResponses()));
+                            .append(INPUT_ORDERED, insertManyOptions.ordered())
+                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, insertManyOptions.returnDocumentResponses()));
             return runCommand(insertMany, insertManyOptions)
                     .getStatus(TableInsertManyResult.class);
         };
@@ -526,11 +528,11 @@ public class Table<T>  extends AbstractCommandRunner {
     public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
-            findOne.withSort(findOneOptions.getSort())
-                   .withProjection(findOneOptions.getProjection())
+            findOne.withSort(findOneOptions.getSortArray())
+                   .withProjection(findOneOptions.getProjectionArray())
                     .withOptions(new Document()
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.getIncludeSimilarity())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.getIncludeSortVector())
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
             );
         }
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
@@ -556,8 +558,150 @@ public class Table<T>  extends AbstractCommandRunner {
     // ---   find           ----
     // -------------------------
 
-    // FIXME
+    /**
+     * Finds all rows in the table.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public TableCursor<T> find(Filter filter, TableFindOptions options) {
+        return new TableCursor<>(this, filter, options);
+    }
 
+    /**
+     * Retrieves all rows in the table.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all rows in the table,
+     * without applying any filters. It leverages the default {@link TableFindOptions} for query execution.
+     * </p>
+     *
+     * @return A {@link TableCursor} for iterating over all rows in the table.
+     */
+    public TableCursor<T> findAll() {
+        return find(null, new TableFindOptions());
+    }
+
+    /**
+     * Executes a paginated 'find' query on the table using the specified filter and find options.
+     * <p>
+     * This method constructs and executes a command to fetch a specific page of rows from the table that match
+     * the provided filter criteria. It allows for detailed control over the query through {@code FindOptions}, such as sorting,
+     * projection, pagination, and more. The result is wrapped in a {@link Page} object, which includes the rows found,
+     * the page size, and the state for fetching subsequent pages.
+     * </p>
+     * <p>
+     * Pagination is facilitated by the {@code skip}, {@code limit}, and {@code pageState} parameters within {@code FindOptions},
+     * enabling efficient data retrieval in scenarios where the total dataset is too large to be fetched in a single request.
+     * Optionally, similarity scoring can be included if {@code includeSimilarity} is set, which is useful for vector-based search queries.
+     * </p>
+     * <p>
+     * The method processes the command's response, mapping each rows to the specified row class and collecting them into a list.
+     * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
+     * </p>
+     *
+     * @param filter The filter criteria used to select rows from the table.
+     * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
+     * @return A {@link Page} object containing the rows that match the query, along with pagination information.
+     */
+    public Page<T> findPage(Filter filter, TableFindOptions options) {
+        Command findCommand = Command
+                .create("find")
+                .withFilter(filter)
+                .withSort(options.getSortArray())
+                .withProjection(options.getProjectionArray())
+                .withOptions(new Document()
+                        .appendIfNotNull("skip", options.skip())
+                        .appendIfNotNull("limit", options.limit())
+                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
+                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+        DataAPIResponse apiResponse = runCommand(findCommand, options);
+
+        // load sortVector if available
+        float[] sortVector = null;
+        if (options.includeSortVector() != null &&
+                apiResponse.getStatus() != null &&
+                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
+            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        }
+
+        return new Page<>(
+                apiResponse.getData().getNextPageState(),
+                apiResponse.getData().getDocuments()
+                        .stream()
+                        .map(d -> d.map(getRowClass()))
+                        .collect(Collectors.toList()), sortVector);
+    }
+
+    /**
+     * Executes a paginated 'find' query on the table using the specified filter and find options asynchronously.
+     * <p>
+     * This method constructs and executes a command to fetch a specific page of rows from the table that match
+     * the provided filter criteria. It allows for detailed control over the query through {@code TableFindOptions}, such as sorting,
+     * projection, pagination, and more. The result is wrapped in a {@link Page} object, which includes the rows found,
+     * the page size, and the state for fetching subsequent pages.
+     * </p>
+     * <p>
+     * Pagination is facilitated by the {@code skip}, {@code limit}, and {@code pageState} parameters within {@code TableFindOptions},
+     * enabling efficient data retrieval in scenarios where the total dataset is too large to be fetched in a single request.
+     * Optionally, similarity scoring can be included if {@code includeSimilarity} is set, which is useful for vector-based search queries.
+     * </p>
+     * <p>
+     * The method processes the command's response, mapping each row to the specified row class and collecting them into a list.
+     * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
+     * </p>
+     *
+     * @param filter The filter criteria used to select rows from the table.
+     * @param options The {@link TableFindOptions} providing additional query parameters, such as sorting and pagination.
+     * @return A {@link Page} object containing the rows that match the query, along with pagination information.
+     */
+    public CompletableFuture<Page<T>> findPageASync(Filter filter, TableFindOptions options) {
+        return CompletableFuture.supplyAsync(() -> findPage(filter, options));
+    }
+
+    // -------------------------
+    // ---   distinct       ----
+    // -------------------------
+
+    /**
+     * Gets the distinct values of the specified field name.
+     * The iteration is performed at CLIENT-SIDE and will exhaust all the table elements.
+     *
+     * @param fieldName
+     *      the field name
+     * @param resultClass
+     *      the class to cast any distinct items into.
+     * @param <F>
+     *      the target type of the iterable.
+     * @return
+     *      an iterable of distinct values
+
+    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
+        return distinct(fieldName, null, resultClass);
+    }
+
+    /**
+     * Gets the distinct values of the specified field name.
+     *
+     * @param fieldName
+     *      the field name
+     * @param filter
+     *      the query filter
+     * @param resultClass
+     *      the class to cast any distinct items into.
+     * @param <F>
+     *      the target type of the iterable.
+     * @return
+     *      an iterable of distinct values
+
+    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
+        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
+    }
+*/
     // -------------------------
     // ---   updateOne      ----
     // -------------------------
@@ -572,7 +716,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public UpdateResult updateOne(Filter filter, TableUpdate update) {
+    public CollectionUpdateResult updateOne(Filter filter, TableUpdate update) {
         return updateOne(filter, update, new TableUpdateOneOptions());
     }
 
@@ -588,16 +732,16 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public UpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
+    public CollectionUpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
                 .create("updateOne")
                 .withFilter(filter)
                 .withUpdate(update)
-                .withSort(updateOptions.getSort())
+                .withSort(updateOptions.getSortArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.getUpsert())
+                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
                 );
         return getUpdateResult(runCommand(cmd, updateOptions));
     }
@@ -610,8 +754,8 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    private static UpdateResult getUpdateResult(DataAPIResponse apiResponse) {
-        UpdateResult result = new UpdateResult();
+    private static CollectionUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
+        CollectionUpdateResult result = new CollectionUpdateResult();
         DataAPIStatus status = apiResponse.getStatus();
         if (status != null) {
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
@@ -655,7 +799,7 @@ public class Table<T>  extends AbstractCommandRunner {
         Command deleteOne = Command
                 .create("deleteOne")
                 .withFilter(filter)
-                .withSort(deleteOneOptions.getSort());
+                .withSort(deleteOneOptions.getSortArray());
         runCommand(deleteOne, deleteOneOptions);
         /*
         DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
@@ -697,7 +841,7 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     /**
-     * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
+     * Removes all rows from the table that match the given query filter. If no rows match, the table is not modified.
      *
      * @param filter
      *      the query filter to apply the delete operation
@@ -707,7 +851,7 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     /**
-     * Removes all documents from the collection that match the given query filter. If no documents match, the collection is not modified.
+     * Removes all rows from the table that match the given query filter. If no rows match, the table is not modified.
      */
     public void deleteAll() {
         deleteMany(new Filter());
@@ -807,8 +951,8 @@ public class Table<T>  extends AbstractCommandRunner {
     public int countRows(Filter filter, int upperBound, CountRowsOptions options)
     throws TooManyRowsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIOptions.getMaxRecordCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxRecordCount());
+        if (upperBound<1 || upperBound> dataAPIOptions.getMaxCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);

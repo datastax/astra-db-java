@@ -145,7 +145,7 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.commands.FindIterable;
+import com.datastax.astra.client.core.paging.FindIterable;
 
 import java.util.List;
 

@@ -1,11 +1,11 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.collections.commands.UpdateResult;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
@@ -13,19 +13,18 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.commands.TableFindOneAndDeleteOptions;
-import com.datastax.astra.client.tables.commands.TableFindOneOptions;
-import com.datastax.astra.client.tables.commands.TableInsertManyOptions;
-import com.datastax.astra.client.tables.commands.TableInsertManyResult;
-import com.datastax.astra.client.tables.commands.TableInsertOneResult;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableAddColumns;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableAddVectorize;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableDropColumns;
-import com.datastax.astra.client.tables.commands.ddl.AlterTableDropVectorize;
-import com.datastax.astra.client.tables.commands.ddl.CreateIndexOptions;
-import com.datastax.astra.client.tables.commands.ddl.CreateTableOptions;
-import com.datastax.astra.client.tables.commands.ddl.CreateVectorIndexOptions;
-import com.datastax.astra.client.tables.commands.ddl.DropTableIndexOptions;
+import com.datastax.astra.client.tables.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.ddl.AlterTableAddColumns;
+import com.datastax.astra.client.tables.ddl.AlterTableAddVectorize;
+import com.datastax.astra.client.tables.ddl.AlterTableDropColumns;
+import com.datastax.astra.client.tables.ddl.AlterTableDropVectorize;
+import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
+import com.datastax.astra.client.tables.ddl.CreateTableOptions;
+import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
 import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
@@ -57,12 +56,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.core.query.Filters.eq;
-import static com.datastax.astra.client.core.query.Sorts.ascending;
-import static com.datastax.astra.client.core.query.Sorts.descending;
+import static com.datastax.astra.client.core.query.Sort.ascending;
+import static com.datastax.astra.client.core.query.Sort.descending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
-import static com.datastax.astra.client.tables.commands.ddl.CreateTableOptions.IF_NOT_EXISTS;
-import static com.datastax.astra.client.tables.commands.ddl.DropTableOptions.IF_EXISTS;
+import static com.datastax.astra.client.tables.ddl.CreateTableOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.client.tables.ddl.DropTableOptions.IF_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
@@ -217,7 +215,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnVector("vector", new ColumnDefinitionVector()
                                 .dimension(1536).metric(COSINE))
                         .withPartitionKey("partition_id")
-                        .withClusteringColumns(descending("row_id")));
+                        .withClusteringColumns(Sort.descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
     }
 
@@ -492,20 +490,29 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
-    public void should_work_with_cursors() {
+    public void should_work_with_returnedResponses() {
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        //t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(75));
-        t.deleteAll();
         TableInsertManyResult res = t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(3),
                 new TableInsertManyOptions()
                         .ordered(false)
                         .returnDocumentResponses(false));
-        System.out.println(res.getInsertedIds());
-        System.out.println(res.getPrimaryKeySchema());
-        System.out.println(res.getDocumentResponses().size());
+        assertThat(res.getInsertedIds().size()).isEqualTo(3);
+        assertThat(res.getPrimaryKeySchema()).isNotNull();
+        assertThat(res.getDocumentResponses().size()).isEqualTo(0);
 
-        //t2.deleteAll();
+    }
 
+    @Test
+    public void should_work_with_cursors() {
+        Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
+        t.deleteAll();
+        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(175));
+
+        TableCursor<TableCompositeRow> cursor = t.findAll();
+        while (cursor.hasNext()) {
+            TableCompositeRow row = cursor.next();
+            System.out.println(row);
+        }
     }
 
     @Test
@@ -522,11 +529,12 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        UpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
+        CollectionUpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
                 .set("name", "new"));
                 //.updateMul(Map.of("price", 1.1d)));
         Assertions.assertThat(u1.getMatchedCount()).isEqualTo(1);
         Assertions.assertThat(u1.getModifiedCount()).isEqualTo(1);
     }
+
 
 }

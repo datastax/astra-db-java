@@ -5,7 +5,7 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.commands.TableInsertOneResult;
+import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
@@ -20,7 +20,7 @@ import java.util.Optional;
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
-import static com.datastax.astra.client.tables.commands.ddl.CreateTableOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.client.tables.ddl.CreateTableOptions.IF_NOT_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class QuickStartTablesLocal {

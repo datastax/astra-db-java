@@ -28,15 +28,12 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.regex.Pattern;
 
+import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+
 /**
  * Serialize a date as compact or ISO8601 format.
  */
 public class DurationSerializer extends StdSerializer<Duration> {
-
-    private static final Pattern STANDARD_PATTERN = Pattern
-            .compile("\\G(\\d+)(y|Y|mo|MO|mO|Mo|w|W|d|D|h|H|s|S|ms|MS|mS|Ms|us|US|uS|Us|µs|µS|ns|NS|nS|Ns|m|M)");
-    private static final Pattern ISO8601_PATTERN = Pattern
-            .compile("P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d+)S)?)?");
 
     public DurationSerializer() {
         super(Duration.class);
@@ -48,6 +45,12 @@ public class DurationSerializer extends StdSerializer<Duration> {
             gen.writeNull();
             return;
         }
+
+        if (encodeDurationAsISO8601) {
+            gen.writeString(duration.toString());
+            return;
+        }
+
         boolean negative = duration.isNegative();
         duration = duration.abs();
 
@@ -97,6 +100,7 @@ public class DurationSerializer extends StdSerializer<Duration> {
             durationString = negative ? "-0s" : "0s";
         }
         gen.writeString(durationString);
+
     }
 
 }

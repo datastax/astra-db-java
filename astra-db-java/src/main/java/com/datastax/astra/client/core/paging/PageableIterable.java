@@ -21,7 +21,7 @@ package com.datastax.astra.client.core.paging;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.FindOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.query.Filter;
 import lombok.Getter;
 import lombok.Setter;
@@ -65,7 +65,7 @@ public abstract class PageableIterable<T> implements Closeable {
     protected Filter filter;
 
     /** Original command, we will edit it to iterate on pages. */
-    protected FindOptions options;
+    protected CollectionFindOptions options;
 
     /**
      * Default constructor.
@@ -83,7 +83,7 @@ public abstract class PageableIterable<T> implements Closeable {
     public boolean fetchNextPage() {
         if (currentPage == null || currentPage.getPageState().isPresent()) {
             if (currentPage != null && currentPage.getPageState().isPresent()) {
-                options.setPageState(currentPage.getPageState().get());
+                options.pageState(currentPage.getPageState().get());
             }
             this.currentPage = collection.findPage(filter, options);
         }

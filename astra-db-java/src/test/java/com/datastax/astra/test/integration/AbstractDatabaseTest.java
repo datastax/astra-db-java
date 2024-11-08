@@ -1,8 +1,8 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.InsertOneResult;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
@@ -220,7 +220,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
         // Insert One
-        InsertOneResult res = collectionUUID.insertOne(new Document().id(uid).append("sample", uid));
+        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(uid).append("sample", uid));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(UUID.class);
         Optional<Document> doc = collectionUUID.findOne(eq(uid));
@@ -252,7 +252,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
 
         // Insert One
         ObjectId id1 = new ObjectId();
-        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(ObjectId.class);
         Optional<Document> doc = collectionUUID.findOne(eq(id1));
@@ -297,7 +297,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
 
         // Insert One
         UUIDv6 id1 = new UUIDv6();
-        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(UUIDv6.class);
         Optional<Document> doc = collectionUUID.findOne(eq(id1));
@@ -327,7 +327,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
 
         // Insert One
         UUIDv7 id1 = new UUIDv7();
-        InsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(UUIDv7.class);
         Optional<Document> doc = collectionUUID.findOne(eq(id1));

@@ -1,15 +1,17 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.documents.ReturnDocument;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
-import com.datastax.astra.client.core.query.Projections;
-import com.datastax.astra.client.core.query.Sorts;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.query.Sort;
 
 import java.util.Optional;
 
+import static com.datastax.astra.client.collections.documents.ReturnDocument.AFTER;
 import static com.datastax.astra.client.core.query.Filters.lt;
 
 public class FindOneAndReplace {
@@ -24,11 +26,11 @@ public class FindOneAndReplace {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        FindOneAndReplaceOptions options = new FindOneAndReplaceOptions()
-                .projection(Projections.include("field1"))
-                .sort(Sorts.ascending("field1"))
+        CollectionFindOneAndReplaceOptions options = new CollectionFindOneAndReplaceOptions()
+                .projection(Projection.include("field1"))
+                .sort(Sort.ascending("field1"))
                 .upsert(true)
-                .returnDocumentAfter();
+                .returnDocument(AFTER);
 
         Document docForReplacement = new Document()
                 .append("field1", "value1")

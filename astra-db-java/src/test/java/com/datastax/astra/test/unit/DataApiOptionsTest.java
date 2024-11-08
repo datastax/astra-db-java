@@ -2,19 +2,19 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.options.DataAPIOptions;
-import com.datastax.astra.client.collections.commands.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.commands.CollectionDeleteResult;
-import com.datastax.astra.client.collections.commands.FindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.commands.FindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.InsertOneResult;
-import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
+import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.results.CollectionDeleteResult;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.collections.commands.UpdateOneOptions;
+import com.datastax.astra.client.collections.options.UpdateOneOptions;
 import com.datastax.astra.client.collections.documents.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
@@ -71,10 +71,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeFindOneAndDeleteOptions() {
-        assertThat(new FindOneAndDeleteOptions().sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(new FindOneAndDeleteOptions().projection(Projections.include("test"))).isNotNull();
-        assertThat(new FindOneAndDeleteOptions().sort(new float[]{})).isNotNull();
-        assertThat(new FindOneAndDeleteOptions().sort("OK")
+        assertThat(new CollectionFindOneAndDeleteOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new CollectionFindOneAndDeleteOptions().projection(Projections.include("test"))).isNotNull();
+        assertThat(new CollectionFindOneAndDeleteOptions().sort(new float[]{})).isNotNull();
+        assertThat(new CollectionFindOneAndDeleteOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .projection(Projections.include("test"))
                 .sort("ok")
@@ -97,13 +97,13 @@ class DataApiOptionsTest {
 
     @Test
     void shouldFindOneAndReplaceOptions() {
-        assertThat(new FindOneAndReplaceOptions().sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().returnDocumentAfter()).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().returnDocumentBefore()).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().projection(Projections.include("ok"))).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().upsert(true)).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().sort(new float[]{})).isNotNull();
-        assertThat(new FindOneAndReplaceOptions().sort("OK")
+        assertThat(new CollectionFindOneAndReplaceOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().returnDocumentAfter()).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().returnDocumentBefore()).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().upsert(true)).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().sort(new float[]{})).isNotNull();
+        assertThat(new CollectionFindOneAndReplaceOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
@@ -116,13 +116,13 @@ class DataApiOptionsTest {
 
     @Test
     void shouldFindOneAndUpdateOptions() {
-        assertThat(new FindOneAndUpdateOptions().sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().returnDocumentAfter()).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().returnDocumentBefore()).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().projection(Projections.include("ok"))).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().upsert(true)).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().sort(new float[]{})).isNotNull();
-        assertThat(new FindOneAndUpdateOptions().sort("OK")
+        assertThat(new CollectionFindOneAndUpdateOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().returnDocumentAfter()).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().returnDocumentBefore()).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().upsert(true)).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().sort(new float[]{})).isNotNull();
+        assertThat(new CollectionFindOneAndUpdateOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .upsert(true)
                 .projection(Projections.include("ok"))
@@ -135,11 +135,11 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestFindOneOptions() {
-        assertThat(new FindOneOptions().sort(Sorts.ascending("test"))).isNotNull();
-        assertThat(new FindOneOptions().projection(Projections.include("ok"))).isNotNull();
-        assertThat(new FindOneOptions().includeSimilarity()).isNotNull();
-        assertThat(new FindOneOptions().sort(new float[]{})).isNotNull();
-        assertThat(new FindOneOptions().sort("OK")
+        assertThat(new CollectionFindOneOptions().sort(Sorts.ascending("test"))).isNotNull();
+        assertThat(new CollectionFindOneOptions().projection(Projections.include("ok"))).isNotNull();
+        assertThat(new CollectionFindOneOptions().includeSimilarity()).isNotNull();
+        assertThat(new CollectionFindOneOptions().sort(new float[]{})).isNotNull();
+        assertThat(new CollectionFindOneOptions().sort("OK")
                 .sort(Sorts.ascending("test"))
                 .includeSimilarity()
                 .projection(Projections.include("ok"))
@@ -161,12 +161,12 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestReplaceOneOptions() {
-        assertThat(new ReplaceOneOptions().upsert(true)).isNotNull();
+        assertThat(new CollectionReplaceOneOptions().upsert(true)).isNotNull();
     }
 
     @Test
     void shouldTestInsertOneResult() {
-        InsertOneResult ior = new InsertOneResult();
+        CollectionInsertOneResult ior = new CollectionInsertOneResult();
         ior.setInsertedId("OK");
         assertThat(ior.getInsertedId()).isEqualTo("OK");
     }
@@ -247,13 +247,13 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestFindOptions() {
-        FindOptions fo = new FindOptions();
+        CollectionFindOptions fo = new CollectionFindOptions();
         assertThatThrownBy(() -> fo.limit(-1)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> fo.skip(-1)).isInstanceOf(IllegalArgumentException.class);
-        assertThat(new FindOptions().sort("ok").includeSimilarity().pageState("ok")).isNotNull();
-        assertThat(new FindOptions().includeSimilarity()).isNotNull();
-        assertThat(new FindOptions().limit(10)).isNotNull();
-        assertThat(new FindOptions().skip(10)).isNotNull();
+        assertThat(new CollectionFindOptions().sort("ok").includeSimilarity().pageState("ok")).isNotNull();
+        assertThat(new CollectionFindOptions().includeSimilarity()).isNotNull();
+        assertThat(new CollectionFindOptions().limit(10)).isNotNull();
+        assertThat(new CollectionFindOptions().skip(10)).isNotNull();
     }
 
     @Test
@@ -264,8 +264,8 @@ class DataApiOptionsTest {
 
         Projection p1 = new Projection("field1", true);
         Projection p2 = new Projection("field2", true);
-        FindOptions options1 = new FindOptions().projection(p1,p2);
-        FindOptions options2 = new FindOptions().projection(Projections.include("field1", "field2"));
+        CollectionFindOptions options1 = new CollectionFindOptions().projection(p1,p2);
+        CollectionFindOptions options2 = new CollectionFindOptions().projection(Projections.include("field1", "field2"));
 
         CollectionInsertManyOptions collectionInsertManyOptions = new CollectionInsertManyOptions().chunkSize(100);
         //DataAPIClient client = new DataAPIClient("token", options);

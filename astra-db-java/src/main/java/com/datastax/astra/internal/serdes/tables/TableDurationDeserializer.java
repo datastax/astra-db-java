@@ -31,28 +31,62 @@ import java.time.Period;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+
 public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
 
     private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+)([a-zA-Zµ]+)");
     private static final Pattern NEGATIVE_PATTERN = Pattern.compile("^-(.*)");
+    private static final Pattern ISO8601_PATTERN = Pattern.compile(
+            "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d+)S)?)?"
+    );
 
     @Override
     public TableDuration deserialize(JsonParser p, DeserializationContext ctxt)
     throws IOException {
-        String text = p.getText().trim();
+        String inputString = p.getText();
 
-        if (text.isEmpty()) {
+        // If nothing is provided, return null
+        if (inputString.isEmpty()) {
             return null;
         }
-
-        boolean negative = false;
-        Matcher negativeMatcher = NEGATIVE_PATTERN.matcher(text);
-        if (negativeMatcher.matches()) {
-            negative = true;
-            text = negativeMatcher.group(1);
+        // Try first as ISO8601
+        Matcher matcher = ISO8601_PATTERN.matcher(inputString);
+        if (matcher.matches()) {
+            return parseIso8601(inputString);
         }
 
-        Matcher matcher = DURATION_PATTERN.matcher(text);
+        // Fall back to compact
+        return parseCompactNotation(inputString);
+    }
+
+    private TableDuration parseIso8601(String inputString) {
+        Matcher matcher = ISO8601_PATTERN.matcher(inputString);
+        int years = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : 0;
+        int months = matcher.group(4) != null ? Integer.parseInt(matcher.group(4)) : 0;
+        int days = matcher.group(6) != null ? Integer.parseInt(matcher.group(6)) : 0;
+
+        // Extract duration components
+        int hours = matcher.group(9) != null ? Integer.parseInt(matcher.group(9)) : 0;
+        int minutes = matcher.group(11) != null ? Integer.parseInt(matcher.group(11)) : 0;
+        int seconds = matcher.group(13) != null ? Integer.parseInt(matcher.group(13)) : 0;
+
+        Period period = Period.of(years, months, days);
+        Duration duration = Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+
+        return new TableDuration(period, duration);
+    }
+
+    private TableDuration parseCompactNotation(String inputString)
+    throws IOException {
+        boolean negative = false;
+        Matcher negativeMatcher = NEGATIVE_PATTERN.matcher(inputString);
+        if (negativeMatcher.matches()) {
+            negative = true;
+            inputString = negativeMatcher.group(1);
+        }
+
+        Matcher matcher = DURATION_PATTERN.matcher(inputString);
         Period period = Period.ZERO;
         Duration duration = Duration.ZERO;
 
@@ -104,8 +138,8 @@ public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
         }
 
         // Check for invalid format
-        if (index != text.length()) {
-            throw new IOException("Invalid duration format: " + text);
+        if (index != inputString.length()) {
+            throw new IOException("Invalid duration format: " + inputString);
         }
 
         if (negative) {

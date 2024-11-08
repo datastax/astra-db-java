@@ -107,4 +107,81 @@ public class TableDuration implements TemporalAmount {
         return temporal;
     }
 
+    /**
+     * Convert TableDuration to ISO8601 string format.
+     */
+    public String toISO8601() {
+        StringBuilder result = new StringBuilder("P");
+        // Serialize Period part
+        if (period.getYears() != 0) result.append(period.getYears()).append("Y");
+        if (period.getMonths() != 0) result.append(period.getMonths()).append("M");
+        if (period.getDays() != 0) result.append(period.getDays()).append("D");
+
+        // Serialize Duration part
+        if (duration.getSeconds() != 0 || duration.getNano() != 0) {
+            result.append("T");
+            long hours = duration.toHours();
+            long minutes = duration.toMinutes() % 60;
+            long seconds = duration.getSeconds() % 60;
+
+            if (hours != 0) result.append(hours).append("H");
+            if (minutes != 0) result.append(minutes).append("M");
+            if (seconds != 0) result.append(seconds).append("S");
+        }
+
+        return result.toString();
+    }
+
+    public String toCompactString() {
+        StringBuilder sb = new StringBuilder();
+        boolean negative = getPeriod().isNegative() || getDuration().isNegative();
+        Period period = getPeriod().normalized();
+        Duration duration = getDuration();
+
+        if (negative) {
+            sb.append('-');
+            period = period.negated();
+            duration = duration.negated();
+        }
+
+        int years = period.getYears();
+        int months = period.getMonths();
+        int days = period.getDays();
+
+        long hours = duration.toHours();
+        duration = duration.minusHours(hours);
+
+        long minutes = duration.toMinutes();
+        duration = duration.minusMinutes(minutes);
+
+        long seconds = duration.getSeconds();
+        long nanos = duration.getNano();
+
+        long milliseconds = nanos / 1_000_000;
+        nanos %= 1_000_000;
+
+        long microseconds = nanos / 1_000;
+        nanos %= 1_000;
+
+        // Append period components
+        if (years != 0) sb.append(years).append('y');
+        if (months != 0) sb.append(months).append("mo");
+        if (days != 0) sb.append(days).append('d');
+
+        // Append duration components
+        if (hours != 0) sb.append(hours).append('h');
+        if (minutes != 0) sb.append(minutes).append('m');
+        if (seconds != 0) sb.append(seconds).append('s');
+        if (milliseconds != 0) sb.append(milliseconds).append("ms");
+        if (microseconds != 0) sb.append(microseconds).append("us");
+        if (nanos != 0) sb.append(nanos).append("ns");
+
+        // Handle zero duration
+        if (sb.length() == (negative ? 1 : 0)) {
+            sb.append('0').append('s');
+        }
+
+        return sb.toString();
+    }
+
 }

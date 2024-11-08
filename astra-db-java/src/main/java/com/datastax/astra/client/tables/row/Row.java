@@ -28,7 +28,6 @@ import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -189,8 +188,6 @@ public class Row implements Serializable {
         }
         return addDate(key, Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
-
-
     public Row addInet(final String key, final InetAddress value) {
         return add(key, value);
     }
@@ -215,8 +212,11 @@ public class Row implements Serializable {
     public Row addTime(String key, LocalTime ltime) {
         return add(key, ltime);
     }
-    public Row addVector(String key, DataAPIVector<?> vector) {
+    public Row addVector(String key, DataAPIVector vector) {
         return add(key, vector);
+    }
+    public Row addVector(String key, float[] vector) {
+        return add(key, new DataAPIVector(vector));
     }
     public <T> Row addList(String key, List<T> list) {
         return add(key, list);
@@ -275,6 +275,7 @@ public class Row implements Serializable {
     public String getText(final String key) {
         return (String) get(key);
     }
+
     public Long getBigInt(final String key) {
         System.out.println(get(key));
         return Long.parseLong(String.valueOf(get(key)));
@@ -430,33 +431,11 @@ public class Row implements Serializable {
      * @param <T>   the type of the class
      * @return the list value of the given key, or null if the instance does not contain this key.
      * @throws ClassCastException if the elements in the list value of the given key is not of type T or the value is not a list
-     * @since 3.10
      */
     public <T> List<T> getList(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return constructValuesList(key, clazz, null);
-    }
-
-    /**
-     * Gets the list value of the given key, casting the list elements to {@code Class<T>} or returning the default list value if null.
-     * This is useful to avoid having casts in client code, though the effect is the same.
-     *
-     * @param key   the key
-     * @param clazz the non-null class to cast the list value to
-     * @param defaultValue what to return if the value is null
-     * @param <T>   the type of the class
-     * @return the list value of the given key, or the default list value if the instance does not contain this key.
-     * @throws ClassCastException if the value of the given key is not of type T
-     * @since 3.10
-     */
-    public <T> List<T> getList(final String key, final Class<T> clazz, final List<T> defaultValue) {
-        return constructValuesList(key, clazz, defaultValue);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> List<T> constructValuesList(final String key, final Class<T> clazz, final List<T> defaultValue) {
         List<T> value = get(key, List.class);
         if (value == null) {
-            return defaultValue;
+            return null;
         }
         for (Object item : value) {
             if (item != null && !clazz.isAssignableFrom(item.getClass())) {
@@ -477,18 +456,6 @@ public class Row implements Serializable {
         return SERIALIZER.marshall(columnMap);
     }
 
-    /**
-     * Serialization with Jackson.
-     *
-     * @return
-     *      json string
-     */
-    public String toJson() {
-        return toString();
-    }
-
-    // Vanilla Map methods delegate to map field
-
     /** {@inheritDoc} */
     public boolean containsKey(final Object key) {
         return columnMap.containsKey(key);
@@ -505,11 +472,6 @@ public class Row implements Serializable {
     }
 
     /** {@inheritDoc} */
-    public Object remove(final Object key) {
-        return columnMap.remove(key);
-    }
-
-    /** {@inheritDoc} */
     public void putAll(final Map<? extends String, ?> map) {
         columnMap.putAll(map);
     }
@@ -518,22 +480,6 @@ public class Row implements Serializable {
         if (row !=null) {
             columnMap.putAll(row.getColumnMap());
         }
-
-    }
-
-    /** {@inheritDoc} */
-    public void clear() {
-        columnMap.clear();
-    }
-
-    /** {@inheritDoc} */
-    public Collection<Object> values() {
-        return columnMap.values();
-    }
-
-    /** {@inheritDoc} */
-    public Set<Map.Entry<String, Object>> entrySet() {
-        return columnMap.entrySet();
     }
 
     /** {@inheritDoc} */

@@ -21,12 +21,11 @@ package com.datastax.astra.langchain4j.store.embedding;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.FindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Projections;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
@@ -48,6 +47,9 @@ import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.in;
+import static com.datastax.astra.client.core.query.Projection.include;
+import static com.datastax.astra.client.core.query.Sort.vector;
+import static com.datastax.astra.client.core.query.Sort.vectorize;
 
 
 /**
@@ -143,7 +145,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
     public void add(String id, Embedding embedding) {
         astraDBCollection.findOneAndReplace(eq(id),
                 new Document(id).vector(embedding.vector()),
-                new FindOneAndReplaceOptions().upsert(true));
+                new CollectionFindOneAndReplaceOptions().upsert(true));
     }
 
     /** {@inheritDoc}  */
@@ -272,11 +274,11 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
      */
     public List<EmbeddingMatch<TextSegment>> findRelevant(Embedding referenceEmbedding, Filter metaDatafilter, int maxResults, double minScore) {
         return astraDBCollection
-                .find(metaDatafilter, new FindOptions()
-                        .sort(referenceEmbedding.vector())
+                .find(metaDatafilter, new CollectionFindOptions()
+                        .sort(vector(referenceEmbedding.vector()))
                         .limit(maxResults)
-                        .projection(Projections.include("*"))
-                        .includeSimilarity())
+                        .projection(include("*"))
+                        .includeSimilarity(true))
                 .all().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)
@@ -349,12 +351,11 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
      *      records
      */
     protected List<EmbeddingMatch<TextSegment>> findRelevant(String vectorize, Filter metaDatafilter, int maxResults, double minScore) {
-        return astraDBCollection
-                .find(metaDatafilter, new FindOptions()
-                        .sort(vectorize)
+        return astraDBCollection.find(metaDatafilter, new CollectionFindOptions()
                         .limit(maxResults)
-                        .projection(Projections.include("*"))
-                        .includeSimilarity())
+                        .sort(vectorize(vectorize))
+                        .projection(include("*"))
+                        .includeSimilarity(true))
                 .all().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)

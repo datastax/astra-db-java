@@ -7,13 +7,13 @@ import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.collections.commands.FindIterable;
-import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.collections.commands.UpdateManyOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -94,9 +94,9 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         getCollectionSimple().insertMany(List.of(doc1, doc2));
 
         // When updated many
-        UpdateResult updateResult = getCollectionSimple()
+        CollectionUpdateResult updateResult = getCollectionSimple()
                 .updateMany(eq("a", "a"), set("b", "updated"),
-                        new UpdateManyOptions().upsert(true));
+                        new CollectionUpdateManyOptions().upsert(true));
 
         // Should update 2 documents
         assertThat(updateResult.getMatchedCount()).isEqualTo(2);
@@ -271,10 +271,10 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     void shouldFindPage() {
         getCollectionSimple().deleteAll();
         getCollectionSimple().insertOne(COMPLETE_DOCUMENT);
-        Page<Document> p1 = getCollectionSimple().findPage(eq("1"), new FindOptions());
+        Page<Document> p1 = getCollectionSimple().findPage(eq("1"), new CollectionFindOptions());
         assertThat(p1).isNotNull();
         assertThat(p1.one()).isNotNull();
-        Page<Document> p2 = getCollectionSimple().findPage(eq("1"), new FindOptions());
+        Page<Document> p2 = getCollectionSimple().findPage(eq("1"), new CollectionFindOptions());
         assertThat(p2).isNotNull();
         assertThat(p2.findFirst()).isPresent();
     }

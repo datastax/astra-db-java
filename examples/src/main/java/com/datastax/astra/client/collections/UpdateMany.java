@@ -5,8 +5,8 @@ import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.collections.commands.UpdateManyOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Updates;
 
 import static com.datastax.astra.client.core.query.Filters.lt;
@@ -29,9 +29,9 @@ public class UpdateMany {
                 .inc("field2", 1d)
                 .unset("field3");
 
-        UpdateManyOptions options =
-                new UpdateManyOptions().upsert(true);
+        CollectionUpdateManyOptions options =
+                new CollectionUpdateManyOptions().upsert(true);
 
-        UpdateResult result = collection.updateMany(filter, update, options);
+        CollectionUpdateResult result = collection.updateMany(filter, update, options);
     }
 }

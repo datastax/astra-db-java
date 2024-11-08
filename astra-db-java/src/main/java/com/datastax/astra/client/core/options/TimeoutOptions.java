@@ -20,17 +20,32 @@ package com.datastax.astra.client.core.options;
  * #L%
  */
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(fluent = true, chain = true)
 public class TimeoutOptions {
-    long requestTimeoutMillis;
 
-    long dataOperationTimeoutMillis;
+    public static final long DEFAULT_REQUEST_TIMEOUT_MILLIS          = 5000;
+    public static final long DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS   = 30000;
+    public static final long DEFAULT_SCHEMA_OPERATION_TIMEOUT_MILLIS = 100000;
+    public static final long DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS   = 30000;
+    public static final long DEFAULT_DATABASE_ADMIN_TIMEOUT_MILLIS   = 1000000;
 
-    long schemaOperationTimeoutMillis;
+    long requestTimeoutMillis = DEFAULT_REQUEST_TIMEOUT_MILLIS;
 
-    long databaseAdminTimeoutMillis;
+    long dataOperationTimeoutMillis = DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS;
 
-    long keyspaceAdminTimeoutMillis;
+    long schemaOperationTimeoutMillis = DEFAULT_SCHEMA_OPERATION_TIMEOUT_MILLIS;
+
+    long databaseAdminTimeoutMillis = DEFAULT_DATABASE_ADMIN_TIMEOUT_MILLIS;
+
+    long keyspaceAdminTimeoutMillis =- DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS;
 }

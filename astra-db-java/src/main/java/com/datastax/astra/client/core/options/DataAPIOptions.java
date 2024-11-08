@@ -41,8 +41,8 @@ import java.util.TreeMap;
 /**
  * Options to set up the client for DataApiClient.
  */
-@Slf4j
 @Getter
+@Slf4j
 public class DataAPIOptions {
 
     /** Feature Flag Tables. */
@@ -60,8 +60,14 @@ public class DataAPIOptions {
     /** Maximum number of documents when you insert. */
     public static final int DEFAULT_MAX_CHUNK_SIZE = 100;
 
+    /** Encode the vector as binary. */
+    public static boolean encodeDurationAsISO8601 = true;
+
+    /** Encode the vector as binary. */
+    public static boolean encodeDataApiVectorsAsBase64 = true;
+
     /** When operating a count operation, the maximum number of documents that can be returned. */
-    final int maxRecordCount;
+    final int maxCount;
 
     /** The maximum number of documents that can be returned in a single page. */
     final int maxPageSize;
@@ -72,6 +78,7 @@ public class DataAPIOptions {
     /** Set the API version like 'v1' */
     final String apiVersion;
 
+    /** Set Timeouts for the different operations  */
     final TimeoutOptions timeoutOptions;
 
     /** Group options and parameters for http client. */
@@ -111,7 +118,7 @@ public class DataAPIOptions {
     private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
         this.apiVersion                = builder.apiVersion;
         this.destination               = builder.destination;
-        this.maxRecordCount            = builder.maxDocumentCount;
+        this.maxCount                  = builder.maxCount;
         this.maxPageSize               = builder.maxPageSize;
         this.maxRecordsInInsert        = builder.maxDocumentsInInsert;
         this.embeddingAuthProvider     = builder.embeddingAuthProvider;
@@ -119,7 +126,7 @@ public class DataAPIOptions {
         this.observers                 = builder.observers;
         this.databaseAdditionalHeaders = builder.databaseAdditionalHeaders;
         this.adminAdditionalHeaders    = builder.adminAdditionalHeaders;
-        this.timeoutOptions = new TimeoutOptions();
+        this.timeoutOptions            = builder.timeoutOptions;
     }
 
     /**
@@ -127,11 +134,13 @@ public class DataAPIOptions {
      */
     public static class DataAPIClientOptionsBuilder {
 
+        public TimeoutOptions timeoutOptions;
+
         /** Caller name in User agent. */
         private String apiVersion = DEFAULT_VERSION;
 
         /** When operating a count operation, the maximum number of documents that can be returned. */
-        private int maxDocumentCount = DEFAULT_MAX_COUNT;
+        private int maxCount = DEFAULT_MAX_COUNT;
 
         /** The maximum number of documents that can be returned in a single page. */
         private int maxPageSize = DEFAULT_MAX_PAGE_SIZE;
@@ -176,6 +185,18 @@ public class DataAPIOptions {
             return this;
         }
 
+        /**
+         * Builder pattern, update api version.
+         *
+         * @param timeoutOptions
+         *      timeoutOptions
+         * @return
+         *      self reference
+         */
+        public DataAPIClientOptionsBuilder withTimeoutOptions(TimeoutOptions timeoutOptions) {
+            this.timeoutOptions = timeoutOptions;
+            return this;
+        }
 
         /**
          * Sets the maximum number of documents that can be returned by the count function.
@@ -197,14 +218,14 @@ public class DataAPIOptions {
          *   .withMaxDocumentCount(2000); // Sets the maximum number of documents to 2000.
          * }</pre>
          */
-        public DataAPIClientOptionsBuilder withMaxDocumentCount(int maxDocumentCount) {
+        public DataAPIClientOptionsBuilder withMaxCount(int maxDocumentCount) {
             if (maxDocumentCount <= 0) {
                 throw new IllegalArgumentException("Max document count must be a positive number");
             }
             if (maxDocumentCount > DEFAULT_MAX_COUNT) {
                 log.warn("Setting the maximum document count to a value greater than the default value of {} may impact performance.", DEFAULT_MAX_COUNT);
             }
-            this.maxDocumentCount = maxDocumentCount;
+            this.maxCount = maxDocumentCount;
             return this;
         }
 

@@ -1,8 +1,8 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.ReplaceOneOptions;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -21,7 +21,7 @@ public class ReplaceOne {
                 lt("field3", 20),
                 Filters.eq("field4", "value"));
 
-        ReplaceOneOptions options = new ReplaceOneOptions().upsert(true);
+        CollectionReplaceOneOptions options = new CollectionReplaceOneOptions().upsert(true);
 
         Document docForReplacement = new Document()
                 .append("field1", "value1")
@@ -30,7 +30,7 @@ public class ReplaceOne {
                 .append("field4", "value4");
 
         // It will return the document before deleting it
-        UpdateResult res = collection.replaceOne(filter, docForReplacement, options);
+        CollectionUpdateResult res = collection.replaceOne(filter, docForReplacement, options);
         System.out.println("How many matches ?"+ res.getMatchedCount());
         System.out.println("How many has been modified ?"+ res.getModifiedCount());
         System.out.println("How many have been inserted ?"+ res.getUpsertedId());

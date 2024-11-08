@@ -2,8 +2,9 @@ package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,7 +42,9 @@ public class InsertMany {
                 .chunkSize(20)  // how many process per request
                 .concurrency(1) // parallel processing
                 .ordered(false) // allows parallel processing
-                .timeout(1000); // timeout in millis
+                .timeoutOptions(new TimeoutOptions()
+                        .dataOperationTimeoutMillis(50000)
+                        .requestTimeoutMillis(2000)); // timeout in millis
 
         CollectionInsertManyResult res2 = collectionProduct.insertMany(
                 List.of(new Product("1", "joe"),

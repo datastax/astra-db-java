@@ -24,9 +24,11 @@ import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import lombok.Getter;
 
+import java.sql.Time;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -57,6 +59,12 @@ public class CommandOptions<T extends CommandOptions<T>> {
      * Will be used to create a client
      */
     protected HttpClientOptions httpClientOptions;
+
+    /**
+     * Will be used to create a client
+     */
+    @Getter
+    protected TimeoutOptions timeoutOptions;
 
     /**
      * Embedding auth provider
@@ -138,6 +146,20 @@ public class CommandOptions<T extends CommandOptions<T>> {
     @SuppressWarnings("unchecked")
     public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
         this.embeddingAuthProvider = embeddingAuthProvider;
+        return (T) this;
+    }
+
+    /**
+     * Provide the embedding service API key.
+     *
+     * @param timeoutOptions
+     *      options of timeouts
+     * @return
+     *      service key
+     */
+    @SuppressWarnings("unchecked")
+    public T timeoutOptions(TimeoutOptions timeoutOptions) {
+        this.timeoutOptions = timeoutOptions;
         return (T) this;
     }
 

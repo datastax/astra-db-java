@@ -40,8 +40,8 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.TableDuration;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.internal.serdes.Base64FloatVectorSerializer;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DataAPIVectorDeserializer;
 import com.datastax.astra.internal.serdes.DataAPIVectorSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -112,17 +112,18 @@ public class RowSerializer implements DataAPISerializer {
 
             // Serialization
             module.addSerializer(ColumnTypes.class, new ColumnTypeSerializer());
-            module.addSerializer(Double.class, new DoubleSerializer());
-            module.addSerializer(double.class, new DoubleSerializer());
             module.addSerializer(Float.class, new FloatSerializer());
             module.addSerializer(float.class, new FloatSerializer());
+            module.addSerializer(Double.class, new DoubleSerializer());
+            module.addSerializer(double.class, new DoubleSerializer());
+            // Binary
             module.addSerializer(byte[].class, new ByteArraySerializer());
+            // Duration
             module.addSerializer(Duration.class, new DurationSerializer());
             module.addSerializer(TableDuration.class, new TableDurationSerializer());
+            // API Vector
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
             module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
-             //.addDeserializer(float[].class, new Base64FloatVectorDeserializer())
-            module.addSerializer(float[].class, new Base64FloatVectorSerializer());
 
             // De-Serialization
             module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());
@@ -132,6 +133,8 @@ public class RowSerializer implements DataAPISerializer {
             module.addDeserializer(double.class, new DoubleDeserializer());
             module.addDeserializer(byte[].class, new ByteArrayDeserializer());
             module.addDeserializer(Duration.class, new DurationDeserializer());
+            module.addDeserializer(TableDuration.class, new TableDurationDeserializer());
+            module.addDeserializer(DataAPIVector.class, new DataAPIVectorDeserializer());
             module.addDeserializer(SimilarityMetric.class, new SimilarityMetricDeserializer());
             objectMapper.registerModule(module);
 

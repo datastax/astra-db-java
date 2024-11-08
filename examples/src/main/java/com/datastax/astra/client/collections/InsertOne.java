@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.InsertOneResult;
+import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ public class InsertOne {
 
         // Insert a document
         Document doc1 = new Document("1").append("name", "joe");
-        InsertOneResult res1 = collectionDoc.insertOne(doc1);
+        CollectionInsertOneResult res1 = collectionDoc.insertOne(doc1);
         System.out.println(res1.getInsertedId()); // should be "1"
 
         // Insert a document with embeddings

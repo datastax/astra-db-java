@@ -30,68 +30,27 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Period;
 
+import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+
 public class TableDurationSerializer extends JsonSerializer<TableDuration> {
 
     @Override
     public void serialize(TableDuration value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+
         if (value == null) {
             gen.writeNull();
             return;
         }
-        String durationString = toCompactString(value);
-        gen.writeString(durationString);
-    }
 
-    private String toCompactString(TableDuration combinedDuration) {
-        StringBuilder sb = new StringBuilder();
-        boolean negative = combinedDuration.getPeriod().isNegative() || combinedDuration.getDuration().isNegative();
-
-        Period period = combinedDuration.getPeriod().normalized();
-        Duration duration = combinedDuration.getDuration();
-
-        if (negative) {
-            sb.append('-');
-            period = period.negated();
-            duration = duration.negated();
+        // Flag iso 8601 is enabled
+        if (encodeDurationAsISO8601) {
+            gen.writeString(value.toISO8601());
+            return;
         }
 
-        int years = period.getYears();
-        int months = period.getMonths();
-        int days = period.getDays();
-
-        long hours = duration.toHours();
-        duration = duration.minusHours(hours);
-
-        long minutes = duration.toMinutes();
-        duration = duration.minusMinutes(minutes);
-
-        long seconds = duration.getSeconds();
-        long nanos = duration.getNano();
-
-        long milliseconds = nanos / 1_000_000;
-        nanos %= 1_000_000;
-
-        long microseconds = nanos / 1_000;
-        nanos %= 1_000;
-
-        // Append period components
-        if (years != 0) sb.append(years).append('y');
-        if (months != 0) sb.append(months).append("mo");
-        if (days != 0) sb.append(days).append('d');
-
-        // Append duration components
-        if (hours != 0) sb.append(hours).append('h');
-        if (minutes != 0) sb.append(minutes).append('m');
-        if (seconds != 0) sb.append(seconds).append('s');
-        if (milliseconds != 0) sb.append(milliseconds).append("ms");
-        if (microseconds != 0) sb.append(microseconds).append("us");
-        if (nanos != 0) sb.append(nanos).append("ns");
-
-        // Handle zero duration
-        if (sb.length() == (negative ? 1 : 0)) {
-            sb.append('0').append('s');
-        }
-
-        return sb.toString();
+        // Flag iso 8601 is disabled
+        gen.writeString(value.toCompactString());
     }
+
+
 }

@@ -23,6 +23,9 @@ package com.datastax.astra.client.core.commands;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -34,6 +37,7 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +125,41 @@ public class Command implements Serializable {
     }
 
     /**
+     * Return projections.
+     *
+     * @param pProjections
+     *      list of projection
+     * @return
+     *      self-reference
+     */
+    public Command withProjection(Projection... pProjections) {
+        Map<String, Object> finalProjection = new LinkedHashMap<>();
+        for (Projection p : pProjections) {
+            if (p.getPresent() != null && p.getSliceStart() != null) {
+                throw new IllegalArgumentException("A projection cannot be include/exclude and a slide at same time");
+            }
+            if (p.getPresent() == null && p.getSliceStart() == null) {
+                throw new IllegalArgumentException("A projection must be include/exclude or a slide");
+            }
+            if (p.getPresent() != null) {
+                finalProjection.put(p.getField(),  p.getPresent() ? 1 : 0);
+            } else {
+                // SLICE
+                int start = p.getSliceStart();
+                Map<String, Object> slice = new LinkedHashMap<>();
+                if (p.getSliceEnd() != null) {
+                    slice.put(DataAPIKeywords.SLICE.getKeyword(), new Integer[] {start, p.getSliceEnd()});
+                } else {
+                    slice.put(DataAPIKeywords.SLICE.getKeyword(), start);
+                }
+                finalProjection.put(p.getField(), slice);
+            }
+        }
+        payload.appendIfNotNull("projection", finalProjection);
+        return this;
+    }
+
+    /**
      * Builder pattern, update sort.
      *
      * @param sort
@@ -130,6 +169,23 @@ public class Command implements Serializable {
      */
     public Command withSort(Document sort) {
         payload.appendIfNotNull("sort", sort);
+        return this;
+    }
+
+    /**
+     * Builder pattern, update sort.
+     *
+     * @param sortCriteria
+     *      sort criteria for the command
+     * @return
+     *      self-reference
+     */
+    public Command withSort(Sort... sortCriteria) {
+        if (sortCriteria != null) {
+            LinkedHashMap<String, Object> results = new LinkedHashMap<>();
+            Arrays.stream(sortCriteria).forEach(p -> results.put(p.getField(), p.getValue()));
+            payload.appendIfNotNull("sort", results);
+        }
         return this;
     }
 

@@ -2,8 +2,10 @@ package com.datastax.astra.client;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.collections.commands.FindIterable;
 
 import java.util.List;
 
@@ -31,8 +33,7 @@ public class GettingStarted {
   // Search
   FindIterable<Document> docs = col.find(
     eq("key", "value1"), // metadata filter
-    new float[] {.5f, .5f},              //vector
-    10);                                 // maxRecord
+    new CollectionFindOptions().limit(10).sort(Sort.vector(new float[] {.5f, .5f})));
 
   // Iterate and print your results
   for (Document doc : docs) System.out.println(doc);

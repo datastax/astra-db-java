@@ -2,11 +2,11 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.FindIterable;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.collections.commands.FindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
@@ -129,7 +129,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
-                new FindOneOptions()
+                new CollectionFindOneOptions()
                         .sort("You shouldn't come around here singing up at people like that")
                         .includeSortVector()
                         .includeSimilarity());
@@ -138,7 +138,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
 
-        FindIterable<Document> docs= collection.find(new FindOptions()
+        FindIterable<Document> docs= collection.find(new CollectionFindOptions()
                 .sort("You shouldn't come around here singing up at people like that")
                 .includeSortVector()
                 .includeSimilarity());
@@ -163,7 +163,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
-                new FindOneOptions()
+                new CollectionFindOneOptions()
                         .sort("You shouldn't come around here singing up at people like tha")
                         .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
                         .embeddingAuthProvider(authProvider)

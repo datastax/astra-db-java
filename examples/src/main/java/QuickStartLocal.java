@@ -1,12 +1,15 @@
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.collections.commands.FindIterable;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.databases.Database;
 
 import static com.datastax.astra.client.DataAPIDestination.CASSANDRA;
 import static com.datastax.astra.client.core.options.DataAPIOptions.builder;
+import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 
 public class QuickStartLocal {
@@ -40,10 +43,11 @@ public class QuickStartLocal {
                         .vector(new float[]{0.1f, 0.05f, 0.08f, 0.3f, 0.6f}));
         System.out.println("Inserted documents into the collection");
 
-        FindIterable<Document> resultsSet = collection.find(
-                new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f},
-                10
-        );
+        Filter filter = null;
+        CollectionFindOptions options = new CollectionFindOptions()
+                .sort(vector(new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
+                .limit(10);
+        FindIterable<Document> resultsSet = collection.find(filter,options);
         resultsSet.forEach(System.out::println);
         collection.drop();
         System.out.println("Deleted the collection");

@@ -25,7 +25,7 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
-import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;

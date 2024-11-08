@@ -20,10 +20,9 @@ package com.datastax.astra.internal.utils;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -49,11 +48,11 @@ public class OptionsUtils {
      * @return
      *      Self reference
      */
-    public static Document sort(Sort... pSort) {
+    public static LinkedHashMap<String, Object> sort(Sort... pSort) {
         Assert.notNull(pSort, "sort");
-        Document finalSort = new Document();
-        Arrays.stream(pSort).forEach(p -> finalSort.append(p.getField(), p.getOrder().getCode()));
-        return finalSort;
+        LinkedHashMap<String, Object> results = new LinkedHashMap<>();
+        Arrays.stream(pSort).forEach(p -> results.put(p.getField(), p.getValue()));
+        return results;
     }
 
     /**

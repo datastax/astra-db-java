@@ -20,6 +20,7 @@ package com.datastax.astra.internal.serdes;
  * #L%
  */
 
+import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -27,7 +28,9 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
-@SuppressWarnings("unchecked")
+/**
+ * Serializer for DataAPIVector
+ */
 public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
 
     public DataAPIVectorSerializer() {
@@ -35,11 +38,29 @@ public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
     }
 
     @Override
-    public void serialize(DataAPIVector value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-        if (value == null) {
+    public void serialize(DataAPIVector dataApiVector, JsonGenerator gen, SerializerProvider provider) throws IOException {
+        if (dataApiVector == null) {
             gen.writeNull();
+        } else if (DataAPIOptions.encodeDataApiVectorsAsBase64) {
+            // Binary ENCODING
+            final int vectorLen = dataApiVector.getEmbeddings().length;
+            final byte[] b = new byte[vectorLen << 2];
+            for (int i = 0, out = 0; i < vectorLen; i++) {
+                final int floatBits = Float.floatToIntBits(dataApiVector.getEmbeddings()[i]);
+                b[out++] = (byte) (floatBits >> 24);
+                b[out++] = (byte) (floatBits >> 16);
+                b[out++] = (byte) (floatBits >> 8);
+                b[out++] = (byte) (floatBits);
+            }
+            // Second: write packed bytes (for JSON, Base64 encoded)
+            gen.writeBinary(b);
         } else {
-            gen.writeNumber(String.valueOf(value.stream().toList()));
+            // DEFAULT FLOAT ARRAY
+            gen.writeStartArray();
+            for (float f : dataApiVector.getEmbeddings()) {
+                gen.writeNumber(f);
+            }
+            gen.writeEndArray();
         }
     }
 }

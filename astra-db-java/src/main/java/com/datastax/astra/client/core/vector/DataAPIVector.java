@@ -21,58 +21,39 @@ package com.datastax.astra.client.core.vector;
  */
 
 
-import com.datastax.astra.internal.utils.Assert;
+import lombok.Getter;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Stream;
 
-public class DataAPIVector<T extends Number> implements Iterable<T>, Serializable {
+/**
+ * DataAPIVector is a vector of embeddings.
+ */
+@Getter
+public class DataAPIVector implements Serializable {
 
-    private final List<T> list;
+    /**
+     * Embeddings list of the vector.
+     */
+    private final float[] embeddings;
 
-    public static <V extends Number> DataAPIVector<V> of(V... vals) {
-        return new DataAPIVector(Arrays.asList(vals));
+    /**
+     * Load the vector from a float array.
+     *
+     * @param vector
+     *      float array with the mebddings
+     */
+    public DataAPIVector(float[] vector) {
+        this.embeddings = vector;
     }
 
-    public static <V extends Number> DataAPIVector<V> of(List<V> list) {
-        return new DataAPIVector(list);
-    }
-
-    public DataAPIVector(List<T> list) {
-        Assert.notNull(list, "Input list should not be null");
-        Assert.isTrue(list.stream().noneMatch(Objects::isNull), "DataAPIVectors cannot contain null values");
-        this.list = list;
-    }
-
-    public T get(int idx) {
-        return this.list.get(idx);
-    }
-
-    public T set(int idx, T val) {
-        return this.list.set(idx, val);
-    }
-
+    /**
+     * Access dimension of the Vector.
+     *
+     * @return
+     *      dimensionality of the vector
+     */
     public int dimension() {
-        return size();
+        return getEmbeddings().length;
     }
 
-    public int size() {
-        return this.list.size();
-    }
-
-    public boolean isEmpty() {
-        return this.list.isEmpty();
-    }
-
-    public Iterator<T> iterator() {
-        return this.list.iterator();
-    }
-
-    public Stream<T> stream() {
-        return this.list.stream();
-    }
 }

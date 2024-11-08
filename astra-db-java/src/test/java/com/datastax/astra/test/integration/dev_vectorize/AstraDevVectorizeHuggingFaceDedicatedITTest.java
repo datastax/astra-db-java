@@ -5,7 +5,7 @@ import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.commands.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;

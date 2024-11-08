@@ -4,9 +4,10 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
@@ -76,9 +77,9 @@ public class QuickStartHCD {
         // Find one document
         Optional<Document> doc = collectionLyrics.findOne(
                 eq("band", "Dire Straits"),
-                new FindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like tha")
-                        .includeSimilarity());
+                new CollectionFindOneOptions()
+                        .sort(Sort.vectorize("You shouldn't come around here singing up at people like tha"))
+                        .includeSimilarity(true));
         System.out.println("7/7 - Found document: " + doc);
     }
 

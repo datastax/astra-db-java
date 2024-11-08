@@ -1,9 +1,10 @@
+
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.FindOneOptions;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.core.query.Projection;
 
 import java.time.Instant;
 import java.util.Calendar;
@@ -31,6 +32,6 @@ public class WorkingWithDates {
 
         collection.findOne(
                 lt("date_of_birth", new Date(System.currentTimeMillis() - 1000 * 1000)),
-                new FindOneOptions().projection(Projections.exclude("_id")));
+                new CollectionFindOneOptions().projection(Projection.exclude("_id")));
     }
 }

@@ -5,9 +5,10 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 
-import com.datastax.astra.client.collections.commands.FindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -71,8 +72,8 @@ public class QuickStartOpenAI {
             new Document(8).vectorize("Anyway, what you gonna do about it?"));
 
         // Find the document
-        Optional<Document> doc = collection.findOne(new FindOneOptions()
-                .sort("You shouldn't come around here singing up at people like tha"));
+        Optional<Document> doc = collection.findOne(new CollectionFindOneOptions()
+                .sort(Sort.vectorize("You shouldn't come around here singing up at people like tha")));
 
        log.info("A document has found been : " + doc);
 

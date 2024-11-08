@@ -1,12 +1,13 @@
 package com.datastax.astra.client.collections.vectorize;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.collections.commands.FindOptions;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.query.Sorts;
+
+import static com.datastax.astra.client.core.query.Sort.vectorize;
 
 public class WorkingWithVectorize {
 
@@ -17,20 +18,20 @@ public class WorkingWithVectorize {
                 .getDatabase("API_ENDPOINT")
                 .getCollection("COLLECTION_NAME");
 
-        Sort s1 = Sorts.ascending("field1");
-        Sort s2 = Sorts.descending("field2");
+        Sort s1 = Sort.ascending("field1");
+        Sort s2 = Sort.descending("field2");
 
         // == FIND with VECTOR ==
 
         // Vector and Vectorize in Sort Clause
 
-        FindOptions options1 = new FindOptions()
+        CollectionFindOptions options1 = new CollectionFindOptions()
                 .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("MY KEY"))
-                .sort("String to Vectorize", s1, s2);
+                .sort(vectorize("String to Vectorize"), s1, s2);
 
         float[] vector = new float[] {0.25f, 0.25f, 0.25f,0.25f, 0.25f};
-        FindOptions options2 = new FindOptions()
-                .sort(vector, s2);
+        CollectionFindOptions options2 = new CollectionFindOptions()
+                .sort(Sort.vector(vector), s2);
 
         // == INSERT with VECTOR ==
 

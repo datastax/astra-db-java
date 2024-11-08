@@ -22,8 +22,7 @@ package com.datastax.astra.langchain4j.store.memory;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.commands.FindOptions;
-import com.datastax.astra.client.core.query.Sorts;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.databases.Database;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Sort.descending;
 import static com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage.PROP_MESSAGE;
 
 @Slf4j
@@ -125,9 +125,10 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
      *      list of messages
      */
     public List<AstraDbChatMessage> getConversation(@NonNull Object conversationId) {
-        return chatMemoryCollection.find(eq(AstraDbChatMessage.PROP_CHAT_ID, conversationId), new FindOptions()
-                .sort(Sorts.descending(AstraDbChatMessage.PROP_MESSAGE_TIME)))
-                .all();
+        return chatMemoryCollection.find(eq(AstraDbChatMessage.PROP_CHAT_ID, conversationId),
+                     new CollectionFindOptions()
+                             .sort(descending(AstraDbChatMessage.PROP_MESSAGE_TIME)))
+                             .all();
     }
 
     /**

@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.UpdateResult;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.documents.Updates;
@@ -28,5 +28,5 @@ public class UpdateOne {
             .inc("field2", 1d)
             .unset("field3");
 
-    UpdateResult result = collection.updateOne(filter, update);
+    CollectionUpdateResult result = collection.updateOne(filter, update);
 }

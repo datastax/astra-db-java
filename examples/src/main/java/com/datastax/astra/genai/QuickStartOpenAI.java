@@ -4,10 +4,11 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionIdTypes;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.FindIterable;
-import com.datastax.astra.client.collections.commands.FindOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 
@@ -68,10 +69,11 @@ public class QuickStartOpenAI {
         System.out.println("Insert " + insertResult.getInsertedIds().size() + " items.");
 
         // Find the document
-        FindOptions findOptions = new FindOptions()
+        Sort s = Sort.vectorize("I'd like some talking shoes");
+        CollectionFindOptions findOptions = new CollectionFindOptions()
+                .sort(s)
                 .limit(2)
-                .includeSimilarity()
-                .sort("I'd like some talking shoes");
+                .includeSimilarity(true);
         FindIterable<Document> results = collection.find(findOptions);
         for (Document document : results) {
             System.out.println("Document: " + document);
