@@ -1,17 +1,17 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.FindOneOptions;
-import com.datastax.astra.client.core.Projections;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.query.Projections;
 
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
-import static com.datastax.astra.client.core.Filters.eq;
-import static com.datastax.astra.client.core.Filters.lt;
 import static com.datastax.astra.client.collections.documents.Updates.set;
+import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Filters.lt;
 
 public class WorkingWithDates {
     public static void main(String[] args) {

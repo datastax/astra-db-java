@@ -1,8 +1,8 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.Document;
 import com.datastax.astra.client.collections.commands.InsertOneResult;
+import com.datastax.astra.client.collections.documents.Document;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,8 +28,8 @@ public class InsertOne {
         System.out.println(res1.getInsertedId()); // should be "1"
 
         // Insert a document with embeddings
-        Document doc2 = new Document("2").append("name", "joe");
-        collectionDoc.insertOne(doc2, new float[] {.1f, .2f});
+        Document doc2 = new Document("2").append("name", "joe").vector(new float[] {.1f, .2f});
+        collectionDoc.insertOne(doc2);
 
         // Given an existing collection
         Collection<Product> collectionProduct = new DataAPIClient("TOKEN")
@@ -38,7 +38,5 @@ public class InsertOne {
 
         // Insert a document with custom bean
         collectionProduct.insertOne(new Product("1", "joe"));
-        collectionProduct.insertOne(new Product("2", "joe"), new float[] {.1f, .2f});
-
     }
 }

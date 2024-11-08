@@ -1,7 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.Document;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.commands.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.commands.CollectionInsertManyResult;
 import com.fasterxml.jackson.annotation.JsonProperty;

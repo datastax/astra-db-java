@@ -13,10 +13,7 @@ public class InitializeDatabase {
 
     // non-default namespace + options
     // 'Options' allows fined-grained configuration.
-    DataAPIOptions options = DataAPIOptions.builder()
-            .withMaxTimeMS(10)
-            .withHttpConnectTimeout(10)
-            .build();
+    DataAPIOptions options = DataAPIOptions.builder().build();
     Database db3 = new Database("API_ENDPOINT", "TOKEN", "KEYSPACE", options);
   }
 }

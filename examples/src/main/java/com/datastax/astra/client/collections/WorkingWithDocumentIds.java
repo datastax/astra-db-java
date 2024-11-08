@@ -1,16 +1,18 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.Document;
-import com.datastax.astra.client.core.ObjectId;
-import com.datastax.astra.client.core.UUIDv6;
-import com.datastax.astra.client.core.UUIDv7;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.types.UUIDv6;
+import com.datastax.astra.client.core.types.UUIDv7;
 
 import java.time.Instant;
 import java.util.UUID;
 
-import static com.datastax.astra.client.core.Filters.eq;
 import static com.datastax.astra.client.collections.documents.Updates.set;
+import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class WorkingWithDocumentIds {
     public static void main(String[] args) {

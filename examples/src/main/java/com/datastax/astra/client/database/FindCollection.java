@@ -1,9 +1,9 @@
 package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.Document;
-import com.datastax.astra.client.core.CollectionOptions;
 
 public class FindCollection {
   public static void main(String[] args) {
