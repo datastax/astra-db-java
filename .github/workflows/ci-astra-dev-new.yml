@@ -27,7 +27,7 @@ on:
         default: 'true'
 
 jobs:
-  setup:
+  BUILD:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,7 +36,7 @@ jobs:
         uses: ./.github/actions/checkout-and-build
 
   run_dev_tests:
-    needs: setup
+    needs: BUILD
     runs-on: ubuntu-latest
     strategy:
       matrix:
