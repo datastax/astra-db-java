@@ -12,6 +12,7 @@ on:
         description: 'JDK distribution to use'
         required: true
         default: 'adopt'
+        type: choice
         options: ['adopt', 'temurin']
       java_version:
         description: 'JDK version to use'
