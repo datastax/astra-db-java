@@ -1,0 +1,114 @@
+# This file will be deleted once its contents are moved into ci-astra-dev.yml or its equivalent
+name: AstraDev NEW
+
+on:
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      java_distribution:
+        description: 'JDK distribution to use'
+        required: true
+        default: 'adopt'
+        options: ['adopt', 'temurin']
+      java_version:
+        description: 'JDK version to use'
+        required: true
+        default: '11.0'
+      cache_pkg_mgr_name:
+        description: 'Cache package manager to be used'
+        required: true
+        default: 'maven'
+      skip_tests_on_build:
+        description: 'Skip tests during Maven build'
+        required: false
+        default: 'true'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout & Build
+        uses: ./.github/actions/checkout-and-build
+
+  run_dev_tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - cloud_provider: AWS
+            cloud_region: us-west-2
+          - cloud_provider: GCP
+            cloud_region: europe-west4
+#          - cloud_provider: GCP
+#            cloud_region: us-central1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ inputs.java_distribution }}
+          java-version: ${{ inputs.java_version }}
+          cache: ${{ inputs.cache_pkg_mgr_name }}
+
+      - name: Run Maven Tests
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION_DEV: ${{ matrix.cloud_region }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
+
+  run_vectorize_tests:
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - cloud_provider: AWS
+            cloud_region: us-west-2
+          - cloud_provider: GCP
+            cloud_region: europe-west4
+        embedding_provider: 
+          - name: openai
+            key: ${{ secrets.OPENAI_API_KEY }}
+          - name: azureOpenAI
+            key: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          - name: huggingface
+            key: ${{ secrets.HF_API_KEY }}
+          - name: mistral
+            key: ${{ secrets.MISTRAL_API_KEY }}
+          - name: voyageAI
+            key: ${{ secrets.VOYAGE_API_KEY }}
+          - name: upstageAI
+            key: ${{ secrets.UPSTAGE_API_KEY }}
+          - name: jinaAI
+            key: ${{ secrets.JINA_API_KEY }}
+          - name: nvidia
+            key: 'nvidia' # Not used
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '11.0'
+          cache: 'maven'
+
+      - name: Run Maven Tests
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION_DEV: ${{ matrix.cloud_region }}
+          EMBEDDING_PROVIDER: ${{ matrix.embedding_provider.name }}
+          EMBEDDING_API_KEY: ${{ matrix.embedding_provider.key }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeEmbeddingApiKeyITTest
