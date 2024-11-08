@@ -11,6 +11,7 @@ on:
         description: 'JDK distribution to use'
         required: true
         default: 'adopt'
+        type: choice
         options: ['adopt', 'temurin']
       java_version:
         description: 'JDK version to use'
@@ -28,6 +29,7 @@ on:
         description: 'Test to run'
         required: true
         default: 'AstraDevCollectionITTest'
+        type: choice
         options:
           - 'AstraDevCollectionITTest'
           - 'AstraDevDatabaseITTest'
@@ -40,6 +42,8 @@ jobs:
   BUILD:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Checkout & Build
         uses: ./.github/actions/checkout-and-build
 
