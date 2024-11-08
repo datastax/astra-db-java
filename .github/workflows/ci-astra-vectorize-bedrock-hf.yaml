@@ -1,0 +1,96 @@
+name: Astra Vectorize | Bedrock/HF Dedicated
+
+on:
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      embedding_provider_to_test:
+        description: 'Embedding provider for tests to run'
+        required: true
+        default: 'bedrock'
+        options:
+          - 'bedrock'
+          - 'huggingfaceDedicated'
+      java_distribution:
+        description: 'JDK distribution to use'
+        required: true
+        default: 'adopt'
+        options: ['adopt', 'temurin']
+      java_version:
+        description: 'JDK version to use'
+        required: true
+        default: '11.0'
+      cache_pkg_mgr_name:
+        description: 'Cache package manager to be used'
+        required: true
+        default: 'maven'
+      skip_tests_on_build:
+        description: 'Skip tests during Maven build'
+        required: false
+        default: 'true'
+
+jobs:
+  BUILD:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout & Build
+        uses: ./.github/actions/checkout-and-build
+
+  run_vectorize_tests:
+    needs: BUILD
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # We had to do it this way because same regions aren't testing in various Astra envs.
+        include:
+          - cloud_provider: 'AWS'
+            cloud_region: 'us-west-2'
+            astra_environment: 'DEV'
+          - cloud_provider: 'GCP'
+            cloud_region: 'europe-west4'
+            astra_environment: 'DEV'
+          - cloud_provider: 'GCP'
+            cloud_region: 'us-central1'
+            astra_environment: 'DEV'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ inputs.java_distribution }}
+          java-version: ${{ inputs.java_version }}
+          cache: ${{ inputs.cache_pkg_mgr_name }}
+
+      - name: Maven Test for ${{ inputs.embedding_provider_to_test }} on ${{ matrix.cloud_provider }} - ${{ matrix.cloud_region }} [Astra DEV]"
+        if: ${{ matrix.astra_environment == 'DEV' && inputs.embedding_provider_to_test == 'bedrock' }}
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION_DEV: ${{ matrix.cloud_region }}
+          EMBEDDING_PROVIDER: bedrock
+          BEDROCK_HEADER_AWS_ACCESS_ID: ${{ secrets.BEDROCK_HEADER_AWS_ACCESS_ID }}
+          BEDROCK_HEADER_AWS_SECRET_ID: ${{ secrets.BEDROCK_HEADER_AWS_SECRET_ID }}
+          BEDROCK_REGION: ${{ vars.BEDROCK_REGION }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeAwsBedRockITTest
+
+      - name: Maven Test for ${{ inputs.embedding_provider_to_test }} on ${{ matrix.cloud_provider }} - ${{ matrix.cloud_region }} [Astra DEV]"
+        if: ${{ matrix.astra_environment == 'DEV' && inputs.embedding_provider_to_test == 'huggingfaceDedicated' }}
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION_DEV: ${{ matrix.cloud_region }}
+          EMBEDDING_PROVIDER: huggingfaceDedicated
+          EMBEDDING_API_KEY: ${{ secrets.HUGGINGFACEDED_API_KEY }}
+          HUGGINGFACEDED_DIMENSION: ${{ vars.HUGGINGFACEDED_DIMENSION }}
+          HUGGINGFACEDED_ENDPOINTNAME: ${{ vars.HUGGINGFACEDED_ENDPOINTNAME }}
+          HUGGINGFACEDED_REGIONNAME: ${{ vars.HUGGINGFACEDED_REGIONNAME }}
+          HUGGINGFACEDED_CLOUDNAME: ${{ vars.HUGGINGFACEDED_CLOUDNAME }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev_vectorize.AstraDevVectorizeHuggingFaceDedicatedITTest

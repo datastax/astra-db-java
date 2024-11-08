@@ -1,0 +1,90 @@
+name: Astra | Collection/DB/DBAdmin Integration Tests
+
+on:
+  #push:
+  #  branches: [ main ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      java_distribution:
+        description: 'JDK distribution to use'
+        required: true
+        default: 'adopt'
+        options: ['adopt', 'temurin']
+      java_version:
+        description: 'JDK version to use'
+        required: true
+        default: '11.0'
+      cache_pkg_mgr_name:
+        description: 'Cache package manager to be used'
+        required: true
+        default: 'maven'
+      skip_tests_on_build:
+        description: 'Skip tests during Maven build'
+        required: false
+        default: 'true'
+      test_to_run:
+        description: 'Test to run'
+        required: true
+        default: 'AstraDevCollectionITTest'
+        options:
+          - 'AstraDevCollectionITTest'
+          - 'AstraDevDatabaseITTest'
+          - 'AstraDevDatabaseAdminITTest'
+          - 'AstraProdCollectionITTest'
+          - 'AstraProdDatabaseITTest'
+          - 'AstraProdDatabaseAdminITTest'
+
+jobs:
+  BUILD:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout & Build
+        uses: ./.github/actions/checkout-and-build
+
+  run_dev_tests:
+    needs: BUILD
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # We had to do it this way because same regions aren't testing in various Astra envs.
+        include:
+          - cloud_provider: 'AWS'
+            cloud_region: 'us-west-2'
+            astra_environment: 'DEV'
+          - cloud_provider: 'GCP'
+            cloud_region: 'europe-west4'
+            astra_environment: 'DEV'
+          - cloud_provider: 'GCP'
+            cloud_region: 'us-central1'
+            astra_environment: 'DEV'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ inputs.java_distribution }}
+          java-version: ${{ inputs.java_version }}
+          cache: ${{ inputs.cache_pkg_mgr_name }}
+
+      - name: "Maven Test on ${{ matrix.cloud_provider }} - ${{ matrix.cloud_region }} [Astra DEV]"
+        if: ${{ matrix.astra_environment == 'DEV' }}
+        env:
+          ASTRA_DB_APPLICATION_TOKEN_DEV: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+          ASTRA_CLOUD_PROVIDER_DEV: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION_DEV: ${{ matrix.cloud_region }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.dev.${{ inputs.test_to_run }}
+
+      - name: "Maven Test on ${{ matrix.cloud_provider }} - ${{ matrix.cloud_region }} [Astra PROD]"
+        if: ${{ matrix.astra_environment == 'PROD' }}
+        env:
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_CLOUD_PROVIDER: ${{ matrix.cloud_provider }}
+          ASTRA_CLOUD_REGION: ${{ matrix.cloud_region }}
+        run: |
+          cd astra-db-java
+          mvn test -Dtest=com.datastax.astra.test.integration.prod.${{ inputs.test_to_run }}
