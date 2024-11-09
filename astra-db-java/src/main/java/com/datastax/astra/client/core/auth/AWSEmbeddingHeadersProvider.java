@@ -63,5 +63,14 @@ public class AWSEmbeddingHeadersProvider implements EmbeddingHeadersProvider {
         return Map.of(HEADER_AWS_ASSET_ID, accessId, HEADER_AWS_SECRET_ID, secretId);
     }
 
+    @Override
+    public AWSEmbeddingHeadersProvider clone() {
+        return new AWSEmbeddingHeadersProvider(this.accessId, this.secretId);
+    }
+
+    @Override
+    public AWSEmbeddingHeadersProvider copy() {
+        return this.clone();
+    }
 
 }

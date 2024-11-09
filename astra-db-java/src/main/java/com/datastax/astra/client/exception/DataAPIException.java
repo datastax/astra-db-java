@@ -95,7 +95,7 @@ public class DataAPIException extends RuntimeException {
      * @param errorCode
      *      error code
      */
-    public DataAPIException(DataAPIErrorCode errorCode, String errorMessage) {
+    public DataAPIException(ClientErrorCodes errorCode, String errorMessage) {
         super("[" + errorCode + "] - " + errorMessage);
         this.errorCode = errorCode.getCode();
     }

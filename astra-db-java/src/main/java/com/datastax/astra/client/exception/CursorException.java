@@ -23,6 +23,6 @@ package com.datastax.astra.client.exception;
 public class CursorException extends DataAPIException {
 
     public CursorException(String errorMessage) {
-        super(DataAPIErrorCode.ERROR, errorMessage);
+        super(ClientErrorCodes.ERROR, errorMessage);
     }
 }

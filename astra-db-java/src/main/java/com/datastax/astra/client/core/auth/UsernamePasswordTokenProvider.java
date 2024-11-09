@@ -32,9 +32,6 @@ import java.util.Base64;
  */
 public class UsernamePasswordTokenProvider implements TokenProvider {
 
-    /** Simple Client. */
-    public static final RetryHttpClient HTTP_CLIENT = new RetryHttpClient();
-
     /** Default username for Cassandra. */
     public static final String DEFAULT_USERNAME      = "cassandra";
 

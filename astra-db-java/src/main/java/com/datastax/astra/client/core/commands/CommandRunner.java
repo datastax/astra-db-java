@@ -43,7 +43,7 @@ public interface CommandRunner {
      *     result as a document map
      */
     default DataAPIResponse runCommand(Command command) {
-        return runCommand(command, new CommandOptions<>());
+        return runCommand(command, (CommandOptions<?>) null);
     }
 
     /**
@@ -75,7 +75,7 @@ public interface CommandRunner {
      *      document type to use
      */
     default <T> T runCommand(Command command, Class<T> documentClass) {
-        return runCommand(command, new CommandOptions<>(), documentClass);
+        return runCommand(command, null, documentClass);
     }
 
     /**

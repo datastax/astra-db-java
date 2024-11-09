@@ -20,6 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.Command;
@@ -82,12 +83,9 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      */
     public DataAPIDatabaseAdmin(Database db) {
         this.db             = db;
-
-        this.commandOptions = new CommandOptions<>()
-                .token(db.getToken())
-                .embeddingAuthProvider(db.getOptions().getEmbeddingAuthProvider())
-                .httpClientOptions(db.getOptions().getHttpClientOptions());
-        db.getOptions().getObservers().forEach(this.commandOptions::registerObserver);
+        this.commandOptions = new CommandOptions<>(db.getOptions());
+        this.commandOptions.token(db.getToken());
+        this.commandOptions.commandType(CommandType.KEYSPACE_ADMIN);
     }
 
     // ------------------------------------------
@@ -163,12 +161,12 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     }
 
     @Override
-    public void dropKeyspace(String keyspace) {
+    public void dropKeyspace(String keyspace, CommandOptions<?> options) {
         hasLength(keyspace, ARG_KEYSPACE);
         Command dropNamespace = Command
                 .create("dropKeyspace")
                 .append("name", keyspace);
-        runCommand(dropNamespace);
+        runCommand(dropNamespace, options);
         log.info("Keyspace  '" + green("{}") + "' has been deleted", keyspace);
     }
 
@@ -183,8 +181,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     protected DataAPISerializer getSerializer() {
         return SERIALIZER;
     }
-
-
 
     /**
      * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.

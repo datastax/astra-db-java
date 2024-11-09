@@ -20,6 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
@@ -45,6 +46,18 @@ public class ExecutionInfos implements Serializable {
      * command that triggered the execution, allowing observers to understand what operation was performed.
      */
     private final Command command;
+
+    /**
+     * The original command request that was executed. This field provides access to the details of the
+     * command that triggered the execution, allowing observers to understand what operation was performed.
+     */
+    private final CommandOptions<?> commandOptions;
+
+    /**
+     * The original command request that was executed. This field provides access to the details of the
+     * command that triggered the execution, allowing observers to understand what operation was performed.
+     */
+    private final CommandOptions<?> overridingCommandOptions;
 
     /**
      * A map containing the HTTP headers from the request.
@@ -107,6 +120,8 @@ public class ExecutionInfos implements Serializable {
         this.executionDate       = builder.executionDate;
         this.requestUrl          = builder.requestUrl;
         this.serializer          = builder.serializer;
+        this.commandOptions      = builder.commandOptions;
+        this.overridingCommandOptions = builder.specialOptions;
     }
 
     /**
@@ -124,6 +139,8 @@ public class ExecutionInfos implements Serializable {
      */
     public static class DataApiExecutionInfoBuilder {
         private Command command;
+        private CommandOptions<?> commandOptions;
+        private CommandOptions<?> specialOptions;
         private DataAPIResponse response;
         private long executionTime;
         private int responseHttpCode;
@@ -150,6 +167,32 @@ public class ExecutionInfos implements Serializable {
          */
         public DataApiExecutionInfoBuilder withCommand(Command command) {
             this.command = command;
+            return this;
+        }
+
+        /**
+         * Populate after http call.
+         *
+         * @param commandOptions
+         *      current command options
+         * @return
+         *      current reference
+         */
+        public DataApiExecutionInfoBuilder withCommandOptions(CommandOptions<?> commandOptions) {
+            this.commandOptions = commandOptions;
+            return this;
+        }
+
+        /**
+         * Populate after http call.
+         *
+         * @param commandOptions
+         *      special commands
+         * @return
+         *      current reference
+         */
+        public DataApiExecutionInfoBuilder withOverrideCommandOptions(CommandOptions<?> commandOptions) {
+            this.specialOptions = commandOptions;
             return this;
         }
 

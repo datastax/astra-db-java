@@ -20,6 +20,7 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
+import com.datastax.astra.client.collections.documents.ReturnDocument;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
@@ -56,6 +57,19 @@ public class CollectionFindOneAndUpdateOptions extends CommandOptions<Collection
      * Return document flag.
      */
     private String returnDocument;
+
+    /**
+     * Adding this on top of projection(Projection[] p) to allow for a more fluent API.
+     *
+     * @param doc
+     *      ReturnDocument value
+     * @return
+     *     current command
+     */
+    public CollectionFindOneAndUpdateOptions returnDocument(ReturnDocument doc) {
+        this.returnDocument = doc.getKey();
+        return this;
+    }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

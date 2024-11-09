@@ -22,6 +22,7 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.DatabaseInfo;
+import com.datastax.astra.client.exception.InvalidEnvironmentException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -40,6 +41,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 
@@ -77,9 +80,6 @@ public class AstraDBAdmin {
     /** Options to personalized http client other client options. */
     final DataAPIOptions dataAPIOptions;
 
-    /** Astra Environment. */
-    final AstraEnvironment env;
-
     /** Astra Token (credentials). */
     final String token;
 
@@ -107,30 +107,26 @@ public class AstraDBAdmin {
      *      authentication token
      * @param options
      *      options for client
-     * @param env
-     *      astra environment
      */
-    public AstraDBAdmin(String token, AstraEnvironment env, DataAPIOptions options) {
+    public AstraDBAdmin(String token, DataAPIOptions options) {
         Assert.hasLength(token, "token");
-        Assert.notNull(env, "environment");
         Assert.notNull(options, "options");
         this.token = token;
-        this.env = env;
         this.dataAPIOptions = options;
         if (options.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
             if (options.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
-            this.devopsDbClient = new AstraDBOpsClient(token, this.env, devopsObservers);
+            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment(), devopsObservers);
         } else {
-            this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
         }
 
         // Local Agent for Resume
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
         httpClientBuilder.version(options.getHttpClientOptions().getHttpVersion());
-        httpClientBuilder.connectTimeout(options.getHttpClientOptions().getConnectionTimeout());
+        httpClientBuilder.connectTimeout(Duration.ofMillis(options.getTimeoutOptions().connectTimeoutMillis()));
         this.httpClient = httpClientBuilder.build();
     }
 
@@ -341,13 +337,16 @@ public class AstraDBAdmin {
     public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, "databaseId");
         Assert.hasLength(keyspace, "keyspace");
+        if (!dataAPIOptions.isAstra()) {
+            throwErrorRestrictedAstra("getDatabase(id, keyspace)", dataAPIOptions.getDestination());
+        }
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
         return new com.datastax.astra.client.databases.Database(
-            new AstraApiEndpoint(databaseId, databaseRegion, env).getApiEndPoint(),
-            token,keyspace, dataAPIOptions) {
+            new AstraApiEndpoint(databaseId, databaseRegion, dataAPIOptions.getAstraEnvironment()).getApiEndPoint(),
+            token, keyspace, dataAPIOptions) {
         };
     }
 
@@ -373,7 +372,7 @@ public class AstraDBAdmin {
      */
     public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
         Assert.notNull(databaseId, "databaseId");
-        return new AstraDBDatabaseAdmin(token, databaseId, env, dataAPIOptions);
+        return new AstraDBDatabaseAdmin(token, databaseId, dataAPIOptions);
     }
 
     /**

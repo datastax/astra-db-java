@@ -1,4 +1,4 @@
-package com.datastax.astra.client.exception;
+package com.datastax.astra.client.core.commands;
 
 /*-
  * #%L
@@ -20,23 +20,29 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import lombok.Getter;
+/**
+ * Type of Commands. Part of Command Options they are used to determine
+ * the type of command to execute and associated configuration like timeouts if needed.
+ */
+public enum CommandType {
 
-@Getter
-public enum DataAPIErrorCode {
-    ERROR("CLIENT_ERROR"),
-    HTTP("CLIENT_HTTP"),
-    ENVIRONMENT("ENVIRONMENT"),
-    TIMEOUT("CLIENT_TIMEOUT"),
-    INTERRUPTED("CLIENT_INTERRUPTED"),
-    RANDOM("CLIENT_RANDOM"),
-    CURSOR("CLIENT_CURSOR"),
+    /**
+     * Data operation (find*, insert*, update*, delete*)
+     */
+    DATA,
 
-    SERIALIZATION("CLIENT_SERIALIZATION");
+    /**
+     * Schema operation (create*, drop*)
+     */
+    SCHEMA,
 
-    private final String code;
+    /**
+     * Database admin operation (create, delete, list)
+     */
+    DATABASE_ADMIN,
 
-    DataAPIErrorCode(String code) {
-        this.code = code;
-    }
+    /**
+     * Keyspace admin operation (create, delete, list)
+     */
+    KEYSPACE_ADMIN
 }

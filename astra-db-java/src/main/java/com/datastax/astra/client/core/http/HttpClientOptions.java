@@ -33,7 +33,7 @@ import java.util.List;
  * Options to set up http Client.
  */
 @Getter
-public class HttpClientOptions {
+public class HttpClientOptions implements Cloneable {
 
     // --------------------------------------------
     // ----------------- HEADERS  -----------------
@@ -57,44 +57,6 @@ public class HttpClientOptions {
         Assert.notNull(caller, "caller");
         Assert.hasLength(caller.getName(), caller.getVersion());
         callers.add(caller);
-    }
-
-    // --------------------------------------------
-    // ----------------- TIMEOUTS -----------------
-    // --------------------------------------------
-
-    /** Default timeout for initiating connection. */
-    public static final int DEFAULT_CONNECT_TIMEOUT_MILLISECONDS = 20000;
-
-    /** Default timeout for initiating connection. */
-    public static final int DEFAULT_REQUEST_TIMEOUT_MILLISECONDS = 20000;
-
-    /**
-     * Http Connection timeout.
-     */
-    Duration connectionTimeout = Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT_MILLISECONDS);
-
-    /**
-     * Http request timeout.
-     */
-    Duration requestTimeout = Duration.ofMillis(DEFAULT_REQUEST_TIMEOUT_MILLISECONDS);
-
-    /**
-     * Set the connection timeout.
-     *
-     */
-    public HttpClientOptions withRequestTimeout(Duration requestTimeout) {
-        this.requestTimeout = requestTimeout;
-        return this;
-    }
-
-    /**
-     * Set the connection timeout.
-     *
-     */
-    public HttpClientOptions withConnectTimeout(Duration connectionTimeout) {
-        this.connectionTimeout = connectionTimeout;
-        return this;
     }
 
     // --------------------------------------------
@@ -201,6 +163,21 @@ public class HttpClientOptions {
      */
     public HttpClientOptions() {
         callers.add(DEFAULT_CALLER);
+    }
+
+    @Override
+    public HttpClientOptions clone() {
+        try {
+            HttpClientOptions cloned = (HttpClientOptions) super.clone();
+            // Deep copy of mutable fields
+            cloned.callers = new ArrayList<>(this.callers);
+            cloned.retryDelay = this.retryDelay != null ? Duration.ofMillis(this.retryDelay.toMillis()) : null;
+            cloned.proxy = this.proxy != null ? this.proxy.clone() : null;
+
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning not supported", e);
+        }
     }
 
 }

@@ -2,16 +2,17 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
-import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
@@ -130,18 +131,18 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
                 new CollectionFindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like that")
-                        .includeSortVector()
-                        .includeSimilarity());
+                        .sort(Sort.vectorize("You shouldn't come around here singing up at people like that"))
+                        .includeSortVector(true)
+                        .includeSimilarity(true));
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
 
         FindIterable<Document> docs= collection.find(new CollectionFindOptions()
-                .sort("You shouldn't come around here singing up at people like that")
-                .includeSortVector()
-                .includeSimilarity());
+                .sort(Sort.vectorize("You shouldn't come around here singing up at people like that"))
+                .includeSortVector(true)
+                .includeSimilarity(true));
         assertThat(docs.iterator().next()).isNotNull();
         assertThat(docs.getSortVector().isPresent()).isTrue();
     }
@@ -164,10 +165,10 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
                 new CollectionFindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like tha")
-                        .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
+                        .sort(Sort.vectorize("You shouldn't come around here singing up at people like tha"))
+                        .projection(Projection.exclude(DataAPIKeywords.VECTOR.getKeyword()))
                         .embeddingAuthProvider(authProvider)
-                        .includeSimilarity());
+                        .includeSimilarity(true));
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);

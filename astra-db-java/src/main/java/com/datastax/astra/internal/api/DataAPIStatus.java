@@ -35,8 +35,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.datastax.astra.client.tables.Table.SERIALIZER;
-
 @Getter @Setter
 public class DataAPIStatus {
 
@@ -68,6 +66,7 @@ public class DataAPIStatus {
     /**
      * Serializer.
      */
+    @JsonIgnore
     private DataAPISerializer serializer;
 
     /**
@@ -132,14 +131,11 @@ public class DataAPIStatus {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return clazz.cast(SERIALIZER.convertValue(payload.get(key), clazz));
+        return clazz.cast(serializer.convertValue(payload.get(key), clazz));
     }
 
     public Object get(final Object key) {
         return payload.get(key);
     }
-
-
-
 
 }

@@ -25,6 +25,7 @@ import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.paging.Page;
@@ -169,6 +170,8 @@ public class Table<T>  extends AbstractCommandRunner {
         this.dataAPIOptions = db.getOptions();
         this.rowClass       = clazz;
         this.commandOptions = commandOptions;
+        // Defaulting command types to DATA
+        this.commandOptions.commandType(CommandType.DATA);
         this.apiEndpoint    = db.getApiEndpoint() + "/" + tableName;
     }
 

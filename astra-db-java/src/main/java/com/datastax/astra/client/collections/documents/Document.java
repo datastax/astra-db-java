@@ -38,6 +38,7 @@ package com.datastax.astra.client.collections.documents;
 
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -278,7 +279,7 @@ public class Document implements Serializable {
      *      self reference
      */
     public Document vector(float[] vector) {
-        return append(DataAPIKeywords.VECTOR.getKeyword(), vector);
+        return append(DataAPIKeywords.VECTOR.getKeyword(), new DataAPIVector(vector));
     }
 
     /**

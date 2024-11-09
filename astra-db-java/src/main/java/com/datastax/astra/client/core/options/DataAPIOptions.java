@@ -29,6 +29,8 @@ import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.internal.serdes.DatabaseSerializer;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +39,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+
+import static com.datastax.astra.client.DataAPIDestination.ASTRA;
+import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
+import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
 
 /**
  * Options to set up the client for DataApiClient.
@@ -130,11 +136,54 @@ public class DataAPIOptions {
     }
 
     /**
+     * Check if the deploying is Astra
+     *
+     * @return
+     *      true if the destination is Astra
+     */
+    public boolean isAstra() {
+        return getDestination() == ASTRA ||
+               getDestination() == ASTRA_DEV ||
+               getDestination() == ASTRA_TEST;
+    }
+
+    /**
+     * Find the Astra Environment from the destination provided in the initial Optional. It will help
+     * shaping the Api endpoint to spawn sub database objects.
+     *
+     * @return
+     *     astra environment if found
+     */
+    public AstraEnvironment getAstraEnvironment() {
+        if (getDestination() != null) {
+            switch (getDestination()) {
+                case ASTRA:
+                    return AstraEnvironment.PROD;
+                case ASTRA_DEV:
+                    return AstraEnvironment.DEV;
+                case ASTRA_TEST:
+                    return AstraEnvironment.TEST;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Disabling the encoding of the vectors as base64.
+     */
+    public static void disableEncodeDataApiVectorsAsBase64() {
+        encodeDataApiVectorsAsBase64 = false;
+    }
+
+    @Override
+    public String toString() {
+        return new DatabaseSerializer().marshall(this);
+    }
+
+    /**
      * Builder for the DataAPIClientOptions.
      */
     public static class DataAPIClientOptionsBuilder {
-
-        public TimeoutOptions timeoutOptions;
 
         /** Caller name in User agent. */
         private String apiVersion = DEFAULT_VERSION;
@@ -165,6 +214,9 @@ public class DataAPIOptions {
 
         /** client options. */
         private HttpClientOptions httpClientOptions = new HttpClientOptions();
+
+        /** timeout options. */
+        public TimeoutOptions timeoutOptions = new TimeoutOptions();
 
         /**
          * Default constructor.
@@ -419,24 +471,6 @@ public class DataAPIOptions {
          */
         public DataAPIClientOptionsBuilder addAdminAdditionalHeader(String key, String value) {
             adminAdditionalHeaders.put(key, value);
-            return this;
-        }
-
-        /**
-         * Set the connection timeout.
-         *
-         */
-        public DataAPIClientOptionsBuilder withHttpRequestTimeout(Duration requestTimeout) {
-            httpClientOptions.withRequestTimeout(requestTimeout);
-            return this;
-        }
-
-        /**
-         * Set the connection timeout.
-         *
-         */
-        public DataAPIClientOptionsBuilder withHttConnectTimeout(Duration connectionTimeout) {
-            httpClientOptions.withConnectTimeout(connectionTimeout);
             return this;
         }
 

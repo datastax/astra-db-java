@@ -26,6 +26,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import static com.datastax.astra.client.core.commands.CommandType.DATA;
+
 /**
  * Options for InsertOne
  */

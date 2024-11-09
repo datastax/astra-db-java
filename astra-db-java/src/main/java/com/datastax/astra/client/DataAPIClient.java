@@ -25,17 +25,14 @@ import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.exception.InvalidEnvironmentException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
-import java.util.Optional;
 import java.util.UUID;
 
-import static com.datastax.astra.client.DataAPIDestination.ASTRA;
-import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
-import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
 import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
+import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 
 /**
  * Serves as the primary entry point to the Data API client, offering streamlined access to the functionalities
@@ -256,42 +253,10 @@ public class DataAPIClient {
      * @throws SecurityException if the provided {@code superUserToken} lacks the necessary privileges for administrative operations.
      */
     public AstraDBAdmin getAdmin(String superUserToken) {
-        return new AstraDBAdmin(superUserToken, getAstraEnvironment(), options);
-    }
-
-    /**
-     * Find the Astra Environment from the destination provided in the initial Optional. It will help
-     * shaping the Api endpoint to spawn sub database objects.
-     *
-     * @return
-     *     astra environment if found
-     */
-    private Optional<AstraEnvironment> findAstraEnvironment() {
-        if (options.getDestination() != null) {
-            switch (options.getDestination()) {
-                case ASTRA:
-                    return Optional.of(AstraEnvironment.PROD);
-                case ASTRA_DEV:
-                    return Optional.of(AstraEnvironment.DEV);
-                case ASTRA_TEST:
-                    return Optional.of(AstraEnvironment.TEST);
-            }
+        if (!options.isAstra()) {
+            throwErrorRestrictedAstra("getAdmin()", options.getDestination());
         }
-        return Optional.empty();
-    }
-
-    /**
-     * Access the Astra environment or throw an error. Some operation like getAdmin would anly work if the options
-     * are set to Astra. If this is not the case a {@link IllegalArgumentException is thrown.}
-     *
-     * @return
-     *      current astra environment
-     * @throws IllegalArgumentException
-     *      the destination was not set for Astra in initial options.
-     */
-    private AstraEnvironment getAstraEnvironment() {
-        return findAstraEnvironment()
-                .orElseThrow(() -> new IllegalArgumentException("'destination' should be ASTRA* to use the AstraDBAdmin"));
+        return new AstraDBAdmin(superUserToken, options);
     }
 
     // --------------------------------------------------
@@ -331,16 +296,12 @@ public class DataAPIClient {
     public Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, ARG_DATABASE_ID);
         Assert.hasLength(keyspace, ARG_KEYSPACE);
-        if (options.getDestination() != ASTRA &&
-            options.getDestination() != ASTRA_DEV &&
-            options.getDestination() != ASTRA_TEST) {
-            throw new IllegalArgumentException("DataAPIOptions.destination " +
-                    "should be set to one of ASTRA* " +
-                    "to retrieve a database from an id.");
+        if (!options.isAstra()) {
+            throwErrorRestrictedAstra("getDatabase(id,keyspace)", options.getDestination());
         }
         return new Database(new AstraApiEndpoint(databaseId,
                 getAdmin().getDatabaseInfo(databaseId).getRegion(),
-                getAstraEnvironment()).getApiEndPoint(),
+                options.getAstraEnvironment()).getApiEndPoint(),
                 this.token, keyspace, options);
     }
 
@@ -360,8 +321,11 @@ public class DataAPIClient {
         Assert.notNull(databaseId, ARG_DATABASE_ID);
         Assert.hasLength(keyspace, ARG_KEYSPACE);
         Assert.hasLength(region, ARG_REGION);
+        if (!options.isAstra()) {
+            throwErrorRestrictedAstra("getDatabase(dbId,keyspace,region)", options.getDestination());
+        }
         return new Database(new AstraApiEndpoint(databaseId, region,
-                getAstraEnvironment()).getApiEndPoint(),
+                options.getAstraEnvironment()).getApiEndPoint(),
                 this.token, keyspace, options);
     }
 

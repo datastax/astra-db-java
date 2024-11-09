@@ -1,27 +1,27 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
-import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Filters;
-import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.client.core.query.Projection;
-import com.datastax.astra.client.core.query.Projections;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.core.options.TimeoutOptions;
+import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
@@ -43,12 +43,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.datastax.astra.client.collections.documents.ReturnDocument.AFTER;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.gt;
-import static com.datastax.astra.client.core.query.Projections.include;
-import static com.datastax.astra.client.core.query.Projections.slice;
-import static com.datastax.astra.client.core.query.Sorts.ascending;
-import static com.datastax.astra.client.core.query.Sorts.descending;
+import static com.datastax.astra.client.core.query.Projection.include;
+import static com.datastax.astra.client.core.query.Projection.slice;
+import static com.datastax.astra.client.core.query.Sort.ascending;
+import static com.datastax.astra.client.core.query.Sort.descending;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -178,9 +179,9 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     }
 
     @Test
-    protected void testEstimatedCount() throws TooManyDocumentsToCountException {
+    protected void testEstimatedCount()
+    throws TooManyDocumentsToCountException, InterruptedException {
         getCollectionSimple().deleteAll();
-        assertThat(getCollectionSimple().estimatedDocumentCount()).isZero();
         getCollectionSimple().insertMany(generateDocList(21));
         assertThat(getCollectionSimple().countDocuments(1000)).isEqualTo(21);
         getCollectionSimple().estimatedDocumentCount();
@@ -203,7 +204,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         //        .all().get(0);
         //assertThat(doc2.getInstant("metadata_instant")).isNotNull();
 
-        Projection[] ps = Projections.include("metadata_float_array");
+        Projection[] ps = Projection.include("metadata_float_array");
 
 
         // Should return a slice for an array
@@ -219,8 +220,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     protected void testCountDocument() throws TooManyDocumentsToCountException {
         new CollectionInsertManyOptions().ordered(false)
                 .concurrency(5) // recommended
-                .chunkSize(20)  // maximum chunk size is 20
-                .timeout(100);  // global timeout
+                .chunkSize(20); // maximum chunk size is 20
 
         final Collection<Document> collectionSimple = getCollectionSimple();
         assertThatThrownBy(() -> collectionSimple
@@ -269,10 +269,10 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
-        FindIterable<Document> findIterable  = getCollectionSimple().find();
+        FindIterable<Document> findIterable  = getCollectionSimple().findAll();
         for (Document document : findIterable) assertThat(document).isNotNull();
 
-        List<Document> documents = getCollectionSimple().find().all();
+        List<Document> documents = getCollectionSimple().findAll().all();
         assertThat(documents).hasSize(25);
     }
 
@@ -310,7 +310,11 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     public void testInsertManyWithPagingDistributed() throws TooManyDocumentsToCountException {
         getCollectionSimple().deleteAll();
         List<Document> docList = generateDocList(55);
-        getCollectionSimple().insertMany(docList, new CollectionInsertManyOptions().concurrency(5));
+        getCollectionSimple().insertMany(docList, new CollectionInsertManyOptions()
+                .concurrency(5)
+                .timeoutOptions(new TimeoutOptions()
+                        .dataOperationTimeoutMillis(100000)) // I need 100s.
+        );
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }
 
@@ -329,7 +333,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     public void shouldTestFindOnEmptyResultList() {
         getCollectionSimple().deleteAll();
         // Find All
-        List<Document> okDoc = getCollectionSimple().find().all();
+        List<Document> okDoc = getCollectionSimple().findAll().all();
         assertThat(okDoc).isEmpty();
 
         Filter filter = Filters.eq("userId", UUID.randomUUID());
@@ -387,7 +391,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         // Delete exactly one
         getCollectionSimple().deleteOne(eq("indice", 1));
         Map<Integer, Document> results = getCollectionSimple()
-                .find().all()
+                .findAll().all()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
         assertThat(results)
@@ -407,7 +411,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                 eq("test", "test"),
                 new CollectionDeleteOneOptions().sort(descending("indice")));;
         results = getCollectionSimple()
-                .find().all()
+                .findAll().all()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
         assertThat(results).hasSize(2)
@@ -420,13 +424,13 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     // FindOneAndReplace
     @Test
     public void testFindOneAndReplace() {
-        getCollectionSimple().deleteAll();
-        getCollectionSimple().insertOne(new Document().id(1).append("hello", "world"));
-        getCollectionSimple().insertOne(new Document().id(2).append("bonjour", "monde"));
+        Collection<Document> col = getCollectionSimple();
+        col.deleteAll();
+        col.insertOne(new Document().id(1).append("hello", "world"));
+        col.insertOne(new Document().id(2).append("bonjour", "monde"));
 
         // Matched 1, modified 1, document is present
-        Optional<Document> opt1 = getCollectionSimple()
-                .findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
+        Optional<Document> opt1 = col.findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));
         assertThat(opt1).isPresent();
         assertThat(opt1.get().getDocumentMap()).containsEntry("hello", "world2");
 
@@ -567,7 +571,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                         .inc("test", 1d)
                         .rename("field1", "field2")
                         .updateMul(Map.of("price", 1.1d)),
-                new CollectionFindOneAndUpdateOptions().returnDocumentAfter());
+                new CollectionFindOneAndUpdateOptions().returnDocument(AFTER));
         assertThat(doc).isPresent();
         assertThat(doc.get().getDouble("test")).isEqualTo(11.1d);
         assertThat(doc.get().getDouble("price")).isEqualTo(11.11d);

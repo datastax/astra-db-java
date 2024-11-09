@@ -27,7 +27,7 @@ import java.util.Map;
  * - You can set the header variable `x-embedding-api-key` to authenticate against the embedding provider.
  * - You can set multiple headers to authenticate against multiple embedding providers.
  */
-public interface EmbeddingHeadersProvider {
+public interface EmbeddingHeadersProvider extends Cloneable {
 
     /**
      * Build the Header to authenticate against embeddings provider.
@@ -36,4 +36,12 @@ public interface EmbeddingHeadersProvider {
      *      headers to use for the embedding provider.
      */
     Map<String, String > getHeaders();
+
+    /**
+     * Clone the EmbeddingHeadersProvider.
+     *
+     * @return
+     *      a new instance of the EmbeddingHeadersProvider.
+     */
+    EmbeddingHeadersProvider copy();
 }

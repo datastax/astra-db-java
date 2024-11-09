@@ -52,4 +52,14 @@ public class EmbeddingAPIKeyHeaderProvider implements EmbeddingHeadersProvider {
     public Map<String, String> getHeaders() {
         return Map.of(HEADER_EMBEDDING_API_KEY, apiKey);
     }
+
+    @Override
+    public EmbeddingAPIKeyHeaderProvider clone() {
+        return new EmbeddingAPIKeyHeaderProvider(this.apiKey);
+    }
+
+    @Override
+    public EmbeddingAPIKeyHeaderProvider copy() {
+        return this.clone();
+    }
 }

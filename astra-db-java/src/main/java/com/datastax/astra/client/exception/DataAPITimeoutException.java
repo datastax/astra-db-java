@@ -29,6 +29,6 @@ public class DataAPITimeoutException extends DataAPIException {
      *      error message
      */
     public DataAPITimeoutException(String errorMessage) {
-        super(DataAPIErrorCode.TIMEOUT, errorMessage);
+        super(ClientErrorCodes.TIMEOUT, errorMessage);
     }
 }

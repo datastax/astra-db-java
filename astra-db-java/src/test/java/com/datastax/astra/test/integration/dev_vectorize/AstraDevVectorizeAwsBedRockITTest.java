@@ -1,16 +1,17 @@
 package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.core.auth.AWSEmbeddingHeadersProvider;
-import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
-import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.core.auth.AWSEmbeddingHeadersProvider;
+import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -91,10 +92,10 @@ public class AstraDevVectorizeAwsBedRockITTest extends AbstractVectorizeITTest {
         log.info("{} Documents inserted", res.getInsertedIds().size());
         Optional<Document> doc = collection.findOne(null,
                 new CollectionFindOneOptions()
-                        .sort("You shouldn't come around here singing up at people like tha")
-                        .projection(Projections.exclude(DataAPIKeywords.VECTOR.getKeyword()))
+                        .sort(Sort.vectorize("You shouldn't come around here singing up at people like tha"))
+                        .projection(Projection.exclude(DataAPIKeywords.VECTOR.getKeyword()))
                         .embeddingAuthProvider(awsAuthProvider)
-                        .includeSimilarity());
+                        .includeSimilarity(true));
         log.info("Document found {}", doc);
         assertThat(doc).isPresent();
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);

@@ -20,6 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
@@ -202,7 +203,11 @@ public interface DatabaseAdmin {
      *                  that should be deleted. The operation will proceed silently and without error even if the
      *                  keyspace does not exist, ensuring consistent behavior.
      */
-    void dropKeyspace(String namespace);
+    default void dropKeyspace(String namespace) {
+        dropKeyspace(namespace, null);
+    }
+
+    void dropKeyspace(String namespace, CommandOptions<?> options);
 
     /**
      * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning

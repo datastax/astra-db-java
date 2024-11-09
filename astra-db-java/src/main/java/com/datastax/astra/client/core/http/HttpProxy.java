@@ -28,7 +28,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class HttpProxy {
+public class HttpProxy implements Cloneable {
 
     /** hostname of the proxy. */
     String hostname;
@@ -47,5 +47,10 @@ public class HttpProxy {
     public HttpProxy(String hostname, int port) {
         this.hostname = hostname;
         this.port = port;
+    }
+
+    @Override
+    public HttpProxy clone() {
+        return new HttpProxy(this.hostname, this.port);
     }
 }

@@ -20,9 +20,11 @@ package com.datastax.astra.internal.http;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.exception.DataAPIHttpException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
@@ -41,6 +43,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -59,17 +62,11 @@ public class RetryHttpClient {
     /** Headers, Api is usig JSON */
     public static final String CONTENT_TYPE_JSON        = "application/json";
 
-    /** Headers, Api is usig JSON */
-    public static final String CONTENT_TYPE_GRAPHQL     = "application/graphql";
-
     /** Header param. */
     public static final String HEADER_ACCEPT            = "Accept";
 
     /** Headers param to insert the token. */
-    public static final String HEADER_CASSANDRA         = "X-Cassandra-Token";
-
-    /** Headers param to insert the unique identifier for the request. */
-    public static final String HEADER_REQUEST_ID        = "X-Cassandra-Request-Id";
+    public static final String HEADER_TOKEN             = "token";
 
     /** Headers param to insert the conte type. */
     public static final String HEADER_CONTENT_TYPE      = "Content-Type";
@@ -83,49 +80,62 @@ public class RetryHttpClient {
     /** Headers param to insert the user agent identifying the client. */
     public static final String HEADER_REQUESTED_WITH    = "X-Requested-With";
 
-    /** Value for the requested with. */
-    public static final String REQUEST_WITH = "data-api-client-java";
-
     /** JDK11 Http client. */
     protected final HttpClient httpClient;
 
     /** Http Options. */
     protected final HttpClientOptions httpClientOptions;
 
+    /** Http Options. */
+    protected final TimeoutOptions timeoutOptions;
+
     /** Default retry configuration. */
     protected final RetryConfig retryConfig;
 
     /**
-     * Default initialization of http client.
+     * Default constructor.
      */
     public RetryHttpClient() {
-        this(DataAPIOptions.builder().build().getHttpClientOptions());
+        this(new HttpClientOptions(), new TimeoutOptions());
     }
 
     /**
      * Initialize the instance with all items
      *
-     * @param config
+     * @param commandOptions
      *      configuration of the HTTP CLIENT.
      */
-    public RetryHttpClient(HttpClientOptions config) {
-        this.httpClientOptions = config;
+    public RetryHttpClient(CommandOptions<?> commandOptions) {
+        this(commandOptions.getHttpClientOptions(), commandOptions.getTimeoutOptions());
+    }
 
+    /**
+     * Initialize the instance with all items
+     *
+     * @param httpClientOptions
+     *      http client options
+     * @param timeoutOptions
+     *     timeout options
+     *
+     */
+    protected RetryHttpClient(HttpClientOptions httpClientOptions, TimeoutOptions timeoutOptions) {
+        this.httpClientOptions = httpClientOptions;
+        this.timeoutOptions    = timeoutOptions;
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
-        httpClientBuilder.version(config.getHttpVersion());
-        httpClientBuilder.followRedirects(config.getHttpRedirect());
-        httpClientBuilder.connectTimeout(config.getConnectionTimeout());
-        if (config.getProxy() != null) {
+        httpClientBuilder.version(httpClientOptions.getHttpVersion());
+        httpClientBuilder.followRedirects(httpClientOptions.getHttpRedirect());
+        httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.connectTimeoutMillis()));
+        if (httpClientOptions.getProxy() != null) {
             httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
-                    config.getProxy().getHostname(),
-                    config.getProxy().getPort())));
+                    httpClientOptions.getProxy().getHostname(),
+                    httpClientOptions.getProxy().getPort())));
         }
         httpClient = httpClientBuilder.build();
 
         retryConfig = new RetryConfigBuilder()
                 .retryOnAnyException()
-                .withDelayBetweenTries(config.getRetryDelay())
-                .withMaxNumberOfTries(config.getRetryCount())
+                .withDelayBetweenTries(httpClientOptions.getRetryDelay())
+                .withMaxNumberOfTries(httpClientOptions.getRetryCount())
                 .withExponentialBackoff()
                 .build();
     }
@@ -144,16 +154,6 @@ public class RetryHttpClient {
             sj.add(entry.getName() + "/" + entry.getVersion());
         }
         return sj.toString();
-    }
-
-    /**
-     * Return value for default response time.
-     *
-     * @return
-     *      default response time
-     */
-    public long getResponseTimeoutInSeconds() {
-        return httpClientOptions.getRequestTimeout().getSeconds();
     }
 
     // -------------------------------------------
@@ -204,10 +204,9 @@ public class RetryHttpClient {
                 .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
                 .header(HEADER_USER_AGENT, getUserAgentHeader())
                 .header(HEADER_REQUESTED_WITH, getUserAgentHeader())
-                .header(HEADER_REQUEST_ID, UUID.randomUUID().toString())
-                .header(HEADER_CASSANDRA, token)
+                .header(HEADER_TOKEN, token)
                 .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                .timeout(httpClientOptions.getRequestTimeout())
+                .timeout(Duration.ofMillis(timeoutOptions.requestTimeoutMillis()))
                 .method(method, HttpRequest.BodyPublishers.ofString(body))
                 .build();
         } catch(URISyntaxException e) {

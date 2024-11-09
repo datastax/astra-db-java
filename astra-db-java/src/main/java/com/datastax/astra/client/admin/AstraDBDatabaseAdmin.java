@@ -21,6 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
@@ -48,8 +49,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     /** Token used for the credentials. */
     final UUID databaseId;
 
-    /** Working environment. */
-    final AstraEnvironment env;
+    /** Data Api Options. */
+    final DataAPIOptions dataAPIOptions;
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
@@ -64,11 +65,11 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      target database
      */
     public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db) {
-        this.databaseId = UUID.fromString(db.getDbApiEndpoint().substring(8, 44));
-        this.env        = getEnvironment(db.getOptions().getDestination());
-        this.token      = db.getToken();
-        this.db         = db;
-        this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+        this.databaseId     = UUID.fromString(db.getDbApiEndpoint().substring(8, 44));
+        this.dataAPIOptions = db.getOptions();
+        this.token          = db.getToken();
+        this.db             = db;
+        this.devopsDbClient = new AstraDBOpsClient(token, dataAPIOptions.getAstraEnvironment());
     }
 
     /**
@@ -78,16 +79,14 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      token value
      * @param databaseId
      *      database identifier
-     * @param env
-     *      working environment
      * @param options
      *      options used to initialize the http client
      */
-    public AstraDBDatabaseAdmin(String token, UUID databaseId, AstraEnvironment env, DataAPIOptions options) {
-        this.env            = env;
+    public AstraDBDatabaseAdmin(String token, UUID databaseId, DataAPIOptions options) {
         this.token          = token;
         this.databaseId     = databaseId;
-        this.devopsDbClient = new AstraDBOpsClient(token, this.env);
+        this.dataAPIOptions = options;
+        this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
         this.db = new com.datastax.astra.client.databases.Database(getApiEndpoint(), token, DEFAULT_KEYSPACE, options);
     }
 
@@ -137,7 +136,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      */
     private String getApiEndpoint() {
         return new AstraApiEndpoint(databaseId,
-                getDatabaseInformations().getInfo().getRegion(), env)
+                getDatabaseInformations().getInfo().getRegion(), dataAPIOptions.getAstraEnvironment())
                 .getApiEndPoint();
     }
 
@@ -197,6 +196,12 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         } catch(NullPointerException e) {
             // Left blank to parse output from a delete
         }
+    }
+
+    @Override
+    public void dropKeyspace(String namespace, CommandOptions<?> options) {
+        log.warn("CommandOptions are not supported for dropKeyspace in Astra MODE");
+        dropKeyspace(namespace);
     }
 
     /** {@inheritDoc} */

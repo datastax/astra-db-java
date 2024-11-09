@@ -4,7 +4,7 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Projections;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
@@ -13,10 +13,6 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.options.TableFindOneOptions;
-import com.datastax.astra.client.tables.options.TableInsertManyOptions;
-import com.datastax.astra.client.tables.results.TableInsertManyResult;
-import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.ddl.AlterTableAddColumns;
 import com.datastax.astra.client.tables.ddl.AlterTableAddVectorize;
 import com.datastax.astra.client.tables.ddl.AlterTableDropColumns;
@@ -29,6 +25,10 @@ import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.test.integration.AbstractTableITTest;
@@ -183,7 +183,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_float_nan", ColumnTypes.FLOAT)
                 .withPartitionKey("p_ascii", "p_bigint")
                 .withClusteringColumns(ascending("p_int"), descending("p_boolean")),
-                new CreateTableOptions().ifNotExists());
+                new CreateTableOptions().ifNotExists(true));
         assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isTrue();
 
         tableAllReturns
@@ -191,7 +191,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         new VectorIndexDefinition()
                         .column("p_vector")
                         .options(new VectorIndexDefinitionOptions().metric(COSINE)),
-                        new CreateVectorIndexOptions().ifNotExists());
+                        new CreateVectorIndexOptions().ifNotExists(true));
 
         tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new IndexDefinition()
                         .column("p_text")
@@ -322,7 +322,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addText("id", "John");
         Filter johnFilter = new Filter(Map.of("id", "Lunven","name", "Cedrick"));
         Optional<Row> res = table.findOne(johnFilter,
-                new TableFindOneOptions().projection(Projections.include("id", "age")));
+                new TableFindOneOptions().projection(Projection.include("id", "age")));
         assertThat(res).isPresent();
     }
 
@@ -364,7 +364,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addUUID("p_uuid", java.util.UUID.fromString("9c5b94b1-35ad-49bb-b118-8e8fc24abf80"))
                 .addDate("p_date", LocalDate.of(2015,5,3))
                 .addDecimal("p_decimal", new BigDecimal("123.45"))
-                .addVector("p_vector", DataAPIVector.of(.1f, 0.2f, 0.3f))
+                .addVector("p_vector", new DataAPIVector(new float[] {.1f, 0.2f, 0.3f}))
                 .addList("p_list_int", List.of(4, 17, 34))
                 .addSet("p_set_int",  Set.of(9, 81));
 

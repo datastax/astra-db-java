@@ -27,6 +27,7 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.options.TableFindOptions;
 import lombok.Getter;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -39,7 +40,7 @@ import java.util.NoSuchElementException;
  * @param <T>
  *       type of the table
  */
-public class TableCursor<T> implements Iterable<T> {
+public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
 
     /**
      * Input table reference
@@ -184,6 +185,7 @@ public class TableCursor<T> implements Iterable<T> {
     /**
      * Change the state of the cursor to close.
      */
+    @Override
     public void close() {
         this.state = CursorState.CLOSED;
     }

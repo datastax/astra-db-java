@@ -1,19 +1,21 @@
 package com.datastax.astra.test.integration.local;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataAPIResponseException;
-import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
-import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.paging.Page;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.datastax.astra.client.collections.documents.Updates.set;
 import static com.datastax.astra.client.core.query.Filters.and;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.exists;
@@ -35,7 +38,6 @@ import static com.datastax.astra.client.core.query.Filters.lt;
 import static com.datastax.astra.client.core.query.Filters.lte;
 import static com.datastax.astra.client.core.query.Filters.ne;
 import static com.datastax.astra.client.core.query.Filters.nin;
-import static com.datastax.astra.client.collections.documents.Updates.set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -146,7 +148,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         try {
             getCollectionSimple().deleteAll();
             CollectionInsertManyResult res = getCollectionSimple().insertMany(players,
-                    new CollectionInsertManyOptions().ordered(false).timeout(10000).chunkSize(10).concurrency(1));
+                    new CollectionInsertManyOptions().ordered(false).chunkSize(10).concurrency(1));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -222,6 +224,10 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Test
     void shouldDoSemanticSearch() {
        getCollectionVector();
+
+       // Made at environment level for Serializers
+       DataAPIOptions.disableEncodeDataApiVectorsAsBase64();
+
        Collection<Document> collectionVectorRaw = getDatabase().getCollection(COLLECTION_VECTOR);
        collectionVectorRaw.deleteAll();
        collectionVectorRaw.insertMany(List.of(
@@ -247,10 +253,13 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
                         .append("product_price", 9.99)));
 
         // Perform a similarity search
-        float[] embeddings = new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f};
         Filter metadataFilter = new Filter().where("product_price").isEqualsTo(9.99);
-        List<Document> docs = collectionVectorRaw.find(metadataFilter, embeddings, 2).all();
-        assertThat(docs).hasSize(2);
+        CollectionFindOptions options = new CollectionFindOptions()
+                .sort(Sort.vector(new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f}))
+                .limit(2);
+        try(FindIterable<Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
+            assertThat(docs.all()).hasSize(2);
+        }
     }
 
     @Test
@@ -286,11 +295,11 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         Document doc2 = new Document().id(2).append("a", "a").append("b", "b");
         getCollectionSimple().insertMany(List.of(doc1, doc2));
 
-        FindIterable<Document> iter = getCollectionSimple().find();;
+        FindIterable<Document> iter = getCollectionSimple().findAll();;
         iter.all();
         assertThatThrownBy(iter::all).isInstanceOf(IllegalStateException.class);
 
-        FindIterable<Document> iter2 = getCollectionSimple().find();;
+        FindIterable<Document> iter2 = getCollectionSimple().findAll();;
         iter2.iterator().next();
         assertThatThrownBy(iter2::all).isInstanceOf(IllegalStateException.class);
     }

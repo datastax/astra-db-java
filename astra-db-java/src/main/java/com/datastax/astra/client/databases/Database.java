@@ -20,28 +20,28 @@ package com.datastax.astra.client.databases;
  * #L%
  */
 
-import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.exception.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.ddl.CreateTableOptions;
 import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
 import com.datastax.astra.client.tables.ddl.DropTableOptions;
-import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.index.IndexDescriptor;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.client.tables.TableDescriptor;
-import com.datastax.astra.client.tables.ddl.CreateTableOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -54,6 +54,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Stream;
 
+import static com.datastax.astra.client.core.commands.CommandType.SCHEMA;
+import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
@@ -119,7 +121,7 @@ public class Database extends AbstractCommandRunner {
      *      keyspace
      */
     public Database(String apiEndpoint, String token, String keyspace) {
-        this(apiEndpoint, token, keyspace,  DataAPIOptions.builder().build());
+        this(apiEndpoint, token, keyspace, DataAPIOptions.builder().build());
     }
 
     /**
@@ -147,6 +149,7 @@ public class Database extends AbstractCommandRunner {
         // Command Options inherit from DataAPIOptions
         this.commandOptions = new CommandOptions<>(options);
         this.commandOptions.token(token);
+        this.commandOptions.commandType(SCHEMA);
         this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
                 apiEndpoint :
                 apiEndpoint + "/" + options.getApiVersion();
@@ -170,6 +173,23 @@ public class Database extends AbstractCommandRunner {
     }
 
     // ------------------------------------------
+    // ----      Access Region               ----
+    // ------------------------------------------
+
+    /**
+     * Get the region of the database if deployed in Astra.
+     *
+     * @return
+     *      the region
+     */
+    public String getRegion() {
+        if (!options.isAstra()) {
+            throwErrorRestrictedAstra("getRegion", options.getDestination());
+        }
+        return AstraApiEndpoint.parse(getApiEndpoint()).getDatabaseRegion();
+    }
+
+    // ------------------------------------------
     // ----   Access Database Admin          ----
     // ------------------------------------------
 
@@ -190,13 +210,9 @@ public class Database extends AbstractCommandRunner {
      * @return the database name
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
-        if (options.getDestination() != null) {
-            if (options.getDestination() == DataAPIDestination.ASTRA ||
-                    options.getDestination() == DataAPIDestination.ASTRA_DEV ||
-                    options.getDestination() == DataAPIDestination.ASTRA_TEST) {
-                AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
-                return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), endpoint.getEnv(), options);
-            }
+        if (options.isAstra()) {
+            AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
+            return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), options);
         }
         return new DataAPIDatabaseAdmin(databaseAdminEndpoint, token, options);
     }
@@ -213,7 +229,7 @@ public class Database extends AbstractCommandRunner {
      */
     public Stream<String> listCollectionNames() {
         Command findCollections = Command.create("findCollections");
-        return runCommand(findCollections)
+        return runCommand(findCollections,  this.commandOptions)
                 .getStatusKeyAsList("collections", String.class)
                 .stream();
     }
@@ -228,8 +244,7 @@ public class Database extends AbstractCommandRunner {
         Command findCollections = Command
                 .create("findCollections")
                 .withOptions(new Document().append("explain", true));
-
-        return runCommand(findCollections)
+        return runCommand(findCollections, this.commandOptions)
                 .getStatusKeyAsList("collections", CollectionDefinition.class)
                 .stream();
     }
@@ -342,7 +357,7 @@ public class Database extends AbstractCommandRunner {
             return createCollection(collectionName, CollectionOptions.builder()
                     .vectorDimension(dimension)
                     .vectorSimilarity(metric)
-                    .build(), commandOptions, documentClass);
+                    .build(), this.commandOptions, documentClass);
     }
 
     /**
@@ -357,7 +372,7 @@ public class Database extends AbstractCommandRunner {
      * @return the collection
      */
     public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
-        return createCollection(collectionName, null, commandOptions, documentClass);
+        return createCollection(collectionName, null, this.commandOptions, documentClass);
     }
 
     /**
@@ -370,7 +385,7 @@ public class Database extends AbstractCommandRunner {
      * @return the collection
      */
     public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
-        return createCollection(collectionName, collectionOptions, commandOptions, Document.class);
+        return createCollection(collectionName, collectionOptions, this.commandOptions, Document.class);
     }
 
     /**
@@ -388,7 +403,7 @@ public class Database extends AbstractCommandRunner {
      *      working object for the document
      */
     public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions,  Class<T> documentClass) {
-        return createCollection(collectionName, collectionOptions, commandOptions, documentClass);
+        return createCollection(collectionName, collectionOptions, this.commandOptions, documentClass);
     }
 
     /**
@@ -398,12 +413,12 @@ public class Database extends AbstractCommandRunner {
      *      the name for the new collection to create
      * @param collectionOptions
      *      various options for creating the collection
-     * @param commandOptions
+     * @param pCommandOptions
      *      options to use when using this collection
      * @return the collection
      */
-    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> commandOptions) {
-        return createCollection(collectionName, collectionOptions, commandOptions, Document.class);
+    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> pCommandOptions) {
+        return createCollection(collectionName, collectionOptions, pCommandOptions, Document.class);
     }
 
     /**
@@ -415,13 +430,14 @@ public class Database extends AbstractCommandRunner {
      *      various options for creating the collection
      * @param documentClass
      *     the default class to cast any documents returned from the database into.
-     * @param commandOptions
+     * @param pCommandOptions
      *      options to use when using this collection
      * @param <T>
      *          working class for the document
      * @return the collection
      */
-    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> commandOptions, Class<T> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> pCommandOptions
+            , Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(documentClass, "documentClass");
         Command createCollection = Command
@@ -430,7 +446,7 @@ public class Database extends AbstractCommandRunner {
         if (collectionOptions != null) {
             createCollection.withOptions(SERIALIZER.convertValue(collectionOptions, Document.class));
         }
-        runCommand(createCollection, commandOptions);
+        runCommand(createCollection, pCommandOptions);
         log.info("Collection  '" + green("{}") + "' has been created", collectionName);
         return getCollection(collectionName, commandOptions, documentClass);
     }
@@ -444,7 +460,7 @@ public class Database extends AbstractCommandRunner {
     public void dropCollection(String collectionName) {
         runCommand(Command
                 .create("deleteCollection")
-                .append("name", collectionName), commandOptions);
+                .append("name", collectionName), this.commandOptions);
         log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
     }
 
@@ -502,7 +518,7 @@ public class Database extends AbstractCommandRunner {
      *      if collectionName is invalid
      */
     public Table<Row> getTable(String tableName) {
-        return getTable(tableName, Row.class);
+        return getTable(tableName, this.commandOptions, Row.class);
     }
 
     /**
@@ -522,10 +538,12 @@ public class Database extends AbstractCommandRunner {
     }
 
     public <T> Table<T> getTable(@NonNull Class<T> rowClass) {
-        EntityTable ann = rowClass
-                .getAnnotation(EntityTable.class);
+        EntityTable ann = rowClass.getAnnotation(EntityTable.class);
         if (ann == null) {
-                    throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
+            InvalidConfigurationException.throwErrorMissingAnnotation(
+                    EntityTable.class.getSimpleName(),
+                    rowClass.getName(),
+                    "getTable(rowClass)");
         }
         return getTable(ann.value(), this.commandOptions, rowClass);
     }
@@ -547,7 +565,7 @@ public class Database extends AbstractCommandRunner {
     public <T> Table<T> getTable(String tableName, CommandOptions<?> commandOptions, @NonNull Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        return new com.datastax.astra.client.tables.Table<>(this, tableName, commandOptions, rowClass);
+        return new Table<>(this, tableName, commandOptions, rowClass);
     }
 
     /**
@@ -559,7 +577,7 @@ public class Database extends AbstractCommandRunner {
      *      table definition
      */
     public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
-        return createTable(tableName, tableDefinition, null, commandOptions, Row.class);
+        return createTable(tableName, tableDefinition, null, this.commandOptions, Row.class);
     }
 
     /**

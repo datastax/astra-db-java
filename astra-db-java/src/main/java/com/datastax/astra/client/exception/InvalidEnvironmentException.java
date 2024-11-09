@@ -20,9 +20,30 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
+import com.datastax.astra.client.DataAPIDestination;
+
+import static com.datastax.astra.client.exception.ClientErrorCodes.ENV_RESTRICTED_ASTRA;
+
+/**
+ * Exception thrown when the environment is invalid.
+ */
 public class InvalidEnvironmentException extends DataAPIException {
 
-    public InvalidEnvironmentException(String errorMessage) {
-        super(DataAPIErrorCode.ENVIRONMENT, errorMessage);
+    public InvalidEnvironmentException(ClientErrorCodes code, String message) {
+        super(code, message);
     }
+
+    /**
+     * Format error message.
+     *
+     * @param operation
+     *      operation returning the error
+     * @param currentEnv
+     *      current environment
+     */
+    public static void throwErrorRestrictedAstra(String operation, DataAPIDestination currentEnv) {
+        throw new InvalidEnvironmentException(ENV_RESTRICTED_ASTRA,
+                String.format(ENV_RESTRICTED_ASTRA.getMessage(), operation, currentEnv.name()));
+    }
+
 }

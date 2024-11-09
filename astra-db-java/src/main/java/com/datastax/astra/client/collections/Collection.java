@@ -26,6 +26,7 @@ import com.datastax.astra.client.collections.options.CollectionInsertManyOptions
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.options.CountDocumentsOptions;
 import com.datastax.astra.client.collections.results.CollectionDeleteResult;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.collections.options.EstimatedCountDocumentsOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
@@ -86,6 +87,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.commands.CommandType.DATA;
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
@@ -219,6 +221,8 @@ public class Collection<T> extends AbstractCommandRunner {
         this.dataAPIOptions = db.getOptions();
         this.documentClass  = clazz;
         this.commandOptions = commandOptions;
+        // Defaulting to data in case of a Collection
+        this.commandOptions.commandType(DATA);
         this.apiEndpoint    = db.getApiEndpoint() + "/" + collectionName;
     }
 
@@ -390,7 +394,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public final CollectionInsertOneResult insertOne(T document) {
-        return insertOne(document, (CollectionInsertOneOptions) null);
+        return insertOne(document, null);
     }
 
     /**
@@ -516,7 +520,7 @@ public class Collection<T> extends AbstractCommandRunner {
         Assert.notNull(document, DOCUMENT);
         Command insertOne = Command.create("insertOne").withDocument(document);
         Object documentId = runCommand(insertOne, collectionInsertOneOptions)
-                .getStatusKeyAsList(RESULT_INSERTED_IDS, Object.class)
+                .getStatus().getInsertedIds()
                 .get(0);
         return new CollectionInsertOneResult(unmarshallDocumentId(documentId));
     }
@@ -647,13 +651,17 @@ public class Collection<T> extends AbstractCommandRunner {
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
             // Set a default timeouts for the overall operation
-            if (executor.awaitTermination(
-                    options.getTimeoutOptions().dataOperationTimeoutMillis(),
-                    TimeUnit.MILLISECONDS)) {
+            long totalTimeout = this.commandOptions
+                    .getTimeoutOptions()
+                    .getDataOperationTimeoutMillis();
+            if (options.getTimeoutOptions() != null) {
+                totalTimeout = options.getTimeoutOptions().dataOperationTimeoutMillis();
+            }
+            if (executor.awaitTermination(totalTimeout, TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
-                throw new DataAPIException(ERROR_CODE_TIMEOUT, "Request did not complete withing ");
+                throw new DataAPIException(ERROR_CODE_TIMEOUT, "Request did not complete within ");
             }
         } catch (InterruptedException | ExecutionException e) {
             if (e.getCause() instanceof DataAPIException) {
@@ -1057,6 +1065,18 @@ public class Collection<T> extends AbstractCommandRunner {
      *
      * @param filter
      *      the query filter
+     * @return
+     *      the find iterable interface
+     */
+    public FindIterable<T> find(Filter filter) {
+        return find(filter, new CollectionFindOptions());
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
      * @param options
      *      options of find one
      * @return
@@ -1074,7 +1094,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the find iterable interface
      */
     public FindIterable<T> find(CollectionFindOptions options) {
-        return new FindIterable<>(this, null, options);
+        return find(null, options);
     }
 
     /**

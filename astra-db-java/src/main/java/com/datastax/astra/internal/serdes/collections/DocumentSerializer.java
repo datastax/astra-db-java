@@ -39,8 +39,11 @@ package com.datastax.astra.internal.serdes.collections;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DataAPIVectorDeserializer;
+import com.datastax.astra.internal.serdes.DataAPIVectorSerializer;
 import com.datastax.astra.internal.serdes.tables.SimilarityMetricDeserializer;
 import com.datastax.astra.internal.serdes.tables.SimilarityMetricSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -125,6 +128,9 @@ public class DocumentSerializer implements DataAPISerializer {
             // Similarity Metric
             module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
             module.addDeserializer(SimilarityMetric.class, new SimilarityMetricDeserializer());
+            // DataAPIVector
+            module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
+            module.addDeserializer(DataAPIVector.class, new DataAPIVectorDeserializer());
             objectMapper.registerModule(module);
         }
         return objectMapper;

@@ -22,6 +22,8 @@ package com.datastax.astra.internal.command;
 
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.datastax.astra.internal.utils.AnsiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +86,11 @@ public class LoggingCommandObserver implements CommandObserver {
             // Log Command
 
             log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
+
+            //log(AnsiUtils.magenta("[" + req + "][options]") + "=" + AnsiUtils.yellow("{}"),
+            //        executionInfo.getSerializer().marshall(executionInfo.getCommandOptions()));
+            //log(AnsiUtils.magenta("[" + req + "][overriding]") + "=" + AnsiUtils.yellow("{}"),
+            //        executionInfo.getSerializer().marshall(executionInfo.getOverridingCommandOptions()));
             log(AnsiUtils.magenta("[" + req + "][url]") + "=" +
                     AnsiUtils.yellow("{}"), executionInfo.getRequestUrl());
             log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),

@@ -20,9 +20,6 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
-import com.datastax.astra.client.core.http.HttpClientOptions;
-import org.apache.hc.core5.http.HttpException;
-
 /**
  * A request to the Data API resulted in an HTTP 4xx or 5xx response.
  * In most cases this comes with additional information: the purpose
@@ -39,7 +36,7 @@ public class DataAPIHttpException extends DataAPIException {
      *      error message
      */
     public DataAPIHttpException(String errorMessage) {
-        super(DataAPIErrorCode.HTTP, errorMessage);
+        super(ClientErrorCodes.HTTP, errorMessage);
     }
 
 }

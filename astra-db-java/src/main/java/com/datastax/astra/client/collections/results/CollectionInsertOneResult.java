@@ -23,11 +23,12 @@ package com.datastax.astra.client.collections.results;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Represents the result returned by command 'insertOne()', mainly the insertedI
  */
-@Getter
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CollectionInsertOneResult {

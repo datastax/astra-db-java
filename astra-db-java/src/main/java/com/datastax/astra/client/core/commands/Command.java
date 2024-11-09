@@ -133,29 +133,31 @@ public class Command implements Serializable {
      *      self-reference
      */
     public Command withProjection(Projection... pProjections) {
-        Map<String, Object> finalProjection = new LinkedHashMap<>();
-        for (Projection p : pProjections) {
-            if (p.getPresent() != null && p.getSliceStart() != null) {
-                throw new IllegalArgumentException("A projection cannot be include/exclude and a slide at same time");
-            }
-            if (p.getPresent() == null && p.getSliceStart() == null) {
-                throw new IllegalArgumentException("A projection must be include/exclude or a slide");
-            }
-            if (p.getPresent() != null) {
-                finalProjection.put(p.getField(),  p.getPresent() ? 1 : 0);
-            } else {
-                // SLICE
-                int start = p.getSliceStart();
-                Map<String, Object> slice = new LinkedHashMap<>();
-                if (p.getSliceEnd() != null) {
-                    slice.put(DataAPIKeywords.SLICE.getKeyword(), new Integer[] {start, p.getSliceEnd()});
-                } else {
-                    slice.put(DataAPIKeywords.SLICE.getKeyword(), start);
+        if (pProjections != null) {
+            Map<String, Object> finalProjection = new LinkedHashMap<>();
+            for (Projection p : pProjections) {
+                if (p.getPresent() != null && p.getSliceStart() != null) {
+                    throw new IllegalArgumentException("A projection cannot be include/exclude and a slide at same time");
                 }
-                finalProjection.put(p.getField(), slice);
+                if (p.getPresent() == null && p.getSliceStart() == null) {
+                    throw new IllegalArgumentException("A projection must be include/exclude or a slide");
+                }
+                if (p.getPresent() != null) {
+                    finalProjection.put(p.getField(), p.getPresent() ? 1 : 0);
+                } else {
+                    // SLICE
+                    int start = p.getSliceStart();
+                    Map<String, Object> slice = new LinkedHashMap<>();
+                    if (p.getSliceEnd() != null) {
+                        slice.put(DataAPIKeywords.SLICE.getKeyword(), new Integer[]{start, p.getSliceEnd()});
+                    } else {
+                        slice.put(DataAPIKeywords.SLICE.getKeyword(), start);
+                    }
+                    finalProjection.put(p.getField(), slice);
+                }
             }
+            payload.appendIfNotNull("projection", finalProjection);
         }
-        payload.appendIfNotNull("projection", finalProjection);
         return this;
     }
 
@@ -183,7 +185,17 @@ public class Command implements Serializable {
     public Command withSort(Sort... sortCriteria) {
         if (sortCriteria != null) {
             LinkedHashMap<String, Object> results = new LinkedHashMap<>();
-            Arrays.stream(sortCriteria).forEach(p -> results.put(p.getField(), p.getValue()));
+            Object sortValue = null;
+            for (Sort p : sortCriteria) {
+                if (p.getOrder() != null) {
+                    sortValue = p.getOrder().getCode();
+                } else if (p.getVectorize() != null) {
+                    sortValue = p.getVectorize();
+                } else {
+                    sortValue = p.getVector();
+                }
+                results.put(p.getField(), sortValue);
+            }
             payload.appendIfNotNull("sort", results);
         }
         return this;
