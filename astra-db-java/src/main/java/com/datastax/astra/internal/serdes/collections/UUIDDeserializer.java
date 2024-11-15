@@ -21,9 +21,12 @@ package com.datastax.astra.internal.serdes.collections;
  */
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -44,11 +47,29 @@ public class UUIDDeserializer extends JsonDeserializer<UUID> {
     @Override
     public UUID deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-        if (null == node.get("$uuid")) {
+        String uuidStr = null;
+        JsonNode node = ctxt.readTree(jp);
+
+        switch (node.getNodeType()) {
+            case STRING:
+                uuidStr = node.asText();
+                break;
+
+            case OBJECT:
+                JsonNode uuidValue = node.get("$uuid");
+                if (null != uuidValue && uuidValue.isTextual()) {
+                    uuidStr = uuidValue.textValue();
+                }
+            default:
+                break;
+        }
+        if (null == uuidStr) {
             throw new IllegalArgumentException("Cannot convert the expression as an UUID " + node);
         }
-        return UUID.fromString(node.get("$uuid").asText());
+        try {
+            return UUID.fromString(uuidStr);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid UUID String: \"" + uuidStr + "\"", e);
+        }
     }
-
 }
