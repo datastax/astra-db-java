@@ -45,12 +45,11 @@ import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.CollectionCursor;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
@@ -167,7 +166,7 @@ public class Collection<T> extends AbstractCommandRunner {
 
     /** Get global Settings for the client. */
     @Getter
-    private final DataAPIOptions dataAPIOptions;
+    private final DataAPIClientOptions dataAPIClientOptions;
 
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
@@ -219,7 +218,7 @@ public class Collection<T> extends AbstractCommandRunner {
         hasLength(collectionName, ARG_COLLECTION_NAME);
         this.collectionName = collectionName;
         this.database       = db;
-        this.dataAPIOptions = db.getOptions();
+        this.dataAPIClientOptions = db.getOptions();
         this.documentClass  = clazz;
         this.commandOptions = commandOptions;
         // Defaulting to data in case of a Collection
@@ -632,8 +631,8 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.concurrency() > 1 && options.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.chunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
+        if (options.chunkSize() > dataAPIClientOptions.getMaxRecordsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIClientOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
@@ -1309,8 +1308,8 @@ public class Collection<T> extends AbstractCommandRunner {
     public int countDocuments(Filter filter, int upperBound, CountDocumentsOptions options)
     throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIOptions.getMaxCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxCount());
+        if (upperBound<1 || upperBound> dataAPIClientOptions.getMaxCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIClientOptions.getMaxCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);

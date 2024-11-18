@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.http;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 
@@ -41,8 +41,8 @@ public class HttpClientOptions implements Cloneable {
 
     /** Default caller name. */
     public static final Caller DEFAULT_CALLER = new Caller("astra-db-java",
-            DataAPIOptions.class.getPackage().getImplementationVersion() != null ?
-            DataAPIOptions.class.getPackage().getImplementationVersion() : "dev");
+            DataAPIClientOptions.class.getPackage().getImplementationVersion() != null ?
+            DataAPIClientOptions.class.getPackage().getImplementationVersion() : "dev");
 
     /** Add headers to db calls. */
     List<Caller> callers = new ArrayList<>();

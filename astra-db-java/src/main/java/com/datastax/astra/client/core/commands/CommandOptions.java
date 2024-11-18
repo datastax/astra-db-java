@@ -22,18 +22,16 @@ package com.datastax.astra.client.core.commands;
 
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER_FEATURE_FLAG_TABLES;
 
 /**
  * Options that will be provided to all commands for this collection.
@@ -305,7 +303,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     /**
      * Default Constructor.
      */
-    public CommandOptions(DataAPIOptions options) {
+    public CommandOptions(DataAPIClientOptions options) {
        if (options != null) {
            this.embeddingAuthProvider     = options.getEmbeddingAuthProvider();
            this.adminAdditionalHeaders    = options.getAdminAdditionalHeaders();

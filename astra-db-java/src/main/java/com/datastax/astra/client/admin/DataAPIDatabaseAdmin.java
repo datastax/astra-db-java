@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
@@ -71,7 +71,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      * @param options
      *      list of options for the admin
      */
-    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIOptions options) {
+    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIClientOptions options) {
         this(new Database(apiEndpoint, token, DEFAULT_KEYSPACE, options));
     }
 

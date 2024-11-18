@@ -49,7 +49,7 @@ import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
  */
 @Getter
 @Slf4j
-public class DataAPIOptions {
+public class DataAPIClientOptions {
 
     /** Feature Flag Tables. */
     public static final String HEADER_FEATURE_FLAG_TABLES = "Feature-Flag-tables";
@@ -121,7 +121,7 @@ public class DataAPIOptions {
      * @param builder
      *      current builder
      */
-    private DataAPIOptions(DataAPIClientOptionsBuilder builder) {
+    private DataAPIClientOptions(DataAPIClientOptionsBuilder builder) {
         this.apiVersion                = builder.apiVersion;
         this.destination               = builder.destination;
         this.maxCount                  = builder.maxCount;
@@ -544,8 +544,8 @@ public class DataAPIOptions {
          * @return
          *      options
          */
-        public DataAPIOptions build() {
-            return new DataAPIOptions(this);
+        public DataAPIClientOptions build() {
+            return new DataAPIClientOptions(this);
         }
     }
 

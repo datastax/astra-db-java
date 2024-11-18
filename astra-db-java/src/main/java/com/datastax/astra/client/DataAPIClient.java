@@ -23,9 +23,8 @@ package com.datastax.astra.client;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.InvalidEnvironmentException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
 
@@ -111,17 +110,17 @@ public class DataAPIClient {
      * defaults to a pre-configured set of options designed for general use.
      * </p>
      **
-     * @see DataAPIOptions for more details on the available configuration parameters and their effects.
+     * @see DataAPIClientOptions for more details on the available configuration parameters and their effects.
      */
-    private final DataAPIOptions options;
+    private final DataAPIClientOptions options;
 
     /**
      * Constructs a {@code DataAPIClient} instance using the specified authentication token. This constructor
-     * initializes the client with default {@link DataAPIOptions} for its configuration.
+     * initializes the client with default {@link DataAPIClientOptions} for its configuration.
      * <p>
      * The provided token is used for authenticating HTTP requests made by this client. It is essential for accessing
      * secured resources. If specific HTTP configurations are required (e.g., custom timeouts, HTTP version), use the
-     * other constructor that accepts both a token and a {@link DataAPIOptions} instance.
+     * other constructor that accepts both a token and a {@link DataAPIClientOptions} instance.
      * </p>
      * <p>
      * This constructor is suitable for scenarios where default client settings are sufficient and no advanced
@@ -141,7 +140,7 @@ public class DataAPIClient {
      *              by the server, typically starting with "AstraCS:.." for Astra environments.
      */
     public DataAPIClient(String token) {
-        this(token, DataAPIOptions.builder().build());
+        this(token, DataAPIClientOptions.builder().build());
     }
 
     /**
@@ -149,7 +148,7 @@ public class DataAPIClient {
      * <p>
      * This constructor allows for the explicit specification of both the authentication token and the advanced
      * HTTP configuration settings. The authentication token is essential for securing access to the API, while the
-     * {@link DataAPIOptions} object provides granular control over the HTTP client's behavior, including timeouts,
+     * {@link DataAPIClientOptions} object provides granular control over the HTTP client's behavior, including timeouts,
      * HTTP version, and other properties impacting connectivity and request handling.
      * </p>
      * <p>
@@ -176,11 +175,11 @@ public class DataAPIClient {
      *
      * @param token The authentication token to be used for securing API access. This token should adhere to the
      *              format required by the API, typically starting with "AstraCS:.." for Astra environments.
-     * @param options The {@link DataAPIOptions} specifying the detailed HTTP client configurations, offering
+     * @param options The {@link DataAPIClientOptions} specifying the detailed HTTP client configurations, offering
      *                customization over aspects such as timeouts and protocol versions.
      * @throws IllegalArgumentException if the token is empty or null, or if the options are null.
      */
-    public DataAPIClient(String token, DataAPIOptions options) {
+    public DataAPIClient(String token, DataAPIClientOptions options) {
         Assert.hasLength(token, ARG_TOKEN);
         Assert.notNull(options, ARG_OPTIONS);
         this.token   = token;

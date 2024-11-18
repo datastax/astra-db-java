@@ -3,7 +3,7 @@ package com.datastax.astra.test.integration.local;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exception.DataAPIHttpException;
@@ -92,7 +92,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
 
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
-                DataAPIOptions.builder()
+                DataAPIClientOptions.builder()
                         .withDestination(DataAPIDestination.CASSANDRA)
                         .withHttpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
                         .build());
@@ -110,7 +110,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     void shouldInitializeHttpClientWithCallerAndProxy() {
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
-                DataAPIOptions.builder()
+                DataAPIClientOptions.builder()
                         .withDestination(DataAPIDestination.CASSANDRA)
                         .addCaller("Cedrick", "1.0")
                         .build());

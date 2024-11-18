@@ -8,7 +8,7 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 
 import static com.datastax.astra.client.DataAPIDestination.CASSANDRA;
-import static com.datastax.astra.client.core.options.DataAPIOptions.builder;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.builder;
 import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 

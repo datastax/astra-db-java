@@ -31,8 +31,6 @@ import java.time.Period;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
-
 public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
 
     private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+)([a-zA-Zµ]+)");

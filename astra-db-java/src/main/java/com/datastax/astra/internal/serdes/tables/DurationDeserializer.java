@@ -30,7 +30,7 @@ import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.encodeDurationAsISO8601;
 
 public class DurationDeserializer extends JsonDeserializer<Duration> {
 

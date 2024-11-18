@@ -22,7 +22,7 @@ package com.datastax.astra.client;
 
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 
@@ -78,7 +78,7 @@ public class DataAPIClients {
     public static DataAPIClient createForLocal() {
         return new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
-                DataAPIOptions.builder()
+                DataAPIClientOptions.builder()
                         .withDestination(DataAPIDestination.CASSANDRA)
                         .enableFeatureFlagTables()
                         .logRequests()
@@ -109,7 +109,7 @@ public class DataAPIClients {
      * as a service. This method streamlines the client setup by requiring only an authentication token, handling
      * the other configuration details internally to ensure compatibility with Astra's API and endpoints.
      *
-     * <p>By specifying the destination as Astra in the {@link DataAPIOptions}, this method ensures that the
+     * <p>By specifying the destination as Astra in the {@link DataAPIClientOptions}, this method ensures that the
      * client is properly configured to communicate with Astra's infrastructure, leveraging the provided token
      * for authentication. This approach enables developers to quickly establish a connection to Astra for
      * database operations without manually setting up connection parameters and authentication details.</p>
@@ -128,7 +128,7 @@ public class DataAPIClients {
      * </pre>
      */
     public static DataAPIClient create(String token) {
-        return new DataAPIClient(token, DataAPIOptions
+        return new DataAPIClient(token, DataAPIClientOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA)
                 .build());
@@ -155,7 +155,7 @@ public class DataAPIClients {
      * </pre>
      */
     public static DataAPIClient createForAstraDev(String token) {
-        return new DataAPIClient(token, DataAPIOptions
+        return new DataAPIClient(token, DataAPIClientOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA_DEV)
                 .withObserver(new LoggingCommandObserver(DataAPIClient.class))
@@ -184,7 +184,7 @@ public class DataAPIClients {
      * </pre>
      */
     public static DataAPIClient createForAstraTest(String token) {
-        return new DataAPIClient(token, DataAPIOptions
+        return new DataAPIClient(token, DataAPIClientOptions
                 .builder()
                 .withDestination(DataAPIDestination.ASTRA_TEST)
                 .withObserver(new LoggingCommandObserver(DataAPIClient.class))

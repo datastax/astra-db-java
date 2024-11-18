@@ -16,7 +16,7 @@ import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
 import static com.datastax.astra.client.DataAPIDestination.HCD;
-import static com.datastax.astra.client.core.options.DataAPIOptions.builder;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.builder;
 import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class QuickStartHCD {

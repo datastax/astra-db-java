@@ -26,9 +26,8 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.regex.Pattern;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.encodeDurationAsISO8601;
 
 /**
  * Serialize a date as compact or ISO8601 format.

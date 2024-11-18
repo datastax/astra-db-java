@@ -3,9 +3,8 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.paging.FindIterable;
 
@@ -18,7 +17,7 @@ public class QuickStartTraining {
         String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
         String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
 
-        DataAPIClient client = new DataAPIClient(astraToken, DataAPIOptions.builder()
+        DataAPIClient client = new DataAPIClient(astraToken, DataAPIClientOptions.builder()
                 .withEmbeddingAPIKey("sfdsfdsfd")
                 .build());
         System.out.println("Connected to AstraDB");
@@ -35,7 +34,7 @@ public class QuickStartTraining {
                 .build());
         System.out.println("Created a collection");
 
-        DataAPIOptions.builder().withEmbeddingAPIKey("EMBEDDING_API_KEY");
+        DataAPIClientOptions.builder().withEmbeddingAPIKey("EMBEDDING_API_KEY");
 
         collection.insertMany(
                 new Document("1")

@@ -21,12 +21,11 @@ package com.datastax.astra.client.tables;
  */
 
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
@@ -79,7 +78,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
@@ -123,7 +121,7 @@ public class Table<T>  extends AbstractCommandRunner {
 
     /** Get global Settings for the client. */
     @Getter
-    private final DataAPIOptions dataAPIOptions;
+    private final DataAPIClientOptions dataAPIClientOptions;
 
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
@@ -165,7 +163,7 @@ public class Table<T>  extends AbstractCommandRunner {
         hasLength(tableName, ARG_TABLE_NAME);
         this.tableName      = tableName;
         this.database       = db;
-        this.dataAPIOptions = db.getOptions();
+        this.dataAPIClientOptions = db.getOptions();
         this.rowClass       = clazz;
         this.commandOptions = commandOptions;
         // Defaulting command types to DATA
@@ -443,8 +441,8 @@ public class Table<T>  extends AbstractCommandRunner {
         if (options.concurrency() > 1 && options.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.chunkSize() > dataAPIOptions.getMaxRecordsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIOptions.getMaxRecordsInInsert() + " at a time.");
+        if (options.chunkSize() > dataAPIClientOptions.getMaxRecordsInInsert()) {
+            throw new IllegalArgumentException("Cannot insert more than " + dataAPIClientOptions.getMaxRecordsInInsert() + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
@@ -924,8 +922,8 @@ public class Table<T>  extends AbstractCommandRunner {
     public int countRows(Filter filter, int upperBound, CountRowsOptions options)
     throws TooManyRowsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIOptions.getMaxCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIOptions.getMaxCount());
+        if (upperBound<1 || upperBound> dataAPIClientOptions.getMaxCount()) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIClientOptions.getMaxCount());
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);

@@ -4,7 +4,7 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 
@@ -35,7 +35,7 @@ public class QuickStartOpenAI {
         String dataAPICassandraToken =  new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
 
         // Create the Client, option is provided at top level and will be available
-        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIOptions.builder()
+        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIClientOptions.builder()
               .withDestination(CASSANDRA)
               .withEmbeddingAPIKey(embeddingApiKey)
               .withObserver(new LoggingCommandObserver(DataAPIClient.class))

@@ -1,7 +1,7 @@
 package dev.langchain4j.store.memory.chat.astradb;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
@@ -42,7 +42,7 @@ class AstraDbChatMemoryIT {
          * Token Value is retrieved from environment Variable 'ASTRA_DB_APPLICATION_TOKEN', it should
          * have Organization Administration permissions (to create db)
          */
-        client       = new DataAPIClient(getAstraToken(), DataAPIOptions.builder().logRequests().build());
+        client       = new DataAPIClient(getAstraToken(), DataAPIClientOptions.builder().logRequests().build());
         astraDBAdmin = client.getAdmin();
 
         /*

@@ -2,7 +2,7 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
 import com.datastax.astra.client.collections.results.CollectionDeleteResult;
 import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
@@ -35,7 +35,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.HEADER_FEATURE_FLAG_TABLES;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER_FEATURE_FLAG_TABLES;
 import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS;
 import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_REQUEST_TIMEOUT_MILLIS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +45,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldPopulateOptions() {
-        DataAPIOptions options = DataAPIOptions.builder()
+        DataAPIClientOptions options = DataAPIClientOptions.builder()
                 .withHttpProxy(new HttpProxy("localhost", 8080))
                 .withApiVersion("v1")
                 .withHttpRedirect(HttpClient.Redirect.NORMAL)
@@ -265,7 +265,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTOverrideMaximumLimits() {
-        DataAPIOptions options = DataAPIOptions.builder()
+        DataAPIClientOptions options = DataAPIClientOptions.builder()
                 .withMaxDocumentsInInsert(100)
                 .build();
 

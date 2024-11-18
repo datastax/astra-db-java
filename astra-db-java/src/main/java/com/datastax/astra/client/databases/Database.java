@@ -30,7 +30,7 @@ import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.exception.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
@@ -87,7 +87,7 @@ public class Database extends AbstractCommandRunner {
 
     /** Options to set up the client. */
     @Getter
-    private final DataAPIOptions options;
+    private final DataAPIClientOptions options;
 
     /** Current Keyspace information.*/
     @Getter
@@ -107,7 +107,7 @@ public class Database extends AbstractCommandRunner {
      *      api endpoint
      */
     public Database(String apiEndpoint, String token) {
-        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_KEYSPACE, DataAPIOptions.builder().build());
+        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_KEYSPACE, DataAPIClientOptions.builder().build());
     }
 
     /**
@@ -121,7 +121,7 @@ public class Database extends AbstractCommandRunner {
      *      keyspace
      */
     public Database(String apiEndpoint, String token, String keyspace) {
-        this(apiEndpoint, token, keyspace, DataAPIOptions.builder().build());
+        this(apiEndpoint, token, keyspace, DataAPIClientOptions.builder().build());
     }
 
     /**
@@ -136,7 +136,7 @@ public class Database extends AbstractCommandRunner {
      * @param options
      *      setup of the clients with options
      */
-    public Database(String apiEndpoint, String token, String keyspace, DataAPIOptions options) {
+    public Database(String apiEndpoint, String token, String keyspace, DataAPIClientOptions options) {
         hasLength(apiEndpoint, "endpoint");
         hasLength(token,     "token");
         hasLength(keyspace, "keyspace");

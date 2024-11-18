@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.exceptions;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.exception.ClientErrorCodes;
 import com.datastax.astra.client.exception.DataAPIException;
 
@@ -33,7 +33,7 @@ public class TooManyDocumentsToCountException extends DataAPIException {
      * Default constructor.
      */
     public TooManyDocumentsToCountException() {
-        super(ClientErrorCodes.HTTP, "Document count exceeds '" + DataAPIOptions.DEFAULT_MAX_COUNT + ", the maximum allowed by the server");
+        super(ClientErrorCodes.HTTP, "Document count exceeds '" + DataAPIClientOptions.DEFAULT_MAX_COUNT + ", the maximum allowed by the server");
     }
 
     /**

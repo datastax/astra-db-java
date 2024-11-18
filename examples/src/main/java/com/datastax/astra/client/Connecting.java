@@ -1,6 +1,6 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 
 import java.util.UUID;
@@ -11,7 +11,7 @@ public class Connecting {
         DataAPIClient client = new DataAPIClient("TOKEN");
 
         // Overriding the default options
-        DataAPIClient client1 = new DataAPIClient("TOKEN", DataAPIOptions
+        DataAPIClient client1 = new DataAPIClient("TOKEN", DataAPIClientOptions
                 .builder()
                 .build());
 

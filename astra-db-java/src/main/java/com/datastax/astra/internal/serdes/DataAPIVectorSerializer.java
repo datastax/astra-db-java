@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -41,7 +41,7 @@ public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
     public void serialize(DataAPIVector dataApiVector, JsonGenerator gen, SerializerProvider provider) throws IOException {
         if (dataApiVector == null) {
             gen.writeNull();
-        } else if (DataAPIOptions.encodeDataApiVectorsAsBase64) {
+        } else if (DataAPIClientOptions.encodeDataApiVectorsAsBase64) {
             // Binary ENCODING
             final int vectorLen = dataApiVector.getEmbeddings().length;
             final byte[] b = new byte[vectorLen << 2];

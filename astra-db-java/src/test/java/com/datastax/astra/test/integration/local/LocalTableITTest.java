@@ -2,9 +2,7 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
-import com.datastax.astra.client.core.options.DataAPIOptions;
-import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.core.paging.TableCursor;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -34,6 +32,7 @@ import com.datastax.astra.client.tables.options.TableFindOptions;
 import com.datastax.astra.client.tables.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.results.TableUpdateResult;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.test.integration.AbstractTableITTest;
@@ -349,7 +348,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         LocalTime localTime = LocalTime.parse(timeString, formatter);
 
-        DataAPIOptions.disableEncodeDataApiVectorsAsBase64();
+        DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
 
         Row row = new Row()
                 .addAscii("p_ascii", "abc")
@@ -692,7 +691,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        CollectionUpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
+        TableUpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
                 .set("name", "new"));
                 //.updateMul(Map.of("price", 1.1d)));
         Assertions.assertThat(u1.getMatchedCount()).isEqualTo(1);

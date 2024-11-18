@@ -1,6 +1,6 @@
 package com.datastax.astra.client.database;
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 
 public class InitializeDatabase {
@@ -13,7 +13,7 @@ public class InitializeDatabase {
 
     // non-default namespace + options
     // 'Options' allows fined-grained configuration.
-    DataAPIOptions options = DataAPIOptions.builder().build();
+    DataAPIClientOptions options = DataAPIClientOptions.builder().build();
     Database db3 = new Database("API_ENDPOINT", "TOKEN", "KEYSPACE", options);
   }
 }

@@ -1,13 +1,11 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
-
-import java.util.List;
 
 import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
@@ -21,7 +19,7 @@ public class Quickstart {
 
     // Initialize the client. The keyspace parameter is optional if you use
     // "default_keyspace".
-    DataAPIClient client = new DataAPIClient(astraToken, DataAPIOptions.builder().build());
+    DataAPIClient client = new DataAPIClient(astraToken, DataAPIClientOptions.builder().build());
     System.out.println("Connected to AstraDB");
 
     Database db = client.getDatabase(astraApiEndpoint, "default_keyspace");

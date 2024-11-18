@@ -21,7 +21,6 @@ package com.datastax.astra.internal.http;
  */
 
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.options.DataAPIOptions;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
@@ -47,7 +46,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 

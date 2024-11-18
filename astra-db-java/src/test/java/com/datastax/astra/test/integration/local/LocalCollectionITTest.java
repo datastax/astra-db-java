@@ -9,7 +9,7 @@ import com.datastax.astra.client.collections.options.CollectionInsertManyOptions
 import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
@@ -229,7 +229,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
        getCollectionVector();
 
        // Made at environment level for Serializers
-       DataAPIOptions.disableEncodeDataApiVectorsAsBase64();
+       DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
 
        Collection<Document> collectionVectorRaw = getDatabase().getCollection(COLLECTION_VECTOR);
        collectionVectorRaw.deleteAll();

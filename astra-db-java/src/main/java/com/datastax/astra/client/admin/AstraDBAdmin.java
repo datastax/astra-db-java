@@ -20,9 +20,8 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.DatabaseInfo;
-import com.datastax.astra.client.exception.InvalidEnvironmentException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -33,7 +32,6 @@ import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.DatabaseCreationRequest;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.dtsx.astra.sdk.utils.observability.LoggingRequestObserver;
@@ -78,7 +76,7 @@ public class AstraDBAdmin {
     final AstraDBOpsClient devopsDbClient;
 
     /** Options to personalized http client other client options. */
-    final DataAPIOptions dataAPIOptions;
+    final DataAPIClientOptions dataAPIClientOptions;
 
     /** Astra Token (credentials). */
     final String token;
@@ -108,11 +106,11 @@ public class AstraDBAdmin {
      * @param options
      *      options for client
      */
-    public AstraDBAdmin(String token, DataAPIOptions options) {
+    public AstraDBAdmin(String token, DataAPIClientOptions options) {
         Assert.hasLength(token, "token");
         Assert.notNull(options, "options");
         this.token = token;
-        this.dataAPIOptions = options;
+        this.dataAPIClientOptions = options;
         if (options.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
             if (options.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
@@ -337,16 +335,16 @@ public class AstraDBAdmin {
     public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
         Assert.notNull(databaseId, "databaseId");
         Assert.hasLength(keyspace, "keyspace");
-        if (!dataAPIOptions.isAstra()) {
-            throwErrorRestrictedAstra("getDatabase(id, keyspace)", dataAPIOptions.getDestination());
+        if (!dataAPIClientOptions.isAstra()) {
+            throwErrorRestrictedAstra("getDatabase(id, keyspace)", dataAPIClientOptions.getDestination());
         }
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
         return new com.datastax.astra.client.databases.Database(
-            new AstraApiEndpoint(databaseId, databaseRegion, dataAPIOptions.getAstraEnvironment()).getApiEndPoint(),
-            token, keyspace, dataAPIOptions) {
+            new AstraApiEndpoint(databaseId, databaseRegion, dataAPIClientOptions.getAstraEnvironment()).getApiEndPoint(),
+            token, keyspace, dataAPIClientOptions) {
         };
     }
 
@@ -372,7 +370,7 @@ public class AstraDBAdmin {
      */
     public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
         Assert.notNull(databaseId, "databaseId");
-        return new AstraDBDatabaseAdmin(token, databaseId, dataAPIOptions);
+        return new AstraDBDatabaseAdmin(token, databaseId, dataAPIClientOptions);
     }
 
     /**

@@ -20,9 +20,8 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.http.HttpClientOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -59,6 +58,6 @@ public class CollectionInsertManyOptions extends CommandOptions<CollectionInsert
     /**
      * If the flag is set to true the command is failing on first error
      */
-    int chunkSize = DataAPIOptions.DEFAULT_MAX_CHUNK_SIZE;
+    int chunkSize = DataAPIClientOptions.DEFAULT_MAX_CHUNK_SIZE;
 
 }

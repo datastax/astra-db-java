@@ -27,10 +27,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Period;
 
-import static com.datastax.astra.client.core.options.DataAPIOptions.encodeDurationAsISO8601;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.encodeDurationAsISO8601;
 
 public class TableDurationSerializer extends JsonSerializer<TableDuration> {
 
