@@ -117,14 +117,17 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
     @Test
     void shouldInsertManyWithDuplicatesOrder() {
-        getCollectionSimple().deleteAll();
+        getDatabase().dropCollection(COLLECTION_SIMPLE);
+        Collection<Document> collectionSimple = getDatabase()
+                .createCollection(COLLECTION_SIMPLE, Document.class);
+        collectionSimple.deleteAll();
         List<Document> players = new ArrayList<>(FRENCH_SOCCER_TEAM.subList(0, 5));
         // duplicate
         players.add(FRENCH_SOCCER_TEAM.get(4));
         players.addAll(FRENCH_SOCCER_TEAM.subList(5,7));
 
         try {
-            CollectionInsertManyResult res = getCollectionSimple().insertMany(players,
+            CollectionInsertManyResult res = collectionSimple.insertMany(players,
                     new CollectionInsertManyOptions().ordered(true));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
@@ -135,8 +138,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         }
 
         try {
-            getCollectionSimple().deleteAll();
-            CollectionInsertManyResult res = getCollectionSimple().insertMany(players, new CollectionInsertManyOptions().ordered(false));
+            collectionSimple.deleteAll();
+            CollectionInsertManyResult res = collectionSimple.insertMany(players, new CollectionInsertManyOptions().ordered(false));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);
             assertThat(res.getCommandsList().get(0).getResponse().getErrors()).hasSize(1);
@@ -146,8 +149,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         }
 
         try {
-            getCollectionSimple().deleteAll();
-            CollectionInsertManyResult res = getCollectionSimple().insertMany(players,
+            collectionSimple.deleteAll();
+            CollectionInsertManyResult res = collectionSimple.insertMany(players,
                     new CollectionInsertManyOptions().ordered(false).chunkSize(10).concurrency(1));
         } catch (DataAPIResponseException res) {
             assertThat(res.getCommandsList()).hasSize(1);

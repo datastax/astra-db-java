@@ -20,9 +20,18 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
+import lombok.Getter;
+
+@Getter
 public class CursorException extends DataAPIException {
 
-    public CursorException(String errorMessage) {
+    private final String state;
+
+    public CursorException(String errorMessage, String state) {
         super(ClientErrorCodes.ERROR, errorMessage);
+        this.state = state;
     }
+
+
+
 }

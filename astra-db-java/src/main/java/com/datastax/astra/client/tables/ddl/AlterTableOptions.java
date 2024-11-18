@@ -40,4 +40,14 @@ public class AlterTableOptions {
      */
     boolean ifExists = true;
 
+    /**
+     * Accessor for serialization.
+     *
+     * @return
+     *      accessor for serialization
+     */
+    public boolean isIfExists() {
+        return ifExists;
+    }
+
 }

@@ -175,6 +175,13 @@ public class DataAPIOptions {
         encodeDataApiVectorsAsBase64 = false;
     }
 
+    /**
+     * Disabling the encoding of the vectors as base64.
+     */
+    public static void disableEncodeDurationAsISO8601() {
+        encodeDurationAsISO8601 = false;
+    }
+
     @Override
     public String toString() {
         return new DatabaseSerializer().marshall(this);

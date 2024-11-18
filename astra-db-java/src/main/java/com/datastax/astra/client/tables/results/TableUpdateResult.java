@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.ddl;
+package com.datastax.astra.client.tables.results;
 
 /*-
  * #%L
@@ -20,34 +20,30 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 
-@Getter
-@Setter
+/**
+ * Return update result.
+ */
+@Getter @Setter
 @NoArgsConstructor
-@Accessors(fluent = true, chain = true)
-public class DropTableIndexOptions {
-
-    /** Improve syntax. */
-    public static final DropTableIndexOptions IF_EXISTS = new DropTableIndexOptions().ifExists(true);
+public class TableUpdateResult {
 
     /**
-     * Condition to upsert the table.
+     * Number of matched documents
      */
-    boolean ifExists = true;
+    Integer matchedCount;
 
     /**
-     * Accessor for serialization.
-     *
-     * @return
-     *      accessor for serialization
+     * Number of modified documents
      */
-    public boolean isIfExists() {
-        return ifExists;
-    }
+    Integer modifiedCount;
+
+    /**
+     * Populated if upserted
+     */
+    Object upsertedId;
 
 }

@@ -41,4 +41,14 @@ public class CreateVectorIndexOptions {
      * Condition to upsert the table.
      */
     boolean ifNotExists = true;
+
+    /**
+     * Accessor for serialization.
+     *
+     * @return
+     *      accessor for serialization
+     */
+    public boolean isIfNotExists() {
+        return ifNotExists;
+    }
 }

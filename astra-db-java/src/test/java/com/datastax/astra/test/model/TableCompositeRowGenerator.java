@@ -14,12 +14,10 @@ public class TableCompositeRowGenerator {
         List<TableCompositeRow> rows = new ArrayList<>();
         Set<String> generatedNames = new HashSet<>();
         Random random = new Random();
-
         while (rows.size() < x) {
-            int age = random.nextInt(100); // Age between 0 and 99
+            int age = random.nextInt(90); // Age between 0 and 99
             String firstName = generateRandomAlphabeticString(NAME_LENGTH, random);
-            //String lastName = generateRandomAlphabeticString(NAME_LENGTH, random);
-            String lastName = "lunven";
+            String lastName = generateRandomAlphabeticString(NAME_LENGTH, random);
             String uniqueKey = firstName + "_" + lastName;
             if (!generatedNames.contains(uniqueKey)) {
                 generatedNames.add(uniqueKey);

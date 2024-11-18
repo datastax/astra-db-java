@@ -53,7 +53,11 @@ public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
                 b[out++] = (byte) (floatBits);
             }
             // Second: write packed bytes (for JSON, Base64 encoded)
+            gen.writeStartObject();
+            // Writing the e-json Wrapper
+            gen.writeFieldName("$binary");
             gen.writeBinary(b);
+            gen.writeEndObject();
         } else {
             // DEFAULT FLOAT ARRAY
             gen.writeStartArray();

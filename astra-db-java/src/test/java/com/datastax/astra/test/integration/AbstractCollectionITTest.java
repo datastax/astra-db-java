@@ -15,6 +15,7 @@ import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.TimeoutOptions;
+import com.datastax.astra.client.core.paging.CollectionCursor;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
@@ -273,6 +274,16 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         for (Document document : findIterable) assertThat(document).isNotNull();
 
         List<Document> documents = getCollectionSimple().findAll().all();
+        assertThat(documents).hasSize(25);
+    }
+
+    @Test
+    public void testCursor() {
+        // Populate the Collection
+        getCollectionSimple().deleteAll();
+        for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
+        CollectionCursor<Document> find = getCollectionSimple().findAllWithCursor();
+        List<Document> documents = find.toList();
         assertThat(documents).hasSize(25);
     }
 

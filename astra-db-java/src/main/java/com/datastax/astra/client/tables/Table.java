@@ -52,6 +52,7 @@ import com.datastax.astra.client.tables.index.IndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
 import com.datastax.astra.client.tables.mapping.EntityTable;
+import com.datastax.astra.client.tables.results.TableUpdateResult;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.api.DataAPIData;
@@ -107,9 +108,6 @@ public class Table<T>  extends AbstractCommandRunner {
     public static final RowSerializer SERIALIZER = new RowSerializer();
 
     // -- Json Outputs
-
-    /** parameters names. */
-    private static final String RESULT_INSERTED_IDS = "insertedIds";
 
     /** table identifier. */
     @Getter
@@ -281,6 +279,11 @@ public class Table<T>  extends AbstractCommandRunner {
             alterTable.append("options", options);
         }
         runCommand(alterTable, commandOptions);
+    }
+
+    public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
+        alter(operation, options);
+        return new Table<>(database, tableName, commandOptions, clazz);
     }
 
     // --------------------------
@@ -469,7 +472,13 @@ public class Table<T>  extends AbstractCommandRunner {
                 }
             }
 
-            if (executor.awaitTermination(options.getTimeoutOptions().dataOperationTimeoutMillis(), TimeUnit.MILLISECONDS)) {
+            long totalTimeout = this.commandOptions
+                    .getTimeoutOptions()
+                    .getDataOperationTimeoutMillis();
+            if (options.getTimeoutOptions() != null) {
+                totalTimeout = options.getTimeoutOptions().dataOperationTimeoutMillis();
+            }
+            if (executor.awaitTermination(totalTimeout, TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
                         System.currentTimeMillis() - start);
             } else {
@@ -640,32 +649,6 @@ public class Table<T>  extends AbstractCommandRunner {
                         .collect(Collectors.toList()), sortVector);
     }
 
-    /**
-     * Executes a paginated 'find' query on the table using the specified filter and find options asynchronously.
-     * <p>
-     * This method constructs and executes a command to fetch a specific page of rows from the table that match
-     * the provided filter criteria. It allows for detailed control over the query through {@code TableFindOptions}, such as sorting,
-     * projection, pagination, and more. The result is wrapped in a {@link Page} object, which includes the rows found,
-     * the page size, and the state for fetching subsequent pages.
-     * </p>
-     * <p>
-     * Pagination is facilitated by the {@code skip}, {@code limit}, and {@code pageState} parameters within {@code TableFindOptions},
-     * enabling efficient data retrieval in scenarios where the total dataset is too large to be fetched in a single request.
-     * Optionally, similarity scoring can be included if {@code includeSimilarity} is set, which is useful for vector-based search queries.
-     * </p>
-     * <p>
-     * The method processes the command's response, mapping each row to the specified row class and collecting them into a list.
-     * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
-     * </p>
-     *
-     * @param filter The filter criteria used to select rows from the table.
-     * @param options The {@link TableFindOptions} providing additional query parameters, such as sorting and pagination.
-     * @return A {@link Page} object containing the rows that match the query, along with pagination information.
-     */
-    public CompletableFuture<Page<T>> findPageASync(Filter filter, TableFindOptions options) {
-        return CompletableFuture.supplyAsync(() -> findPage(filter, options));
-    }
-
     // -------------------------
     // ---   distinct       ----
     // -------------------------
@@ -719,7 +702,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public CollectionUpdateResult updateOne(Filter filter, TableUpdate update) {
+    public TableUpdateResult updateOne(Filter filter, TableUpdate update) {
         return updateOne(filter, update, new TableUpdateOneOptions());
     }
 
@@ -735,7 +718,7 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update one operation
      */
-    public CollectionUpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
+    public TableUpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
@@ -757,8 +740,8 @@ public class Table<T>  extends AbstractCommandRunner {
      * @return
      *      the result of the update many operation
      */
-    private static CollectionUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
-        CollectionUpdateResult result = new CollectionUpdateResult();
+    private static TableUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
+        TableUpdateResult result = new TableUpdateResult();
         DataAPIStatus status = apiResponse.getStatus();
         if (status != null) {
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
@@ -824,23 +807,10 @@ public class Table<T>  extends AbstractCommandRunner {
      *      the options to apply to the operation
      */
     public void deleteMany(Filter filter, TableDeleteManyOptions options) {
-        AtomicInteger totalCount = new AtomicInteger(0);
-        boolean moreData = false;
-        do {
-            Command deleteMany = Command
-                    .create("deleteMany")
-                    .withFilter(filter);
-
-            DataAPIResponse apiResponse = runCommand(deleteMany, options);
-            DataAPIStatus status = apiResponse.getStatus();
-            if (status != null) {
-                if (status.containsKey(RESULT_DELETED_COUNT)) {
-                    totalCount.addAndGet(status.getInteger(RESULT_DELETED_COUNT));
-                }
-                moreData = status.containsKey(RESULT_MORE_DATA);
-            }
-        } while(moreData);
-        System.out.println(totalCount);
+        Command deleteMany = Command
+                .create("deleteMany")
+                .withFilter(filter);
+        runCommand(deleteMany, options);
     }
 
     /**

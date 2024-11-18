@@ -44,4 +44,14 @@ public class CreateIndexOptions {
      */
     boolean ifNotExists = true;
 
+    /**
+     * Accessor for serialization.
+     *
+     * @return
+     *      accessor for serialization
+     */
+    public boolean isIfNotExists() {
+        return ifNotExists;
+    }
+
 }

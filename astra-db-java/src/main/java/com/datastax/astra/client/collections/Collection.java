@@ -20,36 +20,37 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.collections.options.CollectionDeleteManyOptions;
-import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.options.CountDocumentsOptions;
-import com.datastax.astra.client.collections.results.CollectionDeleteResult;
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
-import com.datastax.astra.client.collections.options.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.core.paging.FindIterable;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertOneOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
-import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
-import com.datastax.astra.client.collections.options.UpdateOneOptions;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
 import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.options.CollectionDeleteManyOptions;
+import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.options.CollectionInsertOneOptions;
+import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.options.CountDocumentsOptions;
+import com.datastax.astra.client.collections.options.EstimatedCountDocumentsOptions;
+import com.datastax.astra.client.collections.options.UpdateOneOptions;
+import com.datastax.astra.client.collections.results.CollectionDeleteResult;
+import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.paging.CollectionCursor;
+import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
+import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.paging.Page;
+import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
@@ -1042,6 +1043,10 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public FindIterable<T> findAll() {
         return find(null, new CollectionFindOptions());
+    }
+
+    public CollectionCursor<T> findAllWithCursor() {
+        return new CollectionCursor<T>(this, null, new CollectionFindOptions());
     }
 
     /**

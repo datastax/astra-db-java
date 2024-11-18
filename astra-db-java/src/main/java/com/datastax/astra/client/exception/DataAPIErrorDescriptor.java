@@ -23,8 +23,6 @@ package com.datastax.astra.client.exception;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 /**
  * Encapsulates error details from a JSON API response. This class is used to represent error information
  * such as messages, codes, and exception classes associated with an API request failure. It allows for
@@ -53,13 +51,16 @@ public class DataAPIErrorDescriptor extends RuntimeException {
      */
     String exceptionClass;
 
-    String familty;
+    String family;
 
     String scope;
 
     String title;
 
-    UUID id;
+    /**
+     * It needs to be a String for umarshalling in with the DocumentSerializer without the $uuid
+     */
+    String id;
 
     /**
      * Default constructor for {@link DataAPIErrorDescriptor}. Initializes a new instance of the class without setting any properties.

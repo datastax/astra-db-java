@@ -2,8 +2,11 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.core.options.DataAPIOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
@@ -11,6 +14,7 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.TableDuration;
 import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.client.tables.ddl.AlterTableAddColumns;
@@ -26,6 +30,7 @@ import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
 import com.datastax.astra.client.tables.index.VectorIndexDefinition;
 import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.options.TableFindOptions;
 import com.datastax.astra.client.tables.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.results.TableInsertOneResult;
@@ -49,7 +54,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -160,6 +167,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_tinyint", ColumnTypes.TINYINT)
                 .addColumn("p_double", ColumnTypes.DOUBLE)
                 .addColumn("p_duration", ColumnTypes.DURATION)
+                .addColumn("p_duration2", ColumnTypes.DURATION)
                 .addColumn("p_float", ColumnTypes.FLOAT)
                 .addColumn("p_int", ColumnTypes.INT)
                 .addColumn("p_inet", ColumnTypes.INET)
@@ -341,6 +349,8 @@ public class LocalTableITTest extends AbstractTableITTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         LocalTime localTime = LocalTime.parse(timeString, formatter);
 
+        DataAPIOptions.disableEncodeDataApiVectorsAsBase64();
+
         Row row = new Row()
                 .addAscii("p_ascii", "abc")
                 .addBigInt("p_bigint", 10002L)
@@ -354,7 +364,6 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addSmallInt("p_smallint", (short) 200)
                 .addVarInt("p_varint",new BigInteger("444"))
                 .addTinyInt("p_tinyint",(byte) 17)
-                .addDuration("p_duration", Duration.ofHours(12).plusMinutes(48))
                 .addInet("p_inet", InetAddress.getByAddress(new byte[]{12, 34, 56, 78}))
                 .addDouble("p_double", 987.6543d)
                 .addFloat("p_float", 66.55f)
@@ -366,12 +375,11 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addDecimal("p_decimal", new BigDecimal("123.45"))
                 .addVector("p_vector", new DataAPIVector(new float[] {.1f, 0.2f, 0.3f}))
                 .addList("p_list_int", List.of(4, 17, 34))
-                .addSet("p_set_int",  Set.of(9, 81));
-
-                // .add("p_vector", new float[] {.1f, .2f, .3f})
-                //.addTableDuration("p_duration", TableDuration.of(
-                //        Period.ofDays(3),
-                //        Duration.ofHours(12).plusMinutes(48)));
+                .addSet("p_set_int",  Set.of(9, 81))
+                .addDuration("p_duration", Duration.ofHours(12).plusMinutes(48))
+                .addTableDuration("p_duration2", TableDuration.of(
+                        Period.ofDays(3),
+                        Duration.ofHours(12).plusMinutes(48)));
         getDatabase().getTable(TABLE_ALL_RETURNS).insertOne(row);
     }
 
@@ -484,13 +492,19 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     public void should_delete_many() {
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(75));
+        t.insertMany(
+                new TableCompositeRow(10, "a", "b"),
+                new TableCompositeRow(20, "a", "b"),
+                new TableCompositeRow(30, "a", "b"));
 
-        t.deleteMany(new Filter().where("id").isEqualsTo("lunven"));
+        t.deleteMany(new Filter()
+                .where("name").isEqualsTo("a")
+                .where("id").isEqualsTo("b"));
     }
 
     @Test
     public void should_work_with_returnedResponses() {
+
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
         TableInsertManyResult res = t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(3),
                 new TableInsertManyOptions()
@@ -504,15 +518,164 @@ public class LocalTableITTest extends AbstractTableITTest {
 
     @Test
     public void should_work_with_cursors() {
-        Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        t.deleteAll();
-        t.insertMany(TableCompositeRowGenerator.generateUniqueRandomRows(175));
+        Table<Row> tableCities = getDatabase().createTable("cities", new TableDefinition()
+                .addColumnText("country")
+                .addColumnText("city")
+                .addColumnInt("population")
+                .withPartitionKey("country")
+                .withClusteringColumns(Sort.ascending("city")), IF_NOT_EXISTS);
+        tableCities.deleteAll();
 
-        TableCursor<TableCompositeRow> cursor = t.findAll();
-        while (cursor.hasNext()) {
-            TableCompositeRow row = cursor.next();
-            System.out.println(row);
-        }
+        List<Row> rowsFrance = new ArrayList<>();
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "paris").addInt("population", 2000000));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "paris").addInt("population", 2148271));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "marseille").addInt("population", 861635));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "lyon").addInt("population", 513275));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "toulouse").addInt("population", 471941));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "nice").addInt("population", 341032));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "nantes").addInt("population", 303382));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "strasbourg").addInt("population", 277270));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "montpellier").addInt("population", 277639));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "bordeaux").addInt("population", 252040));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "lille").addInt("population", 232741));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "rennes").addInt("population", 216815));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "reims").addInt("population", 182592));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "le havre").addInt("population", 170147));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "saint-étienne").addInt("population", 171483));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "toulon").addInt("population", 171953));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "grenoble").addInt("population", 158454));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "dijon").addInt("population", 155090));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "angers").addInt("population", 151229));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "nîmes").addInt("population", 150672));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "villeurbanne").addInt("population", 147712));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "saint-denis").addInt("population", 147931));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "aix-en-provence").addInt("population", 143006));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "le mans").addInt("population", 143599));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "clermont-ferrand").addInt("population", 141569));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "brest").addInt("population", 139163));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "tours").addInt("population", 136565));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "amiens").addInt("population", 133448));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "limoges").addInt("population", 132175));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "annecy").addInt("population", 125694));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "perpignan").addInt("population", 120605));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "boulogne-billancourt").addInt("population", 120071));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "metz").addInt("population", 116581));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "besançon").addInt("population", 116353));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "orléans").addInt("population", 114286));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "rouen").addInt("population", 110145));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "mulhouse").addInt("population", 108312));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "caen").addInt("population", 106538));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "nancy").addInt("population", 104321));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "argenteuil").addInt("population", 104962));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "montreuil").addInt("population", 104770));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "saint-paul").addInt("population", 103884));
+        rowsFrance.add(new Row().addText("country", "france").addText("city", "roubaix").addInt("population", 96990));
+        tableCities.insertMany(rowsFrance);
+
+        List<Row> rowsEngland= new ArrayList<>();
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "london").addInt("population", 8908081));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "birmingham").addInt("population", 1141816));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "leeds").addInt("population", 789194));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "sheffield").addInt("population", 584853));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "manchester").addInt("population", 547627));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "liverpool").addInt("population", 494814));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "bristol").addInt("population", 463400));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "nottingham").addInt("population", 331069));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "leicester").addInt("population", 355218));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "coventry").addInt("population", 366785));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "kingston upon hull").addInt("population", 260645));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "stoke-on-trent").addInt("population", 256375));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "wolverhampton").addInt("population", 254406));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "plymouth").addInt("population", 263100));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "derby").addInt("population", 255394));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "southampton").addInt("population", 253651));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "reading").addInt("population", 161780));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "northampton").addInt("population", 212100));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "luton").addInt("population", 213528));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "portsmouth").addInt("population", 205056));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "newcastle upon tyne").addInt("population", 300196));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "sunderland").addInt("population", 275506));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "warrington").addInt("population", 209547));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "york").addInt("population", 210618));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "oxford").addInt("population", 154600));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "peterborough").addInt("population", 202259));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "cambridge").addInt("population", 123867));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "doncaster").addInt("population", 109805));
+        rowsEngland.add(new Row().addText("country", "england").addText("city", "milton keynes").addInt("population", 229941));
+        tableCities.insertMany(rowsEngland);
+
+        List<Row> rowsGermany= new ArrayList<>();
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "berlin").addInt("population", 3644826));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "hamburg").addInt("population", 1841179));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "munich").addInt("population", 1471508));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "cologne").addInt("population", 1085664));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "frankfurt").addInt("population", 753056));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "stuttgart").addInt("population", 634830));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "düsseldorf").addInt("population", 619294));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "dortmund").addInt("population", 588462));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "essen").addInt("population", 583109));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "leipzig").addInt("population", 587857));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "bremen").addInt("population", 567559));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "dresden").addInt("population", 556780));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "hanover").addInt("population", 538068));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "nuremberg").addInt("population", 518370));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "duisburg").addInt("population", 498590));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "bochum").addInt("population", 365587));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "wuppertal").addInt("population", 355100));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "bielefeld").addInt("population", 334195));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "bonn").addInt("population", 329673));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "mannheim").addInt("population", 309370));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "karlsruhe").addInt("population", 313092));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "münster").addInt("population", 314319));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "wiesbaden").addInt("population", 278342));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "augsburg").addInt("population", 295135));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "gelsenkirchen").addInt("population", 260368));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "monchengladbach").addInt("population", 261454));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "braunschweig").addInt("population", 248292));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "chemnitz").addInt("population", 247237));
+        rowsGermany.add(new Row().addText("country", "germany").addText("city", "kiel").addInt("population", 246306));
+        tableCities.insertMany(rowsGermany);
+
+        // Cities in Italy
+        List<Row> rowsItaly = new ArrayList<>();
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "rome").addInt("population", 2873000));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "milan").addInt("population", 1372000));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "naples").addInt("population", 962000));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "turin").addInt("population", 870000));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "palermo").addInt("population", 657561));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "genoa").addInt("population", 580097));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "bologna").addInt("population", 389261));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "florence").addInt("population", 382258));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "bari").addInt("population", 325183));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "catania").addInt("population", 311584));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "venice").addInt("population", 261321));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "verona").addInt("population", 257353));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "messina").addInt("population", 231708));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "padua").addInt("population", 210440));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "trieste").addInt("population", 204234));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "taranto").addInt("population", 195227));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "brescia").addInt("population", 196745));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "prato").addInt("population", 194590));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "parma").addInt("population", 195687));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "modena").addInt("population", 185273));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "reggio calabria").addInt("population", 181447));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "reggio emilia").addInt("population", 171944));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "perugia").addInt("population", 166676));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "livorno").addInt("population", 158371));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "ravenna").addInt("population", 159115));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "cagliari").addInt("population", 154083));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "foggia").addInt("population", 151372));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "rimini").addInt("population", 149403));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "salerno").addInt("population", 133970));
+        rowsItaly.add(new Row().addText("country", "italy").addText("city", "ferrara").addInt("population", 132009));
+        tableCities.insertMany(rowsItaly);
+
+        System.out.println(tableCities.findAll().toList().size());
+
+        tableCities
+                .find(Filters.eq("country", "france"), new TableFindOptions())
+                .forEach(row -> System.out.println(row.get("city")));
+
     }
 
     @Test
