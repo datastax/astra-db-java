@@ -20,18 +20,22 @@ package com.datastax.astra.client.databases;
  * #L%
  */
 
+import com.datastax.astra.client.admin.AdminOptions;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.CollectionDescriptor;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.options.ListCollectionOptions;
 import com.datastax.astra.client.exception.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
@@ -46,15 +50,15 @@ import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.UUID;
 import java.util.stream.Stream;
 
-import static com.datastax.astra.client.core.commands.CommandType.SCHEMA;
+import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -74,24 +78,9 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
 @Slf4j
 public class Database extends AbstractCommandRunner {
 
-    /** Serializer for the Collections. */
-    private static final DatabaseSerializer SERIALIZER = new DatabaseSerializer();
-
-    /** Token to be used with the Database. */
-    @Getter
-    private final String token;
-
     /** Api Endpoint for the API. */
     @Getter
-    private final String dbApiEndpoint;
-
-    /** Options to set up the client. */
-    @Getter
-    private final DataAPIClientOptions options;
-
-    /** Current Keyspace information.*/
-    @Getter
-    private String keyspaceName;
+    private final String apiEndpoint;
 
     /**
      * This core endpoint could be used for admin operations.
@@ -99,65 +88,87 @@ public class Database extends AbstractCommandRunner {
     private final String databaseAdminEndpoint;
 
     /**
-     * Initialization with endpoint and apikey.
-     *
-     * @param token
-     *      api token
-     * @param apiEndpoint
-     *      api endpoint
+     * Options used to initialize the database
      */
-    public Database(String apiEndpoint, String token) {
-        this(apiEndpoint, token, AstraDBAdmin.DEFAULT_KEYSPACE, DataAPIClientOptions.builder().build());
-    }
-
-    /**
-     * Initialization with endpoint and apikey.
-     *
-     * @param token
-     *      api token
-     * @param apiEndpoint
-     *      api endpoint
-     * @param keyspace
-     *      keyspace
-     */
-    public Database(String apiEndpoint, String token, String keyspace) {
-        this(apiEndpoint, token, keyspace, DataAPIClientOptions.builder().build());
-    }
+    @Getter
+    private final DatabaseOptions databaseOptions;
 
     /**
      * Initialization with endpoint and apikey.
      *
      * @param apiEndpoint
      *      api endpoint
-     *  @param token
-     *      api token
-     * @param keyspace
-     *      keyspace
-     * @param options
-     *      setup of the clients with options
+     *  @param databaseOptions
+     *      options with all attributes to connect to the database
      */
-    public Database(String apiEndpoint, String token, String keyspace, DataAPIClientOptions options) {
+    public Database(String apiEndpoint, DatabaseOptions databaseOptions) {
         hasLength(apiEndpoint, "endpoint");
-        hasLength(token,     "token");
-        hasLength(keyspace, "keyspace");
-        notNull(options, "options");
-        this.keyspaceName = keyspace;
-        this.token         = token;
-        this.options       = options;
-        this.dbApiEndpoint = apiEndpoint;
+        notNull(databaseOptions, "options");
+        this.databaseOptions = databaseOptions;
+        this.apiEndpoint = apiEndpoint;
 
         // Command Options inherit from DataAPIOptions
-        this.commandOptions = new CommandOptions<>(options);
-        this.commandOptions.token(token);
-        this.commandOptions.commandType(SCHEMA);
-        this.databaseAdminEndpoint = apiEndpoint.endsWith(options.getApiVersion()) ?
-                apiEndpoint :
-                apiEndpoint + "/" + options.getApiVersion();
+        this.commandOptions = new CommandOptions<>(
+                databaseOptions.getToken(),
+                TABLE_ADMIN,
+                databaseOptions.getDataAPIClientOptions());
+
+        // Endpoint for admin operation (out of db endpoint)
+        this.databaseAdminEndpoint = apiEndpoint
+                .endsWith(databaseOptions.getDataAPIClientOptions().getApiVersion()) ?
+                    apiEndpoint :
+                    apiEndpoint + "/" + databaseOptions.getDataAPIClientOptions().getApiVersion();
     }
 
     // ------------------------------------------
-    // ----       Mutate Keyspace            ----
+    // ----      Core Features               ----
     // ------------------------------------------
+
+    /**
+     * Get the region of the database if deployed in Astra.
+     *
+     * @return
+     *      the region
+     */
+    public String getKeyspace() {
+        return databaseOptions.getKeyspace();
+    }
+
+    /**
+     * Get the region of the database if deployed in Astra.
+     *
+     * @return
+     *      the region
+     */
+    public String getRegion() {
+        if (!databaseOptions.getDataAPIClientOptions().isAstra()) {
+            throwErrorRestrictedAstra("getRegion", databaseOptions.getDataAPIClientOptions().getDestination());
+        }
+        return AstraApiEndpoint.parse(getApiEndpoint()).getDatabaseRegion();
+    }
+
+    /**
+     * Get the region of the database if deployed in Astra.
+     *
+     * @return
+     *      the region
+     */
+    public UUID getId() {
+        if (!databaseOptions.getDataAPIClientOptions().isAstra()) {
+            throwErrorRestrictedAstra("getRegion", databaseOptions.getDataAPIClientOptions().getDestination());
+        }
+        return AstraApiEndpoint.parse(getApiEndpoint()).getDatabaseId();
+    }
+
+    /**
+     * Get Information about the current database.
+     *
+     * @return
+     *      information regarding current database.
+     */
+    public DatabaseInfo getInfo() {
+        return getAdmin().getDatabaseInfo(getId());
+    }
 
     /**
      * This mutates the keyspace to be used.
@@ -168,25 +179,8 @@ public class Database extends AbstractCommandRunner {
      *      the database
      */
     public Database useKeyspace(String keyspace) {
-        this.keyspaceName = keyspace;
+        this.databaseOptions.keyspace(keyspace);
         return this;
-    }
-
-    // ------------------------------------------
-    // ----      Access Region               ----
-    // ------------------------------------------
-
-    /**
-     * Get the region of the database if deployed in Astra.
-     *
-     * @return
-     *      the region
-     */
-    public String getRegion() {
-        if (!options.isAstra()) {
-            throwErrorRestrictedAstra("getRegion", options.getDestination());
-        }
-        return AstraApiEndpoint.parse(getApiEndpoint()).getDatabaseRegion();
     }
 
     // ------------------------------------------
@@ -195,26 +189,76 @@ public class Database extends AbstractCommandRunner {
 
     /**
      * Access a database Admin client from the database
+     *
+     * @return
+     *      access AstraDBAdmin if the client is Astra
+     */
+    public AstraDBAdmin getAdmin() {
+        return getAdmin(databaseOptions.getToken());
+    }
+
+    /**
+     * Access a database Admin client from the database
+     *
+     * @param superUserToken
+     *     provide a token with a super-user role
+     * @return
+     *      access AstraDBAdmin if the client is Astra
+     */
+    public AstraDBAdmin getAdmin(String superUserToken) {
+        return getAdmin(new AdminOptions()
+                .dataAPIClientOptions(databaseOptions.getDataAPIClientOptions())
+                .adminToken(superUserToken));
+    }
+
+    public AstraDBAdmin getAdmin(AdminOptions adminOptions) {
+        if (!databaseOptions.getDataAPIClientOptions().isAstra()) {
+            throwErrorRestrictedAstra("getAdmin", databaseOptions
+                    .getDataAPIClientOptions()
+                    .getDestination());
+        }
+        return new AstraDBAdmin(adminOptions);
+    }
+
+    /**
+     * Access a database Admin client from the database
      * @return
      *      database admin
      */
     public DatabaseAdmin getDatabaseAdmin() {
-        return new DataAPIDatabaseAdmin(this);
+        return getDatabaseAdmin(databaseOptions.getToken());
+    }
+
+    public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
+        return getDatabaseAdmin(new AdminOptions()
+                .dataAPIClientOptions(databaseOptions.getDataAPIClientOptions())
+                .adminToken(superUserToken));
     }
 
     /**
      * Gets the name of the database.
      *
-     * @param superUserToken
-     *      provide a token with a super-user role
+     * @param adminOptions
+     *      admin token
      * @return the database name
      */
-    public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
-        if (options.isAstra()) {
+    public DatabaseAdmin getDatabaseAdmin(AdminOptions adminOptions) {
+        if (databaseOptions.getDataAPIClientOptions().isAstra()) {
             AstraApiEndpoint endpoint = AstraApiEndpoint.parse(getApiEndpoint());
-            return new AstraDBDatabaseAdmin(superUserToken, endpoint.getDatabaseId(), options);
+            DataAPIClientOptions options = databaseOptions.getDataAPIClientOptions().clone();
+            return new AstraDBDatabaseAdmin(
+                    adminOptions.getAdminToken(),
+                    endpoint.getDatabaseId(),
+                    options);
         }
-        return new DataAPIDatabaseAdmin(databaseAdminEndpoint, token, options);
+        DatabaseOptions dbOption = databaseOptions.clone();
+        if (adminOptions.getDataAPIClientOptions() != null) {
+            dbOption.dataAPIClientOptions(adminOptions.getDataAPIClientOptions());
+        }
+        if (adminOptions.getAdminToken() != null) {
+            dbOption.token(adminOptions.getAdminToken());
+        }
+        return new DataAPIDatabaseAdmin(databaseAdminEndpoint, dbOption);
     }
 
     // ------------------------------------------
@@ -228,8 +272,30 @@ public class Database extends AbstractCommandRunner {
      *      a stream containing all the names of all the collections in this database
      */
     public Stream<String> listCollectionNames() {
+        return listCollectionNames(null);
+    }
+
+    /**
+     * Gets the names of all the collections in this database.
+     *
+     * @param options
+     *      options for the list collection
+     * @return
+     *      a stream containing all the names of all the collections in this database
+     */
+    public Stream<String> listCollectionNames(ListCollectionOptions options) {
         Command findCollections = Command.create("findCollections");
-        return runCommand(findCollections,  this.commandOptions)
+
+        // Override the timeout options
+        CommandOptions<?> cmdOptions = this.commandOptions.clone();
+        if (options != null) {
+            cmdOptions.getDataAPIClientOptions().timeoutOptions(cmdOptions
+                    .getDataAPIClientOptions()
+                    .getTimeoutOptions()
+                    .collectionAdminTimeoutMillis(options.getTimeoutMillis()));
+        }
+
+        return runCommand(findCollections, cmdOptions)
                 .getStatusKeyAsList("collections", String.class)
                 .stream();
     }
@@ -240,12 +306,12 @@ public class Database extends AbstractCommandRunner {
      * @return
      *  list of collection definitions
      */
-    public Stream<CollectionDefinition> listCollections() {
+    public Stream<CollectionDescriptor> listCollections() {
         Command findCollections = Command
                 .create("findCollections")
                 .withOptions(new Document().append("explain", true));
         return runCommand(findCollections, this.commandOptions)
-                .getStatusKeyAsList("collections", CollectionDefinition.class)
+                .getStatusKeyAsList("collections", CollectionDescriptor.class)
                 .stream();
     }
 
@@ -260,6 +326,10 @@ public class Database extends AbstractCommandRunner {
     public boolean collectionExists(String collection) {
         return listCollectionNames().anyMatch(collection::equals);
     }
+
+    // ------------------------------------------
+    // ----        Get Collection            ----
+    // ------------------------------------------
 
     /**
      * Gets a collection.
@@ -288,28 +358,19 @@ public class Database extends AbstractCommandRunner {
      *      the collection
      */
     public <T> Collection<T> getCollection(String collectionName, @NonNull Class<T> documentClass) {
-        return getCollection(collectionName, this.commandOptions, documentClass);
+        return getCollection(collectionName, new CollectionOptions<>(this, documentClass));
     }
 
-    /**
-     * Gets a collection, with a specific default document class.
-     *
-     * @param collectionName
-     *      the name of the collection to return
-     * @param documentClass
-     *      the default class to cast any documents returned from the database into.
-     * @param commandOptions
-     *      options to use when using this collection
-     * @param <T>
-     *      the type of the class to use instead of {@code Document}.
-     * @return
-     *      the collection
-     */
-    public <T> Collection<T> getCollection(String collectionName, CommandOptions<?> commandOptions, @NonNull Class<T> documentClass) {
+    public <T> Collection<T> getCollection(String collectionName, CollectionOptions<T> options) {
         hasLength(collectionName, "collectionName");
-        notNull(documentClass, "documentClass");
-        return new Collection<>(this, collectionName, commandOptions, documentClass);
+        notNull(options, "options");
+        notNull(options.getClazz(), "documentClass");
+        return new Collection<>(this, collectionName, options);
     }
+
+    // ------------------------------------------
+    // ----      Create Collection           ----
+    // ------------------------------------------
 
     /**
      * Create a new collection with the given name.
@@ -320,105 +381,20 @@ public class Database extends AbstractCommandRunner {
      *      the instance of collection
      */
     public Collection<Document> createCollection(String collectionName) {
-        return createCollection(collectionName, null, commandOptions, Document.class);
+        return createCollection(collectionName, null, new CollectionOptions<>(this, Document.class));
     }
 
     /**
      * Create a default new collection for vector.
      * @param collectionName
      *      collection name
-     * @param dimension
-     *      vector dimension
-     * @param metric
-     *      vector metric
+     * @param collectionDefinition
+     *      definition of specialized items for the collection
      * @return
      *      the instance of collection
      */
-    public Collection<Document> createCollection(String collectionName, int dimension, SimilarityMetric metric) {
-        return createCollection(collectionName, dimension, metric, Document.class);
-    }
-
-    /**
-     * Create a default new collection for vector.
-     * @param collectionName
-     *      collection name
-     * @param dimension
-     *      vector dimension
-     * @param metric
-     *      vector metric
-     * @param documentClass
-     *      class of document to return
-     * @param <T>
-     *          working class for the document
-     * @return
-     *      the instance of collection
-     */
-    public <T> Collection<T> createCollection(String collectionName, int dimension, SimilarityMetric metric, Class<T> documentClass) {
-            return createCollection(collectionName, CollectionOptions.builder()
-                    .vectorDimension(dimension)
-                    .vectorSimilarity(metric)
-                    .build(), this.commandOptions, documentClass);
-    }
-
-    /**
-     * Create a new collection with the given name.
-     *
-     * @param collectionName
-     *      the name for the new collection to create
-     * @param documentClass
-     *      class of document to return
-     * @param <T>
-     *          working class for the document
-     * @return the collection
-     */
-    public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
-        return createCollection(collectionName, null, this.commandOptions, documentClass);
-    }
-
-    /**
-     * Create a new collection with the given name.
-     *
-     * @param collectionName
-     *      the name for the new collection to create
-     * @param collectionOptions
-     *      various options for creating the collection
-     * @return the collection
-     */
-    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions) {
-        return createCollection(collectionName, collectionOptions, this.commandOptions, Document.class);
-    }
-
-    /**
-     * Create a new collection with the given name.
-     *
-     * @param collectionName
-     *      collection name
-     * @param collectionOptions
-     *      collection options
-     * @param documentClass
-     *      document class
-     * @return
-     *      the collection created
-     * @param <T>
-     *      working object for the document
-     */
-    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions,  Class<T> documentClass) {
-        return createCollection(collectionName, collectionOptions, this.commandOptions, documentClass);
-    }
-
-    /**
-     * Create a new collection with the given name.
-     *
-     * @param collectionName
-     *      the name for the new collection to create
-     * @param collectionOptions
-     *      various options for creating the collection
-     * @param pCommandOptions
-     *      options to use when using this collection
-     * @return the collection
-     */
-    public Collection<Document> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> pCommandOptions) {
-        return createCollection(collectionName, collectionOptions, pCommandOptions, Document.class);
+    public Collection<Document> createCollection(String collectionName, CollectionDefinitionOptions collectionDefinition) {
+        return createCollection(collectionName, collectionDefinition, new CollectionOptions<>(this, Document.class));
     }
 
     /**
@@ -426,29 +402,35 @@ public class Database extends AbstractCommandRunner {
      *
      * @param collectionName
      *      the name for the new collection to create
+     * @param collectionDefinitionOptions
+     *      definition describing the structure of the collection object
      * @param collectionOptions
-     *      various options for creating the collection
-     * @param documentClass
-     *     the default class to cast any documents returned from the database into.
-     * @param pCommandOptions
-     *      options to use when using this collection
+     *     settings for the client collection object
      * @param <T>
-     *          working class for the document
-     * @return the collection
+     *     working class for the document
+     * @return
+     *    the initialized collection
      */
-    public <T> Collection<T> createCollection(String collectionName, CollectionOptions collectionOptions, CommandOptions<?> pCommandOptions
-            , Class<T> documentClass) {
+    public <T> Collection<T> createCollection(String collectionName,
+        CollectionDefinitionOptions collectionDefinitionOptions,
+        CollectionOptions<T> collectionOptions) {
         hasLength(collectionName, "collectionName");
-        notNull(documentClass, "documentClass");
+        notNull(collectionOptions, "collectionOptions");
+        notNull(collectionOptions.getClazz(), "documentClass");
+        notNull(collectionOptions.getSerializer(), "serializer");
+
         Command createCollection = Command
                 .create("createCollection")
                 .append("name", collectionName);
-        if (collectionOptions != null) {
-            createCollection.withOptions(SERIALIZER.convertValue(collectionOptions, Document.class));
+        if (collectionDefinitionOptions != null) {
+            createCollection.withOptions(collectionOptions
+                    .getSerializer()
+                    .convertValue(collectionDefinitionOptions, Document.class));
         }
-        runCommand(createCollection, pCommandOptions);
+
+        runCommand(createCollection, collectionOptions);
         log.info("Collection  '" + green("{}") + "' has been created", collectionName);
-        return getCollection(collectionName, commandOptions, documentClass);
+        return getCollection(collectionName, collectionOptions);
     }
 
     /**
@@ -799,13 +781,13 @@ public class Database extends AbstractCommandRunner {
     /** {@inheritDoc} */
     @Override
     public String getApiEndpoint() {
-        StringBuilder dbApiEndPointBuilder = new StringBuilder(dbApiEndpoint);
+        StringBuilder dbApiEndPointBuilder = new StringBuilder(apiEndpoint);
         // Adding /api/json if needed for Astra.
-        switch(options.getDestination()) {
+        switch(databaseOptions.getDestination()) {
             case ASTRA:
             case ASTRA_TEST:
             case ASTRA_DEV:
-                if (dbApiEndpoint.endsWith(".com")) {
+                if (apiEndpoint.endsWith(".com")) {
                     dbApiEndPointBuilder.append("/api/json");
                 }
                 break;
@@ -815,7 +797,7 @@ public class Database extends AbstractCommandRunner {
         }
         return dbApiEndPointBuilder
                 .append("/")
-                .append(options.getApiVersion())
+                .append(databaseOptions.getApiVersion())
                 .append("/")
                 .append(keyspaceName)
                 .toString();

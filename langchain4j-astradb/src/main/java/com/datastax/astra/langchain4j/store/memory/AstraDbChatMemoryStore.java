@@ -21,7 +21,7 @@ package com.datastax.astra.langchain4j.store.memory;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.databases.Database;
 import dev.langchain4j.data.message.ChatMessage;
@@ -78,7 +78,7 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
      *      client for existing active database
      */
     public AstraDbChatMemoryStore(Database database) {
-        this(database.createCollection(DEFAULT_COLLECTION_NAME, CollectionOptions
+        this(database.createCollection(DEFAULT_COLLECTION_NAME, CollectionDefinitionOptions
                 .builder().indexingDeny(PROP_MESSAGE) // i do not need index on the message
                 .build(), AstraDbChatMessage.class));
     }
@@ -89,7 +89,7 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
     public void create() {
         if (!chatMemoryCollection.exists()) {
             astraDatabase.createCollection(
-                    chatMemoryCollection.getCollectionName(),CollectionOptions
+                    chatMemoryCollection.getCollectionName(), CollectionDefinitionOptions
                         .builder()
                         .indexingDeny(PROP_MESSAGE)
                         .build());

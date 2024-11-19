@@ -3,7 +3,7 @@ package com.datastax.astra.samples;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.tool.loader.csv.CsvLoader;
@@ -28,7 +28,7 @@ public class CsvLoaderWiki {
         Collection<Document> wiki = wikiDataDb.createCollection(
                 "wiki",
                 // Create collection with a Service in vectorize
-                CollectionOptions.builder()
+                CollectionDefinitionOptions.builder()
                         .vectorDimension(768) // found from the CSV
                         .vectorSimilarity(SimilarityMetric.COSINE)
                         .build());

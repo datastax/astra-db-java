@@ -229,7 +229,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
        getCollectionVector();
 
        // Made at environment level for Serializers
-       DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
+       DataAPIClientOptions.getSerdesOptions().disableEncodeDataApiVectorsAsBase64();
 
        Collection<Document> collectionVectorRaw = getDatabase().getCollection(COLLECTION_VECTOR);
        collectionVectorRaw.deleteAll();

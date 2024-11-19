@@ -65,10 +65,10 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      target database
      */
     public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db) {
-        this.databaseId     = UUID.fromString(db.getDbApiEndpoint().substring(8, 44));
-        this.dataAPIClientOptions = db.getOptions();
-        this.token          = db.getToken();
-        this.db             = db;
+        this.databaseId           = UUID.fromString(db.getApiEndpoint().substring(8, 44));
+        this.dataAPIClientOptions = db.getDatabaseOptions().getDataAPIClientOptions();
+        this.token                = db.getDatabaseOptions().getToken();
+        this.db                   = db;
         this.devopsDbClient = new AstraDBOpsClient(token, dataAPIClientOptions.getAstraEnvironment());
     }
 
@@ -162,7 +162,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String tokenUser) {
-        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), tokenUser, keyspace, db.getOptions());
+        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), tokenUser, keyspace, db.getDatabaseOptions());
     }
 
     @Override
@@ -178,7 +178,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
         log.debug("findEmbeddingProviders");
         DataAPIDatabaseAdmin admin =
-                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getOptions().getApiVersion(), token, db.getOptions());
+                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getDatabaseOptions().getApiVersion(), token, db.getDatabaseOptions());
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 

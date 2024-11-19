@@ -20,14 +20,19 @@ package com.datastax.astra.client.core.http;
  * #L%
  */
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * Subclass to represent an http proxy.
  */
-@Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Accessors(fluent = true, chain = true)
 public class HttpProxy implements Cloneable {
 
     /** hostname of the proxy. */
@@ -36,21 +41,26 @@ public class HttpProxy implements Cloneable {
     /** port of the proxy. */
     int port;
 
-    /**
-     * Default constructor.
-     *
-     * @param hostname
-     *    host name
-     * @param port
-     *      roxy port
-     */
-    public HttpProxy(String hostname, int port) {
-        this.hostname = hostname;
-        this.port = port;
-    }
-
     @Override
     public HttpProxy clone() {
         return new HttpProxy(this.hostname, this.port);
+    }
+
+    /**
+     * Gets hostname
+     *
+     * @return value of hostname
+     */
+    public String getHostname() {
+        return hostname;
+    }
+
+    /**
+     * Gets port
+     *
+     * @return value of port
+     */
+    public int getPort() {
+        return port;
     }
 }

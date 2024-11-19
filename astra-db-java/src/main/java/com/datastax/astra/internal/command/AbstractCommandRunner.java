@@ -23,6 +23,9 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.commands.CommandRunner;
+import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
@@ -130,39 +133,80 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public DataAPIResponse runCommand(Command command, CommandOptions<?> spec) {
+    public DataAPIResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
 
-        // === HTTP CLIENT ===
+        // Initializing options with the Collection/Table/Database level options
+        DataAPIClientOptions options = this.commandOptions.getDataAPIClientOptions();
+
+        // ==================
+        // === HTTPCLIENT ===
+        // ==================
+
         if (httpClient == null) {
-            httpClient = new RetryHttpClient(this.commandOptions);
+            httpClient = new RetryHttpClient(options.getHttpClientOptions(), options.getTimeoutOptions());
         }
         RetryHttpClient requestHttpClient = httpClient;
-        if (spec!= null &&
-                (spec.getHttpClientOptions() != null || spec.getTimeoutOptions() != null)) {
-            // We need it to initialize the client
-            if (spec.getTimeoutOptions() == null) {
-                spec.timeoutOptions(this.commandOptions.getTimeoutOptions().clone());
+
+        // Should we override the client to use a different one
+        if (overridingOptions != null && overridingOptions.getDataAPIClientOptions() != null) {
+            DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
+            HttpClientOptions overHttpClientOptions = overClientOptions.getHttpClientOptions();
+            TimeoutOptions    overTimeoutOptions    = overClientOptions.getTimeoutOptions();
+            // User provided specific parameters for the client
+            if (overHttpClientOptions != null || overTimeoutOptions != null) {
+                requestHttpClient = new RetryHttpClient(
+                        overHttpClientOptions != null ? overHttpClientOptions : options.getHttpClientOptions(),
+                        overTimeoutOptions != null ? overTimeoutOptions : options.getTimeoutOptions());
             }
-            if (spec.getHttpClientOptions() == null) {
-                spec.httpClientOptions(this.commandOptions.getHttpClientOptions().clone());
-            }
-            requestHttpClient = new RetryHttpClient(spec);
         }
 
+        // ==================
         // === OBSERVERS ===
-        List<CommandObserver> observers = new ArrayList<>(commandOptions.getObservers().values());
-        if (spec != null && spec.getObservers() != null) {
-            for (Map.Entry<String, CommandObserver> observer : spec.getObservers().entrySet()) {
-                if (!commandOptions.getObservers().containsKey(observer.getKey())) {
+        // ==================
+
+        List<CommandObserver> observers = new ArrayList<>(options.getObservers().values());
+        if (overridingOptions != null
+                && overridingOptions.getDataAPIClientOptions() != null
+                && overridingOptions.getDataAPIClientOptions().getObservers() != null) {
+            // Specialization has been found
+            for (Map.Entry<String, CommandObserver> observer : overridingOptions
+                    .getDataAPIClientOptions()
+                    .getObservers()
+                    .entrySet()) {
+                // Add only if not already present
+                if (!options.getObservers().containsKey(observer.getKey())) {
                     observers.add(observer.getValue());
                 }
             }
         }
 
-        // === TOKEN ===
+        // ==================
+        // ===   TOKEN    ===
+        // ==================
+
         String token = commandOptions.getToken();
-        if (spec != null && spec.getToken() != null) {
-            token = spec.getToken();
+        if (overridingOptions != null && overridingOptions.getToken() != null) {
+            token = overridingOptions.getToken();
+        }
+
+        // =======================
+        // ===   SERIALIZER    ===
+        // =======================
+
+        DataAPISerializer serializer = getSerializer();
+        if (overridingOptions != null && overridingOptions.getSerializer() != null) {
+            serializer = overridingOptions.getSerializer();
+        }
+
+        // =======================
+        // ===   Timeouts      ===
+        // =======================
+
+        long requestTimeout = commandOptions.getTimeout();
+        if (overridingOptions != null
+                && overridingOptions.getDataAPIClientOptions() != null
+                && overridingOptions.getDataAPIClientOptions().getTimeoutOptions() != null) {
+            requestTimeout = overridingOptions.getTimeout();
         }
 
         // Initializing the Execution infos (could be pushed to 3rd parties)
@@ -170,11 +214,12 @@ public abstract class AbstractCommandRunner implements CommandRunner {
                 ExecutionInfos.builder()
                         .withCommand(command)
                         .withCommandOptions(this.commandOptions)
-                        .withOverrideCommandOptions(spec);
+                        .withOverrideCommandOptions(overridingOptions);
 
         try {
+
             // (Custom) Serialization different for Tables and Documents
-            String jsonCommand = getSerializer().marshall(command);
+            String jsonCommand = serializer.marshall(command);
 
             // Build the request
             HttpRequest.Builder builder=  HttpRequest.newBuilder()
@@ -185,40 +230,34 @@ public abstract class AbstractCommandRunner implements CommandRunner {
                         .header(HEADER_REQUESTED_WITH, httpClient.getUserAgentHeader())
                         .header(HEADER_TOKEN, token)
                         .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand));
+                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand))
+                        .timeout(Duration.ofSeconds(requestTimeout / 1000));
 
-            // === Request TIMEOUT ===
-            long requestTimeout = commandOptions.selectRequestTimeout();
-            if (spec!= null && spec.getTimeoutOptions() != null) {
-                requestTimeout = CommandOptions.selectRequestTimeout(
-                        commandOptions.getCommandType(),
-                        spec.getTimeoutOptions());
+            // =======================
+            // ===   HEADERS       ===
+            // =======================
+
+            if (options.getEmbeddingAuthProvider() != null) {
+                options.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
             }
-
-            builder.timeout(Duration.ofSeconds(requestTimeout / 1000));
-
-            // === Embedding KEY ===
-            if (commandOptions.getEmbeddingAuthProvider() != null) {
-                commandOptions.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+            if (options.getDatabaseAdditionalHeaders() != null) {
+                options.getDatabaseAdditionalHeaders().forEach(builder::header);
             }
-            if (spec!= null && spec.getEmbeddingAuthProvider() != null) {
-                spec.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+            if (options.getAdminAdditionalHeaders() != null) {
+                options.getAdminAdditionalHeaders().forEach(builder::header);
             }
 
-            // === Extra Headers (Database) ====
-            if (commandOptions.getDatabaseAdditionalHeaders() != null) {
-                commandOptions.getDatabaseAdditionalHeaders().forEach(builder::header);
-            }
-            if (spec!= null && spec.getDatabaseAdditionalHeaders() != null) {
-                spec.getDatabaseAdditionalHeaders().forEach(builder::header);
-            }
-
-            // === Extra Headers (Admin) ====
-            if (commandOptions.getAdminAdditionalHeaders() != null) {
-                commandOptions.getAdminAdditionalHeaders().forEach(builder::header);
-            }
-            if (spec!= null && spec.getAdminAdditionalHeaders() != null) {
-                spec.getAdminAdditionalHeaders().forEach(builder::header);
+            if (overridingOptions!= null && overridingOptions.getDataAPIClientOptions() != null) {
+                DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
+                if (overClientOptions.getEmbeddingAuthProvider() != null) {
+                    overClientOptions.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+                }
+                if (overClientOptions.getDatabaseAdditionalHeaders() != null) {
+                    overClientOptions.getDatabaseAdditionalHeaders().forEach(builder::header);
+                }
+                if (overClientOptions.getAdminAdditionalHeaders() != null) {
+                    overClientOptions.getAdminAdditionalHeaders().forEach(builder::header);
+                }
             }
 
             HttpRequest request = builder.build();

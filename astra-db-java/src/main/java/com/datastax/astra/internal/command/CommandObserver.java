@@ -41,7 +41,7 @@ package com.datastax.astra.internal.command;
  *     <li>Triggering additional processes or workflows based on the success or failure of a command.</li>
  * </ul>
  */
-public interface CommandObserver {
+public interface CommandObserver extends Cloneable {
 
     /**
      * Invoked when a command is executed, providing an opportunity for registered observers to perform

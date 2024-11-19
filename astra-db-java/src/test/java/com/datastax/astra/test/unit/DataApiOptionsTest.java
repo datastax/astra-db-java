@@ -22,7 +22,7 @@ import com.datastax.astra.client.collections.documents.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.FilterOperator;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER_FEATURE_FLAG_TABLES;
-import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS;
+import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS;
 import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_REQUEST_TIMEOUT_MILLIS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,7 +55,7 @@ class DataApiOptionsTest {
                 // equivalent to:
                 .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true")
                 .build();
-        assertThat(options.getHttpClientOptions().getProxy().getHostname()).isEqualTo("localhost");
+        assertThat(options.getHttpClientOptions().getHttpProxy().getHostname()).isEqualTo("localhost");
     }
 
     @Test
@@ -64,7 +64,7 @@ class DataApiOptionsTest {
         assertThat(new CollectionInsertManyOptions().
                 timeoutOptions(new TimeoutOptions()
                         .requestTimeoutMillis(DEFAULT_REQUEST_TIMEOUT_MILLIS)
-                        .dataOperationTimeoutMillis(DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS)))
+                        .generalMethodTimeoutMillis(DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS)))
                 .isNotNull();
         assertThat(new CollectionInsertManyOptions().ordered(true)).isNotNull();
         assertThat(new CollectionInsertManyOptions().concurrency(2)).isNotNull();
@@ -180,7 +180,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestCollectionOptions() {
-        CollectionOptions c = new CollectionOptions();
+        CollectionDefinitionOptions c = new CollectionDefinitionOptions();
 
         VectorOptions v = new VectorOptions();
 

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.http;
+package com.datastax.astra.client.admin;
 
 /*-
  * #%L
@@ -20,42 +20,43 @@ package com.datastax.astra.client.core.http;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.internal.utils.Assert;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-/**
- * Caller information.
- */
 @Setter
 @Accessors(fluent = true, chain = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Caller {
+public class AdminOptions {
 
-    /** caller name. */
-    String name;
+    private String adminToken;
 
-    /** caller version. */
-    String version;
+    private DataAPIClientOptions dataAPIClientOptions;
 
-    /**
-     * Gets name
-     *
-     * @return value of name
-     */
-    public String getName() {
-        return name;
+    public AdminOptions() {
+        this(new DataAPIClientOptions());
+    }
+
+    public AdminOptions(DataAPIClientOptions options) {
+        Assert.notNull(options, "options");
+        this.dataAPIClientOptions = options.clone();
     }
 
     /**
-     * Gets version
+     * Gets token
      *
-     * @return value of version
+     * @return value of token
      */
-    public String getVersion() {
-        return version;
+    public String getAdminToken() {
+        return adminToken;
+    }
+
+    /**
+     * Gets dataAPIClientOptions
+     *
+     * @return value of dataAPIClientOptions
+     */
+    public DataAPIClientOptions getDataAPIClientOptions() {
+        return dataAPIClientOptions;
     }
 }

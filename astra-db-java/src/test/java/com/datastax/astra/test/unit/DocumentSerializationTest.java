@@ -1,6 +1,6 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
@@ -25,7 +25,7 @@ class DocumentSerializationTest {
     void shouldSerializeCommand() {
         Command ccc = Command.create("createCollection")
                 .append("name", "demo")
-                .withOptions(CollectionOptions.builder()
+                .withOptions(CollectionDefinitionOptions.builder()
                     .vectorDimension(14)
                     .vectorSimilarity(SimilarityMetric.COSINE)
                     .build());

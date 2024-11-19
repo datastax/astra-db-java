@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
@@ -89,7 +89,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     protected Collection<ProductString> getCollectionVector() {
         if (collectionVector == null) {
             collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                    CollectionOptions
+                    CollectionDefinitionOptions
                             .builder()
                             .vectorDimension(14)
                             .vectorSimilarity(SimilarityMetric.COSINE)
@@ -324,7 +324,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         getCollectionSimple().insertMany(docList, new CollectionInsertManyOptions()
                 .concurrency(5)
                 .timeoutOptions(new TimeoutOptions()
-                        .dataOperationTimeoutMillis(100000)) // I need 100s.
+                        .generalMethodTimeoutMillis(100000)) // I need 100s.
         );
         assertThat(getCollectionSimple().countDocuments(100)).isEqualTo(55);
     }

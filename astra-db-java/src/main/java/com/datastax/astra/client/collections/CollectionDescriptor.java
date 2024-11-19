@@ -28,7 +28,7 @@ import lombok.Setter;
  * Represents the Collection definition with its name and metadata.
  */
 @Getter @Setter
-public class CollectionDefinition {
+public class CollectionDescriptor {
 
     /**
      * Name of the collection.
@@ -38,12 +38,12 @@ public class CollectionDefinition {
     /**
      * Options for the collection.
      */
-    private CollectionOptions options;
+    private CollectionDefinitionOptions options;
 
     /**
      * Default constructor.
      */
-    public CollectionDefinition() {
+    public CollectionDescriptor() {
         // left blank, serialization with jackson
     }
 

@@ -1,6 +1,6 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
@@ -29,7 +29,7 @@ public class QuickStartTraining {
         Collection<Document> collection = db
                 .createCollection("vector2", 5, COSINE);
 
-        db.createCollection("sdfdsf", CollectionOptions.builder()
+        db.createCollection("sdfdsf", CollectionDefinitionOptions.builder()
                 .vectorize("openai", "eeneee")
                 .build());
         System.out.println("Created a collection");

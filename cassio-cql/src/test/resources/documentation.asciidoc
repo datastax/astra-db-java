@@ -284,7 +284,7 @@ Parameters:
 | The similarity metric to use for the vectors in the collection.
 
 | `def`
-| `CollectionDefinition`
+| `CollectionDescriptor`
 | The definition of the collection to create.
 |===
 
@@ -1035,7 +1035,7 @@ Parameters:
 | The dimension for the vector in the collection.
 
 | `def`
-| `CollectionDefinition`
+| `CollectionDescriptor`
 | The definition of the collection to create.
 
 | `bean`

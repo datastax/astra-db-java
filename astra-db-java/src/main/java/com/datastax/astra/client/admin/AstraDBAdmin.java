@@ -66,20 +66,11 @@ public class AstraDBAdmin {
     /** Default region. (free-tier) */
     public static final String FREE_TIER_CLOUD_REGION = "us-east1";
 
-    /** Header name used to hold the Astra Token. */
-    public static final String TOKEN_HEADER_PARAM = "X-Token";
-
-    /** Default keyspace (same created by the ui). */
-    public static final String DEFAULT_KEYSPACE = "default_keyspace";
-
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
 
     /** Options to personalized http client other client options. */
-    final DataAPIClientOptions dataAPIClientOptions;
-
-    /** Astra Token (credentials). */
-    final String token;
+    final AdminOptions adminOptions;
 
     /** Side Http Client (use only to resume a db). */
     final HttpClient httpClient;
@@ -100,31 +91,28 @@ public class AstraDBAdmin {
 
     /**
      * Initialization with an authentication token and target environment, Use this constructor for testing purpose.
-     *
-     * @param token
-     *      authentication token
+
      * @param options
      *      options for client
      */
-    public AstraDBAdmin(String token, DataAPIClientOptions options) {
-        Assert.hasLength(token, "token");
+    public AstraDBAdmin(AdminOptions options) {
         Assert.notNull(options, "options");
-        this.token = token;
-        this.dataAPIClientOptions = options;
-        if (options.getObservers() != null) {
+        this.adminOptions = options;
+        DataAPIClientOptions dataAPIClientOptions = options.getDataAPIClientOptions();
+        if (dataAPIClientOptions.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
-            if (options.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
+            if (dataAPIClientOptions.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
-            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment(), devopsObservers);
+            this.devopsDbClient = new AstraDBOpsClient(options.getAdminToken(), dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
         } else {
-            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
+            this.devopsDbClient = new AstraDBOpsClient(options.getAdminToken(), dataAPIClientOptions.getAstraEnvironment());
         }
 
         // Local Agent for Resume
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
-        httpClientBuilder.version(options.getHttpClientOptions().getHttpVersion());
-        httpClientBuilder.connectTimeout(Duration.ofMillis(options.getTimeoutOptions().connectTimeoutMillis()));
+        httpClientBuilder.version(dataAPIClientOptions.getHttpClientOptions().getHttpVersion());
+        httpClientBuilder.connectTimeout(Duration.ofMillis(dataAPIClientOptions.getTimeoutOptions().getConnectTimeoutMillis()));
         this.httpClient = httpClientBuilder.build();
     }
 

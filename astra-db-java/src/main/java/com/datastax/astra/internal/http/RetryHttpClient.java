@@ -100,33 +100,23 @@ public class RetryHttpClient {
     /**
      * Initialize the instance with all items
      *
-     * @param commandOptions
-     *      configuration of the HTTP CLIENT.
-     */
-    public RetryHttpClient(CommandOptions<?> commandOptions) {
-        this(commandOptions.getHttpClientOptions(), commandOptions.getTimeoutOptions());
-    }
-
-    /**
-     * Initialize the instance with all items
-     *
      * @param httpClientOptions
      *      http client options
      * @param timeoutOptions
      *     timeout options
      *
      */
-    protected RetryHttpClient(HttpClientOptions httpClientOptions, TimeoutOptions timeoutOptions) {
+    public RetryHttpClient(HttpClientOptions httpClientOptions, TimeoutOptions timeoutOptions) {
         this.httpClientOptions = httpClientOptions;
         this.timeoutOptions    = timeoutOptions;
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
         httpClientBuilder.version(httpClientOptions.getHttpVersion());
         httpClientBuilder.followRedirects(httpClientOptions.getHttpRedirect());
         httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.connectTimeoutMillis()));
-        if (httpClientOptions.getProxy() != null) {
+        if (httpClientOptions.getHttpProxy() != null) {
             httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
-                    httpClientOptions.getProxy().getHostname(),
-                    httpClientOptions.getProxy().getPort())));
+                    httpClientOptions.getHttpProxy().getHostname(),
+                    httpClientOptions.getHttpProxy().getPort())));
         }
         httpClient = httpClientBuilder.build();
 

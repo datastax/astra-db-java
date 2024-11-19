@@ -22,7 +22,8 @@ package com.datastax.astra.client.core.http;
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.utils.Assert;
-import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -32,7 +33,8 @@ import java.util.List;
 /**
  * Options to set up http Client.
  */
-@Getter
+@Setter
+@Accessors(fluent = true, chain = true)
 public class HttpClientOptions implements Cloneable {
 
     // --------------------------------------------
@@ -59,6 +61,15 @@ public class HttpClientOptions implements Cloneable {
         callers.add(caller);
     }
 
+    /**
+     * Gets callers
+     *
+     * @return value of callers
+     */
+    public List<Caller> getCallers() {
+        return callers;
+    }
+
     // --------------------------------------------
     // ----------------- RETRIES  -----------------
     // --------------------------------------------
@@ -80,17 +91,21 @@ public class HttpClientOptions implements Cloneable {
     Duration retryDelay = Duration.ofMillis(DEFAULT_RETRY_DELAY_MILLIS);
 
     /**
-     * Add a caller.
+     * Gets retryCount
      *
-     * @param count
-     *      retry count
-     * @param delay
-     *      retry delay
+     * @return value of retryCount
      */
-    public HttpClientOptions withRetries(int count, Duration delay) {
-        this.retryCount = count;
-        this.retryDelay = delay;
-        return this;
+    public int getRetryCount() {
+        return retryCount;
+    }
+
+    /**
+     * Gets retryDelay
+     *
+     * @return value of retryDelay
+     */
+    public Duration getRetryDelay() {
+        return retryDelay;
     }
 
     // --------------------------------------------
@@ -110,48 +125,33 @@ public class HttpClientOptions implements Cloneable {
     /**
      * The http client could work through a proxy.
      */
-    HttpProxy proxy;
-
+    HttpProxy httpProxy;
 
     /**
-     * Provide a custom redirect policy.
+     * Gets httpVersion
      *
-     * @param redirect
-     *      redirect policy
-     * @return
-     *      self reference
+     * @return value of httpVersion
      */
-    public HttpClientOptions withHttpRedirect(HttpClient.Redirect redirect) {
-        Assert.notNull(redirect, "redirect");
-        this.httpRedirect = redirect;
-        return this;
+    public HttpClient.Version getHttpVersion() {
+        return httpVersion;
     }
 
     /**
-     * Provide a custom http version.
+     * Gets httpRedirect
      *
-     * @param version
-     *      http version
-     * @return
-     *      self reference
+     * @return value of httpRedirect
      */
-    public HttpClientOptions withHttpVersion(HttpClient.Version version) {
-        Assert.notNull(version, "version");
-        this.httpVersion = version;
-        return this;
+    public HttpClient.Redirect getHttpRedirect() {
+        return httpRedirect;
     }
 
     /**
-     * Provide a proxy for HTTP connection.
+     * Gets proxy
      *
-     * @param proxy
-     *      http proxy
-     * @return
-     *      self reference
+     * @return value of proxy
      */
-    public HttpClientOptions withHttpProxy(HttpProxy proxy) {
-        this.proxy = proxy;
-        return this;
+    public HttpProxy getHttpProxy() {
+        return httpProxy;
     }
 
     // --------------------------------------------
@@ -172,7 +172,7 @@ public class HttpClientOptions implements Cloneable {
             // Deep copy of mutable fields
             cloned.callers = new ArrayList<>(this.callers);
             cloned.retryDelay = this.retryDelay != null ? Duration.ofMillis(this.retryDelay.toMillis()) : null;
-            cloned.proxy = this.proxy != null ? this.proxy.clone() : null;
+            cloned.httpProxy = this.httpProxy != null ? this.httpProxy.clone() : null;
 
             return cloned;
         } catch (CloneNotSupportedException e) {

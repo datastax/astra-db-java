@@ -35,6 +35,7 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true, chain = true)
 public class CollectionInsertManyOptions extends CommandOptions<CollectionInsertManyOptions> {
 
+
     /**
      * If the flag is set to true the command is failing on first error
      */

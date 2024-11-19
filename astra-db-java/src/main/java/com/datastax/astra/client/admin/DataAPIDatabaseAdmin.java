@@ -20,13 +20,13 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -40,7 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
@@ -64,15 +63,13 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /**
      * Initialize a database admin from token and database id.
      *
-     * @param token
-     *      token value
      * @param apiEndpoint
      *      api endpoint.
      * @param options
      *      list of options for the admin
      */
-    public DataAPIDatabaseAdmin(String apiEndpoint, String token, DataAPIClientOptions options) {
-        this(new Database(apiEndpoint, token, DEFAULT_KEYSPACE, options));
+    public DataAPIDatabaseAdmin(String apiEndpoint, DatabaseOptions options) {
+        this(new Database(apiEndpoint, options));
     }
 
     /**
@@ -83,9 +80,10 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      */
     public DataAPIDatabaseAdmin(Database db) {
         this.db             = db;
-        this.commandOptions = new CommandOptions<>(db.getOptions());
-        this.commandOptions.token(db.getToken());
-        this.commandOptions.commandType(CommandType.KEYSPACE_ADMIN);
+        this.commandOptions = new CommandOptions<>(
+                db.getDatabaseOptions().getToken(),
+                CommandType.KEYSPACE_ADMIN,
+                db.getDatabaseOptions().getDataAPIClientOptions());
     }
 
     // ------------------------------------------
@@ -127,8 +125,10 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     public Database getDatabase(String keyspace, String userToken) {
         Assert.hasLength(keyspace, ARG_KEYSPACE);
         Assert.hasLength(userToken, "userToken");
-        db = new Database(db.getDbApiEndpoint(), userToken, keyspace, db.getOptions());
-        return db;
+        return new Database(db.getApiEndpoint(), db
+                .getDatabaseOptions()
+                .keyspace(keyspace)
+                .token(userToken));
     }
 
     /** {@inheritDoc} */
@@ -173,7 +173,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     protected String getApiEndpoint() {
-        return db.getDbApiEndpoint() + "/v1";
+        return db.getApiEndpoint() + "/v1";
     }
 
     /** {@inheritDoc} */

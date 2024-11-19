@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
@@ -69,7 +69,7 @@ public class AstraDevVectorizeAwsBedRockITTest extends AbstractVectorizeITTest {
         assertThat(result.getEmbeddingProviders()).containsKey(providerName);
 
         // Create collection for AWS Bedrock
-        Collection<Document> collection = getDatabase().createCollection(collectionName, CollectionOptions
+        Collection<Document> collection = getDatabase().createCollection(collectionName, CollectionDefinitionOptions
                 .builder()
                 .vectorize(providerName, providerModel,null,
                         Map.of("region", System.getenv("BEDROCK_REGION")))

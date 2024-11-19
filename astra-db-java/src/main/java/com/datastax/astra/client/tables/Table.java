@@ -163,7 +163,7 @@ public class Table<T>  extends AbstractCommandRunner {
         hasLength(tableName, ARG_TABLE_NAME);
         this.tableName      = tableName;
         this.database       = db;
-        this.dataAPIClientOptions = db.getOptions();
+        this.dataAPIClientOptions = db.getDatabaseOptions();
         this.rowClass       = clazz;
         this.commandOptions = commandOptions;
         // Defaulting command types to DATA
@@ -472,9 +472,9 @@ public class Table<T>  extends AbstractCommandRunner {
 
             long totalTimeout = this.commandOptions
                     .getTimeoutOptions()
-                    .getDataOperationTimeoutMillis();
+                    .getGeneralMethodTimeoutMillis();
             if (options.getTimeoutOptions() != null) {
-                totalTimeout = options.getTimeoutOptions().dataOperationTimeoutMillis();
+                totalTimeout = options.getTimeoutOptions().generalMethodTimeoutMillis();
             }
             if (executor.awaitTermination(totalTimeout, TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",

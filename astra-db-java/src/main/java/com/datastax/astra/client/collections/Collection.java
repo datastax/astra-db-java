@@ -45,7 +45,6 @@ import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.CollectionCursor;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
@@ -64,7 +63,6 @@ import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -87,7 +85,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.core.commands.CommandType.DATA;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
@@ -147,26 +145,16 @@ public class Collection<T> extends AbstractCommandRunner {
     /** parameters names. */
     protected static final String DOCUMENT = "document";
 
-    // Json Outputs
-
-    /** Serializer for the Collections. */
-    private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
-
     /** Collection identifier. */
     @Getter
     private final String collectionName;
-
-    /** Working class representing documents of the collection. The default value is {@link Document}. */
-    @Getter
-    protected final Class<T> documentClass;
 
     /** Parent Database reference.  */
     @Getter
     private final Database database;
 
-    /** Get global Settings for the client. */
     @Getter
-    private final DataAPIClientOptions dataAPIClientOptions;
+    private final CollectionOptions<T> collectionOptions;
 
     /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
     private final String apiEndpoint;
@@ -174,7 +162,7 @@ public class Collection<T> extends AbstractCommandRunner {
     /**
      * Keep Collection options in -memory to avoid multiple calls to the API.
      */
-    private CollectionOptions options;
+    private CollectionDefinitionOptions options;
 
     /**
      * Check if options has been fetched
@@ -194,11 +182,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param collectionName A {@code String} that uniquely identifies the collection within the
      *                       database. This name is used to route operations to the correct
      *                       collection and should adhere to the database's naming conventions.
-     * @param clazz The {@code Class<DOC>} object that represents the model for documents within
-     *              this collection. This class is used for serialization and deserialization of
-     *              documents to and from the database. It ensures type safety and facilitates
-     *              the mapping of database documents to Java objects.
-     * @param commandOptions the options to apply to the command operation. If left blank the default collection
+     * @param collectionOptions the options to apply to the command operation. If left blank the default collection
      *
      * <p>Example usage:</p>
      * <pre>
@@ -212,17 +196,14 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public Collection(Database db, String collectionName, CommandOptions<?> commandOptions, Class<T> clazz) {
-        notNull(db, ARG_DATABASE);
-        notNull(clazz, ARG_CLAZZ);
-        hasLength(collectionName, ARG_COLLECTION_NAME);
+    public Collection(Database db, String collectionName, CollectionOptions<T> collectionOptions) {
+        notNull(db, "database");
+        notNull(collectionOptions, "collection options");
+        hasLength(collectionName, "collection name");
         this.collectionName = collectionName;
         this.database       = db;
-        this.dataAPIClientOptions = db.getOptions();
-        this.documentClass  = clazz;
-        this.commandOptions = commandOptions;
-        // Defaulting to data in case of a Collection
-        this.commandOptions.commandType(DATA);
+        this.collectionOptions = collectionOptions.clone();
+        this.commandOptions    = this.collectionOptions;
         this.apiEndpoint    = db.getApiEndpoint() + "/" + collectionName;
     }
 
@@ -251,7 +232,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public String getKeyspaceName() {
-        return getDatabase().getKeyspaceName();
+        return getDatabase().getDatabaseOptions().getKeyspace();
     }
 
     /**
@@ -283,7 +264,7 @@ public class Collection<T> extends AbstractCommandRunner {
      *         and configuration options. This object provides a comprehensive view of the collection's settings
      *         and identity within the database.
      */
-    public CollectionDefinition getDefinition() {
+    public CollectionDescriptor getDefinition() {
         return database
                 .listCollections()
                 .filter(col -> col.getName().equals(collectionName))
@@ -314,12 +295,12 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      *
-     * @return An instance of {@link CollectionOptions} containing the collection's configuration settings,
+     * @return An instance of {@link CollectionDefinitionOptions} containing the collection's configuration settings,
      *         such as vector and indexing options. Returns {@code null} if no options are set or applicable.
      */
-    public CollectionOptions getOptions() {
+    public CollectionDefinitionOptions getOptions() {
         if (!optionChecked) {
-            options = Optional.ofNullable(getDefinition().getOptions()).orElse(new CollectionOptions());
+            options = Optional.ofNullable(getDefinition().getOptions()).orElse(new CollectionDefinitionOptions());
             optionChecked = true;
         }
         return options;
@@ -454,7 +435,15 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final CollectionInsertOneResult insertOne(T document, CollectionInsertOneOptions collectionInsertOneOptions) {
         Assert.notNull(document, DOCUMENT);
-        return internalInsertOne(SERIALIZER.convertValue(document, Document.class), collectionInsertOneOptions);
+        Document serializeDoc;
+        if (collectionInsertOneOptions != null && collectionInsertOneOptions.getSerializer() != null) {
+            // Overriding default Serializer
+            serializeDoc = collectionInsertOneOptions.getSerializer().convertValue(document, Document.class);
+        } else {
+            // Serializer at collection level
+            serializeDoc = this.collectionOptions.getSerializer().convertValue(document, Document.class);
+        }
+        return internalInsertOne(serializeDoc, collectionInsertOneOptions);
     }
 
     /**
@@ -631,8 +620,8 @@ public class Collection<T> extends AbstractCommandRunner {
         if (options.concurrency() > 1 && options.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.chunkSize() > dataAPIClientOptions.getMaxRecordsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIClientOptions.getMaxRecordsInInsert() + " at a time.");
+        if (options.chunkSize() > DEFAULT_MAX_CHUNK_SIZE) {
+            throw new IllegalArgumentException("Cannot insert more than " + DEFAULT_MAX_CHUNK_SIZE + " at a time.");
         }
         long start = System.currentTimeMillis();
         ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
@@ -653,9 +642,9 @@ public class Collection<T> extends AbstractCommandRunner {
             // Set a default timeouts for the overall operation
             long totalTimeout = this.commandOptions
                     .getTimeoutOptions()
-                    .getDataOperationTimeoutMillis();
+                    .getGeneralMethodTimeoutMillis();
             if (options.getTimeoutOptions() != null) {
-                totalTimeout = options.getTimeoutOptions().dataOperationTimeoutMillis();
+                totalTimeout = options.getTimeoutOptions().generalMethodTimeoutMillis();
             }
             if (executor.awaitTermination(totalTimeout, TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",

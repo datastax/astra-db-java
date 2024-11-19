@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class TableInsertManyOptions extends CommandOptions<TableInsertManyOptions> {
+public class TableInsertManyOptions<T> extends CommandOptions<TableInsertManyOptions<T>> {
 
     /**
      * If the flag is set to true the command is failing on first error

@@ -2,7 +2,7 @@ package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
@@ -49,7 +49,7 @@ public class AstraDevVectorizeHuggingFaceDedicatedITTest extends AbstractVectori
         assertThat(result.getEmbeddingProviders().get(providerName)).isNotNull();
 
         // Create Collection
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions.builder();
+        CollectionDefinitionOptions.CollectionOptionsBuilder builder = CollectionDefinitionOptions.builder();
         builder.vectorDimension(Integer.valueOf(System.getenv("HUGGINGFACEDED_DIMENSION")));
         Map<String, Object > params = new HashMap<>();
         params.put("endpointName",  System.getenv("HUGGINGFACEDED_ENDPOINTNAME"));

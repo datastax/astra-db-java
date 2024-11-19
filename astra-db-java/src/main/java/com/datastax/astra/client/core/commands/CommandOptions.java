@@ -25,7 +25,11 @@ import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,18 +43,10 @@ import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER
  * @param <T>
  *     the sub-class implementing the command options
  */
-@Getter
+@Setter
+@NoArgsConstructor
+@Accessors(fluent = true, chain = true)
 public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
-
-    /**
-     * Default command type is DATA
-     */
-    protected CommandType commandType = CommandType.DATA;
-
-    /**
-     * List of observers to notify.
-     */
-    protected Map<String, CommandObserver> observers = new LinkedHashMap<>();
 
     /**
      * Token to use for authentication.
@@ -58,25 +54,19 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     protected String token;
 
     /**
-     * Will be used to create a client
+     * The command type will drive the timeout in used.
      */
-    protected HttpClientOptions httpClientOptions;
+    protected CommandType commandType = CommandType.GENERAL_METHOD;
 
     /**
-     * Will be used to create a client
+     * Token used
      */
-    protected TimeoutOptions timeoutOptions;
+    protected DataAPIClientOptions dataAPIClientOptions;
 
     /**
-     * Embedding auth provider
+     * Serializer for the command.
      */
-    protected EmbeddingHeadersProvider embeddingAuthProvider;
-
-    /** Add headers to db calls. */
-    protected Map<String, String> databaseAdditionalHeaders = new HashMap<>();
-
-    /** Add headers to admin calls. */
-    protected Map<String, String> adminAdditionalHeaders  = new HashMap<>();
+    protected DataAPISerializer serializer;
 
     /**
      * Provide the token.
@@ -95,6 +85,51 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     /**
      * Provide the token.
      *
+     * @param serializer
+     *      serializer
+     * @return
+     *      service key
+     */
+    @SuppressWarnings("unchecked")
+    public T serializer(DataAPISerializer serializer) {
+        this.serializer = serializer;
+        return (T) this;
+    }
+
+    /**
+     * Provide the command type. The nature of the command will determine the timeout.
+     *
+     * @param commandType
+     *      command Type
+     * @return
+     *      service key
+     */
+    public T commandType(CommandType commandType) {
+        this.commandType = commandType;
+        return (T) this;
+    }
+
+    // --------------------------------------------
+    // ----- OVERRIDE DATA API CLIENT OPTIONS -----
+    // --------------------------------------------
+
+    /**
+     * Provide the embedding service API key.
+     *
+     * @param embeddingAuthProvider
+     *      authentication provider
+     * @return
+     *      service key
+     */
+    @SuppressWarnings("unchecked")
+    public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
+        this.dataAPIClientOptions.embeddingAuthProvider(embeddingAuthProvider);
+        return (T) this;
+    }
+
+    /**
+     * Provide the token.
+     *
      * @param params
      *      additional headers
      * @return
@@ -102,7 +137,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T databaseAdditionalHeaders(Map<String, String> params) {
-        this.adminAdditionalHeaders = params;
+        this.dataAPIClientOptions.databaseAdditionalHeaders(params);
         return (T) this;
     }
 
@@ -116,7 +151,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T adminAdditionalHeaders(Map<String, String> params) {
-        this.adminAdditionalHeaders = params;
+        this.dataAPIClientOptions.adminAdditionalHeaders(params);
         return (T) this;
     }
 
@@ -130,34 +165,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T httpClientOptions(HttpClientOptions options) {
-        this.httpClientOptions = options;
-        return (T) this;
-    }
-
-    /**
-     * Provide the embedding service API key.
-     *
-     * @param embeddingAuthProvider
-     *      authentication provider
-     * @return
-     *      service key
-     */
-    @SuppressWarnings("unchecked")
-    public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
-        this.embeddingAuthProvider = embeddingAuthProvider;
-        return (T) this;
-    }
-
-    /**
-     * Provide the command type if default is not DATA.
-     *
-     * @param commandType
-     *      command Type
-     * @return
-     *      service key
-     */
-    public T commandType(CommandType commandType) {
-        this.commandType = commandType;
+        this.dataAPIClientOptions.httpClientOptions(options);
         return (T) this;
     }
 
@@ -171,7 +179,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T timeoutOptions(TimeoutOptions timeoutOptions) {
-        this.timeoutOptions = timeoutOptions;
+        this.dataAPIClientOptions.timeoutOptions(timeoutOptions);
         return (T) this;
     }
 
@@ -187,21 +195,9 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     @SuppressWarnings("unchecked")
     public T registerObserver(String name, CommandObserver observer) {
         if (observer != null) {
-            observers.put(name, observer);
+            this.dataAPIClientOptions.addObserver(name, observer);
         }
         return (T) this;
-    }
-
-    /**
-     * Register an observer with its className.
-     *
-     * @param observer
-     *      command observer
-     * @return
-     *      instance of the command options
-     */
-    public T registerObserver(CommandObserver observer) {
-        return registerObserver(observer.getClass().getSimpleName(), observer);
     }
 
     /**
@@ -214,108 +210,110 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T unregisterObserver(String name) {
-        observers.remove(name);
+        this.dataAPIClientOptions.getObservers().remove(name);
         return (T) this;
     }
 
     /**
-     * Remove an observer by its class.
+     * Return the HTTP Request Timeout based on the command type
      *
-     * @param observer
-     *      observer to remove
+     * @return value of token
+     */
+    public long getTimeout() {
+        return getTimeout(dataAPIClientOptions.getTimeoutOptions(), commandType);
+    }
+
+    /**
+     * Request timeout based on the command type.
+     *
+     * @param timeoutOptions
+     *      options of timeouts
+     * @param type
+     *      command type
      * @return
-     *      instance of the command options
+     *      timeout
      */
-    public T unregisterObserver(Class<CommandObserver> observer) {
-        return unregisterObserver(observer.getSimpleName());
-    }
-
-    /**
-     * Return the HTTP Request Timeout based on the command type
-     *
-     * @return value of token
-     */
-    public long selectRequestTimeout() {
-        return selectRequestTimeout(commandType, timeoutOptions);
-    }
-
-    /**
-     * Return the HTTP Request Timeout based on the command type
-     *
-     * @return value of token
-     */
-    public static long selectRequestTimeout(CommandType type, TimeoutOptions timeoutOptions) {
+    public static long getTimeout(TimeoutOptions timeoutOptions, CommandType type) {
         return switch (type) {
-            case DATABASE_ADMIN -> timeoutOptions.databaseAdminTimeoutMillis();
-            case KEYSPACE_ADMIN -> timeoutOptions.keyspaceAdminTimeoutMillis();
-            case SCHEMA -> timeoutOptions.schemaOperationTimeoutMillis();
-            default -> timeoutOptions.requestTimeoutMillis();
+            case DATABASE_ADMIN -> timeoutOptions.getDatabaseAdminTimeoutMillis();
+            case KEYSPACE_ADMIN -> timeoutOptions.getKeyspaceAdminTimeoutMillis();
+            case TABLE_ADMIN -> timeoutOptions.getTableAdminTimeoutMillis();
+            case COLLECTION_ADMIN -> timeoutOptions.getCollectionAdminTimeoutMillis();
+            default -> timeoutOptions.getGeneralMethodTimeoutMillis();
         };
     }
 
     /**
-     * Add a header to the db calls.
+     * Provide the command type. The nature of the command will determine the timeout.
      *
-     * @param key
-     *      key
-     * @param value
-     *      value
+     * @param timeoutMillis
+     *      timeout for the request
      * @return
-     *      self reference
+     *      service key
      */
-    @SuppressWarnings("unchecked")
-    public T addDatabaseAdditionalHeader(String key, String value) {
-        databaseAdditionalHeaders.put(key, value);
-        return (T) this;
-    }
-
-    public T enableFeatureFlagTables() {
-        return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
-    }
-
-    public T disableFeatureFlagTables() {
-        return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, null);
-    }
-
-    /**
-     * Add a header to the admin calls.
-     *
-     * @param key
-     *      key
-     * @param value
-     *      value
-     * @return
-     *      self reference
-     */
-    @SuppressWarnings("unchecked")
-    public T addAdminAdditionalHeader(String key, String value) {
-        adminAdditionalHeaders.put(key, value);
+    public T timeout(long timeoutMillis) {
+        TimeoutOptions timeoutOptions = dataAPIClientOptions.getTimeoutOptions();
+        switch (commandType) {
+            case DATABASE_ADMIN -> timeoutOptions.databaseAdminTimeoutMillis(timeoutMillis);
+            case KEYSPACE_ADMIN -> timeoutOptions.keyspaceAdminTimeoutMillis(timeoutMillis);
+            case TABLE_ADMIN -> timeoutOptions.tableAdminTimeoutMillis(timeoutMillis);
+            case COLLECTION_ADMIN -> timeoutOptions.collectionAdminTimeoutMillis(timeoutMillis);
+            default -> timeoutOptions.generalMethodTimeoutMillis(timeoutMillis);
+        };
         return (T) this;
     }
 
     /**
-     * Default Constructor.
+     * Gets token
+     *
+     * @return value of token
      */
-    public CommandOptions() {
-        // left blank, jackson serialization
+    public String getToken() {
+        return token;
     }
 
     /**
-     * Default Constructor.
+     * Gets commandType
+     *
+     * @return value of commandType
      */
-    public CommandOptions(DataAPIClientOptions options) {
+    public CommandType getCommandType() {
+        return commandType;
+    }
+
+    /**
+     * Gets dataAPIClientOptions
+     *
+     * @return value of dataAPIClientOptions
+     */
+    public DataAPIClientOptions getDataAPIClientOptions() {
+        return dataAPIClientOptions;
+    }
+
+    /**
+     * Gets serializer
+     *
+     * @return value of serializer
+     */
+    public DataAPISerializer getSerializer() {
+        return serializer;
+    }
+
+    /**
+     * Return the HTTP Request Timeout based on the command type.
+     *
+     * @param token
+     *      authentication token
+     * @param type
+     *      command type
+     * @param options
+     *      data api options
+     */
+    public CommandOptions(String token, CommandType type, DataAPIClientOptions options) {
+       this.token = token;
+       this.commandType = type;
        if (options != null) {
-           this.embeddingAuthProvider     = options.getEmbeddingAuthProvider();
-           this.adminAdditionalHeaders    = options.getAdminAdditionalHeaders();
-           this.databaseAdditionalHeaders = options.getDatabaseAdditionalHeaders();
-           this.httpClientOptions         = options.getHttpClientOptions();
-           this.timeoutOptions            = options.getTimeoutOptions();
-           for(Map.Entry<String, CommandObserver> entry : options.getObservers().entrySet()) {
-               // Avoid observers Duplication
-               if (!getObservers().containsKey(entry.getKey())) {
-                   registerObserver(entry.getKey(), entry.getValue());
-               }
-           }
+           this.dataAPIClientOptions = options.clone();
        }
     }
 
@@ -323,17 +321,9 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     public T clone() {
         try {
             CommandOptions<T> cloned = (CommandOptions<T>) super.clone();
-
-            // Deep copy of mutable fields
-            cloned.observers = new LinkedHashMap<>(this.observers);
-            cloned.databaseAdditionalHeaders = new HashMap<>(this.databaseAdditionalHeaders);
-            cloned.adminAdditionalHeaders = new HashMap<>(this.adminAdditionalHeaders);
-
-            // Copying other objects (assuming they have proper copy constructors or are immutable)
-            cloned.httpClientOptions = this.httpClientOptions != null ? this.httpClientOptions.clone() : null;
-            cloned.timeoutOptions = this.timeoutOptions != null ? this.timeoutOptions.clone() : null;
-            cloned.embeddingAuthProvider = this.embeddingAuthProvider != null ? this.embeddingAuthProvider.copy() : null;
-
+            cloned.token = token;
+            cloned.commandType = commandType;
+            cloned.dataAPIClientOptions = dataAPIClientOptions.clone();
             return (T) cloned;
         } catch (CloneNotSupportedException e) {
             throw new AssertionError("Cloning not supported", e);

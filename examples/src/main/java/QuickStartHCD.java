@@ -1,6 +1,6 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.commands.CommandOptions;
@@ -55,7 +55,7 @@ public class QuickStartHCD {
         System.out.println("4/7 - Connected to Database");
 
         // Create a collection with Vector embeddings OPEN AI
-        Collection<Document> collectionLyrics = db.createCollection(collectionName, CollectionOptions.builder()
+        Collection<Document> collectionLyrics = db.createCollection(collectionName, CollectionDefinitionOptions.builder()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(openAiEmbeddingDimension)
                 .vectorize(openAiProvider, openAiModel)

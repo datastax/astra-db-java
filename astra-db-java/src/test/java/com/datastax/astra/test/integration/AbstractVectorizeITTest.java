@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
@@ -180,7 +180,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     // ===================================================================================
 
     protected Collection<Document> createCollectionHeader(String provider, EmbeddingProvider.Model model, String apiKey, Map<String, Object> parameters) {
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions.builder();
+        CollectionDefinitionOptions.CollectionOptionsBuilder builder = CollectionDefinitionOptions.builder();
         builder.vectorSimilarity(SimilarityMetric.COSINE);
         if (model.getVectorDimension() != null) {
             builder.vectorDimension(model.getVectorDimension());
@@ -204,7 +204,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     }
 
     private Collection<Document> createCollectionSharedSecret(String provider, EmbeddingProvider.Model model, String keyName, Map<String, Object> parameters) {
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions.builder();
+        CollectionDefinitionOptions.CollectionOptionsBuilder builder = CollectionDefinitionOptions.builder();
         builder.vectorSimilarity(SimilarityMetric.COSINE);
         if (model.getVectorDimension() != null) {
             builder.vectorDimension(model.getVectorDimension());

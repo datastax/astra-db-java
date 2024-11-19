@@ -1,6 +1,6 @@
 package com.datastax.astra.client.database;
 
-import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.CollectionDescriptor;
 import com.datastax.astra.client.databases.Database;
 
 import java.util.stream.Stream;
@@ -13,7 +13,7 @@ public class ListCollections {
         Stream<String> collectionNames = db.listCollectionNames();
 
         // Get Collection information (with options)
-        Stream<CollectionDefinition> collections = db.listCollections();
-        collections.map(CollectionDefinition::getOptions).forEach(System.out::println);
+        Stream<CollectionDescriptor> collections = db.listCollections();
+        collections.map(CollectionDescriptor::getOptions).forEach(System.out::println);
     }
 }

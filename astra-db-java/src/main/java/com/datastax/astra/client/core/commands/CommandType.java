@@ -29,12 +29,17 @@ public enum CommandType {
     /**
      * Data operation (find*, insert*, update*, delete*)
      */
-    DATA,
+    GENERAL_METHOD,
 
     /**
-     * Schema operation (create*, drop*)
+     * Table schema operation (create*, drop*)
      */
-    SCHEMA,
+    TABLE_ADMIN,
+
+    /**
+     * Collection Schema operation (create*, drop*)
+     */
+    COLLECTION_ADMIN,
 
     /**
      * Database admin operation (create, delete, list)

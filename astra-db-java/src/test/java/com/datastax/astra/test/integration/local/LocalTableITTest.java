@@ -1,8 +1,12 @@
 package com.datastax.astra.test.integration.local;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -10,6 +14,7 @@ import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.TableDuration;
@@ -49,6 +54,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -682,6 +688,9 @@ public class LocalTableITTest extends AbstractTableITTest {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         table.deleteAll();
 
+        TableInsertManyOptions options = new TableInsertManyOptions()
+                .returnDocumentResponses(true);
+
         Row row = new Row()
                 .addInt("age", 42)
                 .addText("name", "Cedrick")
@@ -698,5 +707,37 @@ public class LocalTableITTest extends AbstractTableITTest {
         Assertions.assertThat(u1.getModifiedCount()).isEqualTo(1);
     }
 
+
+    @Test
+    public void revampingOptions() {
+
+        DataAPIClientOptions options = new DataAPIClientOptions()
+                .destination(DataAPIDestination.ASTRA)
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("myKey"))
+                .addCaller("myCaller", "ssss")
+                .httpClientOptions(new HttpClientOptions()
+                        .httpVersion(HttpClient.Version.HTTP_2)
+                        .httpRedirect(HttpClient.Redirect.NORMAL))
+                .timeoutOptions(new TimeoutOptions()
+                        .requestTimeoutMillis(1000));
+
+        DataAPIClient client = new DataAPIClient("token", options);
+
+        Database database1 = client.getDatabase("endpoint");
+
+        Database database2 = client.getDatabase("endpoints",
+                new DatabaseOptions(options)
+                        .keyspace("otherKeyspace"));
+
+        database2.getDatabaseOptions().getDataAPIClientOptions();
+
+
+
+        Table<Row> table = database1.getTable("table");
+
+
+
+
+    }
 
 }

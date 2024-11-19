@@ -20,9 +20,6 @@ package com.datastax.astra.client.core.options;
  * #L%
  */
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -30,17 +27,18 @@ import lombok.experimental.Accessors;
 /**
  * This class is used to define the timeout options for the client.
  */
-@Getter @Setter
+@Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TimeoutOptions implements Cloneable {
 
     public static final long DEFAULT_CONNECT_TIMEOUT_MILLIS          =  10000L;
-    public static final long DEFAULT_REQUEST_TIMEOUT_MILLIS          =  30000L;
-    public static final long DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS   =  30000L;
-    public static final long DEFAULT_SCHEMA_OPERATION_TIMEOUT_MILLIS =  45000L;
+    public static final long DEFAULT_REQUEST_TIMEOUT_MILLIS          =  10000L;
+    public static final long DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS   =  30000L;
+    public static final long DEFAULT_COLLECTION_ADMIN_TIMEOUT_MILLIS =  60000L;
+    public static final long DEFAULT_TABLE_ADMIN_TIMEOUT_MILLIS      =  30000L;
     public static final long DEFAULT_DATABASE_ADMIN_TIMEOUT_MILLIS   = 600000L;
-    public static final long DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS   =  20000L;
+    public static final long DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS   =  30000L;
 
     /**
      * Lower level request timeout (http request)
@@ -55,12 +53,7 @@ public class TimeoutOptions implements Cloneable {
     /**
      * Data operation timeout (find*, insert*, update*, delete*)
      */
-    long dataOperationTimeoutMillis = DEFAULT_DATA_OPERATION_TIMEOUT_MILLIS;
-
-    /**
-     * Schema operation timeout (create*, alter*, drop*)
-     */
-    long schemaOperationTimeoutMillis = DEFAULT_SCHEMA_OPERATION_TIMEOUT_MILLIS;
+    long generalMethodTimeoutMillis = DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS;
 
     /**
      * Database admin timeout (create, delete, list)
@@ -71,6 +64,16 @@ public class TimeoutOptions implements Cloneable {
      * Keyspace admin timeout (create, delete, list)
      */
     long keyspaceAdminTimeoutMillis = DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS;
+
+    /**
+     * Schema operation timeout (create*, alter*, drop*)
+     */
+    long collectionAdminTimeoutMillis = DEFAULT_COLLECTION_ADMIN_TIMEOUT_MILLIS;
+
+    /**
+     * Schema operation timeout (create*, alter*, drop*)
+     */
+    long tableAdminTimeoutMillis = DEFAULT_TABLE_ADMIN_TIMEOUT_MILLIS;
 
     @Override
     public TimeoutOptions clone() {
@@ -104,8 +107,8 @@ public class TimeoutOptions implements Cloneable {
      *
      * @return value of dataOperationTimeoutMillis
      */
-    public long getDataOperationTimeoutMillis() {
-        return dataOperationTimeoutMillis;
+    public long getGeneralMethodTimeoutMillis() {
+        return generalMethodTimeoutMillis;
     }
 
     /**
@@ -113,8 +116,8 @@ public class TimeoutOptions implements Cloneable {
      *
      * @return value of schemaOperationTimeoutMillis
      */
-    public long getSchemaOperationTimeoutMillis() {
-        return schemaOperationTimeoutMillis;
+    public long getTableAdminTimeoutMillis() {
+        return tableAdminTimeoutMillis;
     }
 
     /**
@@ -133,5 +136,14 @@ public class TimeoutOptions implements Cloneable {
      */
     public long getKeyspaceAdminTimeoutMillis() {
         return keyspaceAdminTimeoutMillis;
+    }
+
+    /**
+     * Gets collectionAdminTimeoutMillis
+     *
+     * @return value of collectionAdminTimeoutMillis
+     */
+    public long getCollectionAdminTimeoutMillis() {
+        return collectionAdminTimeoutMillis;
     }
 }

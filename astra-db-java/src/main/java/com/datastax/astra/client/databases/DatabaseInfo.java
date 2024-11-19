@@ -24,6 +24,7 @@ import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.Datacenter;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,24 +45,18 @@ public class DatabaseInfo {
     private String name;
 
     /** cloud provider. */
-    private CloudProviderType cloud;
+    private CloudProviderType cloudProvider;
+
+    /** Astra Environment. */
+    private AstraEnvironment environment;
+
+    /** Default keyspace for the database. */
+    private String keyspace;
+
+    private String keyspaceList;
 
     /** Main Region for the database. */
     private String region;
-
-    /** Default namespace for the database. */
-    @Deprecated
-    private String namespace;
-
-    /** Default keyspace for the database. */
-    @Deprecated
-    private String keyspace;
-
-    /** List of Namespace for the db. */
-    @Deprecated
-    private String namespaceList;
-
-    private String keyspaceList;
 
     /** List of regions where the database is deployed. */
     private Set<String> regionList;
@@ -82,18 +77,20 @@ public class DatabaseInfo {
     public DatabaseInfo(Database db) {
         Assert.notNull(db, "Database");
         this.rawDevopsResponse = db;
-        this.id           = UUID.fromString(db.getId());
-        this.name         = db.getInfo().getName();
-        this.keyspace    = db.getInfo().getKeyspace();
-        this.region       = db.getInfo().getRegion();
-        this.cloud        = db.getInfo().getCloudProvider();
+        this.id = UUID.fromString(db.getId());
+        this.name = db.getInfo().getName();
+        this.keyspace = db.getInfo().getKeyspace();
+        this.region = db.getInfo().getRegion();
+        this.cloudProvider = db.getInfo().getCloudProvider();
+
+        // FIX ME
+        //this.status;
+        //this.environment = db.getInfo().g
+
         this.creationTime = db.getCreationTime();
-        this.regionList   = db.getInfo().getDatacenters().stream()
+        this.regionList = db.getInfo().getDatacenters().stream()
                 .map(Datacenter::getRegion).collect(Collectors.toSet());
         this.keyspaceList = String.join(",", db.getInfo().getKeyspaces());
-
-        this.namespace     = keyspace;
-        this.namespaceList = keyspaceList;
     }
 
 }

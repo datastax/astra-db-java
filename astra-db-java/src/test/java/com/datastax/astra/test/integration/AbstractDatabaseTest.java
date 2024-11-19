@@ -8,7 +8,7 @@ import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinitionOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
@@ -66,14 +66,14 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(2)
     public void shouldCreateCollectionsVector() {
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                CollectionOptions.builder()
+                CollectionDefinitionOptions.builder()
                         .vectorDimension(14)
                         .vectorSimilarity(SimilarityMetric.COSINE)
                         .build());
         assertThat(collectionVector).isNotNull();
         assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
 
-        CollectionOptions options = collectionVector.getOptions();
+        CollectionDefinitionOptions options = collectionVector.getOptions();
         assertThat(options.getVector()).isNotNull();
         assertThat(options.getVector().getDimension()).isEqualTo(14);
     }
@@ -82,11 +82,11 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(3)
     public void shouldCreateCollectionsAllows() {
         Collection<Document> collectionAllow = getDatabase().createCollection(COLLECTION_ALLOW,
-                CollectionOptions.builder()
+                CollectionDefinitionOptions.builder()
                         .indexingAllow("a", "b", "c")
                         .build());
         assertThat(collectionAllow).isNotNull();
-        CollectionOptions options = collectionAllow.getOptions();
+        CollectionDefinitionOptions options = collectionAllow.getOptions();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getAllow()).isNotNull();
     }
@@ -95,11 +95,11 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(4)
     public void shouldCreateCollectionsDeny() {
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionOptions.builder()
+                CollectionDefinitionOptions.builder()
                         .indexingDeny("a", "b", "c")
                         .build());
         assertThat(collectionDeny).isNotNull();
-        CollectionOptions options = collectionDeny.getOptions();
+        CollectionDefinitionOptions options = collectionDeny.getOptions();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getDeny()).isNotNull();
     }
@@ -128,7 +128,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldDropCollectionsDeny() {
         // Given
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionOptions.builder()
+                CollectionDefinitionOptions.builder()
                         .indexingDeny("a", "b", "c")
                         .build());
         assertThat(getDatabase().collectionExists(COLLECTION_DENY)).isTrue();
@@ -213,7 +213,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDs() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID, CollectionOptions.builder()
+                .createCollection(COLLECTION_UUID, CollectionDefinitionOptions.builder()
                 .defaultIdType(CollectionIdTypes.UUID)
                 .build());
         collectionUUID.deleteAll();
@@ -245,7 +245,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithObjectIds() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
+                .createCollection(COLLECTION_OBJECTID, CollectionDefinitionOptions.builder()
                         .defaultIdType(OBJECT_ID)
                         .build());
         collectionUUID.deleteAll();
@@ -276,7 +276,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         product.setCode(UUID.randomUUID());
         product.setPrice(0d);
         Collection<ProductObjectId> collectionObjectId = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
+                .createCollection(COLLECTION_OBJECTID, CollectionDefinitionOptions.builder()
                         .defaultIdType(OBJECT_ID)
                         .build(), ProductObjectId.class);
         collectionObjectId.deleteAll();
@@ -290,7 +290,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDv6() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V6, CollectionOptions.builder()
+                .createCollection(COLLECTION_UUID_V6, CollectionDefinitionOptions.builder()
                         .defaultIdType(UUIDV6)
                         .build());
         collectionUUID.deleteAll();
@@ -320,7 +320,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDv7() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V7, CollectionOptions.builder()
+                .createCollection(COLLECTION_UUID_V7, CollectionDefinitionOptions.builder()
                         .defaultIdType(UUIDV7)
                         .build());
         collectionUUID.deleteAll();
