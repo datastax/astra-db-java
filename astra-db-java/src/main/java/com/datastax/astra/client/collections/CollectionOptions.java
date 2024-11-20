@@ -20,60 +20,37 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.DatabaseOptions;
-import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-
-import javax.print.Doc;
+import com.datastax.astra.internal.utils.Assert;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * The options to use for the data API client.
  */
-public class CollectionOptions<T> extends CommandOptions<CollectionOptions<T>> {
-
-    public static final DataAPISerializer DEFAULT_SERIALIZER = new DocumentSerializer();
-
-    /**
-     * The class to use for the collection.
-     */
-    private final Class<T> clazz;
+@Setter
+@NoArgsConstructor
+@Accessors(fluent = true, chain = true)
+public class CollectionOptions extends BaseOptions<CollectionOptions> {
 
     /**
-     * Enforcing the command type for this class.
-     *
-     * @param db
-     *      parent database
-     * @param clazz
-     *      current class
-     */
-    public CollectionOptions(Database db, Class<T> clazz) {
-        this(db.getDatabaseOptions().getToken(), db.getDatabaseOptions().getDataAPIClientOptions(), clazz);
-    }
-
-    /**
-     * Enforcing the command type for this class.
+     * Constructor with options and not token override.
      *
      * @param token
-     *      current token
+     *      the token to use for the database
      * @param options
-     *      data API client options to override if needed
+     *      data API client options
      */
-    public CollectionOptions(String token, DataAPIClientOptions options, Class<T> clazz) {
-        super(token, CommandType.GENERAL_METHOD, options);
-        this.clazz = clazz;
-        serializer(DEFAULT_SERIALIZER);
+    public CollectionOptions(String token, DataAPIClientOptions options) {
+        Assert.notNull(options, "options");
+        this.token = token;
+        this.dataAPIClientOptions = options.clone();
+        this.serializer  = new DocumentSerializer();
+        this.commandType = CommandType.COLLECTION_ADMIN;
     }
 
-    /**
-     * Gets clazz
-     *
-     * @return value of clazz
-     */
-    public Class<T> getClazz() {
-        return clazz;
-    }
 }

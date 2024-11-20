@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
 import static com.datastax.astra.client.tables.ddl.CreateTableOptions.IF_NOT_EXISTS;
@@ -29,7 +29,7 @@ public class QuickStartTablesLocal {
     public void should_quickstart_tables_default() {
         // Connect to local and create default_keyspace
         Database localDb = DataAPIClients.defaultLocalDatabase();
-        assertThat(localDb.getKeyspaceName()).isEqualTo(DEFAULT_KEYSPACE);
+        assertThat(localDb.getKeyspace()).isEqualTo(DEFAULT_KEYSPACE);
 
         // Create table (explicit definition)
         TableDefinition tableDefinition = new TableDefinition()
@@ -78,7 +78,7 @@ public class QuickStartTablesLocal {
     public void should_quickstart_tables_om() {
         // Connect to local and create default_keyspace
         Database localDb = DataAPIClients.defaultLocalDatabase();
-        assertThat(localDb.getKeyspaceName()).isEqualTo(DEFAULT_KEYSPACE);
+        assertThat(localDb.getKeyspace()).isEqualTo(DEFAULT_KEYSPACE);
 
         // Create table (introspecting bean)
         Table<Person> tablePerson = localDb.createTable(Person.class, IF_NOT_EXISTS);

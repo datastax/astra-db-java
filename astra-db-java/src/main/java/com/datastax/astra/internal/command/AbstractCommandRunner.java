@@ -21,7 +21,7 @@ package com.datastax.astra.internal.command;
  */
 
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
@@ -115,7 +115,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
     /**
      * Default command options when not override
      */
-    protected CommandOptions<?> commandOptions;
+    protected BaseOptions<?> baseOptions;
 
     /**
      * Default constructor.
@@ -133,10 +133,10 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public DataAPIResponse runCommand(Command command, CommandOptions<?> overridingOptions) {
+    public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {
 
         // Initializing options with the Collection/Table/Database level options
-        DataAPIClientOptions options = this.commandOptions.getDataAPIClientOptions();
+        DataAPIClientOptions options = this.baseOptions.getDataAPIClientOptions();
 
         // ==================
         // === HTTPCLIENT ===
@@ -184,7 +184,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         // ===   TOKEN    ===
         // ==================
 
-        String token = commandOptions.getToken();
+        String token = baseOptions.getToken();
         if (overridingOptions != null && overridingOptions.getToken() != null) {
             token = overridingOptions.getToken();
         }
@@ -202,18 +202,18 @@ public abstract class AbstractCommandRunner implements CommandRunner {
         // ===   Timeouts      ===
         // =======================
 
-        long requestTimeout = commandOptions.getTimeout();
+        long requestTimeout = baseOptions.getRequestTimeout();
         if (overridingOptions != null
-                && overridingOptions.getDataAPIClientOptions() != null
-                && overridingOptions.getDataAPIClientOptions().getTimeoutOptions() != null) {
-            requestTimeout = overridingOptions.getTimeout();
+              && overridingOptions.getDataAPIClientOptions() != null
+              && overridingOptions.getDataAPIClientOptions().getTimeoutOptions() != null) {
+            requestTimeout = overridingOptions.getRequestTimeout();
         }
 
         // Initializing the Execution infos (could be pushed to 3rd parties)
         ExecutionInfos.DataApiExecutionInfoBuilder executionInfo =
                 ExecutionInfos.builder()
                         .withCommand(command)
-                        .withCommandOptions(this.commandOptions)
+                        .withCommandOptions(this.baseOptions)
                         .withOverrideCommandOptions(overridingOptions);
 
         try {
@@ -222,7 +222,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
             String jsonCommand = serializer.marshall(command);
 
             // Build the request
-            HttpRequest.Builder builder=  HttpRequest.newBuilder()
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
                         .uri(new URI(getApiEndpoint()))
                         .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
                         .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
@@ -302,7 +302,7 @@ public abstract class AbstractCommandRunner implements CommandRunner {
 
     /** {@inheritDoc} */
     @Override
-    public <T> T runCommand(Command command, CommandOptions<?> options, Class<T> documentClass) {
+    public <T> T runCommand(Command command, BaseOptions<?> options, Class<T> documentClass) {
         return unmarshall(runCommand(command, options), documentClass);
     }
 

@@ -2,7 +2,7 @@ package com.datastax.astra.client.collections.vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Sort;
@@ -52,7 +52,7 @@ public class QuickStartOpenAI {
         Collection<Document> collection = localDb.createCollection(
                 embeddingModel.name().toLowerCase(),
                 // Create collection with a Service in vectorize
-                CollectionDefinitionOptions.builder()
+                CollectionDefinition.builder()
                         .indexingAllow()
                         .vectorDimension(embeddingModel.getDimension())
                         .vectorSimilarity(SimilarityMetric.COSINE)

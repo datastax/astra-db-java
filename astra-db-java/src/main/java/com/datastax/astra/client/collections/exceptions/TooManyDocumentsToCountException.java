@@ -33,7 +33,7 @@ public class TooManyDocumentsToCountException extends DataAPIException {
      * Default constructor.
      */
     public TooManyDocumentsToCountException() {
-        super(ClientErrorCodes.HTTP, "Document count exceeds '" + DataAPIClientOptions.DEFAULT_MAX_COUNT + ", the maximum allowed by the server");
+        super(ClientErrorCodes.HTTP, "Document count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
     }
 
     /**

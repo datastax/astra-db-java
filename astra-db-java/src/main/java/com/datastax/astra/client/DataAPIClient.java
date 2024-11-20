@@ -70,6 +70,8 @@ import static com.datastax.astra.client.exception.InvalidEnvironmentException.th
  */
 public class DataAPIClient {
 
+
+
     /**
      * The authentication token used as credentials in HTTP requests, specifically as the Authorization bearer token.
      * This token is crucial for accessing and interacting with Astra environments, where it plays a role in determining
@@ -234,44 +236,18 @@ public class DataAPIClient {
      * @throws SecurityException if the current token does not have the necessary administrative privileges.
      */
     public AstraDBAdmin getAdmin() {
-        return getAdmin(token, new AdminOptions(options));
+        return getAdmin(new AdminOptions(token, options));
     }
 
-    /**
-     * Retrieves an administration client capable of performing CRUD operations on databases, requiring a token with
-     * advanced privileges. This method is designed for scenarios where administrative access is necessary beyond the
-     * default token capabilities associated with the {@code DataAPIClient}.
-     * <p>
-     * The provided {@code superUserToken} should be granted sufficient privileges to perform administrative operations,
-     * such as creating, updating, and deleting databases. This typically involves tokens associated with roles like
-     * Database Administrator or Organization Administrator within the Astra environment.
-     * </p>
-     * <p>
-     * Utilizing this method allows for direct access to the Astra database's administrative functionalities, enabling
-     * comprehensive management capabilities through the returned {@link AstraDBAdmin} client. This includes but is not
-     * limited to database creation, modification, and deletion.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * String superUserToken = "AstraCS:super_user_token_here";
-     * DataAPIClient apiClient = new DataAPIClient(superUserToken);
-     * AstraDBAdmin adminClient = apiClient.getAdmin(superUserToken);
-     * // Now you can use adminClient for administrative operations like creating a database
-     * }
-     * </pre>
-     *
-     * @param superUserToken A token with elevated privileges, enabling administrative actions within the Astra
-     *        environment. This token must be authorized to perform operations such as creating and managing databases.
-     * @return An instance of {@link AstraDBAdmin}, configured for administrative tasks with the provided  user token.
-     * @throws SecurityException if the provided {@code superUserToken} lacks the necessary privileges for administrative operations.
-     */
-    public AstraDBAdmin getAdmin(String superUserToken, AdminOptions adminOptions) {
+    public AstraDBAdmin getAdmin(String superToken) {
+        return getAdmin(new AdminOptions(superToken, options));
+    }
+
+    public AstraDBAdmin getAdmin(AdminOptions adminOptions) {
         if (!options.isAstra()) {
             throwErrorRestrictedAstra("getAdmin()", options.getDestination());
         }
-        return new AstraDBAdmin(adminOptions.adminToken(superUserToken));
+        return new AstraDBAdmin(adminOptions);
     }
 
     // --------------------------------------------------
@@ -279,11 +255,11 @@ public class DataAPIClient {
     // --------------------------------------------------
 
     public Database getDatabase(String apiEndpoint) {
-        return getDatabase(apiEndpoint, new DatabaseOptions(options).token(token));
+        return getDatabase(apiEndpoint, new DatabaseOptions(token, options));
     }
 
     public Database getDatabase(UUID databaseId) {
-        return getDatabase(lookupEndpoint(databaseId, null), new DatabaseOptions(options).token(token));
+        return getDatabase(lookupEndpoint(databaseId, null), new DatabaseOptions(token, options));
     }
 
     /**

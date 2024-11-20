@@ -21,9 +21,10 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
@@ -33,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
 import java.util.UUID;
-
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 
 
 /**
@@ -87,7 +86,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
         this.databaseId     = databaseId;
         this.dataAPIClientOptions = options;
         this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
-        this.db = new com.datastax.astra.client.databases.Database(getApiEndpoint(), token, DEFAULT_KEYSPACE, options);
+        this.db = new com.datastax.astra.client.databases.Database(getApiEndpoint(),
+                new DatabaseOptions(token, options));
     }
 
     /**
@@ -162,7 +162,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String tokenUser) {
-        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), tokenUser, keyspace, db.getDatabaseOptions());
+        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), db.getDatabaseOptions());
     }
 
     @Override
@@ -178,7 +178,8 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
         log.debug("findEmbeddingProviders");
         DataAPIDatabaseAdmin admin =
-                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getDatabaseOptions().getApiVersion(), token, db.getDatabaseOptions());
+                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getDatabaseOptions()
+                        .getDataAPIClientOptions().getApiVersion(), db.getDatabaseOptions());
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 
@@ -199,7 +200,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     }
 
     @Override
-    public void dropKeyspace(String namespace, CommandOptions<?> options) {
+    public void dropKeyspace(String namespace, BaseOptions<?> options) {
         log.warn("CommandOptions are not supported for dropKeyspace in Astra MODE");
         dropKeyspace(namespace);
     }

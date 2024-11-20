@@ -36,16 +36,17 @@ package com.datastax.astra.internal.serdes.collections;
  * #L%
  */
 
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DataAPIVectorDeserializer;
-import com.datastax.astra.internal.serdes.DataAPIVectorSerializer;
-import com.datastax.astra.internal.serdes.tables.SimilarityMetricDeserializer;
-import com.datastax.astra.internal.serdes.tables.SimilarityMetricSerializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.StreamReadFeature;
@@ -125,6 +126,9 @@ public class DocumentSerializer implements DataAPISerializer {
             // ObjectId
             module.addSerializer(ObjectId.class, new ObjectIdSerializer());
             module.addDeserializer(ObjectId.class, new ObjectIdDeserializer());
+            // DefaultId
+            module.addSerializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeSerializer());
+            module.addDeserializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeDeserializer());
             // Similarity Metric
             module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
             module.addDeserializer(SimilarityMetric.class, new SimilarityMetricDeserializer());

@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
@@ -80,7 +80,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      */
     public DataAPIDatabaseAdmin(Database db) {
         this.db             = db;
-        this.commandOptions = new CommandOptions<>(
+        this.baseOptions = new BaseOptions<>(
                 db.getDatabaseOptions().getToken(),
                 CommandType.KEYSPACE_ADMIN,
                 db.getDatabaseOptions().getDataAPIClientOptions());
@@ -161,7 +161,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     }
 
     @Override
-    public void dropKeyspace(String keyspace, CommandOptions<?> options) {
+    public void dropKeyspace(String keyspace, BaseOptions<?> options) {
         hasLength(keyspace, ARG_KEYSPACE);
         Command dropNamespace = Command
                 .create("dropKeyspace")
@@ -183,7 +183,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     }
 
     /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
+     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
      *
      * @param logger
      *      name for the logger
@@ -191,7 +191,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
      *      class for the logger
      */
     public void registerListener(String logger, CommandObserver commandObserver) {
-        this.commandOptions.registerObserver(logger, commandObserver);
+        this.baseOptions.registerObserver(logger, commandObserver);
     }
 
 }

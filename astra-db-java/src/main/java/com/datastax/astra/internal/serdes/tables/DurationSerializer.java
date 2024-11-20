@@ -20,14 +20,13 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 import java.time.Duration;
-
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.encodeDurationAsISO8601;
 
 /**
  * Serialize a date as compact or ISO8601 format.
@@ -45,7 +44,7 @@ public class DurationSerializer extends StdSerializer<Duration> {
             return;
         }
 
-        if (encodeDurationAsISO8601) {
+        if (DataAPIClientOptions.getSerdesOptions().isEncodeDurationAsISO8601()) {
             gen.writeString(duration.toString());
             return;
         }

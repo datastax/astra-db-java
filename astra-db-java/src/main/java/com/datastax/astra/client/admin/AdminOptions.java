@@ -20,43 +20,24 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Setter
 @Accessors(fluent = true, chain = true)
-public class AdminOptions {
+public class AdminOptions extends BaseOptions<AdminOptions> {
 
-    private String adminToken;
-
-    private DataAPIClientOptions dataAPIClientOptions;
-
-    public AdminOptions() {
-        this(new DataAPIClientOptions());
-    }
-
-    public AdminOptions(DataAPIClientOptions options) {
+    public AdminOptions(String token, DataAPIClientOptions options) {
         Assert.notNull(options, "options");
+        this.token = token;
+        this.commandType = CommandType.DATABASE_ADMIN;
         this.dataAPIClientOptions = options.clone();
+        this.serializer = new DatabaseSerializer();
     }
 
-    /**
-     * Gets token
-     *
-     * @return value of token
-     */
-    public String getAdminToken() {
-        return adminToken;
-    }
-
-    /**
-     * Gets dataAPIClientOptions
-     *
-     * @return value of dataAPIClientOptions
-     */
-    public DataAPIClientOptions getDataAPIClientOptions() {
-        return dataAPIClientOptions;
-    }
 }

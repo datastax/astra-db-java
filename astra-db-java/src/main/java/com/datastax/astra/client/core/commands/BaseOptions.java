@@ -26,16 +26,9 @@ import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER_FEATURE_FLAG_TABLES;
 
 /**
  * Options that will be provided to all commands for this collection.
@@ -43,10 +36,18 @@ import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER
  * @param <T>
  *     the sub-class implementing the command options
  */
-@Setter
 @NoArgsConstructor
-@Accessors(fluent = true, chain = true)
-public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
+public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
+
+    /**
+     * Token used
+     */
+    protected DataAPIClientOptions dataAPIClientOptions;
+
+    /**
+     * Serializer for the command.
+     */
+    protected DataAPISerializer serializer;
 
     /**
      * Token to use for authentication.
@@ -58,15 +59,9 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     protected CommandType commandType = CommandType.GENERAL_METHOD;
 
-    /**
-     * Token used
-     */
-    protected DataAPIClientOptions dataAPIClientOptions;
-
-    /**
-     * Serializer for the command.
-     */
-    protected DataAPISerializer serializer;
+    // --------------------------------------------
+    // ----- Setters (Fluent)                 -----
+    // --------------------------------------------
 
     /**
      * Provide the token.
@@ -109,8 +104,33 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
         return (T) this;
     }
 
+    /**
+     * Provide a fluent setter for the data API Client.
+     *
+     * @param options
+     *      command Type
+     * @return
+     *      service key
+     */
+    public T dataAPIClientOptions(DataAPIClientOptions options) {
+        this.dataAPIClientOptions = options;
+        return (T) this;
+    }
+
+    /**
+     * Provide the command type. The nature of the command will determine the timeout.
+     *
+     * @param timeoutMillis
+     *      timeout for the request
+     * @return
+     *      service key
+     */
+    public T timeout(long timeoutMillis) {
+        return timeout(timeoutMillis, getCommandType());
+    }
+
     // --------------------------------------------
-    // ----- OVERRIDE DATA API CLIENT OPTIONS -----
+    // ----- Setters                          -----
     // --------------------------------------------
 
     /**
@@ -123,7 +143,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
-        this.dataAPIClientOptions.embeddingAuthProvider(embeddingAuthProvider);
+        getDataAPIClientOptions().embeddingAuthProvider(embeddingAuthProvider);
         return (T) this;
     }
 
@@ -137,7 +157,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T databaseAdditionalHeaders(Map<String, String> params) {
-        this.dataAPIClientOptions.databaseAdditionalHeaders(params);
+        getDataAPIClientOptions().databaseAdditionalHeaders(params);
         return (T) this;
     }
 
@@ -151,7 +171,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T adminAdditionalHeaders(Map<String, String> params) {
-        this.dataAPIClientOptions.adminAdditionalHeaders(params);
+        getDataAPIClientOptions().adminAdditionalHeaders(params);
         return (T) this;
     }
 
@@ -165,7 +185,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T httpClientOptions(HttpClientOptions options) {
-        this.dataAPIClientOptions.httpClientOptions(options);
+        getDataAPIClientOptions().httpClientOptions(options);
         return (T) this;
     }
 
@@ -179,7 +199,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T timeoutOptions(TimeoutOptions timeoutOptions) {
-        this.dataAPIClientOptions.timeoutOptions(timeoutOptions);
+        getDataAPIClientOptions().timeoutOptions(timeoutOptions);
         return (T) this;
     }
 
@@ -195,7 +215,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     @SuppressWarnings("unchecked")
     public T registerObserver(String name, CommandObserver observer) {
         if (observer != null) {
-            this.dataAPIClientOptions.addObserver(name, observer);
+            getDataAPIClientOptions().addObserver(name, observer);
         }
         return (T) this;
     }
@@ -210,7 +230,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T unregisterObserver(String name) {
-        this.dataAPIClientOptions.getObservers().remove(name);
+        getDataAPIClientOptions().getObservers().remove(name);
         return (T) this;
     }
 
@@ -219,8 +239,17 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      *
      * @return value of token
      */
-    public long getTimeout() {
-        return getTimeout(dataAPIClientOptions.getTimeoutOptions(), commandType);
+    public long getTimeout(CommandType commandType) {
+        return getTimeout(getDataAPIClientOptions().getTimeoutOptions(), commandType);
+    }
+
+    /**
+     * Return the HTTP Request Timeout based on the command type
+     *
+     * @return value of token
+     */
+    public long getRequestTimeout(CommandType commandType) {
+        return getRequestTimeout(getDataAPIClientOptions().getTimeoutOptions(), commandType);
     }
 
     /**
@@ -233,13 +262,33 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      * @return
      *      timeout
      */
-    public static long getTimeout(TimeoutOptions timeoutOptions, CommandType type) {
+    public long getTimeout(TimeoutOptions timeoutOptions, CommandType type) {
         return switch (type) {
             case DATABASE_ADMIN -> timeoutOptions.getDatabaseAdminTimeoutMillis();
             case KEYSPACE_ADMIN -> timeoutOptions.getKeyspaceAdminTimeoutMillis();
             case TABLE_ADMIN -> timeoutOptions.getTableAdminTimeoutMillis();
             case COLLECTION_ADMIN -> timeoutOptions.getCollectionAdminTimeoutMillis();
             default -> timeoutOptions.getGeneralMethodTimeoutMillis();
+        };
+    }
+
+    /**
+     * Request timeout based on the command type.
+     *
+     * @param timeoutOptions
+     *      options of timeouts
+     * @param type
+     *      command type
+     * @return
+     *      timeout
+     */
+    public long getRequestTimeout(TimeoutOptions timeoutOptions, CommandType type) {
+        return switch (type) {
+            case DATABASE_ADMIN -> timeoutOptions.getDatabaseAdminTimeoutMillis();
+            case KEYSPACE_ADMIN -> timeoutOptions.getKeyspaceAdminTimeoutMillis();
+            case TABLE_ADMIN -> timeoutOptions.getTableAdminTimeoutMillis();
+            case COLLECTION_ADMIN -> timeoutOptions.getCollectionAdminTimeoutMillis();
+            default -> timeoutOptions.getRequestTimeoutMillis();
         };
     }
 
@@ -251,8 +300,11 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      * @return
      *      service key
      */
-    public T timeout(long timeoutMillis) {
-        TimeoutOptions timeoutOptions = dataAPIClientOptions.getTimeoutOptions();
+    public T timeout(long timeoutMillis, CommandType commandType) {
+        if (getDataAPIClientOptions().getTimeoutOptions() == null) {
+            getDataAPIClientOptions().timeoutOptions(new TimeoutOptions());
+        }
+        TimeoutOptions timeoutOptions = getDataAPIClientOptions().getTimeoutOptions();
         switch (commandType) {
             case DATABASE_ADMIN -> timeoutOptions.databaseAdminTimeoutMillis(timeoutMillis);
             case KEYSPACE_ADMIN -> timeoutOptions.keyspaceAdminTimeoutMillis(timeoutMillis);
@@ -261,6 +313,37 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
             default -> timeoutOptions.generalMethodTimeoutMillis(timeoutMillis);
         };
         return (T) this;
+    }
+
+    // --------------------------------------------
+    // ----- Getters                          -----
+    // --------------------------------------------
+
+    /**
+     * Gets dataAPIClientOptions
+     *
+     * @return value of dataAPIClientOptions
+     */
+    public DataAPIClientOptions getDataAPIClientOptions() {
+        return dataAPIClientOptions;
+    }
+
+    /**
+     * Return the HTTP Request Timeout based on the command type
+     *
+     * @return value of token
+     */
+    public long getTimeout() {
+        return getTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
+    }
+
+    /**
+     * Return the HTTP Request Timeout based on the command type
+     *
+     * @return value of token
+     */
+    public long getRequestTimeout() {
+        return getRequestTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
     }
 
     /**
@@ -282,15 +365,6 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     }
 
     /**
-     * Gets dataAPIClientOptions
-     *
-     * @return value of dataAPIClientOptions
-     */
-    public DataAPIClientOptions getDataAPIClientOptions() {
-        return dataAPIClientOptions;
-    }
-
-    /**
      * Gets serializer
      *
      * @return value of serializer
@@ -298,6 +372,10 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
     public DataAPISerializer getSerializer() {
         return serializer;
     }
+
+    // --------------------------------------------
+    // ----- Java Core                        -----
+    // --------------------------------------------
 
     /**
      * Return the HTTP Request Timeout based on the command type.
@@ -309,7 +387,7 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
      * @param options
      *      data api options
      */
-    public CommandOptions(String token, CommandType type, DataAPIClientOptions options) {
+    public BaseOptions(String token, CommandType type, DataAPIClientOptions options) {
        this.token = token;
        this.commandType = type;
        if (options != null) {
@@ -317,10 +395,16 @@ public class CommandOptions<T extends CommandOptions<T>> implements Cloneable {
        }
     }
 
+    @Override
+    public String toString() {
+        return getSerializer().marshall(this);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public T clone() {
         try {
-            CommandOptions<T> cloned = (CommandOptions<T>) super.clone();
+            BaseOptions<T> cloned = (BaseOptions<T>) super.clone();
             cloned.token = token;
             cloned.commandType = commandType;
             cloned.dataAPIClientOptions = dataAPIClientOptions.clone();

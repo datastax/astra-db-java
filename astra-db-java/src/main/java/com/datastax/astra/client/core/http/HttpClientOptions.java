@@ -90,6 +90,12 @@ public class HttpClientOptions implements Cloneable {
      */
     Duration retryDelay = Duration.ofMillis(DEFAULT_RETRY_DELAY_MILLIS);
 
+    public HttpClientOptions httpRetries(int i, Duration duration) {
+        this.retryCount = i;
+        this.retryDelay = duration;
+        return this;
+    }
+
     /**
      * Gets retryCount
      *
@@ -179,5 +185,6 @@ public class HttpClientOptions implements Cloneable {
             throw new AssertionError("Cloning not supported", e);
         }
     }
+
 
 }

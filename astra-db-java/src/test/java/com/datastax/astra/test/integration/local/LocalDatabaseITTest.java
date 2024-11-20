@@ -3,6 +3,7 @@ package com.datastax.astra.test.integration.local;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
@@ -92,12 +93,14 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
 
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
-                DataAPIClientOptions.builder()
-                        .withDestination(DataAPIDestination.CASSANDRA)
-                        .withHttpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
-                        .build());
+                new DataAPIClientOptions()
+                        .destination(DataAPIDestination.CASSANDRA)
+                        .httpClientOptions(new HttpClientOptions()
+                        .httpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
+                )
+        );
         Set<String> names = otherCallerClient
-                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL)
                 .getDatabaseAdmin()
                 .listKeyspaceNames();
         assertThat(names).isNotNull();
@@ -110,12 +113,11 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     void shouldInitializeHttpClientWithCallerAndProxy() {
         DataAPIClient otherCallerClient = new DataAPIClient(
                 new UsernamePasswordTokenProvider().getToken(),
-                DataAPIClientOptions.builder()
-                        .withDestination(DataAPIDestination.CASSANDRA)
-                        .addCaller("Cedrick", "1.0")
-                        .build());
+                new DataAPIClientOptions()
+                        .destination(DataAPIDestination.CASSANDRA)
+                        .addCaller("Cedrick", "1.0"));
         assertThat(otherCallerClient
-                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_NAMESPACE)
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL)
                 .listCollectionNames()).isNotNull();
     }
 

@@ -53,25 +53,58 @@ import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
 @Accessors(fluent = true, chain = true)
 public class DataAPIClientOptions implements Cloneable {
 
+    // --------------------------------------------------
+    // --- Defaults                                   ---
+    // --------------------------------------------------
+
+    /**
+     * The default keyspace to use for working with your databases.
+     * <p>
+     * This value is the default in Astra but you can create your own keyspaces in your database.
+     * Ensure the keyspace matches your database configuration to avoid runtime issues.
+     * </p>
+     */
+    public static final String DEFAULT_KEYSPACE = "default_keyspace";
+
+    /**
+     * API version and path in the URL in the format '/api/${version}'.
+     * <p>
+     * This constant can be used to construct endpoint URLs for making API calls.
+     * Modify this value if the backend version changes.
+     * </p>
+     */
+    public static final String DEFAULT_VERSION = "v1";
+
+    /**
+     * The maximum number of documents allowed for processing before throwing an exception.
+     * <p>
+     * This is a safeguard to prevent excessive memory or computational load when processing
+     * large batches of data. Applications should adhere to this limit for better stability.
+     * </p>
+     */
+    public static final int MAX_COUNT = 1000;
+
+    /**
+     * The maximum number of documents to insert in a single batch operation.
+     * <p>
+     * This is used to optimize bulk insertion performance while ensuring the operation
+     * doesn't exceed database constraints or memory limits.
+     * </p>
+     */
+    public static final int MAX_CHUNK_SIZE = 50;
+
+    // --------------------------------------------------
+    // --- More Global Constants                      ---
+    // --------------------------------------------------
+
     /**
      * Feature Flag Tables.
      */
     public static final String HEADER_FEATURE_FLAG_TABLES = "Feature-Flag-tables";
 
-    /**
-     * path for json api.
-     */
-    public static final String DEFAULT_VERSION = "v1";
-
-    /**
-     * Number of documents for a count.
-     */
-    public static final int DEFAULT_MAX_COUNT = 1000;
-
-    /**
-     * Maximum number of documents when you insert.
-     */
-    public static final int DEFAULT_MAX_CHUNK_SIZE = 50;
+    // --------------------------------------------------
+    // --- Fields                                     ---
+    // --------------------------------------------------
 
     /**
      * Set the API version like 'v1'
@@ -82,6 +115,30 @@ public class DataAPIClientOptions implements Cloneable {
      * Encode the destination like Astra or local installation.
      */
     private DataAPIDestination destination = DataAPIDestination.ASTRA;
+
+    /**
+     * Http Client Options
+     */
+    private HttpClientOptions httpClientOptions = new HttpClientOptions();
+
+    /**
+     * Timeout options.
+     */
+    private TimeoutOptions timeoutOptions = new TimeoutOptions();
+
+    /**
+     * Options for serialization and deserialization.
+     * <p>
+     * This static field is shared across the application to ensure consistency in
+     * how objects are serialized and deserialized. The Jackson serializer, or any
+     * similar serialization framework, will leverage the options defined in this instance.
+     * </p>
+     * <p>
+     * Use this field to configure global serialization/deserialization behavior, such as
+     * custom serializers, choose vector and durations encodings.
+     * </p>
+     */
+    private static SerdesOptions serdesOptions = new SerdesOptions();
 
     /**
      * The embedding service API key can be provided at top level.
@@ -103,24 +160,9 @@ public class DataAPIClientOptions implements Cloneable {
      */
     private Map<String, CommandObserver> observers = new TreeMap<>();
 
-    /**
-     * Http Client Options
-     */
-    private HttpClientOptions httpClientOptions = new HttpClientOptions();
-
-    /**
-     * Timeout options.
-     */
-    private TimeoutOptions timeoutOptions = new TimeoutOptions();
-
-    /**
-     * Options for serialization and deserialization.
-     */
-    private static SerdesOptions serdesOptions = new SerdesOptions();
-
-    // --------------------------------------------
-    // ----------------- GETTERS  -----------------
-    // --------------------------------------------
+    // --------------------------------------------------
+    // --- Accessors                                  ---
+    // --------------------------------------------------
 
     /**
      * Check if the deploying is Astra
@@ -234,10 +276,6 @@ public class DataAPIClientOptions implements Cloneable {
         return serdesOptions;
     }
 
-    // --------------------------------------------
-    // ------- Special Fluent Setters  ------------
-    // --------------------------------------------
-
     /**
      * Register an observer with its className.
      *
@@ -268,9 +306,9 @@ public class DataAPIClientOptions implements Cloneable {
         return addObserver(new LoggingCommandObserver(DataAPIClient.class));
     }
 
-    // --------------------------------------------
-    // ----------------- HEADERS  -----------------
-    // --------------------------------------------
+    // --------------------------------------------------
+    // --- Http Headers                               ---
+    // --------------------------------------------------
 
     /**
      * Builder pattern, update http connection Timeout
@@ -306,7 +344,6 @@ public class DataAPIClientOptions implements Cloneable {
         this.databaseAdditionalHeaders.put(key, value);
         return this;
     }
-
 
     /**
      * Add a header to the admin calls.

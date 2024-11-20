@@ -1,17 +1,17 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.collections.CollectionIdTypes;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
-import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
-import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -28,9 +28,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.collections.CollectionIdTypes.OBJECT_ID;
-import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV6;
-import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV7;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.OBJECT_ID;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV6;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV7;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,27 +66,23 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(2)
     public void shouldCreateCollectionsVector() {
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                CollectionDefinitionOptions.builder()
-                        .vectorDimension(14)
-                        .vectorSimilarity(SimilarityMetric.COSINE)
-                        .build());
+                new CollectionDefinition().vector(14, SimilarityMetric.COSINE));
+
         assertThat(collectionVector).isNotNull();
         assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
 
-        CollectionDefinitionOptions options = collectionVector.getOptions();
-        assertThat(options.getVector()).isNotNull();
-        assertThat(options.getVector().getDimension()).isEqualTo(14);
+        CollectionDefinition colDefinition = collectionVector.getDefinition();
+        assertThat(colDefinition.getVector()).isNotNull();
+        assertThat(colDefinition.getVector().getDimension()).isEqualTo(14);
     }
 
     @Test
     @Order(3)
     public void shouldCreateCollectionsAllows() {
         Collection<Document> collectionAllow = getDatabase().createCollection(COLLECTION_ALLOW,
-                CollectionDefinitionOptions.builder()
-                        .indexingAllow("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingAllow("a", "b", "c"));
         assertThat(collectionAllow).isNotNull();
-        CollectionDefinitionOptions options = collectionAllow.getOptions();
+        CollectionDefinition options = collectionAllow.getDefinition();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getAllow()).isNotNull();
     }
@@ -95,11 +91,9 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(4)
     public void shouldCreateCollectionsDeny() {
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionDefinitionOptions.builder()
-                        .indexingDeny("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingDeny("a", "b", "c"));
         assertThat(collectionDeny).isNotNull();
-        CollectionDefinitionOptions options = collectionDeny.getOptions();
+        CollectionDefinition options = collectionDeny.getDefinition();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getDeny()).isNotNull();
     }
@@ -128,9 +122,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldDropCollectionsDeny() {
         // Given
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionDefinitionOptions.builder()
-                        .indexingDeny("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingDeny("a", "b", "c"));
         assertThat(getDatabase().collectionExists(COLLECTION_DENY)).isTrue();
         // When
         collectionDeny.drop();
@@ -165,10 +157,10 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         Collection<Document> collection = getDatabase().getCollection("invalid");
         assertThat(collection).isNotNull();
         assertThat(getDatabase().collectionExists("invalid")).isFalse();
-        assertThatThrownBy(collection::getOptions)
+        assertThatThrownBy(collection::getDefinition)
                 .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
-        assertThatThrownBy(collection::getOptions)
+        assertThatThrownBy(collection::getDefinition)
                 .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST")
                 .extracting("errorCode")  // Extract the errorCode attribute
@@ -213,9 +205,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDs() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID, CollectionDefinitionOptions.builder()
-                .defaultIdType(CollectionIdTypes.UUID)
-                .build());
+                .createCollection(COLLECTION_UUID, new CollectionDefinition().defaultId(CollectionDefaultIdTypes.UUID));
         collectionUUID.deleteAll();
         UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
@@ -244,10 +234,8 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(11)
     public void shouldCollectionWorkWithObjectIds() {
         // When
-        Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionDefinitionOptions.builder()
-                        .defaultIdType(OBJECT_ID)
-                        .build());
+        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_OBJECTID,
+                new CollectionDefinition().defaultId(OBJECT_ID));
         collectionUUID.deleteAll();
 
         // Insert One
@@ -275,10 +263,8 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         product.setName("name");
         product.setCode(UUID.randomUUID());
         product.setPrice(0d);
-        Collection<ProductObjectId> collectionObjectId = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionDefinitionOptions.builder()
-                        .defaultIdType(OBJECT_ID)
-                        .build(), ProductObjectId.class);
+        Collection<ProductObjectId> collectionObjectId = getDatabase().createCollection(COLLECTION_OBJECTID,
+                        new CollectionDefinition().defaultId(OBJECT_ID), ProductObjectId.class);
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
         Optional<ProductObjectId> productObjectId = collectionObjectId.findOne(eq(product.getId()));
@@ -289,15 +275,14 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(12)
     public void shouldCollectionWorkWithUUIDv6() {
         // When
-        Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V6, CollectionDefinitionOptions.builder()
-                        .defaultIdType(UUIDV6)
-                        .build());
+        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_UUID_V6,
+                        new CollectionDefinition().defaultId(UUIDV6));
         collectionUUID.deleteAll();
 
         // Insert One
         UUIDv6 id1 = new UUIDv6();
-        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        CollectionInsertOneResult res = collectionUUID
+                .insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(UUIDv6.class);
         Optional<Document> doc = collectionUUID.findOne(eq(id1));
@@ -320,9 +305,8 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDv7() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V7, CollectionDefinitionOptions.builder()
-                        .defaultIdType(UUIDV7)
-                        .build());
+                .createCollection(COLLECTION_UUID_V7, new CollectionDefinition()
+                        .defaultId(UUIDV7));
         collectionUUID.deleteAll();
 
         // Insert One

@@ -20,15 +20,13 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.tables.TableDuration;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
-
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.encodeDurationAsISO8601;
 
 public class TableDurationSerializer extends JsonSerializer<TableDuration> {
 
@@ -41,7 +39,7 @@ public class TableDurationSerializer extends JsonSerializer<TableDuration> {
         }
 
         // Flag iso 8601 is enabled
-        if (encodeDurationAsISO8601) {
+        if (DataAPIClientOptions.getSerdesOptions().isEncodeDurationAsISO8601()) {
             gen.writeString(value.toISO8601());
             return;
         }

@@ -21,8 +21,8 @@ package com.datastax.astra.client.collections.options;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.commands.CommandOptions;
-import lombok.Getter;
+import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -30,11 +30,10 @@ import lombok.experimental.Accessors;
 /**
  * Options for InsertMany
  */
-@Getter @Setter
+@Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CollectionInsertManyOptions extends CommandOptions<CollectionInsertManyOptions> {
-
+public class CollectionInsertManyOptions extends BaseOptions<CollectionInsertManyOptions> {
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -59,6 +58,61 @@ public class CollectionInsertManyOptions extends CommandOptions<CollectionInsert
     /**
      * If the flag is set to true the command is failing on first error
      */
-    int chunkSize = DataAPIClientOptions.DEFAULT_MAX_CHUNK_SIZE;
+    int chunkSize = DataAPIClientOptions.MAX_CHUNK_SIZE;
+
+    /**
+     * Gets ordered
+     *
+     * @return value of ordered
+     */
+    public boolean isOrdered() {
+        return ordered;
+    }
+
+    /**
+     * Gets concurrency
+     *
+     * @return value of concurrency
+     */
+    public int getConcurrency() {
+        return concurrency;
+    }
+
+    /**
+     * Gets returnDocumentResponses
+     *
+     * @return value of returnDocumentResponses
+     */
+    public boolean isReturnDocumentResponses() {
+        return returnDocumentResponses;
+    }
+
+    /**
+     * Gets chunkSize
+     *
+     * @return value of chunkSize
+     */
+    public int getChunkSize() {
+        return chunkSize;
+    }
+
+    /**
+     * Specialization of the timeout options for this command.
+     *
+     * @param timeoutMillis
+     *      timeout request
+     * @return
+     *      current command
+     */
+    public CollectionInsertManyOptions requestTimeout(long timeoutMillis) {
+        if (dataAPIClientOptions == null) {
+            dataAPIClientOptions = new DataAPIClientOptions();
+        }
+        if (dataAPIClientOptions.getTimeoutOptions() == null) {
+            dataAPIClientOptions.timeoutOptions(new TimeoutOptions());
+        }
+        dataAPIClientOptions.getTimeoutOptions().requestTimeoutMillis(timeoutMillis);
+        return this;
+    }
 
 }

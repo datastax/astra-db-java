@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.collections.documents.ReturnDocument.AFTER;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.gt;
 import static com.datastax.astra.client.core.query.Projection.include;
@@ -88,25 +89,20 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
     protected Collection<ProductString> getCollectionVector() {
         if (collectionVector == null) {
-            collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                    CollectionDefinitionOptions
-                            .builder()
-                            .vectorDimension(14)
-                            .vectorSimilarity(SimilarityMetric.COSINE)
-                            .build(), ProductString.class);
+            collectionVector = getDatabase().createCollection(COLLECTION_VECTOR, new CollectionDefinition()
+                            .vector(14, SimilarityMetric.COSINE)
+                    , ProductString.class);
         }
-
         return collectionVector;
     }
 
     @Test
     @Order(1)
     protected void shouldPopulateGeneralInformation() {
-        assertThat(getCollectionSimple().getOptions()).isNotNull();
+        assertThat(getCollectionSimple().getDefinition()).isNotNull();
         assertThat(getCollectionSimple().getName()).isNotNull();
         assertThat(getCollectionSimple().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
         assertThat(getCollectionSimple().getKeyspaceName()).isNotNull();
-        assertThat(getCollectionVector().getOptions()).isNotNull();
         assertThat(getCollectionVector().getName()).isNotNull();
         assertThat(getCollectionVector().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
         assertThat(getCollectionVector().getKeyspaceName()).isNotNull();
@@ -245,7 +241,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
         // Add a filter
         assertThat(getCollectionSimple()
-                .countDocuments(gt("indice", 3), getCollectionSimple().getDataAPIClientOptions().getMaxCount())    )
+                .countDocuments(gt("indice", 3), MAX_COUNT))
                 .isEqualTo(6);
 
         // Filter + limit
@@ -259,7 +255,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
         // More than 1000 items
         assertThatThrownBy(() -> getCollectionSimple()
-                .countDocuments(getCollectionSimple().getDataAPIClientOptions().getMaxCount()))
+                .countDocuments(MAX_COUNT))
                 .isInstanceOf(TooManyDocumentsToCountException.class)
                 .hasMessageContaining("server");
     }

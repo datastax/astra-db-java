@@ -29,18 +29,18 @@ import lombok.NoArgsConstructor;
  * Using booleans as those flag could be null.
  */
 @Data @NoArgsConstructor
-public class VectorIndexDefinitionOptions {
+public class TableVectorIndexDefinitionOptions {
 
     String metric;
 
     String sourceModel;
 
-    public VectorIndexDefinitionOptions metric(SimilarityMetric metric) {
+    public TableVectorIndexDefinitionOptions metric(SimilarityMetric metric) {
         this.metric = metric.getValue();
         return this;
     }
 
-    public VectorIndexDefinitionOptions sourceModel(String sourceModel) {
+    public TableVectorIndexDefinitionOptions sourceModel(String sourceModel) {
         this.sourceModel = sourceModel;
         return this;
     }

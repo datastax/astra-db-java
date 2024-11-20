@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,7 +32,7 @@ import lombok.experimental.Accessors;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CollectionReplaceOneOptions extends CommandOptions<CollectionReplaceOneOptions> {
+public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOneOptions> {
 
     /** If upsert is selected. */
     Boolean upsert;

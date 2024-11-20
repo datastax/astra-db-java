@@ -20,7 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
@@ -207,7 +207,7 @@ public interface DatabaseAdmin {
         dropKeyspace(namespace, null);
     }
 
-    void dropKeyspace(String namespace, CommandOptions<?> options);
+    void dropKeyspace(String namespace, BaseOptions<?> options);
 
     /**
      * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning

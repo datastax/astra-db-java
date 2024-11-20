@@ -33,7 +33,7 @@ public class TooManyRowsToCountException extends DataAPIException {
      * Default constructor.
      */
     public TooManyRowsToCountException() {
-        super(ClientErrorCodes.HTTP,"Rows count exceeds '" + DataAPIClientOptions.DEFAULT_MAX_COUNT + ", the maximum allowed by the server");
+        super(ClientErrorCodes.HTTP,"Rows count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
     }
 
     /**

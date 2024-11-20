@@ -26,7 +26,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class IndexDescriptor {
+public class TableIndexDescriptor {
 
     /**
      * Name of the table.
@@ -36,29 +36,29 @@ public class IndexDescriptor {
     /**
      * Options for the table.
      */
-    private IndexDefinition definition;
+    private TableIndexDefinition definition;
 
     /**
      * Default constructor.
      */
-    public IndexDescriptor() {
+    public TableIndexDescriptor() {
         // left blank, serialization with jackson
     }
 
     /**
      * Default constructor.
      */
-    public IndexDescriptor(String name) {
+    public TableIndexDescriptor(String name) {
         // left blank, serialization with jackson
         this.name = name;
     }
 
-    public IndexDescriptor name(String name) {
+    public TableIndexDescriptor name(String name) {
         this.name = name;
         return this;
     }
 
-    public IndexDescriptor definition(IndexDefinition def) {
+    public TableIndexDescriptor definition(TableIndexDefinition def) {
         this.definition = def;
         return this;
     }

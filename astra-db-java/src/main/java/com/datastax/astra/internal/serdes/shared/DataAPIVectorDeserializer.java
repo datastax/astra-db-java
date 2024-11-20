@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.serdes;
+package com.datastax.astra.internal.serdes.shared;
 
 /*-
  * #%L

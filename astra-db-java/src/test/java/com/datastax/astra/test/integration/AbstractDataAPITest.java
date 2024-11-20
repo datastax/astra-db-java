@@ -160,7 +160,7 @@ public abstract class AbstractDataAPITest {
                .astraDev(Utils.readEnvVariable(ASTRA_DB_APPLICATION_TOKEN_DEV)
                .orElseThrow(() -> new IllegalStateException(ASTRA_DB_APPLICATION_TOKEN_DEV + " env var is missing")));
             case PROD: return DataAPIClients
-               .create(Utils.readEnvVariable(ASTRA_DB_APPLICATION_TOKEN)
+               .astra(Utils.readEnvVariable(ASTRA_DB_APPLICATION_TOKEN)
                .orElseThrow(() -> new IllegalStateException(ASTRA_DB_APPLICATION_TOKEN + " env var is missing")));
             case TEST: return DataAPIClients
                .astraTest(Utils.readEnvVariable(ASTRA_DB_APPLICATION_TOKEN_TEST)

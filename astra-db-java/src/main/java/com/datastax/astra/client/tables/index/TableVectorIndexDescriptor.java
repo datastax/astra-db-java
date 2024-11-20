@@ -26,7 +26,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class VectorIndexDescriptor {
+public class TableVectorIndexDescriptor {
 
     /**
      * Name of the table.
@@ -36,29 +36,29 @@ public class VectorIndexDescriptor {
     /**
      * Options for the table.
      */
-    private VectorIndexDefinition definition;
+    private TableVectorIndexDefinition definition;
 
     /**
      * Default constructor.
      */
-    public VectorIndexDescriptor() {
+    public TableVectorIndexDescriptor() {
         // left blank, serialization with jackson
     }
 
     /**
      * Default constructor.
      */
-    public VectorIndexDescriptor(String name) {
+    public TableVectorIndexDescriptor(String name) {
         // left blank, serialization with jackson
         this.name = name;
     }
 
-    public VectorIndexDescriptor name(String name) {
+    public TableVectorIndexDescriptor name(String name) {
         this.name = name;
         return this;
     }
 
-    public VectorIndexDescriptor definition(VectorIndexDefinition def) {
+    public TableVectorIndexDescriptor definition(TableVectorIndexDefinition def) {
         this.definition = def;
         return this;
     }

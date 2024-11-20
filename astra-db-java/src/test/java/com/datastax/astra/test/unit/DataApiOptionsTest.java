@@ -2,6 +2,7 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
+import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
 import com.datastax.astra.client.collections.results.CollectionDeleteResult;
@@ -21,8 +22,8 @@ import com.datastax.astra.client.collections.options.UpdateOneOptions;
 import com.datastax.astra.client.collections.documents.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
-import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.FilterOperator;
@@ -45,16 +46,15 @@ class DataApiOptionsTest {
 
     @Test
     void shouldPopulateOptions() {
-        DataAPIClientOptions options = DataAPIClientOptions.builder()
-                .withHttpProxy(new HttpProxy("localhost", 8080))
-                .withApiVersion("v1")
-                .withHttpRedirect(HttpClient.Redirect.NORMAL)
-                .withHttpRetries(5, Duration.ofMillis(1000))
-                .withDestination(DataAPIDestination.DSE)
+        DataAPIClientOptions options = new DataAPIClientOptions()
+                .httpClientOptions(new HttpClientOptions()
+                        .httpRedirect(HttpClient.Redirect.NORMAL)
+                        .httpProxy(new HttpProxy("localhost", 8080))
+                        .httpRetries(1, Duration.ofSeconds(10)))
+                .destination(DataAPIDestination.DSE)
                 .enableFeatureFlagTables()
-                // equivalent to:
-                .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true")
-                .build();
+                // Header
+                .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
         assertThat(options.getHttpClientOptions().getHttpProxy().getHostname()).isEqualTo("localhost");
     }
 
@@ -72,7 +72,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldFailParsingCollectionIdTypes() {
-        assertThatThrownBy(() -> CollectionIdTypes.fromValue("invalid"))
+        assertThatThrownBy(() -> CollectionDefaultIdTypes.fromValue("invalid"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -180,7 +180,7 @@ class DataApiOptionsTest {
 
     @Test
     void shouldTestCollectionOptions() {
-        CollectionDefinitionOptions c = new CollectionDefinitionOptions();
+        CollectionDefinition c = new CollectionDefinition();
 
         VectorOptions v = new VectorOptions();
 
@@ -195,8 +195,8 @@ class DataApiOptionsTest {
         p1.defaultValue("OK");
         s.parameters(Map.of("ok", p1));
 
-        v.setService(s);
-        c.setVector(v);
+        v.service(s);
+        c.vector(v);
         System.out.println(new DocumentSerializer().marshall(c));
         assertThat(new DocumentSerializer().marshall(c)).isNotNull();
     }
@@ -262,22 +262,4 @@ class DataApiOptionsTest {
         assertThat(new CollectionFindOptions().limit(10)).isNotNull();
         assertThat(new CollectionFindOptions().skip(10)).isNotNull();
     }
-
-    @Test
-    void shouldTOverrideMaximumLimits() {
-        DataAPIClientOptions options = DataAPIClientOptions.builder()
-                .withMaxDocumentsInInsert(100)
-                .build();
-
-        Projection p1 = new Projection("field1", true);
-        Projection p2 = new Projection("field2", true);
-        CollectionFindOptions options1 = new CollectionFindOptions().projection(p1,p2);
-        CollectionFindOptions options2 = new CollectionFindOptions().projection(Projection.include("field1", "field2"));
-
-        CollectionInsertManyOptions collectionInsertManyOptions = new CollectionInsertManyOptions().chunkSize(100);
-        //DataAPIClient client = new DataAPIClient("token", options);
-
-    }
-
-
 }

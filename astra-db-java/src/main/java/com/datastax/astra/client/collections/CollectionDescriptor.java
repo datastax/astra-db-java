@@ -38,7 +38,7 @@ public class CollectionDescriptor {
     /**
      * Options for the collection.
      */
-    private CollectionDefinitionOptions options;
+    private CollectionDefinition options;
 
     /**
      * Default constructor.

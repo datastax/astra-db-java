@@ -20,13 +20,11 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import static com.datastax.astra.client.core.commands.CommandType.DATA;
 
 /**
  * Options for InsertOne
@@ -34,5 +32,5 @@ import static com.datastax.astra.client.core.commands.CommandType.DATA;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CollectionInsertOneOptions extends CommandOptions<CollectionInsertOneOptions> {
+public class CollectionInsertOneOptions extends BaseOptions<CollectionInsertOneOptions> {
 }

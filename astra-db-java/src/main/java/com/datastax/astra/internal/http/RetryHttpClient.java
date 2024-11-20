@@ -20,7 +20,6 @@ package com.datastax.astra.internal.http;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
@@ -36,8 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -91,13 +88,6 @@ public class RetryHttpClient {
     protected final RetryConfig retryConfig;
 
     /**
-     * Default constructor.
-     */
-    public RetryHttpClient() {
-        this(new HttpClientOptions(), new TimeoutOptions());
-    }
-
-    /**
      * Initialize the instance with all items
      *
      * @param httpClientOptions
@@ -112,7 +102,7 @@ public class RetryHttpClient {
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
         httpClientBuilder.version(httpClientOptions.getHttpVersion());
         httpClientBuilder.followRedirects(httpClientOptions.getHttpRedirect());
-        httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.connectTimeoutMillis()));
+        httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.getConnectTimeoutMillis()));
         if (httpClientOptions.getHttpProxy() != null) {
             httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
                     httpClientOptions.getHttpProxy().getHostname(),
@@ -144,64 +134,6 @@ public class RetryHttpClient {
         return sj.toString();
     }
 
-    // -------------------------------------------
-    // ---------- Working with HTTP --------------
-    // -------------------------------------------
-
-    /**
-     * Helper to build the HTTP request.
-     *
-     * @param url
-     *      target url
-     * @param token
-     *      authentication token
-     * @param body
-     *      request body
-     * @return
-     *      http request
-     */
-    public ApiResponseHttp post(String url, String token, String body) {
-        return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON);
-    }
-
-    /**
-     * Help to build the HTTP request.
-     *
-     * @param method
-     *      http method name
-     * @param url
-     *      http url
-     * @param token
-     *      token for authorization header
-     * @param body
-     *     body of the request
-     * @param contentType
-     *      content type for the request
-     * @return
-     *      the http request.
-     */
-    public HttpRequest builtHttpRequest(final String method,
-                                         final String url,
-                                         final String token,
-                                         String body,
-                                         String contentType) {
-        try {
-            return HttpRequest.newBuilder()
-                .uri(new URI(url))
-                .header(HEADER_CONTENT_TYPE, contentType)
-                .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
-                .header(HEADER_USER_AGENT, getUserAgentHeader())
-                .header(HEADER_REQUESTED_WITH, getUserAgentHeader())
-                .header(HEADER_TOKEN, token)
-                .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                .timeout(Duration.ofMillis(timeoutOptions.requestTimeoutMillis()))
-                .method(method, HttpRequest.BodyPublishers.ofString(body))
-                .build();
-        } catch(URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid URL '" + url + "'", e);
-        }
-    }
-
     /**
      * Parse HTTP response as a ApiResponseHttp.
      *
@@ -224,32 +156,6 @@ public class RetryHttpClient {
             processErrors(res);
         }
         return res;
-    }
-
-    /**
-     * Main Method executing HTTP Request.
-     *
-     * @param method
-     *      http method
-     * @param url
-     *      url
-     * @param token
-     *      authentication token
-     * @param contentType
-     *      request content type
-     * @param body
-     *      request body
-     * @return
-     *      basic request
-     */
-    public ApiResponseHttp executeHttp(final String method,
-                                       final String url,
-                                       final String token,
-                                       String body,
-                                       String contentType) {
-        HttpRequest httpRequest = builtHttpRequest(method, url, token, body, contentType);
-        Status<HttpResponse<String>> status = executeHttpRequest(httpRequest);
-        return parseHttpResponse(status.getResult());
     }
 
     /**

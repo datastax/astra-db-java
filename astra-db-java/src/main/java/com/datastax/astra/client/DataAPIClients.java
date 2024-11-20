@@ -24,10 +24,9 @@ import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 
 /**
  * Provides utility methods for initializing and configuring clients to interact with the Data API. This class
@@ -86,6 +85,31 @@ public class DataAPIClients {
                         .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
     }
 
+    /**
+     * Creates a {@link DataAPIClient} configured for interacting with Astra in a development environment. This
+     * method simplifies the setup of a client specifically tailored for development purposes, where you might
+     * need different configurations or less stringent security measures compared to a production environment.
+     * The client is configured to target Astra's development environment, ensuring that operations do not
+     * affect production data.
+     *
+     * @param token The authentication token required for accessing Astra's development environment. This token
+     *              should have the necessary permissions for development activities and be protected accordingly.
+     * @return A {@link DataAPIClient} instance ready for development activities with Astra, configured with the
+     *         provided authentication token and targeting Astra's development environment.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DataAPIClient devClient = DataAPIClients.astraDev("your_astra_dev_token");
+     * // Utilize devClient for development database operations
+     * }
+     * </pre>
+     */
+    public static DataAPIClient astra(String token) {
+        return new DataAPIClient(token, new DataAPIClientOptions()
+                .destination(DataAPIDestination.ASTRA)
+                .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
+    }
 
     /**
      * Creates a {@link DataAPIClient} configured for interacting with Astra in a development environment. This
@@ -154,7 +178,7 @@ public class DataAPIClients {
     public static Database defaultLocalDatabase() {
         Database db = local().getDatabase(DEFAULT_ENDPOINT_LOCAL);
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
-        dbAdmin.createKeyspace(DatabaseOptions.DEFAULT_KEYSPACE);
+        dbAdmin.createKeyspace(DEFAULT_KEYSPACE);
         return db;
     }
 

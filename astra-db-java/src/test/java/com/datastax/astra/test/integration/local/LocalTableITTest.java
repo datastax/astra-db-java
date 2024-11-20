@@ -28,10 +28,10 @@ import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
 import com.datastax.astra.client.tables.ddl.CreateTableOptions;
 import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
-import com.datastax.astra.client.tables.index.IndexDefinition;
-import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
-import com.datastax.astra.client.tables.index.VectorIndexDefinition;
-import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.TableIndexDefinition;
+import com.datastax.astra.client.tables.index.TableIndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.index.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.options.TableFindOptions;
 import com.datastax.astra.client.tables.options.TableInsertManyOptions;
@@ -139,9 +139,9 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isTrue();
 
         // Create Index Simple
-        tableSimple.createIndex(INDEX_COUNTRY, new IndexDefinition()
+        tableSimple.createIndex(INDEX_COUNTRY, new TableIndexDefinition()
                     .column("country")
-                    .options(new IndexDefinitionOptions()
+                    .options(new TableIndexDefinitionOptions()
                             .ascii(true)
                             .caseSensitive(true)
                             .normalize(true)),
@@ -201,14 +201,14 @@ public class LocalTableITTest extends AbstractTableITTest {
 
         tableAllReturns
                 .createVectorIndex(INDEX_ALL_RETURNS_VECTOR,
-                        new VectorIndexDefinition()
+                        new TableVectorIndexDefinition()
                         .column("p_vector")
-                        .options(new VectorIndexDefinitionOptions().metric(COSINE)),
+                        .options(new TableVectorIndexDefinitionOptions().metric(COSINE)),
                         new CreateVectorIndexOptions().ifNotExists(true));
 
-        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new IndexDefinition()
+        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new TableIndexDefinition()
                         .column("p_text")
-                        .options(new IndexDefinitionOptions()
+                        .options(new TableIndexDefinitionOptions()
                                 .ascii(true)
                                 .caseSensitive(true)
                                 .normalize(true)),
@@ -354,7 +354,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         LocalTime localTime = LocalTime.parse(timeString, formatter);
 
-        DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
+        DataAPIClientOptions.getSerdesOptions().disableEncodeDataApiVectorsAsBase64();
 
         Row row = new Row()
                 .addAscii("p_ascii", "abc")
@@ -488,6 +488,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         TableInsertManyResult res = table.insertMany(
                 List.of(row1, row2, row3), new TableInsertManyOptions()
                 .ordered(false)
+                .timeout(10000L)
                 .returnDocumentResponses(true));
         System.out.println(res.getInsertedIds());
         System.out.println(res.getPrimaryKeySchema());
@@ -710,7 +711,6 @@ public class LocalTableITTest extends AbstractTableITTest {
 
     @Test
     public void revampingOptions() {
-
         DataAPIClientOptions options = new DataAPIClientOptions()
                 .destination(DataAPIDestination.ASTRA)
                 .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("myKey"))
@@ -726,18 +726,10 @@ public class LocalTableITTest extends AbstractTableITTest {
         Database database1 = client.getDatabase("endpoint");
 
         Database database2 = client.getDatabase("endpoints",
-                new DatabaseOptions(options)
-                        .keyspace("otherKeyspace"));
+                new DatabaseOptions("token" , options).keyspace("otherKeyspace"));
 
         database2.getDatabaseOptions().getDataAPIClientOptions();
-
-
-
         Table<Row> table = database1.getTable("table");
-
-
-
-
     }
 
 }

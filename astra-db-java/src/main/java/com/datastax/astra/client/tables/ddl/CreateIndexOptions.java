@@ -20,8 +20,7 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,7 +33,7 @@ import lombok.experimental.Accessors;
 @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CreateIndexOptions {
+public class CreateIndexOptions extends BaseOptions<CreateIndexOptions> {
 
     /** Improve syntax. */
     public static final CreateIndexOptions IF_NOT_EXISTS = new CreateIndexOptions().ifNotExists(true);

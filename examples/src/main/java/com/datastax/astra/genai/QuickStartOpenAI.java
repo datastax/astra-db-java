@@ -2,8 +2,8 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
@@ -46,10 +46,10 @@ public class QuickStartOpenAI {
         Map<String, Object > params = new HashMap<>();
         params.put("organizationId", ORGANIZATION_ID);
         params.put("projectId", PROJECT_ID);
-        CollectionDefinitionOptions.CollectionOptionsBuilder builder = CollectionDefinitionOptions
+        CollectionDefinition.CollectionOptionsBuilder builder = CollectionDefinition
                 .builder()
                 .vectorSimilarity(SimilarityMetric.COSINE)
-                .defaultIdType(CollectionIdTypes.UUID)
+                .defaultIdType(CollectionDefaultIdTypes.UUID)
                 .vectorize("openai","text-embedding-ada-002", API_KEY_NAME,params);
         Collection<Document> collection = db
                 .createCollection("vectorize_test", builder.build());

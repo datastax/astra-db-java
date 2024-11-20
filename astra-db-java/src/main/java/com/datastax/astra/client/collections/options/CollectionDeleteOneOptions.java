@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.NoArgsConstructor;
 
@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
  * Options to delete One document.
  */
 @NoArgsConstructor
-public class CollectionDeleteOneOptions extends CommandOptions<CollectionDeleteOneOptions> {
+public class CollectionDeleteOneOptions extends BaseOptions<CollectionDeleteOneOptions> {
 
     /** Sort List. */
     Sort[] sort;

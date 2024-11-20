@@ -1,6 +1,6 @@
 package dev.langchain4j.store.embedding.astradb;
 
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.langchain4j.Assistant;
@@ -60,7 +60,7 @@ public class GettingStartedGuideVectorizedTestIT {
          * the need of a embedding model. It is done at database level for you.
          */
         embeddingStoreVectorizeNVidia = new AstraDbEmbeddingStore(
-                astraDatabase.createCollection("store_with_nvidia", CollectionDefinitionOptions
+                astraDatabase.createCollection("store_with_nvidia", CollectionDefinition
                         .builder()
                         .vector(1024, SimilarityMetric.COSINE)
                         .vectorize("nvidia", "NV-Embed-QA")

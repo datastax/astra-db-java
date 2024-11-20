@@ -38,7 +38,7 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CollectionDefinitionOptions {
+public class CollectionDefinition {
 
     /**
      * The 'defaultId' to allow working with different types of identifiers.
@@ -64,7 +64,7 @@ public class CollectionDefinitionOptions {
         /**
          * Type for the default id.
          */
-        private String type;
+        private CollectionDefaultIdTypes type;
 
         /**
          * Default constructor.
@@ -78,7 +78,7 @@ public class CollectionDefinitionOptions {
          *
          * @param type type for the default id
          */
-        public DefaultIdOptions(String type) {
+        public DefaultIdOptions(CollectionDefaultIdTypes type) {
             this.type = type;
         }
 
@@ -87,7 +87,7 @@ public class CollectionDefinitionOptions {
          *
          * @return value of type
          */
-        public String getType() {
+        public CollectionDefaultIdTypes getType() {
             return type;
         }
     }
@@ -139,7 +139,7 @@ public class CollectionDefinitionOptions {
      * @return
      *      vector options
      */
-    private VectorOptions getVector() {
+    public VectorOptions getVector() {
         if (vector == null) {
             vector = new VectorOptions();
         }
@@ -151,7 +151,7 @@ public class CollectionDefinitionOptions {
      *
      * @return indexing options
      */
-    private IndexingOptions getIndexing() {
+    public IndexingOptions getIndexing() {
         if (indexing == null) {
             indexing = new IndexingOptions();
         }
@@ -174,7 +174,7 @@ public class CollectionDefinitionOptions {
      *      default id type
      * @return self reference
      */
-    public CollectionDefinitionOptions defaultId(String type) {
+    public CollectionDefinition defaultId(CollectionDefaultIdTypes type) {
         this.defaultId = new DefaultIdOptions(type);
         return this;
     }
@@ -185,8 +185,8 @@ public class CollectionDefinitionOptions {
      * @param size size
      * @return self reference
      */
-    public CollectionDefinitionOptions vectorDimension(int size) {
-        getVector().setDimension(size);
+    public CollectionDefinition vectorDimension(int size) {
+        getVector().dimension(size);
         return this;
     }
 
@@ -196,8 +196,8 @@ public class CollectionDefinitionOptions {
      * @param metric similarity metric
      * @return self reference
      */
-    public CollectionDefinitionOptions vectorSimilarity(@NonNull SimilarityMetric metric) {
-        getVector().setMetric(metric.getValue());
+    public CollectionDefinition vectorSimilarity(@NonNull SimilarityMetric metric) {
+        getVector().metric(metric.getValue());
         return this;
     }
 
@@ -207,7 +207,7 @@ public class CollectionDefinitionOptions {
      * @param properties size
      * @return self reference
      */
-    public CollectionDefinitionOptions indexingDeny(@NonNull String... properties) {
+    public CollectionDefinition indexingDeny(@NonNull String... properties) {
         if (getIndexing().getAllow() != null) {
             throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
         }
@@ -221,7 +221,7 @@ public class CollectionDefinitionOptions {
      * @param properties size
      * @return self reference
      */
-    public CollectionDefinitionOptions indexingAllow(String... properties) {
+    public CollectionDefinition indexingAllow(String... properties) {
         if (getIndexing().getDeny() != null) {
             throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
         }
@@ -236,7 +236,7 @@ public class CollectionDefinitionOptions {
      * @param function  function
      * @return self reference
      */
-    public CollectionDefinitionOptions vector(int dimension, @NonNull SimilarityMetric function) {
+    public CollectionDefinition vector(int dimension, @NonNull SimilarityMetric function) {
         return vectorSimilarity(function).vectorDimension(dimension);
     }
 
@@ -247,7 +247,7 @@ public class CollectionDefinitionOptions {
      * @param modeName mode name
      * @return self reference
      */
-    public CollectionDefinitionOptions vectorize(String provider, String modeName) {
+    public CollectionDefinition vectorize(String provider, String modeName) {
         return vectorize(provider, modeName, null);
     }
 
@@ -259,7 +259,7 @@ public class CollectionDefinitionOptions {
      * @param sharedSecretKey name of the key in the system
      * @return self reference
      */
-    public CollectionDefinitionOptions vectorize(String provider, String modeName, String sharedSecretKey) {
+    public CollectionDefinition vectorize(String provider, String modeName, String sharedSecretKey) {
         VectorServiceOptions embeddingService = new VectorServiceOptions();
         embeddingService.provider(provider).modelName(modeName);
         if (sharedSecretKey != null) {
@@ -268,7 +268,7 @@ public class CollectionDefinitionOptions {
             embeddingService.authentication(Map.of("providerKey", sharedSecretKey));
             // <--- Since 1.3.1 the suffix is not needed anymore
         }
-        getVector().setService(embeddingService);
+        getVector().service(embeddingService);
         return this;
     }
 
@@ -281,10 +281,11 @@ public class CollectionDefinitionOptions {
      * @param sharedSecretKey name of the key in the system
      * @return self reference
      */
-    public CollectionDefinitionOptions vectorize(String provider, String modeName, String sharedSecretKey, Map<String, Object> parameters) {
+    public CollectionDefinition vectorize(String provider, String modeName, String sharedSecretKey, Map<String, Object> parameters) {
         vectorize(provider, modeName, sharedSecretKey);
         getVector().getService().parameters(parameters);
         return this;
     }
+
 
 }

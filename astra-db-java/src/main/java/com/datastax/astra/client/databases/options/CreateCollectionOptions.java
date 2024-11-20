@@ -24,9 +24,9 @@ import com.datastax.astra.client.core.commands.BaseOptions;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
-public class ListCollectionOptions extends BaseOptions<ListCollectionOptions> {
+public class CreateCollectionOptions extends BaseOptions<ListCollectionOptions> {
 
-    public ListCollectionOptions() {
+    public CreateCollectionOptions() {
         super(null, COLLECTION_ADMIN, null);
     }
 }

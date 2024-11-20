@@ -2,8 +2,8 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.CollectionDefinitionOptions;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
@@ -48,11 +48,11 @@ public class QuickStartHuggingFaceDedicated {
         params.put("endpointName", ENDPOINT_NAME);
         params.put("regionName",REGION_NAME);
         params.put("cloudName", CLOUD_NAME);
-        CollectionDefinitionOptions.CollectionOptionsBuilder builder = CollectionDefinitionOptions
+        CollectionDefinition.CollectionOptionsBuilder builder = CollectionDefinition
                 .builder()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(MODEL_DIMENSIONS)
-                .defaultIdType(CollectionIdTypes.UUID)
+                .defaultIdType(CollectionDefaultIdTypes.UUID)
                 .vectorize("huggingfaceDedicated","endpoint-defined-model", API_KEY_NAME,params);
         Collection<Document> collection = db
                 .createCollection("vectorize_test_hf_dedicate", builder.build());

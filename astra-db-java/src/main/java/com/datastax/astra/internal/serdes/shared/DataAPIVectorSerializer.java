@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.serdes;
+package com.datastax.astra.internal.serdes.shared;
 
 /*-
  * #%L
@@ -41,7 +41,7 @@ public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
     public void serialize(DataAPIVector dataApiVector, JsonGenerator gen, SerializerProvider provider) throws IOException {
         if (dataApiVector == null) {
             gen.writeNull();
-        } else if (DataAPIClientOptions.encodeDataApiVectorsAsBase64) {
+        } else if (DataAPIClientOptions.getSerdesOptions().isEncodeDataApiVectorsAsBase64()) {
             // Binary ENCODING
             final int vectorLen = dataApiVector.getEmbeddings().length;
             final byte[] b = new byte[vectorLen << 2];

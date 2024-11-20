@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.index;
+package com.datastax.astra.client.tables.options;
 
 /*-
  * #%L
@@ -20,27 +20,5 @@ package com.datastax.astra.client.tables.index;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-/**
- * Index Definitions.
- */
-@Data @NoArgsConstructor
-public class IndexDefinition {
-
-    String column;
-
-    IndexDefinitionOptions options;
-
-    public IndexDefinition column(String column) {
-        this.column = column;
-        return this;
-    }
-
-    public IndexDefinition options(IndexDefinitionOptions options) {
-        this.options = options;
-        return this;
-    }
-
+public class CreateIndexOptions {
 }

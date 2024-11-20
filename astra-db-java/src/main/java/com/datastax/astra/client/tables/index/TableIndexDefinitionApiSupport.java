@@ -1,4 +1,4 @@
-package com.datastax.astra.client.databases.options;
+package com.datastax.astra.client.tables.index;
 
 /*-
  * #%L
@@ -20,13 +20,17 @@ package com.datastax.astra.client.databases.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
+@Data @NoArgsConstructor
+public class TableIndexDefinitionApiSupport {
 
-public class ListCollectionOptions extends BaseOptions<ListCollectionOptions> {
+    private boolean createTable;
 
-    public ListCollectionOptions() {
-        super(null, COLLECTION_ADMIN, null);
-    }
+    private boolean insert;
+
+    private boolean read;
+
+    private String cqlDefinition;
 }
