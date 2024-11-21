@@ -68,7 +68,7 @@ jobs:
           mvn test -Dtest=com.datastax.astra.test.integration.dev.*Test
 
   run_vectorize_tests:
-    needs: setup
+    needs: BUILD
     runs-on: ubuntu-latest
     strategy:
       matrix:
