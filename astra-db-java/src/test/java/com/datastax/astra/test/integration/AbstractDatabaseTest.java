@@ -26,7 +26,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.OBJECT_ID;
 import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV6;
@@ -55,11 +54,11 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         // When
         Collection<Document> collection_simple = getDatabase().getCollection(COLLECTION_SIMPLE);
         assertThat(collection_simple).isNotNull();
-        assertThat(collection_simple.getName()).isEqualTo(COLLECTION_SIMPLE);
+        assertThat(collection_simple.getCollectionName()).isEqualTo(COLLECTION_SIMPLE);
 
         Collection<Document> c1 = getDatabase().createCollection(COLLECTION_SIMPLE, Document.class);
         assertThat(c1).isNotNull();
-        assertThat(c1.getName()).isEqualTo(COLLECTION_SIMPLE);
+        assertThat(c1.getCollectionName()).isEqualTo(COLLECTION_SIMPLE);
     }
 
     @Test
@@ -69,7 +68,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
                 new CollectionDefinition().vector(14, SimilarityMetric.COSINE));
 
         assertThat(collectionVector).isNotNull();
-        assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
+        assertThat(collectionVector.getCollectionName()).isEqualTo(COLLECTION_VECTOR);
 
         CollectionDefinition colDefinition = collectionVector.getDefinition();
         assertThat(colDefinition.getVector()).isNotNull();
@@ -102,7 +101,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(5)
     public void shouldListCollections() {
         shouldCreateCollectionSimple();
-        assertThat(getDatabase().listCollectionNames().collect(Collectors.toList())).isNotNull();
+        assertThat(getDatabase().listCollectionNames()).isNotNull();
     }
 
     @Test

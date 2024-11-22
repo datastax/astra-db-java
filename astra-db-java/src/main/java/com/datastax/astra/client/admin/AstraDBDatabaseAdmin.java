@@ -22,10 +22,13 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
+import com.datastax.astra.internal.command.AbstractCommandRunner;
+import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
@@ -40,22 +43,16 @@ import java.util.UUID;
  * Implementation of the DatabaseAdmin interface for Astra. To create the namespace the devops APi is leverage. To use this class a higher token permission is required.
  */
 @Slf4j
-public class AstraDBDatabaseAdmin implements DatabaseAdmin {
-
-    /** Token used for the credentials. */
-    final String token;
+public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> implements DatabaseAdmin {
 
     /** Token used for the credentials. */
     final UUID databaseId;
-
-    /** Data Api Options. */
-    final DataAPIClientOptions dataAPIClientOptions;
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
 
     /** Database if initialized from the DB. */
-    protected com.datastax.astra.client.databases.Database db;
+    final com.datastax.astra.client.databases.Database db;
 
     /**
      * Initialize a database admin from token and database id.
@@ -63,12 +60,24 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @param db
      *      target database
      */
-    public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db) {
-        this.databaseId           = UUID.fromString(db.getApiEndpoint().substring(8, 44));
-        this.dataAPIClientOptions = db.getDatabaseOptions().getDataAPIClientOptions();
-        this.token                = db.getDatabaseOptions().getToken();
-        this.db                   = db;
-        this.devopsDbClient = new AstraDBOpsClient(token, dataAPIClientOptions.getAstraEnvironment());
+    public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db, AdminOptions adminOptions) {
+        Assert.notNull(db, "database");
+        this.db          = db;
+        this.databaseId  = db.getId(); // UUID.fromString(db.getApiEndpoint().substring(8, 44));
+        this.options = adminOptions;
+        if (adminOptions == null) {
+            this.options = new AdminOptions();
+        }
+        // Using database options if no extra parameters provided
+        if (this.options.getToken() == null) {
+            this.options.token(db.getOptions().getToken());
+        }
+        if (this.options.getDataAPIClientOptions() == null) {
+            this.options.dataAPIClientOptions(db.getOptions().getDataAPIClientOptions());
+        }
+        this.devopsDbClient = new AstraDBOpsClient(
+                options.getToken(),
+                options.getDataAPIClientOptions().getAstraEnvironment());
     }
 
     /**
@@ -78,16 +87,16 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      token value
      * @param databaseId
      *      database identifier
-     * @param options
+     * @param clientOptions
      *      options used to initialize the http client
      */
-    public AstraDBDatabaseAdmin(String token, UUID databaseId, DataAPIClientOptions options) {
-        this.token          = token;
+    public AstraDBDatabaseAdmin(String token, UUID databaseId, DataAPIClientOptions clientOptions) {
         this.databaseId     = databaseId;
-        this.dataAPIClientOptions = options;
-        this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
+        this.options        = new AdminOptions(token, clientOptions);
+        this.devopsDbClient = new AstraDBOpsClient(token, options.getDataAPIClientOptions().getAstraEnvironment());
+
         this.db = new com.datastax.astra.client.databases.Database(getApiEndpoint(),
-                new DatabaseOptions(token, options));
+                new DatabaseOptions(token,  options.getDataAPIClientOptions()));
     }
 
     /**
@@ -134,9 +143,9 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      * @return
      *      the endpoint as an url.
      */
-    private String getApiEndpoint() {
+    public String getApiEndpoint() {
         return new AstraApiEndpoint(databaseId,
-                getDatabaseInformations().getInfo().getRegion(), dataAPIClientOptions.getAstraEnvironment())
+                getDatabaseInformations().getInfo().getRegion(), options.getDataAPIClientOptions().getAstraEnvironment())
                 .getApiEndPoint();
     }
 
@@ -162,7 +171,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
      *      client to interact with database DML.
      */
     public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String tokenUser) {
-        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), db.getDatabaseOptions());
+        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), db.getOptions());
     }
 
     @Override
@@ -177,9 +186,7 @@ public class AstraDBDatabaseAdmin implements DatabaseAdmin {
     @Override
     public FindEmbeddingProvidersResult findEmbeddingProviders() {
         log.debug("findEmbeddingProviders");
-        DataAPIDatabaseAdmin admin =
-                new DataAPIDatabaseAdmin(getApiEndpoint() + "/" + db.getDatabaseOptions()
-                        .getDataAPIClientOptions().getApiVersion(), db.getDatabaseOptions());
+        DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 

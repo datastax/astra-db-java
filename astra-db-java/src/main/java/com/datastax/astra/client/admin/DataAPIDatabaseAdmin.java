@@ -20,17 +20,15 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
@@ -49,7 +47,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  */
 @Slf4j
 @Getter
-public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements DatabaseAdmin {
+public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> implements DatabaseAdmin {
 
     /** parameters names. */
     private static final String ARG_KEYSPACE = "keyspaceName";
@@ -63,27 +61,18 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /**
      * Initialize a database admin from token and database id.
      *
-     * @param apiEndpoint
-     *      api endpoint.
+     * @param db
+     *      current database used to initialized the admin
      * @param options
      *      list of options for the admin
      */
-    public DataAPIDatabaseAdmin(String apiEndpoint, DatabaseOptions options) {
-        this(new Database(apiEndpoint, options));
-    }
-
-    /**
-     * Initialize a database admin from token and database id.
-     *
-     * @param db
-     *      current database instance
-     */
-    public DataAPIDatabaseAdmin(Database db) {
-        this.db             = db;
-        this.baseOptions = new BaseOptions<>(
-                db.getDatabaseOptions().getToken(),
-                CommandType.KEYSPACE_ADMIN,
-                db.getDatabaseOptions().getDataAPIClientOptions());
+    public DataAPIDatabaseAdmin(Database db, AdminOptions options) {
+        super(db.getRootEndpoint(), options);
+        this.options.commandType(CommandType.KEYSPACE_ADMIN);
+        String apiVersion = options.getDataAPIClientOptions().getApiVersion();
+        if (!db.getRootEndpoint().endsWith(apiVersion)) {
+          this.apiEndpoint += "/" + apiVersion;
+        }
     }
 
     // ------------------------------------------
@@ -123,12 +112,9 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
     /** {@inheritDoc} */
     @Override
     public Database getDatabase(String keyspace, String userToken) {
-        Assert.hasLength(keyspace, ARG_KEYSPACE);
-        Assert.hasLength(userToken, "userToken");
-        return new Database(db.getApiEndpoint(), db
-                .getDatabaseOptions()
-                .keyspace(keyspace)
-                .token(userToken));
+        return new Database(db.getRootEndpoint(), db.getOptions().clone()
+                .token(userToken)
+                .keyspace(keyspace));
     }
 
     /** {@inheritDoc} */
@@ -168,30 +154,6 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner implements Datab
                 .append("name", keyspace);
         runCommand(dropNamespace, options);
         log.info("Keyspace  '" + green("{}") + "' has been deleted", keyspace);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getApiEndpoint() {
-        return db.getApiEndpoint() + "/v1";
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPISerializer getSerializer() {
-        return SERIALIZER;
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
-     *
-     * @param logger
-     *      name for the logger
-     * @param commandObserver
-     *      class for the logger
-     */
-    public void registerListener(String logger, CommandObserver commandObserver) {
-        this.baseOptions.registerObserver(logger, commandObserver);
     }
 
 }

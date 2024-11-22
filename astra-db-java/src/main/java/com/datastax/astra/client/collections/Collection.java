@@ -43,8 +43,8 @@ import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
-import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.paging.CollectionCursor;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
@@ -61,8 +61,8 @@ import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +85,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.core.commands.CommandType.GENERAL_METHOD;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
@@ -130,22 +129,17 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  *     Java bean to unmarshall documents for collection.
  */
 @Slf4j
-public class Collection<T> extends AbstractCommandRunner {
+public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
 
     /** parameters names. */
     protected static final String ARG_OPTIONS = "options";
     /** parameters names. */
-    protected static final String ARG_FILTER = "filter";
-    /** parameters names. */
-    protected static final String ARG_DATABASE = "database";
-    /** parameters names. */
-    protected static final String ARG_CLAZZ = "working class 'clazz'";
-    /** parameters names. */
-    protected static final String ARG_COLLECTION_NAME = "collectionName";
-    /** parameters names. */
     protected static final String ARG_UPDATE = "update";
     /** parameters names. */
     protected static final String DOCUMENT = "document";
+
+    /** Default collection serializer. */
+    public static final DataAPISerializer DEFAULT_COLLECTION_SERIALIZER = new DocumentSerializer();
 
     /** Collection identifier. */
     @Getter
@@ -156,23 +150,12 @@ public class Collection<T> extends AbstractCommandRunner {
     private final Database database;
 
     @Getter
-    private final CollectionOptions collectionOptions;
-
-    @Getter
     private final Class<T> documentClass;
-
-    /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
-    private final String apiEndpoint;
 
     /**
      * Keep Collection options in -memory to avoid multiple calls to the API.
      */
     private CollectionDefinition collectionDefinition;
-
-    /**
-     * Check if options has been fetched
-     */
-    private boolean optionChecked = false;
 
     /**
      * Constructs an instance of a collection within the specified database. This constructor
@@ -202,21 +185,14 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public Collection(Database db, String collectionName, CollectionOptions collectionOptions, Class<T> documentClass) {
-        notNull(db, "database");
+        super(db.getApiEndpoint() + "/" + collectionName, collectionOptions);
         hasLength(collectionName, "collection name");
         notNull(documentClass, "documentClass");
         notNull(collectionOptions, "collection options");
-
-        this.database          = db;
-        this.collectionName    = collectionName;
-        this.collectionOptions = collectionOptions;
-        this.documentClass     = documentClass;
-
-        this.baseOptions = new BaseOptions<>(
-                db.getDatabaseOptions().getToken(), GENERAL_METHOD,
-                collectionOptions.getDataAPIClientOptions());
-
-        this.apiEndpoint    = db.getApiEndpoint() + "/" + collectionName;
+        this.database       = db;
+        this.collectionName = collectionName;
+        this.documentClass  = documentClass;
+        this.options.serializer(new DocumentSerializer());
     }
 
     // ----------------------------
@@ -244,7 +220,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public String getKeyspaceName() {
-        return getDatabase().getDatabaseOptions().getKeyspace();
+        return getDatabase().getKeyspace();
     }
 
     /**
@@ -279,7 +255,7 @@ public class Collection<T> extends AbstractCommandRunner {
     public CollectionDefinition getDefinition() {
         if (collectionDefinition == null) {
             collectionDefinition = database
-                    .listCollections()
+                    .listCollections().stream()
                     .filter(col -> col.getName().equals(collectionName))
                     .findFirst()
                     .map(CollectionDescriptor::getOptions)
@@ -287,18 +263,6 @@ public class Collection<T> extends AbstractCommandRunner {
                             "collection name: '" + collectionName + "'", "COLLECTION_NOT_EXIST", null));
         }
         return collectionDefinition;
-    }
-
-    /**
-     * Retrieves the name of the collection. This name serves as a unique identifier within the database and is
-     * used to reference the collection in database operations such as queries, updates, and deletions. The collection
-     * name is defined at the time of collection creation and is immutable.
-     *
-     * @return A {@code String} representing the name of the collection. This is the same name that was specified
-     *         when the collection was created or initialized.
-     */
-    public String getName() {
-        return collectionName;
     }
 
     // --------------------------
@@ -617,7 +581,7 @@ public class Collection<T> extends AbstractCommandRunner {
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
             // Set a default timeouts for the overall operation
-            long totalTimeout = this.baseOptions.getTimeout();
+            long totalTimeout = this.options.getTimeout();
             if (options.getDataAPIClientOptions() != null) {
                 totalTimeout = options.getTimeout();
             }
@@ -1318,7 +1282,6 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the query filter to apply the delete operation
      * @return
      *      the result of the remove one operation
-     *
      */
     public CollectionDeleteResult deleteOne(Filter filter) {
         return deleteOne(filter, new CollectionDeleteOneOptions());
@@ -1410,7 +1373,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return {@code true} if the collection exists within the namespace, {@code false} otherwise.
      */
     public boolean exists() {
-        return getDatabase().collectionExists(getName());
+        return getDatabase().collectionExists(getCollectionName());
     }
 
     /**
@@ -1795,38 +1758,5 @@ public class Collection<T> extends AbstractCommandRunner {
         return Optional.empty();
     }
 
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
-     *
-     * @param logger
-     *      name for the logger
-     * @param commandObserver
-     *      class for the logger
-     */
-    public void registerListener(String logger, CommandObserver commandObserver) {
-        this.baseOptions.registerObserver(logger, commandObserver);
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
-     *
-     * @param name
-     *      name for the observer
-     */
-    public void deleteListener(String name) {
-        this.baseOptions.unregisterObserver(name);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPISerializer getSerializer() {
-        return this.baseOptions.getSerializer();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getApiEndpoint() {
-        return apiEndpoint;
-    }
 
 }

@@ -20,17 +20,19 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Getter
+import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
+
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class DropTableIndexOptions {
+public class DropTableIndexOptions extends BaseOptions<DropTableOptions> {
 
     /** Improve syntax. */
     public static final DropTableIndexOptions IF_EXISTS = new DropTableIndexOptions().ifExists(true);
@@ -39,6 +41,10 @@ public class DropTableIndexOptions {
      * Condition to upsert the table.
      */
     boolean ifExists = true;
+
+    public DropTableIndexOptions() {
+        super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
+    }
 
     /**
      * Accessor for serialization.

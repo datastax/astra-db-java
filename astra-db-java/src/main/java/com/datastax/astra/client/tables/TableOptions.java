@@ -1,4 +1,4 @@
-package com.datastax.astra.client.admin;
+package com.datastax.astra.client.tables;
 
 /*-
  * #%L
@@ -23,23 +23,37 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import static com.datastax.astra.client.databases.Database.DEFAULT_DATABASE_SERIALIZER;
+import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
+/**
+ * The options to use for the data API client.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
-public class AdminOptions extends BaseOptions<AdminOptions> {
+public class TableOptions extends BaseOptions<TableOptions> {
 
-    public AdminOptions() {
+    public TableOptions() {
         this(null, null);
     }
 
-    public AdminOptions(String token, DataAPIClientOptions options) {
-        super(token, CommandType.DATABASE_ADMIN, DEFAULT_DATABASE_SERIALIZER, options);
+    /**
+     * Constructor with options and not token override.
+     *
+     * @param token
+     *      the token to use for the database
+     * @param options
+     *      data API client options
+     */
+    public TableOptions(String token, DataAPIClientOptions options) {
+        super(token, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, options);
     }
 
 }

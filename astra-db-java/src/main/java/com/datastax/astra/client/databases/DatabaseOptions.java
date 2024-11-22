@@ -21,6 +21,7 @@ package com.datastax.astra.client.databases;
  */
 
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
@@ -52,8 +53,9 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
     public DatabaseOptions(String token, DataAPIClientOptions options) {
         Assert.notNull(options, "options");
         this.dataAPIClientOptions = options.clone();
-        this.token = token;
-        this.serializer = new DatabaseSerializer();
+        this.commandType = CommandType.KEYSPACE_ADMIN;
+        this.token       = token;
+        this.serializer  = new DatabaseSerializer();
     }
 
     /**

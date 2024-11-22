@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
@@ -96,18 +97,10 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * Execute commands against tables
  */
 @Slf4j
-public class Table<T>  extends AbstractCommandRunner {
+public class Table<T>  extends AbstractCommandRunner<TableOptions> {
 
-    /** parameters names. */
-    private static final String ARG_TABLE_NAME = "tableName";
-
-    /** parameters names. */
-    private static final String ROW = "row";
-
-    /** Serializer for the table. */
-    public static final RowSerializer SERIALIZER = new RowSerializer();
-
-    // -- Json Outputs
+    /** Avoid duplicating for each operation if not override. */
+    public static final DataAPISerializer DEFAULT_TABLE_SERIALIZER = new RowSerializer();
 
     /** table identifier. */
     @Getter
@@ -121,12 +114,10 @@ public class Table<T>  extends AbstractCommandRunner {
     @Getter
     private final Database database;
 
-    /** Get global Settings for the client. */
-    @Getter
-    private final DataAPIClientOptions dataAPIClientOptions;
-
-    /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
-    private final String apiEndpoint;
+    /**
+     * Collection definition loaded once.
+     */
+    private CollectionDefinition collectionDefinition;
 
     /**
      * Constructs an instance of a table within the specified database. This constructor
@@ -141,11 +132,11 @@ public class Table<T>  extends AbstractCommandRunner {
      * @param tableName A {@code String} that uniquely identifies the table within the
      *                       database. This name is used to route operations to the correct
      *                       table and should adhere to the database's naming conventions.
-     * @param clazz The {@code Class<DOC>} object that represents the model for rows within
+     * @param rowClass The {@code Class<DOC>} object that represents the model for rows within
      *              this table. This class is used for serialization and deserialization of
      *              rows to and from the database. It ensures type safety and facilitates
      *              the mapping of database rows to Java objects.
-     * @param baseOptions the options to apply to the command operation. If left blank the default table
+     * @param tableOptions the options to apply to the command operation. If left blank the default table
      *
      * <p>Example usage:</p>
      * <pre>
@@ -159,18 +150,15 @@ public class Table<T>  extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public Table(Database db, String tableName, BaseOptions<?> baseOptions, Class<T> clazz) {
-        notNull(db, ARG_DATABASE);
-        notNull(clazz, ARG_CLAZZ);
-        hasLength(tableName, ARG_TABLE_NAME);
-        this.tableName      = tableName;
-        this.database       = db;
-        this.dataAPIClientOptions = db.getDatabaseOptions().getDataAPIClientOptions();
-        this.rowClass       = clazz;
-        this.baseOptions = baseOptions;
-        // Defaulting command types to DATA
-        this.baseOptions.commandType(CommandType.GENERAL_METHOD);
-        this.apiEndpoint    = db.getApiEndpoint() + "/" + tableName;
+    public Table(Database db, String tableName, TableOptions tableOptions, Class<T> rowClass) {
+        super(db.getApiEndpoint() + "/" + tableName, tableOptions);
+        hasLength(tableName, "collection name");
+        notNull(rowClass, "rowClass");
+        notNull(tableOptions, "table options");
+        this.tableName = tableName;
+        this.database  = db;
+        this.rowClass  = rowClass;
+        this.options.serializer(DEFAULT_TABLE_SERIALIZER);
     }
 
     // ----------------------------
@@ -231,7 +219,7 @@ public class Table<T>  extends AbstractCommandRunner {
      */
     public TableDefinition getDefinition() {
         return database
-                .listTables()
+                .listTables().stream()
                 .filter(col -> col.getName().equals(tableName))
                 .findFirst()
                 .map(TableDescriptor::getDefinition)
@@ -251,18 +239,6 @@ public class Table<T>  extends AbstractCommandRunner {
         return tableName;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPISerializer getSerializer() {
-        return this.baseOptions.getSerializer();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getApiEndpoint() {
-        return apiEndpoint;
-    }
-
     // --------------------------
     // ---    alterTable     ----
     // --------------------------
@@ -278,12 +254,12 @@ public class Table<T>  extends AbstractCommandRunner {
         if (options != null) {
             alterTable.append("options", options);
         }
-        runCommand(alterTable, baseOptions);
+        runCommand(alterTable, this.options);
     }
 
     public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
         alter(operation, options);
-        return new Table<>(database, tableName, baseOptions, clazz);
+        return new Table<>(database, tableName, this.options, clazz);
     }
 
     // --------------------------
@@ -327,7 +303,7 @@ public class Table<T>  extends AbstractCommandRunner {
      *      definition of the index
      */
     public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition) {
-        createVectorIndex(idxName, idxDefinition, null, baseOptions);
+        createVectorIndex(idxName, idxDefinition, null, options);
     }
 
     /**
@@ -341,7 +317,7 @@ public class Table<T>  extends AbstractCommandRunner {
      *      index options
      */
     public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions options) {
-        createVectorIndex(idxName, idxDefinition, options, baseOptions);
+        createVectorIndex(idxName, idxDefinition, options, this.options);
     }
 
     /**
@@ -366,7 +342,7 @@ public class Table<T>  extends AbstractCommandRunner {
         if (idxOptions != null) {
             createIndexCommand.append("options", idxOptions);
         }
-        runCommand(createIndexCommand, baseOptions);
+        runCommand(createIndexCommand, options);
         log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
@@ -375,13 +351,16 @@ public class Table<T>  extends AbstractCommandRunner {
     // --------------------------
 
     public final TableInsertOneResult insertOne(T row) {
-        return insertOneDelegate(mapAsRow(row), (TableInsertOneOptions) null);
+        return insertOneDelegate(mapAsRow(row), null);
     }
 
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
-        notNull(row, ROW);
-        Command insertOne = Command.create("insertOne").withDocument(row);
-        return runCommand(insertOne, insertOneOptions).getStatus(TableInsertOneResult.class);
+        notNull(row, "row");
+        Command insertOne = Command
+                .create("insertOne")
+                .withDocument(row);
+        TableInsertManyResult result = runCommand(insertOne, insertOneOptions).getStatus(TableInsertManyResult.class);
+        return new TableInsertOneResult(result.getInsertedIds().get(0), result.getPrimaryKeySchema());
     }
 
     public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row) {
@@ -393,7 +372,7 @@ public class Table<T>  extends AbstractCommandRunner {
     }
 
     private TableInsertOneResult insertOneDelegate(Row row, TableInsertOneOptions insertOneOptions) {
-        notNull(row, ROW);
+        notNull(row, "row");
         Command insertOne = Command
                 .create("insertOne")
                 .withDocument(row);
@@ -444,7 +423,7 @@ public class Table<T>  extends AbstractCommandRunner {
                 }
             }
 
-            long totalTimeout = this.baseOptions.getTimeout();
+            long totalTimeout = this.options.getTimeout();
             if (options.getDataAPIClientOptions() != null
                     && options.getDataAPIClientOptions().getTimeoutOptions() != null) {
                 totalTimeout = options.getTimeout();
@@ -476,7 +455,7 @@ public class Table<T>  extends AbstractCommandRunner {
 
     public TableInsertManyOptions insertManyOptions() {
         TableInsertManyOptions options = new TableInsertManyOptions();
-        options.dataAPIClientOptions(baseOptions.getDataAPIClientOptions().clone());
+        options.dataAPIClientOptions(this.options.getDataAPIClientOptions().clone());
         return options;
     }
 
@@ -969,7 +948,7 @@ public class Table<T>  extends AbstractCommandRunner {
             return row;
         } else {
             // Defaults mapping as a Row
-            return SERIALIZER.convertValue(input, Row.class);
+            return getSerializer().convertValue(input, Row.class);
         }
     }
 
@@ -986,7 +965,7 @@ public class Table<T>  extends AbstractCommandRunner {
      *      class for the logger
      */
     public void registerListener(String logger, CommandObserver commandObserver) {
-        this.baseOptions.registerObserver(logger, commandObserver);
+        this.options.registerObserver(logger, commandObserver);
     }
 
     /**
@@ -996,7 +975,7 @@ public class Table<T>  extends AbstractCommandRunner {
      *      name for the observer
      */
     public void deleteListener(String name) {
-        this.baseOptions.unregisterObserver(name);
+        this.options.unregisterObserver(name);
     }
 
 }

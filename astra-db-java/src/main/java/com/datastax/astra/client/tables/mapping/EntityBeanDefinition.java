@@ -21,6 +21,7 @@ package com.datastax.astra.client.tables.mapping;
  */
 
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.dtsx.astra.sdk.utils.Utils;
 import com.fasterxml.jackson.databind.ObjectMapper;

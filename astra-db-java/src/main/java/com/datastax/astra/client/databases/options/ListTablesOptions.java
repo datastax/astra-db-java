@@ -21,12 +21,14 @@ package com.datastax.astra.client.databases.options;
  */
 
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
+import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 
 public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
 
     public ListTablesOptions() {
-        super(null, COLLECTION_ADMIN, null);
+        super(null, TABLE_ADMIN, new RowSerializer(), null);
     }
 }

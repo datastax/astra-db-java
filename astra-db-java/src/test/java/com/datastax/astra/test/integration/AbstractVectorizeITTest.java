@@ -87,7 +87,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionHeader(key, model, apiKey, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollection(collection, new EmbeddingAPIKeyHeaderProvider(apiKey));
                 collection.drop();
 
@@ -105,7 +105,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionSharedSecret(key, model, keyName, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollectionSharedKey(collection);
                 collection.drop();
 
@@ -224,7 +224,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     protected void testEmbeddingModelSharedSecret(String provider, EmbeddingProvider.Model model, String keyName, Map<String, Object> parameters) {
         log.info("Testing model {}", model);
         Collection<Document> collection = createCollectionSharedSecret(provider, model, keyName, parameters);
-        log.info("Collection created {}", collection.getName());
+        log.info("Collection created {}", collection.getCollectionName());
         testCollection(collection, null);
     }
 
@@ -273,7 +273,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionHeader(key, model, targetApiKey, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollection(collection, new EmbeddingAPIKeyHeaderProvider(targetApiKey));
                 collection.drop();
 

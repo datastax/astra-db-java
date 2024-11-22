@@ -29,13 +29,24 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import static com.datastax.astra.client.collections.Collection.DEFAULT_COLLECTION_SERIALIZER;
+import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
+
 /**
  * The options to use for the data API client.
  */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionOptions extends BaseOptions<CollectionOptions> {
+
+    /**
+     * Default constructor nor overriding token nor options
+     * but stilling setting the default timeouts and serializer
+     * for collection.
+     */
+    public CollectionOptions() {
+        this(null, null);
+    }
 
     /**
      * Constructor with options and not token override.
@@ -46,11 +57,7 @@ public class CollectionOptions extends BaseOptions<CollectionOptions> {
      *      data API client options
      */
     public CollectionOptions(String token, DataAPIClientOptions options) {
-        Assert.notNull(options, "options");
-        this.token = token;
-        this.dataAPIClientOptions = options.clone();
-        this.serializer  = new DocumentSerializer();
-        this.commandType = CommandType.COLLECTION_ADMIN;
+        super(token, COLLECTION_ADMIN, DEFAULT_COLLECTION_SERIALIZER, options);
     }
 
 }

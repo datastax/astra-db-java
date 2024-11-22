@@ -177,11 +177,8 @@ public class DataAPIClients {
      */
     public static Database defaultLocalDatabase() {
         Database db = local().getDatabase(DEFAULT_ENDPOINT_LOCAL);
-        DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) db.getDatabaseAdmin();
-        dbAdmin.createKeyspace(DEFAULT_KEYSPACE);
+        db.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
         return db;
     }
-
-
 
 }

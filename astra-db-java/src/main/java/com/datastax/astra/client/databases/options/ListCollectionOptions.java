@@ -21,12 +21,14 @@ package com.datastax.astra.client.databases.options;
  */
 
 import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
 public class ListCollectionOptions extends BaseOptions<ListCollectionOptions> {
 
     public ListCollectionOptions() {
-        super(null, COLLECTION_ADMIN, null);
+        super(null, COLLECTION_ADMIN, new DocumentSerializer(), null);
     }
 }

@@ -395,6 +395,25 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
        }
     }
 
+    /**
+     * Return the HTTP Request Timeout based on the command type.
+     *
+     * @param token
+     *      authentication token
+     * @param type
+     *      command type
+     * @param options
+     *      data api options
+     */
+    public BaseOptions(String token, CommandType type, DataAPISerializer serializer, DataAPIClientOptions options) {
+        this.token       = token;
+        this.commandType = type;
+        this.serializer  = serializer;
+        if (options != null) {
+            this.dataAPIClientOptions = options.clone();
+        }
+    }
+
     @Override
     public String toString() {
         return getSerializer().marshall(this);

@@ -40,12 +40,14 @@ import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.results.TableUpdateResult;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
 import com.datastax.astra.test.model.TableCompositeRowGenerator;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -66,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
@@ -107,12 +108,14 @@ public class LocalTableITTest extends AbstractTableITTest {
 
     @Test
     @Order(1)
-    public void shouldInitiateDatabase() {
+    public void shouldInitiateDatabase() throws Exception {
         Database db = getDatabase();
         db.dropTableIndex(INDEX_COUNTRY, DropTableIndexOptions.IF_EXISTS);
         db.dropTableIndex(INDEX_ALL_RETURNS_PTEXT, DropTableIndexOptions.IF_EXISTS);
         db.dropTableIndex(INDEX_ALL_RETURNS_VECTOR, DropTableIndexOptions.IF_EXISTS);
 
+        System.out.println("ok");
+        System.out.println(new RowSerializer().marshall(db.getOptions()));
         db.dropTable(TABLE_SIMPLE, IF_EXISTS);
         db.dropTable(TABLE_COMPOSITE, IF_EXISTS);
         db.dropTable(TABLE_ALL_RETURNS, IF_EXISTS);
@@ -245,8 +248,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Order(7)
     public void shouldListTableNames() {
         assertThat(getDatabase()
-                .listTableNames()
-                .collect(Collectors.toList()))
+                .listTableNames())
                 .isNotNull();
     }
 
@@ -728,7 +730,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         Database database2 = client.getDatabase("endpoints",
                 new DatabaseOptions("token" , options).keyspace("otherKeyspace"));
 
-        database2.getDatabaseOptions().getDataAPIClientOptions();
+        database2.getOptions().getDataAPIClientOptions();
         Table<Row> table = database1.getTable("table");
     }
 

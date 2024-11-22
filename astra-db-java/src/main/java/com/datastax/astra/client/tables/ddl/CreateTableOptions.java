@@ -20,20 +20,24 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
+
 /**
  * Set of options used when creating a table
  */
-@Getter
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CreateTableOptions {
+public class CreateTableOptions extends BaseOptions<CreateTableOptions> {
 
     /** Improve syntax. */
     public static final CreateTableOptions IF_NOT_EXISTS = new CreateTableOptions().ifNotExists(true);
@@ -42,6 +46,10 @@ public class CreateTableOptions {
      * Condition to upsert the table.
      */
     boolean ifNotExists = true;
+
+    public CreateTableOptions() {
+        super(null, CommandType.TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
+    }
 
     /**
      * Accessor for serialization.

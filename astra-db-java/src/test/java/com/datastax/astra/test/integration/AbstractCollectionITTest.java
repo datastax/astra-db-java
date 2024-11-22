@@ -100,10 +100,10 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     @Order(1)
     protected void shouldPopulateGeneralInformation() {
         assertThat(getCollectionSimple().getDefinition()).isNotNull();
-        assertThat(getCollectionSimple().getName()).isNotNull();
+        assertThat(getCollectionSimple().getCollectionName()).isNotNull();
         assertThat(getCollectionSimple().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
         assertThat(getCollectionSimple().getKeyspaceName()).isNotNull();
-        assertThat(getCollectionVector().getName()).isNotNull();
+        assertThat(getCollectionVector().getCollectionName()).isNotNull();
         assertThat(getCollectionVector().getDocumentClass()).isNotExactlyInstanceOf(Document.class);
         assertThat(getCollectionVector().getKeyspaceName()).isNotNull();
     }
