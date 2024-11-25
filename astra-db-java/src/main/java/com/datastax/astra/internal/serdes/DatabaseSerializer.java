@@ -36,7 +36,16 @@ package com.datastax.astra.internal.serdes;
  * #L%
  */
 
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeDeserializer;
+import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeSerializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricSerializer;
 import com.datastax.astra.internal.serdes.tables.ColumnTypeDeserializer;
 import com.datastax.astra.internal.serdes.tables.ColumnTypeSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -95,6 +104,15 @@ public class DatabaseSerializer implements DataAPISerializer {
             SimpleModule module = new SimpleModule();
             module.addSerializer(ColumnTypes.class, new ColumnTypeSerializer());
             module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());
+            // DefaultId
+            module.addSerializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeSerializer());
+            module.addDeserializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeDeserializer());
+            // Similarity Metric
+            module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
+            module.addDeserializer(SimilarityMetric.class, new SimilarityMetricDeserializer());
+            // DataAPIVector
+            module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
+            module.addDeserializer(DataAPIVector.class, new DataAPIVectorDeserializer());
             objectMapper.registerModule(module);
         }
         return objectMapper;

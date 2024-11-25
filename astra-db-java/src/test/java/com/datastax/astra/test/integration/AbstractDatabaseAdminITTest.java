@@ -94,10 +94,10 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
         final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin2.createKeyspace(null))
-                .withMessage("Parameter 'keyspace' should be null nor empty");
+                .withMessage("Parameter 'keyspaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin2.createKeyspace(""))
-                .withMessage("Parameter 'keyspace' should be null nor empty");
+                .withMessage("Parameter 'keyspaceName' should be null nor empty");
     }
 
     @Test

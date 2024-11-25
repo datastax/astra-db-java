@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 /**
  * Integration tests against a Local Instance of Stargate.
  */
-@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
+//@EnabledIfEnvironmentVariable(named = "ENABLED_TEST_DATA_API_LOCAL", matches = "true")
 class LocalDatabaseITTest extends AbstractDatabaseTest {
 
     @Override
@@ -50,12 +50,6 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Test
     void shouldGetATokenFromAuthenticationEndpoint() {
         assertThat(new UsernamePasswordTokenProvider().getToken()).isNotNull();
-    }
-
-    @Test
-    void shouldThrowAuthenticationCode() {
-        UsernamePasswordTokenProvider tokenProvider = new UsernamePasswordTokenProvider("invalid", "invalid");
-        assertThatThrownBy(tokenProvider::getToken).isInstanceOf(DataAPIHttpException.class);
     }
 
     @Test

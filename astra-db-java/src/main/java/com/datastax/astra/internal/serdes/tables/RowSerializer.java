@@ -80,15 +80,9 @@ public class RowSerializer implements DataAPISerializer {
      * Default constructor
      */
     public RowSerializer() {
-        // left blank, hiding constructor for utility class
     }
 
-    /**
-     * Building the data api specific object mapper.
-     *
-     * @return
-     *      object mapper.
-     */
+    @Override
     public ObjectMapper getMapper() {
         if (objectMapper == null) {
             JsonFactory jsonFactory = JsonFactory.builder()
@@ -150,7 +144,4 @@ public class RowSerializer implements DataAPISerializer {
         }
         return objectMapper;
     }
-
-
-
 }

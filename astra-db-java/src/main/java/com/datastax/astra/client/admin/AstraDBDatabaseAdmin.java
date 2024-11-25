@@ -207,9 +207,9 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
     }
 
     @Override
-    public void dropKeyspace(String namespace, BaseOptions<?> options) {
+    public void dropKeyspace(String keyspace, BaseOptions<?> options) {
         log.warn("CommandOptions are not supported for dropKeyspace in Astra MODE");
-        dropKeyspace(namespace);
+        dropKeyspace(keyspace);
     }
 
     /** {@inheritDoc} */

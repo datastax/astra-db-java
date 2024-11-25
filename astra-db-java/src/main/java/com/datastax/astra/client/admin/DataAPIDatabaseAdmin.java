@@ -68,6 +68,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
      */
     public DataAPIDatabaseAdmin(Database db, AdminOptions options) {
         super(db.getRootEndpoint(), options);
+        this.db = db;
         this.options.commandType(CommandType.KEYSPACE_ADMIN);
         String apiVersion = options.getDataAPIClientOptions().getApiVersion();
         if (!db.getRootEndpoint().endsWith(apiVersion)) {

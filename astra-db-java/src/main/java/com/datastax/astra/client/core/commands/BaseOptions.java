@@ -26,6 +26,7 @@ import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.NoArgsConstructor;
 
 import java.util.Map;
@@ -199,6 +200,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T timeoutOptions(TimeoutOptions timeoutOptions) {
+        if (getDataAPIClientOptions() == null) {
+            this.dataAPIClientOptions = new DataAPIClientOptions();
+        }
         getDataAPIClientOptions().timeoutOptions(timeoutOptions);
         return (T) this;
     }
@@ -301,6 +305,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *      service key
      */
     public T timeout(long timeoutMillis, CommandType commandType) {
+        if (getDataAPIClientOptions() == null) {
+            dataAPIClientOptions = new DataAPIClientOptions();
+        }
         if (getDataAPIClientOptions().getTimeoutOptions() == null) {
             getDataAPIClientOptions().timeoutOptions(new TimeoutOptions());
         }
@@ -324,6 +331,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of dataAPIClientOptions
      */
+    @JsonIgnore
     public DataAPIClientOptions getDataAPIClientOptions() {
         return dataAPIClientOptions;
     }
@@ -333,8 +341,12 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of token
      */
+    @JsonIgnore
     public long getTimeout() {
-        return getTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
+        if (getDataAPIClientOptions() != null && getDataAPIClientOptions().getTimeoutOptions() != null) {
+            return getTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
+        }
+        return -1;
     }
 
     /**
@@ -342,8 +354,12 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of token
      */
+    @JsonIgnore
     public long getRequestTimeout() {
-        return getRequestTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
+        if (getDataAPIClientOptions() != null && getDataAPIClientOptions().getTimeoutOptions() != null) {
+            return getRequestTimeout(getDataAPIClientOptions().getTimeoutOptions(), getCommandType());
+        }
+        return -1;
     }
 
     /**
@@ -351,6 +367,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of token
      */
+    @JsonIgnore
     public String getToken() {
         return token;
     }
@@ -360,6 +377,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of commandType
      */
+    @JsonIgnore
     public CommandType getCommandType() {
         return commandType;
     }
@@ -369,6 +387,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @return value of serializer
      */
+    @JsonIgnore
     public DataAPISerializer getSerializer() {
         return serializer;
     }

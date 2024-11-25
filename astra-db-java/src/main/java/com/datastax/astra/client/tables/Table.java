@@ -388,20 +388,20 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return insertMany(rows, new TableInsertManyOptions());
     }
 
-    public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions options) {
+    public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions insertManyOptions) {
         Assert.isTrue(rows != null && !rows.isEmpty(), "rows list cannot be null or empty");
-        Assert.notNull(options, "insertMany options cannot be null");
-        if (options.concurrency() > 1 && options.ordered()) {
+        Assert.notNull(insertManyOptions, "insertMany options cannot be null");
+        if (insertManyOptions.concurrency() > 1 && insertManyOptions.ordered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.chunkSize() > MAX_CHUNK_SIZE) {
+        if (insertManyOptions.chunkSize() > MAX_CHUNK_SIZE) {
             throw new IllegalArgumentException("Cannot insert more than " + MAX_CHUNK_SIZE + " at a time.");
         }
         long start = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
+        ExecutorService executor = Executors.newFixedThreadPool(insertManyOptions.concurrency());
         List<Future<TableInsertManyResult>> futures = new ArrayList<>();
-        for (int i = 0; i < rows.size(); i += options.chunkSize()) {
-            futures.add(executor.submit(getInsertManyResultCallable(rows, options, i)));
+        for (int i = 0; i < rows.size(); i += insertManyOptions.chunkSize()) {
+            futures.add(executor.submit(getInsertManyResultCallable(rows, insertManyOptions, i)));
         }
         executor.shutdown();
 

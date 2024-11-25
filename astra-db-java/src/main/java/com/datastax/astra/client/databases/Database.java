@@ -404,8 +404,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return
      *      a stream containing all the names of all the collections in this database
      */
-    public List<String> listTableNames(ListTablesOptions options) {
-        return runCommand(Command.create("listTables"), options)
+    public List<String> listTableNames(ListTablesOptions listTablesOptions) {
+        return runCommand(Command.create("listTables"), listTablesOptions)
                 .getStatusKeyAsStringStream("tables")
                 .toList();
     }
@@ -420,11 +420,11 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return
      *      list of table definitions
      */
-    public List<TableDescriptor> listTables(ListTablesOptions options) {
+    public List<TableDescriptor> listTables(ListTablesOptions listTableOptions) {
         Command findTables = Command
                 .create("listTables")
                 .withOptions(new Document().append("explain", true));
-        return runCommand(findTables, options)
+        return runCommand(findTables, listTableOptions)
                 .getStatusKeyAsList("tables", TableDescriptor.class);
     }
 
@@ -482,7 +482,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
     // definition with a proposed bean
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition, new CreateTableOptions(), rowClass, new TableOptions());
+        return createTable(tableName, tableDefinition, new CreateTableOptions(), rowClass,
+                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
     }
 
     // definition with default rowClass
@@ -492,7 +493,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
     // definition with a proposed bean
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions createTableOptions, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition,  createTableOptions, rowClass,  new TableOptions());
+        return createTable(tableName, tableDefinition,  createTableOptions, rowClass,
+                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
     }
     public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions tableOptions) {
         return createTable(tableName, tableDefinition, tableOptions, Row.class);

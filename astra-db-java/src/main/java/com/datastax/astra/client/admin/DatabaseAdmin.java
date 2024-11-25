@@ -25,6 +25,7 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -188,10 +189,10 @@ public interface DatabaseAdmin {
      * // Assume 'client' is an instance of your data API client
      * String keyspace = "targetKeyspace";
      *
-     * // Drop the namespace
+     * // Drop the keyspace
      * client.dropKeyspace(keyspace);
      *
-     * // The namespace 'targetKeyspace' is now deleted, along with all its contained data
+     * // The keyspace 'targetKeyspace' is now deleted, along with all its contained data
      * }
      * </pre>
      *
@@ -199,15 +200,16 @@ public interface DatabaseAdmin {
      * keyspace does not exist, the method call will not interrupt the flow of the application, thereby allowing
      * for flexible and error-tolerant code design.
      *
-     * @param namespace The name of the keyspace to be dropped. This parameter specifies the target keyspace
+     * @param keyspace The name of the keyspace to be dropped. This parameter specifies the target keyspace
      *                  that should be deleted. The operation will proceed silently and without error even if the
      *                  keyspace does not exist, ensuring consistent behavior.
      */
-    default void dropKeyspace(String namespace) {
-        dropKeyspace(namespace, null);
+    default void dropKeyspace(String keyspace) {
+        Assert.hasLength(keyspace, "keyspace");
+        dropKeyspace(keyspace, null);
     }
 
-    void dropKeyspace(String namespace, BaseOptions<?> options);
+    void dropKeyspace(String keyspace, BaseOptions<?> options);
 
     /**
      * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning

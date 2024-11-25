@@ -23,6 +23,8 @@ package com.datastax.astra.client.collections;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
+import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
@@ -96,24 +98,18 @@ public class CollectionDefinition {
      * Subclass representing the indexing options.
      */
     @Setter
+    @NoArgsConstructor
     public static class IndexingOptions {
 
         /**
          * If not empty will index everything but those properties.
          */
-        private List<String> deny;
+        List<String> deny;
 
         /**
          * If not empty will index just those properties.
          */
-        private List<String> allow;
-
-        /**
-         * Default constructor.
-         */
-        public IndexingOptions() {
-            // left blank, serialization with jackson
-        }
+        List<String> allow;
 
         /**
          * Gets deny
@@ -140,9 +136,6 @@ public class CollectionDefinition {
      *      vector options
      */
     public VectorOptions getVector() {
-        if (vector == null) {
-            vector = new VectorOptions();
-        }
         return vector;
     }
 
@@ -152,9 +145,6 @@ public class CollectionDefinition {
      * @return indexing options
      */
     public IndexingOptions getIndexing() {
-        if (indexing == null) {
-            indexing = new IndexingOptions();
-        }
         return indexing;
     }
 
@@ -208,6 +198,9 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition indexingDeny(@NonNull String... properties) {
+        if (getIndexing() == null) {
+            indexing = new IndexingOptions();
+        }
         if (getIndexing().getAllow() != null) {
             throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
         }
@@ -222,6 +215,9 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition indexingAllow(String... properties) {
+        if (getIndexing() == null) {
+            indexing = new IndexingOptions();
+        }
         if (getIndexing().getDeny() != null) {
             throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
         }
@@ -237,6 +233,9 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition vector(int dimension, @NonNull SimilarityMetric function) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
         return vectorSimilarity(function).vectorDimension(dimension);
     }
 

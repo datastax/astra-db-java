@@ -70,8 +70,6 @@ import static com.datastax.astra.client.exception.InvalidEnvironmentException.th
  */
 public class DataAPIClient {
 
-
-
     /**
      * The authentication token used as credentials in HTTP requests, specifically as the Authorization bearer token.
      * This token is crucial for accessing and interacting with Astra environments, where it plays a role in determining
@@ -301,6 +299,24 @@ public class DataAPIClient {
 
     public Database getDatabase(UUID databaseId, String region, DatabaseOptions dbOptions) {
         return getDatabase(lookupEndpoint(databaseId, region), dbOptions);
+    }
+
+    /**
+     * Gets token
+     *
+     * @return value of token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Gets options
+     *
+     * @return value of options
+     */
+    public DataAPIClientOptions getOptions() {
+        return options;
     }
 
     /**

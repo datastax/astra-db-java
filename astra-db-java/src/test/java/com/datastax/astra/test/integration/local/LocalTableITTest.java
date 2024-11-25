@@ -403,54 +403,17 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .orElseThrow(() -> new IllegalArgumentException("Row not found"));
         assertThat(row.getText("p_ascii")).isEqualTo( "abc");
         assertThat(row.getBigInt("p_bigint")).isEqualTo( 10002L);
-
-        //Row row2 = tableAllReturns.findOne(
-        //        and(eq( "p_ascii", "abc"),
-        //            eq("p_bigint", 10002L)
-        //        )).orElseThrow(() -> new IllegalArgumentException("Row not found"));
-
-        //assertThat(row2.getText("p_ascii")).isEqualTo( "abc");
-        //assertThat(row2.getBigInt("p_bigint")).isEqualTo( 10002L);
-        /*
-        .addAscii("p_ascii", "abc")
-                .addBigInt("p_bigint", 10002L)
-                .addInt("p_int", 987)
-                .addBoolean("p_boolean", false)
-                .addText("p_text", "Ålesund")
-                .addText("p_text_omitted", null)
-                .addDouble("p_double_pinf", Double.MAX_VALUE)
-                .addDouble("p_double_minf", Double.NEGATIVE_INFINITY)
-                .addBlob("p_blob", "blob".getBytes())
-                .addSmallInt("p_smallint", (short) 200)
-                .addVarInt("p_varint",444)
-                .addTinyInt("p_tinyint",(short) 17)
-                .addDuration("p_duration", Duration.ofHours(12).plusMinutes(48))
-                .addInet("p_inet", InetAddress.getByAddress(new byte[]{12, 34, 56, 78}))
-                .addDouble("p_double", 987.6543d)
-                .addFloat("p_float", 66.55f)
-                .addFloat("p_float_nan", Float.NaN)
-                .addTimeStamp("p_timestamp", Instant.now())
-                .addTime("p_time", localTime)
-                .addUUID("p_uuid", java.util.UUID.fromString("9c5b94b1-35ad-49bb-b118-8e8fc24abf80"))
-                .addDate("p_date", LocalDate.of(2015,5,3))
-                .addDecimal("p_decimal", new BigDecimal("123.45"))
-                .addVector("p_vector", DataAPIVector.of(.1f, 0.2f, 0.3f))
-                .addList("p_list_int", List.of(4, 17, 34))
-                .addSet("p_set_int",  Set.of(9, 81));
-
-                //.addTableDuration("p_duration", TableDuration.of(
-                //        Period.ofDays(3),
-                //        Duration.ofHours(12).plusMinutes(48)));
-         */
     }
 
     @Test
+    @Order(18)
     public void shouldCreateTableFromBeanDefinition() {
         getDatabase().createTable(TableCompositeAnnotatedRow.class, IF_NOT_EXISTS);
         assertThat(getDatabase().tableExists("table_composite_pk_annotated")).isTrue();
     }
 
     @Test
+    @Order(19)
     public void shouldAlterAddColumns() {
         Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
         // Add Column (simple)
@@ -467,8 +430,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         t.alter(new AlterTableAddVectorize().columns(
                 Map.of("vv", new VectorServiceOptions()
                         .modelName("mistral-embed")
-                        .provider("mistral"))))
-        ;
+                        .provider("mistral"))));
 
         // Drop Vectorize
         t.alter(new AlterTableDropVectorize("vv"));
@@ -480,6 +442,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
+    @Order(20)
     public void should_insert_many() {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
 
@@ -703,13 +666,12 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        TableUpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
-                .set("name", "new"));
+        TableUpdateResult birthday = table.updateOne(johnFilter, TableUpdate.create()
+                .set("age", 43));
                 //.updateMul(Map.of("price", 1.1d)));
-        Assertions.assertThat(u1.getMatchedCount()).isEqualTo(1);
-        Assertions.assertThat(u1.getModifiedCount()).isEqualTo(1);
+        Assertions.assertThat(birthday.getMatchedCount()).isEqualTo(1);
+        Assertions.assertThat(birthday.getModifiedCount()).isEqualTo(1);
     }
-
 
     @Test
     public void revampingOptions() {
