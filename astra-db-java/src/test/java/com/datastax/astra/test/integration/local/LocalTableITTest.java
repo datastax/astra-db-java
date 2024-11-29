@@ -47,7 +47,6 @@ import com.datastax.astra.test.model.TableCompositeRow;
 import com.datastax.astra.test.model.TableCompositeRowGenerator;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -101,7 +100,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }
@@ -138,7 +137,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumnText("name")
                 .addColumnText("country")
                 .addColumnBoolean("human")
-                .withPartitionKey("email"));
+                .partitionKey("email"));
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isTrue();
 
         // Create Index Simple
@@ -152,13 +151,21 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
+    public void listIndex() {
+        for (TableIndexDefinition tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
+            System.out.println(tid.getColumn());
+            System.out.println(tid.getOptions());
+        }
+    }
+
+    @Test
     @Order(3)
     public void shouldCreateTableComposite() {
         getDatabase().createTable(TABLE_COMPOSITE, new TableDefinition()
                         .addColumnText("id")
                         .addColumnInt("age")
                         .addColumnText("name")
-                        .withPartitionKey("id", "name"));
+                        .partitionKey("id", "name"));
         assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isTrue();
     }
 
@@ -197,8 +204,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_double_minf", ColumnTypes.DOUBLE)
                 .addColumn("p_double_pinf", ColumnTypes.DOUBLE)
                 .addColumn("p_float_nan", ColumnTypes.FLOAT)
-                .withPartitionKey("p_ascii", "p_bigint")
-                .withClusteringColumns(ascending("p_int"), descending("p_boolean")),
+                .partitionKey("p_ascii", "p_bigint")
+                .clusteringColumns(ascending("p_int"), descending("p_boolean")),
                 new CreateTableOptions().ifNotExists(true));
         assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isTrue();
 
@@ -230,8 +237,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
                         .addColumnVector("vector", new ColumnDefinitionVector()
                                 .dimension(1536).metric(COSINE))
-                        .withPartitionKey("partition_id")
-                        .withClusteringColumns(Sort.descending("row_id")));
+                        .partitionKey("partition_id")
+                        .clusteringColumns(Sort.descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
     }
 
@@ -493,8 +500,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumnText("country")
                 .addColumnText("city")
                 .addColumnInt("population")
-                .withPartitionKey("country")
-                .withClusteringColumns(Sort.ascending("city")), IF_NOT_EXISTS);
+                .partitionKey("country")
+                .clusteringColumns(Sort.ascending("city")), IF_NOT_EXISTS);
         tableCities.deleteAll();
 
         List<Row> rowsFrance = new ArrayList<>();

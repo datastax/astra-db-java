@@ -35,6 +35,7 @@ import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.databases.options.CreateCollectionOptions;
 import com.datastax.astra.client.databases.options.DropCollectionOptions;
 import com.datastax.astra.client.databases.options.ListCollectionOptions;
+import com.datastax.astra.client.databases.options.ListIndexesOptions;
 import com.datastax.astra.client.databases.options.ListTablesOptions;
 import com.datastax.astra.client.exception.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
@@ -51,53 +52,87 @@ import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
+import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
-import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
- * A Data API database. This is the entry-point object for doing database-level
- * DML, such as creating/deleting collections, and for obtaining Collection
- * objects themselves. This class has a synchronous interface.
- * <p>
- * A Database comes with an "API Endpoint", which implies a Database object
- * instance reaches a specific region (relevant point in case of multi-region
- * databases).
- * </p>
+ * Represents a Data API database, providing the primary entry point for database-level operations
+ * and interactions. This class enables Data Manipulation Language (DML) operations such as
+ * creating and deleting collections, as well as obtaining {@link Collection} objects for further
+ * operations on specific collections. It also provides access to operations for managing tables.
+ *
+ * <p>This class provides a synchronous interface, designed for straightforward and immediate
+ * execution of database commands. It is intended for use in scenarios where blocking calls are
+ * acceptable or desirable, such as in traditional server-side applications or command-line tools.</p>
+ *
+ * <p>Each {@code Database} instance is associated with an "API Endpoint," which defines the specific
+ * region it connects to. This is particularly important for multi-region databases, where each
+ * instance of {@code Database} ensures connectivity to a specific regional endpoint for optimal
+ * performance and consistency.</p>
+ *
+ * <h2>Key Features:</h2>
+ * <ul>
+ *   <li>Direct access to database-level operations, including collection management.</li>
+ *   <li>Region-specific connectivity for multi-region database configurations.</li>
+ *   <li>Built on {@link AbstractCommandRunner}, providing consistent command execution semantics.</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * // Initialize the database object with endpoint and options
+ * DataAPIClient client = new DataAPIClient("token");
+ * client.getDatabase("https://<id>-<region>.apps.astra.datastax.com");
+ *
+ * // Perform database-level operations
+ * database.createCollection("myCollection");
+ * Collection collection = database.getCollection("myCollection");
+ * collection.insert(new Document("field1", "value1"));
+ * }
+ * </pre>
+ *
+ * @see Collection
+ * @see AbstractCommandRunner
  */
-@Slf4j
+@Getter
 public class Database extends AbstractCommandRunner<DatabaseOptions> {
-
-    public static final DataAPISerializer DEFAULT_DATABASE_SERIALIZER = new DatabaseSerializer();
 
     /**
      * This core endpoint could be used for admin operations.
      */
-    @Getter
     private final String rootEndpoint;
 
     /**
-     * Initialization with endpoint and apikey.
+     * Initializes a {@link Database} instance with the specified API endpoint and connection options.
+     * This constructor configures the database client to interact with the Data API at the provided
+     * root endpoint, setting up necessary parameters and constructing the API endpoint based on
+     * the deployment environment and options.
+     *
+     * <p>The API endpoint is automatically adjusted for Astra deployments (e.g., {@code ASTRA},
+     * {@code ASTRA_TEST}, {@code ASTRA_DEV}), appending the required JSON API path if the root
+     * endpoint ends with {@code ".com"}. For local or on-premise deployments, no adjustments are made
+     * to the root endpoint.</p>
+     *
+     * <p>The constructed API endpoint includes:</p>
+     * <ul>
+     *   <li>The specified {@code apiVersion}, retrieved from {@link com.datastax.astra.client.core.options.DataAPIClientOptions}.</li>
+     *   <li>The {@code keyspace}, defined in the provided {@link DatabaseOptions}.</li>
+     * </ul>
      *
      * @param rootEndpoint
-     *      api endpoint
-     *  @param options
-     *      options with all attributes to connect to the database
+     *      The root API endpoint for connecting to the database. This is the base URL that determines
+     *      the target deployment environment (e.g., Astra or local).
+     * @param options
+     *      The {@link DatabaseOptions} containing all attributes required to connect to the database,
+     *      including authentication details, keyspace configuration, and client options.
      */
     public Database(String rootEndpoint, DatabaseOptions options) {
         super(rootEndpoint, options);
@@ -115,7 +150,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                 // left blank as local deployments does not require any change
                 break;
         }
-        this.apiEndpoint  = dbApiEndPointBuilder
+        this.apiEndpoint = dbApiEndPointBuilder
                 .append("/")
                 .append(options.getDataAPIClientOptions().getApiVersion())
                 .append("/")
@@ -128,20 +163,21 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // ------------------------------------------
 
     /**
-     * Get the region of the database if deployed in Astra.
+     * Retrieves the name of the currently selected keyspace.
      *
-     * @return
-     *      the region
+     * @return The name of the keyspace currently in use by this {@code Database} instance.
      */
     public String getKeyspace() {
         return options.getKeyspace();
     }
 
     /**
-     * Get the region of the database if deployed in Astra.
+     * Retrieves the region of the database if it is deployed in Astra. This method ensures that
+     * the database is an Astra deployment before returning the region. If the database is not deployed
+     * in Astra, an assertion error is raised.
      *
-     * @return
-     *      the region
+     * @return The region where the Astra database is deployed.
+     * @throws IllegalStateException if the database is not deployed in Astra.
      */
     public String getRegion() {
         assertIsAstra();
@@ -149,10 +185,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Get the region of the database if deployed in Astra.
+     * Retrieves the unique database identifier (UUID) of the database if it is deployed in Astra.
+     * This method ensures that the database is an Astra deployment before returning the identifier.
+     * If the database is not deployed in Astra, an assertion error is raised.
      *
-     * @return
-     *      the region
+     * @return The unique identifier (UUID) of the Astra database.
+     * @throws IllegalStateException if the database is not deployed in Astra.
      */
     public UUID getId() {
         assertIsAstra();
@@ -160,53 +198,114 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Get Information about the current database.
+     * Retrieves information about the current database, including metadata and configuration details.
+     * This method interacts with the administration client to fetch database information.
      *
-     * @return
-     *      information regarding current database.
+     * @return A {@link DatabaseInfo} object containing details about the current database.
+     * @throws IllegalStateException if the database information cannot be retrieved or if the
+     *         database is not properly configured for administration operations.
      */
     public DatabaseInfo getInfo() {
         return getAdmin().getDatabaseInfo(getId());
     }
 
     /**
-     * This mutates the keyspace to be used.
+     * Sets the active keyspace for the database.
+     * This method allows switching the current keyspace context used for database operations.
      *
      * @param keyspace
-     *      current keyspace
+     *      The name of the keyspace to set as the current keyspace.
+     *      This must not be null or empty.
      * @return
-     *      the database
+     *      The database instance with the specified keyspace set as active,
+     *      allowing for method chaining.
+     * @throws IllegalArgumentException
+     *      If the provided keyspace is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Database database = new Database();
+     * database.useKeyspace("my_keyspace");
+     * }
+     * </pre>
      */
     public Database useKeyspace(String keyspace) {
+        Assert.hasLength(keyspace, "keyspace");
         this.options.keyspace(keyspace);
         return this;
     }
 
     // ------------------------------------------
-    // ----   Access Database Admin          ----
+    // ----   Astra  Admin                   ----
     // ------------------------------------------
 
-    public AstraDBAdmin getAdmin() {
-        return getAdmin(options.getToken());
-    }
-
-    public AstraDBAdmin getAdmin(String superUserToken) {
-        return getAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions()));
-    }
-
+    /**
+     * Retrieves an administration client for Astra deployments using detailed administrative options.
+     * <p>
+     * This method provides fine-grained control over the client configuration by allowing explicit
+     * specification of both the token and additional options.
+     * </p>
+     *
+     * @param adminOptions The {@link AdminOptions} object containing authentication and configuration details.
+     * @return An {@link AstraDBAdmin} instance configured with the provided administrative options.
+     * @throws IllegalStateException if the database is not deployed in Astra.
+     */
     public AstraDBAdmin getAdmin(AdminOptions adminOptions) {
         assertIsAstra();
         return new AstraDBAdmin(adminOptions);
     }
 
-    public DatabaseAdmin getDatabaseAdmin() {
-        return getDatabaseAdmin(options.getToken());
+    /**
+     * Retrieves an administration client specifically for Astra deployments using the default authentication token.
+     * <p>
+     * This client allows execution of administrative tasks such as creating databases and managing Astra configurations.
+     * </p>
+     *
+     * @return An {@link AstraDBAdmin} instance configured with the default token for administrative operations.
+     * @throws IllegalStateException if the database is not deployed in Astra.
+     */
+    public AstraDBAdmin getAdmin() {
+        return getAdmin(options.getToken());
     }
 
-    public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
-        return getDatabaseAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions()));
+    /**
+     * Retrieves an administration client specifically for Astra deployments using a provided super-user token.
+     * <p>
+     * This method allows overriding the default token with a custom super-user token for enhanced privileges.
+     * </p>
+     *
+     * @param superUserToken A token with elevated privileges for administrative operations.
+     * @return An {@link AstraDBAdmin} instance configured with the provided token.
+     * @throws IllegalStateException if the database is not deployed in Astra.
+     */
+    public AstraDBAdmin getAdmin(String superUserToken) {
+        return getAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions()));
     }
 
+    // ------------------------------------------
+    // ----   Database  Admin                 ---
+    // ------------------------------------------
+
+    /**
+     * Retrieves a database administration client using detailed administrative options.
+     * <p>
+     * Depending on the deployment type (Astra or non-Astra), this method returns an appropriate implementation of
+     * {@link DatabaseAdmin}, either {@link AstraDBDatabaseAdmin} or {@link DataAPIDatabaseAdmin}. The provided
+     * {@link AdminOptions} object determines the authentication and configuration used for the client.
+     * </p>
+     *
+     * <p>Key behaviors:
+     * <ul>
+     *   <li>If no {@code adminOptions} are provided, a default configuration is derived from the current options.</li>
+     *   <li>If the deployment is Astra, an {@link AstraDBDatabaseAdmin} instance is returned.</li>
+     *   <li>For non-Astra deployments, a {@link DataAPIDatabaseAdmin} instance is returned.</li>
+     * </ul>
+     * </p>
+     *
+     * @param adminOptions The {@link AdminOptions} object containing authentication and configuration details.
+     * @return A {@link DatabaseAdmin} instance tailored for the current deployment type and configured with the provided options.
+     */
     public DatabaseAdmin getDatabaseAdmin(AdminOptions adminOptions) {
         if (adminOptions == null) {
             adminOptions = new AdminOptions(options.getToken(), options.getDataAPIClientOptions().clone());
@@ -222,84 +321,337 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         return new DataAPIDatabaseAdmin(this, adminOptions);
     }
 
+    /**
+     * Retrieves a database administration client using the default authentication token.
+     * <p>
+     * The client enables management of database-level configurations, such as keyspaces, collections,
+     * and other database settings.
+     * </p>
+     *
+     * @return A {@link DatabaseAdmin} instance configured with the default token for database-level operations.
+     */
+    public DatabaseAdmin getDatabaseAdmin() {
+        return getDatabaseAdmin(options.getToken());
+    }
+
+    /**
+     * Retrieves a database administration client using a provided super-user token.
+     * <p>
+     * This method allows overriding the default token with a custom super-user token for privileged database
+     * management operations.
+     * </p>
+     *
+     * @param superUserToken A token with elevated privileges for database administration tasks.
+     * @return A {@link DatabaseAdmin} instance configured with the provided token.
+     */
+    public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
+        return getDatabaseAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions()));
+    }
+
     // ------------------------------------------
-    // ----     Collection CRUD              ----
+    // ----     List Collections             ----
     // ------------------------------------------
 
     /**
-     * Gets the names of all the collections in this database.
+     * Retrieves the names of all the collections present in this database.
+     * <p>
+     * This method provides a list of collection names, allowing developers to explore or iterate over the
+     * available collections in the database. It is particularly useful for dynamic scenarios where the
+     * collections within a database might not be predetermined or when you need to inspect the database's
+     * current state programmatically.
+     * </p>
      *
-     * @return
-     *      a stream containing all the names of all the collections in this database
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * Database database = new DataAPIClient("token").getDatabase("endpoint);
+     * List<String> collectionNames = database.listCollectionNames();
+     * collectionNames.forEach(System.out::println);
+     * }
+     * </pre>
+     *
+     * @return A {@link List} containing the names of all collections in this database.
+     * @throws com.datastax.astra.client.exception.DataAPIException if an error occurs while retrieving the collection names.
      */
     public List<String> listCollectionNames() {
         return listCollectionNames(null);
     }
 
     /**
-     * Gets the names of all the collections in this database.
+     * Retrieves the names of all the collections present in this database, with the ability to customize
+     * the listing behavior using the specified {@link ListCollectionOptions}.
+     * <p>
+     * This method provides a list of collection names, allowing developers to explore or iterate over
+     * the collections in the database. The behavior of this operation can be tailored by providing
+     * {@link ListCollectionOptions}, enabling filtering or additional configuration as needed.
+     * </p>
      *
-     * @param listCollectionOptions
-     *      options to the list collection
-     * @return
-     *      a stream containing all the names of all the collections in this database
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code listCollectionOptions} - The options to customize the collection listing operation,
+     *       such as filtering criteria or additional query parameters.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * // Create list collection options
+     * ListCollectionOptions options = new ListCollectionOptions()
+     *    .timeout(Duration.ofMillis(1000));
+     *
+     * // Retrieve collection names based on options
+     * Database database = new DataAPIClient("token").getDatabase("endpoint);
+     * List<String> collectionNames = database.listCollectionNames(options);
+     *
+     * // Print the collection names
+     * collectionNames.forEach(System.out::println);
+     * }
+     * </pre>
+     *
+     * @param listCollectionOptions The {@link ListCollectionOptions} to customize the collection listing behavior.
+     * @return A {@link List} containing the names of all collections in this database, filtered or modified
+     *         according to the provided options.
      */
     public List<String> listCollectionNames(ListCollectionOptions listCollectionOptions) {
-        Command findCollections = Command.create("findCollections");
-        return runCommand(findCollections, listCollectionOptions)
+        return runCommand(Command.create("findCollections"), listCollectionOptions)
                 .getStatusKeyAsStringStream("collections")
                 .toList();
     }
 
     /**
-     * Finds all the collections in this database.
+     * Retrieves all collections in this database along with their definitions.
+     * <p>
+     * This method returns a list of {@link CollectionDescriptor} objects, providing detailed metadata
+     * about each collection, such as its name, schema, or other relevant attributes. It acts as a
+     * convenient entry point for obtaining all collection definitions without any filtering or additional options.
+     * </p>
      *
-     * @return
-     *  list of collection definitions
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * Database database = new DataAPIClient("token").getDatabase("endpoint);
+     * List<CollectionDescriptor> collections = database.listCollections();
+     * }
+     * </pre>
+     *
+     * @return A {@link List} of {@link CollectionDescriptor} objects representing all collections in this database.
      */
     public List<CollectionDescriptor> listCollections() {
         return listCollections(null);
     }
 
+    /**
+     * Retrieves all collections in this database along with their definitions, customized by the
+     * specified {@link ListCollectionOptions}.
+     * <p>
+     * This method allows for more fine-grained control over the collection retrieval process, enabling
+     * options such as filtering, limiting the number of results, or specifying additional query parameters.
+     * The returned list includes {@link CollectionDescriptor} objects, which provide detailed metadata
+     * for each collection that matches the provided options.
+     * </p>
+     *
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code listCollectionOptions} - The {@link ListCollectionOptions} to customize the listing behavior,
+     *       such as filtering criteria or additional query parameters. If {@code null}, all collections are returned.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * // Create options for listing collections with a specific prefix
+     * ListCollectionOptions options = new ListCollectionOptions()
+     *    .timeout(Duration.ofMillis(1000));
+     *
+     * // Retrieve matching collections
+     * Database database = new DataAPIClient("token").getDatabase("endpoint);
+     * List<CollectionDescriptor> collections = database.listCollections(options);
+     * }
+     * </pre>
+     *
+     * @param listCollectionOptions The {@link ListCollectionOptions} to customize the collection retrieval process.
+     *                              If {@code null}, no filtering or additional options are applied.
+     * @return A {@link List} of {@link CollectionDescriptor} objects representing the collections that match the criteria.
+     */
     public List<CollectionDescriptor> listCollections(ListCollectionOptions listCollectionOptions) {
-        Command findCollections = Command
-                .create("findCollections")
+        Command findCollections = Command.create("findCollections")
                 .withOptions(new Document().append("explain", true));
         return runCommand(findCollections, listCollectionOptions)
                 .getStatusKeyAsList("collections", CollectionDescriptor.class);
     }
 
     /**
-     * Evaluate if a collection exists.
+     * Checks if a specified collection exists in this database.
+     * <p>
+     * This method evaluates whether a collection with the given name is present in the database.
+     * It is useful for verifying the existence of a collection before performing operations such
+     * as querying, inserting, or updating data.
+     * </p>
      *
-     * @param collection
-     *      collections name.
-     * @return
-     *      if collections exists
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * Database database = new DataAPIClient("token").getDatabase("endpoint");
+     * boolean exists = database.collectionExists("my_collection");
+     * if (exists) {
+     *     System.out.println("Collection exists!");
+     * } else {
+     *     System.out.println("Collection does not exist.");
+     * }
+     * }
+     * </pre>
+     *
+     * @param collectionName The name of the collection to check.
+     * @return {@code true} if the collection exists, {@code false} otherwise.
+     * @throws IllegalArgumentException if the collection name is {@code null} or empty.
      */
-    public boolean collectionExists(String collection) {
-        return listCollectionNames().contains(collection);
+    public boolean collectionExists(String collectionName) {
+        Assert.hasLength(collectionName, "collectionName");
+        return listCollectionNames().contains(collectionName);
     }
 
     // ------------------------------------------
     // ----        Get Collection            ----
     // ------------------------------------------
 
+    /**
+     * Retrieves a {@link Collection} object for the specified collection name.
+     * <p>
+     * This method provides a convenient way to obtain a {@link Collection} instance for a specific
+     * collection in the database. The returned object allows for further operations on the collection,
+     * such as querying, inserting, or updating documents.
+     * </p>
+     *
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * Database database = new DataAPIClient("token").getDatabase("endpoint");
+     * Collection collection = database.getCollection("my_collection");
+     * }
+     * </pre>
+     *
+     * @param collectionName The name of the collection to retrieve.
+     * @return A {@link Collection} object representing the specified collection.
+     * @throws IllegalArgumentException if the collection name is {@code null} or empty.
+     */
     public Collection<Document> getCollection(String collectionName) {
         return getCollection(collectionName, Document.class);
     }
 
-    public <T> Collection<T> getCollection(String collectionName, @NonNull Class<T> documentClass) {
+    /**
+     * Retrieves a {@link Collection} object for the specified collection name, with the ability to
+     * customize the collection behavior using the specified {@link CollectionOptions}.
+     * <p>
+     * This method provides a way to obtain a {@link Collection} instance for a specific collection in
+     * the database, with additional options for configuring the collection's behavior. The returned object
+     * allows for further operations on the collection, such as querying, inserting, or updating documents.
+     * </p>
+     *
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
+     *   <li>{@code collectionOptions} - The {@link CollectionOptions} to customize the collection behavior,
+     *       such as setting a custom serializer or specifying additional options. If {@code null}, default options are used.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * // Create custom collection options
+     * CollectionOptions options = new CollectionOptions()
+     *    .serializer(new MyCustomSerializer());
+     *
+     * // Retrieve the collection with custom options
+     * Database database = new DataAPIClient("token").getDatabase("endpoint");
+     * Collection collection = database.getCollection("my_collection", options);
+     * }
+     * </pre>
+     *
+     * @param collectionName The name of the collection to retrieve.
+     * @return A {@link Collection} object representing the specified collection, configured with the provided options.
+     * @throws IllegalArgumentException if the collection name is {@code null} or empty.
+     */
+    public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {
         return getCollection(collectionName, new CollectionOptions(
                 options.getToken(),
                 options.getDataAPIClientOptions()), documentClass);
     }
 
+    /**
+     * Retrieves a {@link Collection} object for the specified collection name with the ability to specify custom options.
+     * <p>
+     * This method provides a flexible way to obtain a {@link Collection} instance by allowing
+     * the caller to specify {@link CollectionOptions} to customize the behavior of the collection.
+     * </p>
+     *
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
+     *   <li>{@code collectionOptions} - A {@link CollectionOptions} object that specifies custom
+     *       behaviors for the collection. If {@code null}, default options will be used.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     *
+     * CollectionOptions options = new CollectionOptions()
+     *  .timeout(Duration.ofMillis(1000))
+     *  .dataAPIClientOptions(new DataAPIClientOptions())
+     *  .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"));
+     *
+     * Database database = new DataAPIClient("token").getDatabase("endpoint");
+     * Collection collection = database.getCollection("my_collection", options);
+     * }
+     * </pre>
+     *
+     * @param collectionName The name of the collection to retrieve.
+     * @param collectionOptions The {@link CollectionOptions} to customize the collection behavior.
+     * @return A {@link Collection} object representing the specified collection.
+     * @throws IllegalArgumentException if {@code collectionName} is {@code null} or empty.
+     */
     public Collection<Document> getCollection(String collectionName,  CollectionOptions collectionOptions) {
         return getCollection(collectionName, collectionOptions, Document.class);
     }
 
-    public <T> Collection<T> getCollection(String collectionName, CollectionOptions options,  @NonNull Class<T> documentClass) {
+    /**
+     * Retrieves a {@link Collection} object for the specified collection name with custom options and document type.
+     * <p>
+     * This method provides the most flexible way to obtain a {@link Collection} instance, allowing
+     * clients to specify custom options and the type of documents in the collection.
+     * </p>
+     *
+     * <h2>Parameters:</h2>
+     * <ul>
+     *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
+     *   <li>{@code options} - The {@link CollectionOptions} to customize the collection behavior. Must not be null.</li>
+     *   <li>{@code documentClass} - The {@link Class} type of the documents stored in the collection.
+     *       This enables type safety when working with the collection's documents. Must not be null.</li>
+     * </ul>
+     *
+     * <h2>Example usage:</h2>
+     * <pre>
+     * {@code
+     * CollectionOptions options = new CollectionOptions()
+     *  .timeout(Duration.ofMillis(1000))
+     *  .dataAPIClientOptions(new DataAPIClientOptions())
+     *  .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"));
+     * Collection<MyDocument> collection = database.getCollection("my_collection", options, MyDocument.class);
+     * }
+     * </pre>
+     *
+     * @param collectionName The name of the collection to retrieve.
+     * @param options The {@link CollectionOptions} for customizing the collection behavior.
+     * @param documentClass The class type of the documents in the collection.
+     * @return A {@link Collection} object representing the specified collection.
+     * @throws IllegalArgumentException if {@code collectionName}, {@code options}, or {@code documentClass} is {@code null}.
+     */
+    public <T> Collection<T> getCollection(String collectionName, CollectionOptions options,  Class<T> documentClass) {
         hasLength(collectionName, "collectionName");
         notNull(options, "options");
         notNull(documentClass, "documentClass");
@@ -310,45 +662,38 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // ----      Create Collection           ----
     // ------------------------------------------
 
-    public Collection<Document> createCollection(String collectionName) {
-        return createCollection(collectionName, Document.class);
-    }
-
-    public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
-        return createCollection(collectionName,
-                null, // no CollectionDefinitionOptions as simple
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions()),
-                null, // No create collection options
-                documentClass);
-    }
-
-    public Collection<Document> createCollection(String name, CollectionDefinition def) {
-        return createCollection(name, def, Document.class);
-    }
-
-    public <T>  Collection<T> createCollection(String name, CollectionDefinition def, Class<T> documentClass) {
-        return createCollection(name,
-                def,
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions()),
-                null,
-                documentClass);
-    }
-
-    public Collection<Document> createCollection(String collectionName,
-        CollectionDefinition collectionDefinition,
-        CollectionOptions collectionOptions,
-        CreateCollectionOptions createCollectionOptions) {
-        return createCollection(
-                collectionName, collectionDefinition,
-                collectionOptions, createCollectionOptions,
-                Document.class);
-    }
-
+    /**
+     * Creates a new collection in the database.
+     *
+     * @param <T>                 The type of the documents stored in the collection.
+     * @param collectionName      The name of the collection to be created.
+     * @param collectionDefinition An optional {@link CollectionDefinition} object defining the schema and other properties of the collection.
+     * @param collectionOptions   The {@link CollectionOptions} that include token, client configuration, and serializer for the collection.
+     * @param createCollectionOptions Additional options for creating the collection, such as timeouts or retry policies.
+     * @param documentClass       The class of the documents stored in the collection.
+     * @return The created collection as a {@link Collection} of the specified document type.
+     *
+     * @throws IllegalArgumentException If any required argument is null or invalid.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<MyDocument> collection = db.createCollection(
+     *     "myCollection",
+     *     new CollectionDefinition(),
+     *     new CollectionOptions(token, dataAPIClientOptions),
+     *     new CreateCollectionOptions(),
+     *     MyDocument.class
+     * );
+     * }
+     * </pre>
+     */
     public <T> Collection<T> createCollection(String collectionName,
-        CollectionDefinition collectionDefinition,
-        CollectionOptions collectionOptions,
-        CreateCollectionOptions createCollectionOptions,
-        Class<T> documentClass) {
+                                              CollectionDefinition collectionDefinition,
+                                              Class<T> documentClass,
+                                              CreateCollectionOptions createCollectionOptions,
+                                              CollectionOptions collectionOptions) {
+
         hasLength(collectionName, "collectionName");
         notNull(collectionOptions, "collectionOptions");
         notNull(documentClass, "documentClass");
@@ -363,46 +708,201 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                     .convertValue(collectionDefinition, Document.class));
         }
         runCommand(createCollectionCommand, createCollectionOptions);
-        log.info("Collection  '" + green("{}") + "' has been created", collectionName);
         return getCollection(collectionName, collectionOptions, documentClass);
     }
 
     /**
-     * Delete a collection.
+     * Creates a new collection with the default document type {@link Document}.
      *
-     * @param collectionName
-     *      collection name
+     * @param collectionName The name of the collection to be created.
+     * @return The created collection as a {@link Collection} of {@link Document}.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<Document> collection = db.createCollection("myDefaultCollection");
+     * }
+     * </pre>
      */
-    public void dropCollection(String collectionName) {
-        dropCollection(collectionName, null);
+    public Collection<Document> createCollection(String collectionName) {
+        return createCollection(collectionName, Document.class);
     }
 
     /**
-     * Delete a collection.
+     * Creates a new collection with the specified document class.
      *
-     * @param collectionName
-     *      collection name
+     * @param <T>            The type of the documents stored in the collection.
+     * @param collectionName The name of the collection to be created.
+     * @param documentClass  The class of the documents stored in the collection.
+     * @return The created collection as a {@link Collection} of the specified document type.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<MyDocument> collection = db.createCollection("myTypedCollection", MyDocument.class);
+     * }
+     * </pre>
+     */
+    public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
+        return createCollection(collectionName,
+                // no CollectionDefinition as simple
+                null,
+                documentClass,
+                // No create collection options
+                null,
+                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions())
+                );
+    }
+
+    /**
+     * Creates a new collection with a specified definition and the default document type {@link Document}.
+     *
+     * @param name The name of the collection to be created.
+     * @param def  The {@link CollectionDefinition} specifying the schema and other properties of the collection.
+     * @return The created collection as a {@link Collection} of {@link Document}.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<Document> collection = createCollection("myDefinedCollection", new CollectionDefinition());
+     * }
+     * </pre>
+     */
+    public Collection<Document> createCollection(String name, CollectionDefinition def) {
+        return createCollection(name, def, Document.class);
+    }
+
+    /**
+     * Creates a new collection with a specified definition and the specified document class.
+     *
+     * @param <T>        The type of the documents stored in the collection.
+     * @param name       The name of the collection to be created.
+     * @param def        The {@link CollectionDefinition} specifying the schema and other properties of the collection.
+     * @param documentClass The class of the documents stored in the collection.
+     * @return The created collection as a {@link Collection} of the specified document type.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<MyDocument> collection = createCollection("myDefinedCollection",
+     *  new CollectionDefinition(), MyDocument.class);
+     * }
+     * </pre>
+     */
+    public <T>  Collection<T> createCollection(String name, CollectionDefinition def, Class<T> documentClass) {
+        return createCollection(name,
+                def,
+                documentClass,
+                null,
+                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions()));
+    }
+
+    /**
+     * Creates a new collection with a specified definition, options, and the default document type {@link Document}.
+     *
+     * @param collectionName       The name of the collection to be created.
+     * @param collectionDefinition The {@link CollectionDefinition} specifying the schema and other properties of the collection.
+     * @param collectionOptions    The {@link CollectionOptions} that include token, client configuration, and serializer for the collection.
+     * @param createCollectionOptions Additional options for creating the collection, such as timeouts or retry policies.
+     * @return The created collection as a {@link Collection} of {@link Document}.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Collection<Document> collection = createCollection(
+     *     "myComplexCollection",
+     *     new CollectionDefinition(),
+     *     new CollectionOptions(token, dataAPIClientOptions),
+     *     new CreateCollectionOptions()
+     * );
+     * }
+     * </pre>
+     */
+    public Collection<Document> createCollection(String collectionName,
+        CollectionDefinition collectionDefinition,
+        CreateCollectionOptions createCollectionOptions,
+        CollectionOptions collectionOptions
+        ) {
+        return createCollection(
+                collectionName,
+                collectionDefinition,
+                Document.class,
+                createCollectionOptions,
+                collectionOptions);
+    }
+
+    // ------------------------------------------
+    // ----      Drop Collection             ----
+    // ------------------------------------------
+
+    /**
+     * Deletes a collection from the database.
+     *
+     * @param collectionName       The name of the collection to be deleted. Must not be null or empty.
+     * @param dropCollectionOptions Additional options for dropping the collection, such as timeout or retry policies.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * db.dropCollection("myCollection", new DropCollectionOptions().timeout(Duration.ofMillis(1000)));
+     * }
+     * </pre>
      */
     public void dropCollection(String collectionName, DropCollectionOptions dropCollectionOptions) {
         runCommand(Command
                 .create("deleteCollection")
                 .append("name", collectionName), dropCollectionOptions);
-        log.info("Collection  '" + green("{}") + "' has been deleted", collectionName);
+    }
+
+    /**
+     * Deletes a collection from the database with default options.
+     *
+     * @param collectionName The name of the collection to be deleted. Must not be null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * dropCollection("myCollection");
+     * }
+     * </pre>
+     */
+    public void dropCollection(String collectionName) {
+        dropCollection(collectionName, null);
     }
 
     // ------------------------------------------
     // -------    List tables               -----
     // ------------------------------------------
 
+    /**
+     * Retrieves the names of all tables in the database with default options.
+     *
+     * @return A list of all table names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<String> tableNames = listTableNames();
+     * }
+     * </pre>
+     */
     public List<String> listTableNames() {
-        return listTableNames(new ListTablesOptions());
+        return listTableNames(null);
     }
 
     /**
-     * Gets the names of all the tables in this database.
+     * Retrieves the names of all tables in the database.
      *
-     * @return
-     *      a stream containing all the names of all the collections in this database
+     * @param listTablesOptions Options for filtering or configuring the table listing operation.
+     * @return A list of all table names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * ListTablesOptions options = new ListTablesOptions();
+     * List<String> tableNames = listTableNames(options);
+     * }
+     * </pre>
      */
     public List<String> listTableNames(ListTablesOptions listTablesOptions) {
         return runCommand(Command.create("listTables"), listTablesOptions)
@@ -410,15 +910,35 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                 .toList();
     }
 
+    /**
+     * Retrieves the details of all tables in the database with default options.
+     *
+     * @return A list of {@link TableDescriptor} objects representing all tables in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<TableDescriptor> tables = listTables();
+     * }
+     * </pre>
+     */
     public List<TableDescriptor> listTables() {
-        return listTables(new ListTablesOptions());
+        return listTables(null);
     }
 
     /**
-     * Finds all the tables in this database.
+     * Retrieves the details of all tables in the database.
      *
-     * @return
-     *      list of table definitions
+     * @param listTableOptions Options for filtering or configuring the table listing operation.
+     * @return A list of {@link TableDescriptor} objects representing all tables in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * ListTablesOptions options = new ListTablesOptions();
+     * List<TableDescriptor> tables = listTables(options);
+     * }
+     * </pre>
      */
     public List<TableDescriptor> listTables(ListTablesOptions listTableOptions) {
         Command findTables = Command
@@ -429,14 +949,27 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Evaluate if a collection exists.
+     * Checks if a table exists in the database by its name.
      *
-     * @param tableName
-     *      table name.
-     * @return
-     *      if collections exists
+     * @param tableName The name of the table to check. Must not be null or empty.
+     * @return {@code true} if the table exists, {@code false} otherwise.
+     *
+     * @throws IllegalArgumentException if {@code tableName} is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * boolean exists = tableExists("myTable");
+     * if (exists) {
+     *     System.out.println("The table exists.");
+     * } else {
+     *     System.out.println("The table does not exist.");
+     * }
+     * }
+     * </pre>
      */
     public boolean tableExists(String tableName) {
+        Assert.hasLength(tableName, "tableName");
         return listTableNames().contains(tableName);
     }
 
@@ -444,28 +977,110 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // ----      Get Table                   ----
     // ------------------------------------------
 
-    public Table<Row> getTable(String tableName) {
-        return getTable(tableName, Row.class);
-    }
-
-    public <T> Table<T> getTable(String tableName, @NonNull Class<T> rowClass) {
-        return getTable(tableName, new TableOptions(
-                options.getToken(),
-                options.getDataAPIClientOptions()), rowClass);
-
-    }
-
-    public Table<Row> getTable(String tableName,  TableOptions tableOptions) {
-        return getTable(tableName, tableOptions, Row.class);
-    }
-
-    public <T> Table<T> getTable(String tableName, TableOptions tableOptions, @NonNull Class<T> rowClass) {
+    /**
+     * Retrieves a table representation for the specified table name, table options, and row class type.
+     * This is the primary method to obtain a typed table instance.
+     *
+     * @param <T>         the type of the row objects
+     * @param tableName   the name of the table (must not be null or empty)
+     * @param tableOptions options used to configure the table (e.g., connection options)
+     * @param rowClass    the class representing the type of rows in the table (must not be null)
+     * @return a {@code Table<T>} instance for the specified configuration
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Table<MyRowType> table = db.getTable("my_table", new TableOptions(...), MyRowType.class);
+     * }
+     * </pre>
+     */
+    public <T> Table<T> getTable(String tableName, TableOptions tableOptions, Class<T> rowClass) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
         return new Table<>(this, tableName, tableOptions, rowClass);
     }
 
-    public <T> Table<T> getTable(@NonNull Class<T> rowClass) {
+    /**
+     * Retrieves a table representation for the specified table name with default {@code TableOptions}.
+     *
+     * @param tableName the name of the table (must not be null or empty)
+     * @return a {@code Table<Row>} instance representing a generic table with {@code Row} type rows
+     * @throws IllegalArgumentException if {@code tableName} is null or empty
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Table<Row> table = db.getTable("my_table");
+     * }
+     * </pre>
+     */
+    public Table<Row> getTable(String tableName) {
+        return getTable(tableName, Row.class);
+    }
+
+    /**
+     * Retrieves a table representation for the specified table name and row class type with default {@code TableOptions}.
+     *
+     * @param <T>       the type of the row objects
+     * @param tableName the name of the table (must not be null or empty)
+     * @param rowClass  the class representing the type of rows in the table (must not be null)
+     * @return a {@code Table<T>} instance for the specified configuration
+     * @throws IllegalArgumentException if {@code tableName} is null or empty
+     * @throws NullPointerException     if {@code rowClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Table<MyRowType> table = myFramework.getTable("my_table", MyRowType.class);
+     * }
+     * </pre>
+     */
+    public <T> Table<T> getTable(String tableName, Class<T> rowClass) {
+        return getTable(tableName, new TableOptions(
+                options.getToken(),
+                options.getDataAPIClientOptions()), rowClass);
+    }
+
+    /**
+     * Retrieves a table representation for the specified table name and {@code TableOptions}, defaulting to {@code Row} type rows.
+     *
+     * @param tableName    the name of the table (must not be null or empty)
+     * @param tableOptions options used to configure the table (e.g., connection options)
+     * @return a {@code Table<Row>} instance representing a generic table with {@code Row} type rows
+     * @throws IllegalArgumentException if {@code tableName} is null or empty
+     * @throws NullPointerException     if {@code tableOptions} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Table<Row> table = myFramework.getTable("my_table", new TableOptions(...));
+     * }
+     * </pre>
+     */
+    public Table<Row> getTable(String tableName, TableOptions tableOptions) {
+        return getTable(tableName, tableOptions, Row.class);
+    }
+
+    /**
+     * Retrieves a table representation for a row class annotated with {@link EntityTable}.
+     * The table name is inferred from the {@code value} attribute of the {@code EntityTable} annotation.
+     *
+     * @param <T>      the type of the row objects
+     * @param rowClass the class representing the type of rows in the table (must be annotated with {@link EntityTable})
+     * @return a {@code Table<T>} instance for the inferred table name and row type
+     * @throws InvalidConfigurationException if the provided class is not annotated with {@link EntityTable}
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @EntityTable("my_table")
+     * public class MyRowType { ... }
+     *
+     * Table<MyRowType> table = myFramework.getTable(MyRowType.class);
+     * }
+     * </pre>
+     */
+    public <T> Table<T> getTable(Class<T> rowClass) {
         EntityTable ann = rowClass.getAnnotation(EntityTable.class);
         if (ann == null) {
             InvalidConfigurationException.throwErrorMissingAnnotation(
@@ -476,88 +1091,54 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         return getTable(ann.value(), rowClass);
     }
 
-    // ------------------------------------------
+    // -------------------------------------
     // ----      Create Table           ----
-    // ------------------------------------------
-
-    // definition with a proposed bean
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition, new CreateTableOptions(), rowClass,
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
-    }
-
-    // definition with default rowClass
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
-        return createTable(tableName, tableDefinition, Row.class);
-    }
-
-    // definition with a proposed bean
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions createTableOptions, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition,  createTableOptions, rowClass,
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
-    }
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions tableOptions) {
-        return createTable(tableName, tableDefinition, tableOptions, Row.class);
-    }
-
-    // definition from the bean
-    public <T> Table<T> createTable(Class<T> rowClass) {
-        return createTable(rowClass, new CreateTableOptions());
-    }
-
-    public <T> Table<T> createTable(Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(getTableName(rowClass), createTableOptions, rowClass, new TableOptions());
-    }
+    // -------------------------------------
 
     /**
-     * As no table definition is provided on is created from the annotations of the bean
+     * Creates a table in the system with the specified parameters.
      *
-     * @param tableName
-     * @param tableOptions
-     * @param createTableOptions
-     * @param rowClass
-     *      entity ANNOTATED
-     * @return
-     * @param <T>
+     * @param <T>             the type of the row objects that the table will hold
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @param creatTableOptions additional options for creating the table; optional, can be null
+     * @param rowClass        the class representing the row type; must not be null
+     * @param tableOptions    runtime options for interacting with the table; must not be null
+     * @return the created table object
+     * @throws IllegalArgumentException if any mandatory argument is null or invalid
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * TableDefinition tableDefinition = new TableDefinition()
+     *  .addColumnText("match_id")
+     *  .addColumnInt("round")
+     *  .addColumnVector("m_vector", new ColumnDefinitionVector().dimension(3).metric(COSINE))
+     *  .addColumn("score", ColumnTypes.INT)
+     *  .addColumn("when", ColumnTypes.TIMESTAMP)
+     *  .addColumn("winner", ColumnTypes.TEXT)
+     *  .addColumnSet("fighters", ColumnTypes.UUID)
+     *  .addPartitionBy("match_id")
+     *  .addPartitionSort(Sort.ascending("round"));
+     *
+     * // Optional
+     * CreateTableOptions createTableOptions =
+     *      new CreateTableOptions().timeout(Duration.ofMillis(1000));
+     *
+     * // Optional to override spawn options
+     * TableOptions tableOptions =
+     *      new TableOptions().timeout(Duration.ofMillis(1000));
+     *
+     * Table<Row> tableSimple2 = db.createTable("TABLE_SIMPLE", tableDefinition,
+     *  Row.class, createTableOptions,  tableOptions);
+     * }
+     * </pre>
      */
     public <T> Table<T> createTable(String tableName,
-       CreateTableOptions createTableOptions,
-       Class<T> rowClass,
-       TableOptions tableOptions) {
-        hasLength(tableName, "tableName");
-        notNull(rowClass, "rowClass");
-        // FIX ME INVESTIGATING TO CREATE A TABLE DEFINITION OBJECT
-        Command createTable = new Command("createTable", createTableCommand(tableName, rowClass));
-        if (createTableOptions != null) {
-            createTable.append("options", createTableOptions);
-        }
-        runCommand(createTable, createTableOptions);
-        log.info("Table  '" + green("{}") + "' has been created", tableName);
-        return getTable(tableName, tableOptions, rowClass);
-    }
-
-    /**
-     * Create a new table with the selected options
-     *
-     * @param tableName
-     *      the definition for the new table to create
-     * @param tableDefinition
-     *      the definition for the new table to create
-     * @param creatTableOptions
-     *      various options for creating the table
-     * @param rowClass
-     *     the default class to cast any row returned from the database into.
-     * @param tableOptions
-     *      options to use when using this collection
-     * @param <T>
-     *          working class for the document
-     * @return the collection
-     */
-    public <T> Table<T> createTable(String tableName,
-              TableDefinition tableDefinition,
-              CreateTableOptions creatTableOptions,
-              Class<T> rowClass,
-              TableOptions tableOptions) {
+                                    TableDefinition tableDefinition,
+                                    Class<T> rowClass,
+                                    CreateTableOptions creatTableOptions,
+                                    TableOptions tableOptions) {
         hasLength(tableName, "tableName");
         notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
@@ -569,10 +1150,116 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             createTable.append("options", creatTableOptions);
         }
         runCommand(createTable, tableOptions);
-        log.info("Table  '" + green("{}") + "' has been created", tableName);
         return getTable(tableName, tableOptions, rowClass);
     }
 
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param <T>             the type of the row objects that the table will hold
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @param rowClass        the class representing the row type; must not be null
+     * @return the created table object
+     */
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
+        return createTable(tableName, tableDefinition, rowClass, new CreateTableOptions(),
+                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
+    }
+
+    /**
+     * Creates a table with a default row type of {@code Row}.
+     *
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @return the created table object with rows of type {@code Row}
+     */
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
+        return createTable(tableName, tableDefinition, Row.class);
+    }
+
+    /**
+     * Creates a table using the specified row class and runtime configurations.
+     *
+     * @param <T>             the type of the row objects that the table will hold
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param rowClass        the class representing the row type; must not be null
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @param createTableOptions additional options for creating the table; optional, can be null
+     * @return the created table object
+     */
+    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass, CreateTableOptions createTableOptions) {
+        return createTable(tableName, tableDefinition, rowClass, createTableOptions,
+                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
+    }
+
+    /**
+     * Creates a table using the specified row class and runtime configurations.
+     *
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param createTableOptions additional options for creating the table; optional, can be null
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @return the created table object
+     */
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions createTableOptions) {
+        return createTable(tableName, tableDefinition, Row.class, createTableOptions);
+    }
+
+    /**
+     * Creates a table using default options and the inferred table name from the row class.
+     *
+     * @param <T>      the type of the row objects that the table will hold
+     * @param rowClass the class representing the row type; must not be null
+     * @return the created table object
+     */
+    public <T> Table<T> createTable(Class<T> rowClass) {
+        return createTable(rowClass, new CreateTableOptions());
+    }
+
+    /**
+     * Creates a table using default options and the inferred table name from the row class.
+     *
+     * @param <T>      the type of the row objects that the table will hold
+     * @param rowClass the class representing the row type; must not be null
+     * @param createTableOptions additional options for creating the table; optional, can be null
+     * @return the created table object
+     */
+    public <T> Table<T> createTable(Class<T> rowClass, CreateTableOptions createTableOptions) {
+        return createTable(getTableName(rowClass), rowClass, createTableOptions, new TableOptions());
+    }
+
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param <T>             the type of the row objects that the table will hold
+     * @param rowClass        the class representing the row type; must not be null
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableOptions    runtime options for interacting with the table; must not be null
+     * @param createTableOptions additional options for creating the table; optional, can be null
+     * @return the created table object
+     */
+    public <T> Table<T> createTable(String tableName,
+        Class<T> rowClass,
+        CreateTableOptions createTableOptions,
+        TableOptions tableOptions) {
+        hasLength(tableName, "tableName");
+        notNull(rowClass, "rowClass");
+        // FIX ME INVESTIGATING TO CREATE A TABLE DEFINITION OBJECT
+        Command createTable = new Command("createTable", createTableCommand(tableName, rowClass));
+        if (createTableOptions != null) {
+            createTable.append("options", createTableOptions);
+        }
+        runCommand(createTable, createTableOptions);
+        return getTable(tableName, tableOptions, rowClass);
+    }
+
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param <T>       the type of the row objects that the table will hold
+     * @param rowClass  the class representing the row type; must not be null
+     * @return the created table object
+     */
     private <T> String getTableName(Class<T> rowClass) {
         notNull(rowClass, "rowClass");
         EntityTable ann = rowClass.getAnnotation(EntityTable.class);
@@ -585,21 +1272,48 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         return ann.value();
     }
 
+    // -------------------------------------
+    // ----       Drop Table            ----
+    // -------------------------------------
+
     /**
-     * Delete a collection.
+     * Deletes a collection (table) from the database.
+     * This method delegates to {@link #dropTable(String, DropTableOptions)}
+     * with default options.
      *
      * @param tableName
-     *      table name
+     *        the name of the table to be deleted; must not be null or empty.
+     * @throws IllegalArgumentException
+     *         if {@code tableName} is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * database.dropTable("exampleTable");
+     * }
+     * </pre>
      */
     public void dropTable(String tableName) {
-        dropTable(tableName, new DropTableOptions());
+        dropTable(tableName, null);
     }
 
     /**
-     * Delete a collection.
+     * Deletes a collection (table) from the database with specific options.
      *
      * @param tableName
-     *      table name
+     *        the name of the table to be deleted; must not be null or empty.
+     * @param dropTableOptions
+     *        the options to configure the table deletion operation; can be null.
+     * @throws IllegalArgumentException
+     *         if {@code tableName} is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DropTableOptions options = new DropTableOptions();
+     * database.dropTable("exampleTable", options);
+     * }
+     * </pre>
      */
     public void dropTable(String tableName, DropTableOptions dropTableOptions) {
         hasLength(tableName, "tableName");
@@ -610,39 +1324,10 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             dropTableCmd.withOptions(dropTableOptions);
         }
         runCommand(dropTableCmd, dropTableOptions);
-        log.info("Table  '" + green("{}") + "' has been deleted", tableName);
     }
-
     // ------------------------------------------
-    // ----     Indexes CRUD                  ---
+    // ----   Drop Indexes                    ---
     // ------------------------------------------
-
-    /**
-     * Gets the names of indices in the selected keyspace.
-     *
-     * @return
-     *      a stream containing all the names of all the collections in this database
-     */
-    public Stream<String> listIndexesNames() {
-        return runCommand(Command.create("listIndexes"))
-                .getStatusKeyAsList("indexes", String.class)
-                .stream();
-    }
-
-    /**
-     * Finds all the indices in the selected keyspace.
-     *
-     * @return
-     *      list of table definitions
-     */
-    public Stream<TableIndexDefinition> listIndexes() {
-        Command findTables = Command
-                .create("listIndexes")
-                .withOptions(new Document().append("explain", true));
-        return runCommand(findTables)
-                .getStatusKeyAsList("indexes", TableIndexDescriptor.class)
-                .stream().map(TableIndexDescriptor::getDefinition);
-    }
 
     /**
      * Delete an index by name.
@@ -663,12 +1348,13 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *      flag to drop index
      */
     public void dropTableIndex(String indexName, DropTableIndexOptions dropIndexOptions) {
-        Command dropIndexCommand = Command.create("dropIndex").append("name", indexName);
+        Command dropIndexCommand = Command
+                .create("dropIndex")
+                .append("name", indexName);
         if (dropIndexOptions != null) {
             dropIndexCommand.withOptions(dropIndexOptions);
         }
         runCommand(dropIndexCommand, dropIndexOptions);
-        log.info("Index  '" + green("{}") + "' has been dropped", indexName);
     }
 
     // ------------------------------------------
@@ -691,16 +1377,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public void registerListener(String logger, CommandObserver commandObserver) {
         this.options.registerObserver(logger, commandObserver);
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
-     *
-     * @param name
-     *      name for the observer
-     */
-    public void deleteListener(String name) {
-        this.options.unregisterObserver(name);
     }
 
 }

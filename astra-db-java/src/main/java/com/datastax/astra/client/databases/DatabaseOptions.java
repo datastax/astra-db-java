@@ -30,7 +30,37 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 /**
- * Options used to connect to a database. If not provided, the default options are used.
+ * Represents the configuration options required to connect to a database. This class encapsulates
+ * various settings, such as authentication details, API version, and keyspace configuration,
+ * enabling flexible and customized database connections.
+ *
+ * <p>If not explicitly provided, default options will be used. This ensures ease of use for
+ * developers while still allowing fine-grained control over the connection configuration when needed.</p>
+ *
+ * <p>This class is annotated with {@code @Setter} and {@code @Accessors(fluent = true, chain = true)},
+ * enabling a fluent, chainable API for setting properties.</p>
+ *
+ * <h2>Key Features:</h2>
+ * <ul>
+ *   <li>Fluent setters for convenient configuration of options.</li>
+ *   <li>Support for default configurations when options are not specified.</li>
+ *   <li>Encapsulation of essential parameters such as keyspace, API version, and authentication token.</li>
+ * </ul>
+ *
+ * <h2>Example usage:</h2>
+ * <pre>
+ * {@code
+ * // Create a DatabaseOptions object with custom settings
+ * DatabaseOptions options = new DatabaseOptions()
+ *         .keyspace("my_keyspace")
+ *         .authToken("my_auth_token")
+ *         .apiVersion("v2")
+ *         .logRequests(true);
+ *
+ * // Use the options when initializing a Database instance
+ * Database database = new Database("https://my-endpoint.com", options);
+ * }
+ * </pre>
  */
 @Setter
 @Accessors(fluent = true, chain = true)
@@ -45,17 +75,20 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
     String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
     /**
+     * Default constructor.
+     */
+    public DatabaseOptions() {
+        this(null, null);
+    }
+
+    /**
      * Constructor with options and not token override.
      *
      * @param options
      *      data API client options
      */
     public DatabaseOptions(String token, DataAPIClientOptions options) {
-        Assert.notNull(options, "options");
-        this.dataAPIClientOptions = options.clone();
-        this.commandType = CommandType.KEYSPACE_ADMIN;
-        this.token       = token;
-        this.serializer  = new DatabaseSerializer();
+        super(token, CommandType.KEYSPACE_ADMIN, DEFAULT_SERIALIZER, options);
     }
 
     /**

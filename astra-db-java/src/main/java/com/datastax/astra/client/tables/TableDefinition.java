@@ -59,6 +59,9 @@ public class TableDefinition {
     public TableDefinition addColumnInt(String name) {
         return addColumn(name, ColumnTypes.INT);
     }
+    public TableDefinition addColumnTimestamp(String name) {
+        return addColumn(name, ColumnTypes.TIMESTAMP);
+    }
 
     public TableDefinition addColumnBoolean(String name) {
         return addColumn(name, ColumnTypes.BOOLEAN);
@@ -84,7 +87,23 @@ public class TableDefinition {
         return this;
     }
 
-    public TableDefinition withPartitionKey(String... partitionKeys) {
+    public TableDefinition addPartitionBy(String partitionKey) {
+        primaryKey.getPartitionBy().add(partitionKey);
+        return this;
+    }
+
+    public TableDefinition addPartitionSort(Sort column) {
+        Assert.notNull(column, "Column");
+        Assert.notNull(column.getOrder(), "column order");
+        Assert.hasLength(column.getField(), "column name");
+        if (primaryKey.getPartitionSort() == null) {
+            primaryKey.setPartitionSort(new LinkedHashMap<>());
+        }
+        primaryKey.getPartitionSort().put(column.getField(), column.getOrder().getCode());
+        return this;
+    }
+
+    public TableDefinition partitionKey(String... partitionKeys) {
         if (partitionKeys != null) {
             primaryKey.getPartitionBy().clear();
             Arrays.asList(partitionKeys).forEach(pk -> {
@@ -97,7 +116,15 @@ public class TableDefinition {
         return this;
     }
 
-    public TableDefinition withClusteringColumns(Sort... clusteringColumns) {
+    public TableDefinition partitionSort(Sort... clusteringColumns) {
+        return clusteringColumns(clusteringColumns);
+    }
+
+    public TableDefinition addClusteringColumn(Sort clusteringColumn) {
+        return addPartitionSort(clusteringColumn);
+    }
+
+    public TableDefinition clusteringColumns(Sort... clusteringColumns) {
         if (clusteringColumns != null) {
             primaryKey.setPartitionSort(new LinkedHashMap<>());
             Arrays.asList(clusteringColumns).forEach(cc -> {

@@ -1,12 +1,12 @@
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.paging.FindIterable;
 
 import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
@@ -17,24 +17,22 @@ public class QuickStartTraining {
         String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
         String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
 
-        DataAPIClient client = new DataAPIClient(astraToken, DataAPIClientOptions.builder()
-                .withEmbeddingAPIKey("sfdsfdsfd")
-                .build());
+        DataAPIClient client = new DataAPIClient(astraToken, new DataAPIClientOptions()
+                .embeddingAPIKey("sfdsfdsfd"));
         System.out.println("Connected to AstraDB");
 
-        Database db = client.getDatabase(astraApiEndpoint, "default_keyspace");
+        Database db = client.getDatabase(astraApiEndpoint);
         System.out.println("Connected to Database.");
 
         // Create a collection. The default similarity metric is cosine.
-        Collection<Document> collection = db
-                .createCollection("vector2", 5, COSINE);
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
+                .vectorDimension(5)
+                .vectorSimilarity(COSINE);
+        Collection<Document> collection = db.createCollection("vector2", collectionDefinition);
 
-        db.createCollection("sdfdsf", CollectionDefinition.builder()
-                .vectorize("openai", "eeneee")
-                .build());
+        db.createCollection("sdfdsf", new CollectionDefinition()
+                .vectorize("openai", "eeneee"));
         System.out.println("Created a collection");
-
-        DataAPIClientOptions.builder().withEmbeddingAPIKey("EMBEDDING_API_KEY");
 
         collection.insertMany(
                 new Document("1")

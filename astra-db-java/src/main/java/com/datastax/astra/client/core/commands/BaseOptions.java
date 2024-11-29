@@ -26,9 +26,11 @@ import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -128,6 +130,19 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     public T timeout(long timeoutMillis) {
         return timeout(timeoutMillis, getCommandType());
+    }
+
+    /**
+     * Provide the command type. The nature of the command will determine the timeout.
+     *
+     * @param duration
+     *      timeout for the request
+     * @return
+     *      service key
+     */
+    public T timeout(Duration duration) {
+        Assert.notNull(duration, "duration");
+        return timeout(duration.toMillis(), getCommandType());
     }
 
     // --------------------------------------------

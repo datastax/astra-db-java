@@ -137,7 +137,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         this.options = options;
     }
 
-
     /** {@inheritDoc} */
     @Override
     public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {

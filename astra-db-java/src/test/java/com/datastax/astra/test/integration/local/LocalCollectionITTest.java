@@ -57,7 +57,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }

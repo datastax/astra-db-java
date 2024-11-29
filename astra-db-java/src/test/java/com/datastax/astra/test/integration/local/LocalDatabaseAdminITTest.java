@@ -30,7 +30,7 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }

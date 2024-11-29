@@ -31,7 +31,9 @@ import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.options.ListIndexesOptions;
 import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.tables.index.TableIndexDescriptor;
 import com.datastax.astra.client.tables.options.CountRowsOptions;
 import com.datastax.astra.client.tables.options.EstimatedCountRowsOptions;
 import com.datastax.astra.client.tables.options.TableDeleteManyOptions;
@@ -952,6 +954,71 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         }
     }
 
+    // ------------------------------------------
+    // ----   List Indexes                    ---
+    // ------------------------------------------
+
+    /**
+     * Retrieves the names of all indices in the keyspace with default options.
+     *
+     * @return A list of all indices names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<String> indicesNames = listIndexesNames();
+     * }
+     * </pre>
+     */
+    public List<String> listIndexesNames() {
+        return listIndexesNames(null);
+    }
+
+    /**
+     * Retrieves the names of all indices in the keyspace with default options.
+     *
+     * @param listIndexesOptions Options for filtering or configuring the indices listing operation.
+     * @return A list of all indices names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * ListIndexesOptions options = new ListIndexesOptions();
+     * List<String> indicesNames = listIndexesNames(options);
+     * }
+     * </pre>
+     */
+    public List<String> listIndexesNames(ListIndexesOptions listIndexesOptions) {
+        return runCommand(Command.create("listIndexes"), listIndexesOptions)
+                .getStatusKeyAsList("indexes", String.class);
+    }
+
+    /**
+     * Finds all the indices in the selected keyspace.
+     *
+     * @return
+     *      list of table definitions
+     */
+    public List<TableIndexDefinition> listIndexes() {
+        return listIndexes(null);
+    }
+
+    /**
+     * Finds all the indices in the selected keyspace.
+     *
+     * @return
+     *      list of table definitions
+     */
+    public List<TableIndexDefinition> listIndexes(ListIndexesOptions listIndexesOptions) {
+        Command findTables = Command
+                .create("listIndexes")
+                .withOptions(new Document().append("explain", true));
+        return runCommand(findTables, listIndexesOptions)
+                .getStatusKeyAsList("indexes", TableIndexDescriptor.class)
+                .stream().map(TableIndexDescriptor::getDefinition)
+                .toList();
+    }
+
     // --------------------------
     // ---   Listeners       ----
     // --------------------------
@@ -966,16 +1033,6 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      */
     public void registerListener(String logger, CommandObserver commandObserver) {
         this.options.registerObserver(logger, commandObserver);
-    }
-
-    /**
-     * Register a listener to execute commands on the table. Please now use {@link BaseOptions}.
-     *
-     * @param name
-     *      name for the observer
-     */
-    public void deleteListener(String name) {
-        this.options.unregisterObserver(name);
     }
 
 }

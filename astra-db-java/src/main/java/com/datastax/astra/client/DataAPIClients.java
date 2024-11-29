@@ -20,11 +20,9 @@ package com.datastax.astra.client;
  * #L%
  */
 
-import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 
@@ -42,10 +40,10 @@ import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAUL
  * <pre>
  * {@code
  * // Get you the client for a local deployment of Data API
- * DataAPIClient devClient = DataAPIClients.localClient();
+ * DataAPIClient devClient = DataAPIClients.local();
  *
  * // Get you the database for a local deployment of Data API
- * DataAPIClient devClient = DataAPIClients.localDatabase();
+ * DataAPIClient devClient = DataAPIClients.astraDev("token");
  *
  * // Default target environment Astra Production
  * DataAPIClient devClient = DataAPIClients.astra("token");
@@ -66,49 +64,92 @@ public class DataAPIClients {
     private DataAPIClients() {}
 
     /**
-     * Creates and configures a {@link DataAPIClient} for interaction with a local instance of Stargate, a
-     * data gateway for working with Apache Cassandra®. This method is specifically designed for scenarios
-     * where the application is intended to communicate with a Stargate instance running locally, facilitating
-     * development and testing workflows by providing easy access to local database resources.
+     * Creates and configures a {@link DataAPIClient} for interaction with a local instance of DataAPI,
+     * a data gateway that facilitates working with Apache Cassandra®. This method is tailored for
+     * development and testing workflows, enabling simplified and efficient access to local database
+     * resources without the need for extensive configuration.
      *
-     * @return A fully configured {@link DataAPIClient} ready for interacting with the local Stargate instance, equipped
-     *         with the necessary authentication token and targeting options for Cassandra. This client abstracts away
-     *         the complexities of direct database communication, providing a simplified interface for data operations.
-     */
-    public static DataAPIClient local() {
-        return new DataAPIClient(
-                new UsernamePasswordTokenProvider().getToken(),
-                new DataAPIClientOptions()
-                        .destination(DataAPIDestination.CASSANDRA)
-                        .enableFeatureFlagTables()
-                        .logRequests()
-                        .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
-    }
-
-    /**
-     * Creates a {@link DataAPIClient} configured for interacting with Astra in a development environment. This
-     * method simplifies the setup of a client specifically tailored for development purposes, where you might
-     * need different configurations or less stringent security measures compared to a production environment.
-     * The client is configured to target Astra's development environment, ensuring that operations do not
-     * affect production data.
+     * <p>The returned {@link DataAPIClient} is preconfigured with:
+     * <ul>
+     *   <li>An authentication token from {@link UsernamePasswordTokenProvider}.</li>
+     *   <li>A destination set to {@code DataAPIDestination.CASSANDRA}.</li>
+     *   <li>Feature flags for tables enabled.</li>
+     *   <li>Request logging enabled.</li>
+     * </ul>
      *
-     * @param token The authentication token required for accessing Astra's development environment. This token
-     *              should have the necessary permissions for development activities and be protected accordingly.
-     * @return A {@link DataAPIClient} instance ready for development activities with Astra, configured with the
-     *         provided authentication token and targeting Astra's development environment.
+     * @return A fully configured {@link DataAPIClient} ready for interacting with the local DataAPI instance.
+     *         This client provides a streamlined interface for executing data operations, abstracting away
+     *         the complexity of direct database interactions.
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * DataAPIClient devClient = DataAPIClients.astraDev("your_astra_dev_token");
-     * // Utilize devClient for development database operations
+     * DataAPIClient client = DataAPIClients.local();
      * }
      * </pre>
      */
-    public static DataAPIClient astra(String token) {
-        return new DataAPIClient(token, new DataAPIClientOptions()
-                .destination(DataAPIDestination.ASTRA)
-                .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
+    public static DataAPIClient clientCassandra() {
+        return clientCassandra(
+                UsernamePasswordTokenProvider.DEFAULT_USERNAME,
+                UsernamePasswordTokenProvider.DEFAULT_CREDENTIALS);
+    }
+
+    public static DataAPIClient clientCassandra(String username, String password) {
+        return new DataAPIClient(
+                new UsernamePasswordTokenProvider(username, password).getToken(),
+                new DataAPIClientOptions()
+                        .destination(DataAPIDestination.CASSANDRA)
+                        .enableFeatureFlagTables()
+                        .logRequests());
+    }
+
+    public static DataAPIClient clientHCD() {
+        return clientHCD(
+                UsernamePasswordTokenProvider.DEFAULT_USERNAME,
+                UsernamePasswordTokenProvider.DEFAULT_CREDENTIALS);
+    }
+
+    public static DataAPIClient clientHCD(String username, String password) {
+        return new DataAPIClient(
+                new UsernamePasswordTokenProvider(username, password).getToken(),
+                new DataAPIClientOptions()
+                        .destination(DataAPIDestination.HCD)
+                        .enableFeatureFlagTables()
+                        .logRequests());
+    }
+
+    /**
+     * Creates and configures a {@link Database} client specifically designed for interaction with a local instance
+     * of the Data API and Cassandra. This method simplifies the setup process by combining the creation of a {@link DataAPIClient}
+     * with the integration of a {@link Database} abstraction. It is tailored for local development and testing,
+     * enabling seamless interaction with Apache Cassandra® through Stargate with minimal configuration.
+     *
+     * <p>Upon creation, this method ensures that a default keyspace is available in the local Stargate instance
+     * by automatically invoking {@link com.datastax.astra.client.admin.DatabaseAdmin#createKeyspace(String)}. This guarantees that developers
+     * have a ready-to-use environment for executing database operations during their development or testing workflows.
+     *
+     * <p>The returned {@link Database} client is preconfigured with:
+     * <ul>
+     *   <li>A connection to the default local Stargate endpoint.</li>
+     *   <li>An automatically created keyspace, identified by {@code DEFAULT_KEYSPACE}.</li>
+     * </ul>
+     * This setup allows developers to focus on application logic rather than database configuration or connectivity.
+     *
+     * @return A {@link Database} client configured for use with a local Stargate instance, including a default
+     *         keyspace for immediate interaction. This client abstracts database connectivity and administrative tasks,
+     *         streamlining development workflows.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Database db = localDbWithDefaultKeyspace();
+     * }
+     * </pre>
+     */
+    public static Database localDbWithDefaultKeyspace() {
+        Database db = clientCassandra().getDatabase(DEFAULT_ENDPOINT_LOCAL);
+        db.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
+        return db;
     }
 
     /**
@@ -134,51 +175,70 @@ public class DataAPIClients {
     public static DataAPIClient astraDev(String token) {
         return new DataAPIClient(token, new DataAPIClientOptions()
                 .destination(DataAPIDestination.ASTRA_DEV)
-                .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
+                .logRequests());
     }
 
     /**
-     * Creates a {@link DataAPIClient} specifically configured for interacting with Astra in a test environment.
-     * This setup is ideal for testing scenarios, where isolation from development and production environments
-     * is critical to ensure the integrity and stability of test results. By directing the client to Astra's
-     * test environment, it facilitates safe, isolated testing of database interactions without risking the
-     * alteration of development or production data.
+     * Creates a {@link DataAPIClient} configured for interacting with Astra in a production environment. This
+     * method simplifies the setup of a client specifically tailored for development purposes, where you might
+     * need different configurations or less stringent security measures compared to a production environment.
+     * The client is configured to target Astra's development environment, ensuring that operations do not
+     * affect production data.
      *
-     * @param token The authentication token required for accessing Astra's test environment. Ensure that this
-     *              token is designated for testing purposes to prevent unintended access to or effects on
-     *              non-test data and resources.
-     * @return A {@link DataAPIClient} instance specifically for use in testing scenarios with Astra, equipped
-     *         with the necessary authentication token and configured to target the test environment.
+     * @param token The authentication token required for accessing Astra's development environment. This token
+     *              should have the necessary permissions for development activities and be protected accordingly.
+     * @return A {@link DataAPIClient} instance ready for development activities with Astra, configured with the
+     *         provided authentication token and targeting Astra's development environment.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DataAPIClient devClient = DataAPIClients.astra("your_astra_dev_token");
+     * // Utilize devClient for development database operations
+     * }
+     * </pre>
+     */
+    public static DataAPIClient astra(String token) {
+        return new DataAPIClient(token, new DataAPIClientOptions()
+                .destination(DataAPIDestination.ASTRA)
+                .logRequests());
+    }
+
+
+
+    /**
+     * Creates a {@link DataAPIClient} specifically configured for interacting with Astra in a test environment.
+     * This method is designed for testing scenarios, providing an isolated environment to safely execute
+     * database operations without impacting development or production data.
+     *
+     * <p>The returned {@link DataAPIClient} is preconfigured to:
+     * <ul>
+     *   <li>Authenticate using the provided test-specific token.</li>
+     *   <li>Target the {@code DataAPIDestination.ASTRA_TEST} environment.</li>
+     *   <li>Enable request logging for better visibility during test operations.</li>
+     * </ul>
+     *
+     * This setup ensures that all database interactions are restricted to Astra's test environment,
+     * preserving the integrity of other environments while facilitating thorough testing.
+     *
+     * @param token The authentication token required for accessing Astra's test environment. It is important
+     *              to use a token that is explicitly designated for testing purposes to avoid unintended
+     *              access to production or development resources.
+     * @return A {@link DataAPIClient} instance configured for testing with Astra, equipped with the provided
+     *         authentication token and targeting the test environment.
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
      * DataAPIClient testClient = DataAPIClients.astraTest("your_astra_test_token");
-     * // Execute test database operations with testClient
+     * testClient.execute(query -> query.cql("SELECT * FROM test_table").execute());
      * }
      * </pre>
      */
     public static DataAPIClient astraTest(String token) {
         return new DataAPIClient(token, new DataAPIClientOptions()
                 .destination(DataAPIDestination.ASTRA_TEST)
-                .addObserver(new LoggingCommandObserver(DataAPIClient.class)));
-    }
-
-    /**
-     * Creates and configures a {@link Database} client specifically designed for interaction with a local instance
-     * of Stargate. This method streamlines the process of setting up a client for local database interactions,
-     * encapsulating both the creation of a {@link DataAPIClient} and its integration within a {@link Database}
-     * abstraction. This setup is ideal for local development and testing, providing a straightforward path to
-     * interact with Cassandra through Stargate with minimal setup.
-     *
-     * @return A {@link Database} client ready for use with a local Stargate instance, fully configured for immediate
-     *         interaction with the database. This client enables developers to focus on their application logic rather
-     *         than the intricacies of database connectivity and command execution.
-     */
-    public static Database defaultLocalDatabase() {
-        Database db = local().getDatabase(DEFAULT_ENDPOINT_LOCAL);
-        db.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
-        return db;
+                .logRequests());
     }
 
 }

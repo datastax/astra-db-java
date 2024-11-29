@@ -1,5 +1,6 @@
 package com.datastax.astra.test.unit;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.collections.documents.ReturnDocument;
 import com.datastax.astra.client.core.http.HttpClientOptions;
@@ -28,6 +29,7 @@ import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.FilterOperator;
 import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
@@ -47,15 +49,30 @@ class DataApiOptionsTest {
     @Test
     void shouldPopulateOptions() {
         DataAPIClientOptions options = new DataAPIClientOptions()
+                // Setup defaults based on destinations
+                .destination(DataAPIDestination.DSE)
+                // Overriding HTTP
                 .httpClientOptions(new HttpClientOptions()
                         .httpRedirect(HttpClient.Redirect.NORMAL)
                         .httpProxy(new HttpProxy("localhost", 8080))
                         .httpRetries(1, Duration.ofSeconds(10)))
-                .destination(DataAPIDestination.DSE)
+                // Overriding Timeouts
+                .timeoutOptions(new TimeoutOptions()
+                        .requestTimeoutMillis(1000))
+                // Headers
                 .enableFeatureFlagTables()
-                // Header
                 .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
+        DataAPIClient client = new DataAPIClient("token", options);
+        client.getDatabase("https://<id>-<region>.apps.astra.datastax.com");
         assertThat(options.getHttpClientOptions().getHttpProxy().getHostname()).isEqualTo("localhost");
+
+        DatabaseOptions optionss = new DatabaseOptions()
+                .keyspace("sample")
+                .token("another")
+                .timeout(Duration.ofSeconds(10));
+
+
+
     }
 
     @Test

@@ -23,23 +23,24 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
-import com.datastax.astra.internal.utils.Assert;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import static com.datastax.astra.client.databases.Database.DEFAULT_DATABASE_SERIALIZER;
 
 @Setter
 @Accessors(fluent = true, chain = true)
 public class AdminOptions extends BaseOptions<AdminOptions> {
+
+    /** Serializer for the Collections. */
+    private static final DataAPISerializer DEFAULT_SERIALIZER = new DatabaseSerializer();
 
     public AdminOptions() {
         this(null, null);
     }
 
     public AdminOptions(String token, DataAPIClientOptions options) {
-        super(token, CommandType.DATABASE_ADMIN, DEFAULT_DATABASE_SERIALIZER, options);
+        super(token, CommandType.DATABASE_ADMIN, DEFAULT_SERIALIZER, options);
     }
 
 }

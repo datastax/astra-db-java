@@ -5,7 +5,6 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
@@ -29,7 +28,7 @@ public class QuickStartTablesLocal {
     @Test
     public void should_quickstart_tables_default() {
         // Connect to local and create default_keyspace
-        Database localDb = DataAPIClients.defaultLocalDatabase();
+        Database localDb = DataAPIClients.localDbWithDefaultKeyspace();
         assertThat(localDb.getKeyspace()).isEqualTo(DEFAULT_KEYSPACE);
 
         // Create table (explicit definition)
@@ -37,7 +36,7 @@ public class QuickStartTablesLocal {
                 .addColumnText("id")
                 .addColumnInt("age")
                 .addColumnText("name")
-                .withPartitionKey("id");
+                .partitionKey("id");
         Table<Row> tablePersonDefault = localDb.createTable("person_default", tableDefinition, IF_NOT_EXISTS);
         assertThat(localDb.tableExists("person_default")).isTrue();
 
@@ -78,7 +77,7 @@ public class QuickStartTablesLocal {
     @Test
     public void should_quickstart_tables_om() {
         // Connect to local and create default_keyspace
-        Database localDb = DataAPIClients.defaultLocalDatabase();
+        Database localDb = DataAPIClients.localDbWithDefaultKeyspace();
         assertThat(localDb.getKeyspace()).isEqualTo(DEFAULT_KEYSPACE);
 
         // Create table (introspecting bean)

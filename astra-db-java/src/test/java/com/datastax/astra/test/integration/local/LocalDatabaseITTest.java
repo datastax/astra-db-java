@@ -7,7 +7,6 @@ import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.client.exception.DataAPIHttpException;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
@@ -18,7 +17,6 @@ import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.IOException;
 import java.util.Set;
@@ -42,7 +40,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }
