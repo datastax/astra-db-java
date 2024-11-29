@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class WorkWithOptions {
 
@@ -67,10 +66,6 @@ public class WorkWithOptions {
 
         Table<Row> tableSimple  = db.createTable("TABLE_SIMPLE", tableDefinition);
 
-        Table<Row> tableSimple2 = db.createTable("TABLE_SIMPLE", tableDefinition,
-                createTableOptions,
-                Row.class,
-                tableOptions);
     }
 
 }

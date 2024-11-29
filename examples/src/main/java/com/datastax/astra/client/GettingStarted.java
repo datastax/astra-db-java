@@ -1,6 +1,7 @@
 package com.datastax.astra.client;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
@@ -21,7 +22,8 @@ public class GettingStarted {
   Database db = client.getDatabase("http://db-region.apps.astra.datastax.com");
 
   // Create collection with vector support
-  Collection<Document> col = db.createCollection("demo", 2, EUCLIDEAN);
+  CollectionDefinition def = new CollectionDefinition().vector(2, EUCLIDEAN);
+  Collection<Document> col = db.createCollection("demo", def);
 
   // Insert records
   col.insertMany(List.of(

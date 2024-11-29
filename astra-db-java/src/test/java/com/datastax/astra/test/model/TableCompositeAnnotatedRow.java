@@ -17,14 +17,14 @@ import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
 public class TableCompositeAnnotatedRow {
 
     @PartitionBy(0)
-    @Column(value="id", type=TEXT)
+    @Column(name ="id", type=TEXT)
     private String idx;
 
     @PartitionBy(1)
-    @Column(value="name", type=TEXT)
+    @Column(name ="name", type=TEXT)
     private String namex;
 
-    @Column(value="age", type=INT)
+    @Column(name ="age", type=INT)
     private int agex;
 
 }

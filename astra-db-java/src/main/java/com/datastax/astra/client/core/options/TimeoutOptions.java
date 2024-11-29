@@ -20,9 +20,12 @@ package com.datastax.astra.client.core.options;
  * #L%
  */
 
+import com.datastax.astra.internal.utils.Assert;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import java.time.Duration;
 
 /**
  * This class is used to define the timeout options for the client.
@@ -82,6 +85,48 @@ public class TimeoutOptions implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new AssertionError("Cloning not supported", e);
         }
+    }
+
+    public TimeoutOptions connectTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.connectTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions requestTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.requestTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions generalMethodTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.generalMethodTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions databaseAdminTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.databaseAdminTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions keyspaceAdminTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.keyspaceAdminTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions collectionAdminTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.collectionAdminTimeoutMillis = timeout.toMillis();
+        return this;
+    }
+
+    public TimeoutOptions tableAdminTimeout(Duration timeout) {
+        Assert.notNull(timeout, "Timeout");
+        this.tableAdminTimeoutMillis = timeout.toMillis();
+        return this;
     }
 
     /**

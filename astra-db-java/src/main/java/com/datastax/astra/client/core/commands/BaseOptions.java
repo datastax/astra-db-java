@@ -159,6 +159,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
+        Assert.notNull(embeddingAuthProvider, "embeddingAuthProvider");
         getDataAPIClientOptions().embeddingAuthProvider(embeddingAuthProvider);
         return (T) this;
     }
@@ -173,7 +174,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T databaseAdditionalHeaders(Map<String, String> params) {
-        getDataAPIClientOptions().databaseAdditionalHeaders(params);
+        if (params!=null && !params.isEmpty()) {
+            getDataAPIClientOptions().databaseAdditionalHeaders(params);
+        }
         return (T) this;
     }
 
@@ -187,7 +190,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T adminAdditionalHeaders(Map<String, String> params) {
-        getDataAPIClientOptions().adminAdditionalHeaders(params);
+        if (params!=null && !params.isEmpty()) {
+            getDataAPIClientOptions().adminAdditionalHeaders(params);
+        }
         return (T) this;
     }
 
@@ -215,9 +220,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T timeoutOptions(TimeoutOptions timeoutOptions) {
-        if (getDataAPIClientOptions() == null) {
-            this.dataAPIClientOptions = new DataAPIClientOptions();
-        }
+        Assert.notNull(timeoutOptions, "timeoutOptions");
         getDataAPIClientOptions().timeoutOptions(timeoutOptions);
         return (T) this;
     }
@@ -233,9 +236,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @SuppressWarnings("unchecked")
     public T registerObserver(String name, CommandObserver observer) {
-        if (observer != null) {
-            getDataAPIClientOptions().addObserver(name, observer);
-        }
+        Assert.hasLength(name, "name");
+        Assert.notNull(observer, "observer");
+        getDataAPIClientOptions().addObserver(name, observer);
         return (T) this;
     }
 
@@ -251,24 +254,6 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
     public T unregisterObserver(String name) {
         getDataAPIClientOptions().getObservers().remove(name);
         return (T) this;
-    }
-
-    /**
-     * Return the HTTP Request Timeout based on the command type
-     *
-     * @return value of token
-     */
-    public long getTimeout(CommandType commandType) {
-        return getTimeout(getDataAPIClientOptions().getTimeoutOptions(), commandType);
-    }
-
-    /**
-     * Return the HTTP Request Timeout based on the command type
-     *
-     * @return value of token
-     */
-    public long getRequestTimeout(CommandType commandType) {
-        return getRequestTimeout(getDataAPIClientOptions().getTimeoutOptions(), commandType);
     }
 
     /**
@@ -320,9 +305,6 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *      service key
      */
     public T timeout(long timeoutMillis, CommandType commandType) {
-        if (getDataAPIClientOptions() == null) {
-            dataAPIClientOptions = new DataAPIClientOptions();
-        }
         if (getDataAPIClientOptions().getTimeoutOptions() == null) {
             getDataAPIClientOptions().timeoutOptions(new TimeoutOptions());
         }
@@ -348,6 +330,9 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     @JsonIgnore
     public DataAPIClientOptions getDataAPIClientOptions() {
+        if (this.dataAPIClientOptions == null) {
+            this.dataAPIClientOptions = new DataAPIClientOptions();
+        }
         return dataAPIClientOptions;
     }
 

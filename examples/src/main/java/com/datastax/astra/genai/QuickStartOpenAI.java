@@ -4,10 +4,10 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.FindIterable;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
@@ -46,13 +46,11 @@ public class QuickStartOpenAI {
         Map<String, Object > params = new HashMap<>();
         params.put("organizationId", ORGANIZATION_ID);
         params.put("projectId", PROJECT_ID);
-        CollectionDefinition.CollectionOptionsBuilder builder = CollectionDefinition
-                .builder()
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
                 .vectorSimilarity(SimilarityMetric.COSINE)
-                .defaultIdType(CollectionDefaultIdTypes.UUID)
+                .defaultId(CollectionDefaultIdTypes.UUID)
                 .vectorize("openai","text-embedding-ada-002", API_KEY_NAME,params);
-        Collection<Document> collection = db
-                .createCollection("vectorize_test", builder.build());
+        Collection<Document> collection = db.createCollection("vectorize_test", collectionDefinition);
 
         collection.deleteAll();
         CollectionInsertManyResult insertResult = collection.insertMany(

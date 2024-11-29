@@ -47,9 +47,8 @@ import static com.datastax.astra.client.DataAPIDestination.ASTRA_TEST;
 /**
  * Options to set up the client for DataApiClient.
  */
-@Setter
 @Slf4j
-@NoArgsConstructor
+@Setter
 @Accessors(fluent = true, chain = true)
 public class DataAPIClientOptions implements Cloneable {
 
@@ -372,6 +371,13 @@ public class DataAPIClientOptions implements Cloneable {
     @Override
     public String toString() {
         return new DatabaseSerializer().marshall(this);
+    }
+
+    /**
+     * A default Client Options
+     */
+    public DataAPIClientOptions() {
+        // defaulting values
     }
 
     public DataAPIClientOptions(DataAPIClientOptions options) {

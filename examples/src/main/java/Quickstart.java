@@ -1,5 +1,6 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Filter;
@@ -17,25 +18,27 @@ public class Quickstart {
     String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
     String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
 
-    // Initialize the client. The keyspace parameter is optional if you use
-    // "default_keyspace".
-    DataAPIClient client = new DataAPIClient(astraToken, DataAPIClientOptions.builder().build());
+    // Initialize the client.
+    DataAPIClient client = new DataAPIClient(astraToken);
     System.out.println("Connected to AstraDB");
 
-    Database db = client.getDatabase(astraApiEndpoint, "default_keyspace");
+    // Initialize the database.
+    Database db = client.getDatabase(astraApiEndpoint);
     System.out.println("Connected to Database.");
 // end::init[]
 
 // tag::collection[]
     // Create a collection. The default similarity metric is cosine.
-    Collection<Document> collection = db
-            .createCollection("vector_test", 5, COSINE);
+    CollectionDefinition cd = new CollectionDefinition()
+            .vectorDimension(5)
+            .vectorSimilarity(COSINE);
+    Collection<Document> col = db.createCollection("vector_test", cd);
     System.out.println("Created a collection");
 // end::collection[]
 
 // tag::data[]
     // Insert documents into the collection
-    collection.insertMany(
+    col.insertMany(
             new Document("1")
                     .append("text", "ChatGPT integrated sneakers that talk to you")
                     .vector(new float[]{0.1f, 0.15f, 0.3f, 0.12f, 0.05f}),
@@ -54,13 +57,13 @@ public class Quickstart {
     CollectionFindOptions options = new CollectionFindOptions()
             .sort(vector(new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
             .limit(10);
-    FindIterable<Document> resultsSet = collection.find(filter,options);
+    FindIterable<Document> resultsSet = col.find(filter,options);
     resultsSet.forEach(System.out::println);
 // end::search[]
 
 // tag::cleanup[]
     // Delete the collection
-    collection.drop();
+    col.drop();
     System.out.println("Deleted the collection");
 // end::cleanup[]
 

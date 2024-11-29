@@ -196,7 +196,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         CollectionOptions colOptions = new CollectionOptions();
         colOptions.embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(apiKey));
 
-        return getDatabase().createCollection(collectionName, colDef, null, ccOptions);
+        return getDatabase().createCollection(collectionName, colDef, ccOptions, colOptions);
     }
 
     private String getCollectionNameFromModel(String modelName) {

@@ -4,10 +4,10 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.FindIterable;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
@@ -36,13 +36,12 @@ public class QuickStartNvidia {
         Database db = new DataAPIClient(ASTRA_DB_TOKEN).getDatabase(ASTRA_DB_URL);
 
         // 1/ Create a collection programmatically (if needed)
-        CollectionDefinition.CollectionOptionsBuilder builder = CollectionDefinition
-         .builder()
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
          .vectorSimilarity(SimilarityMetric.COSINE)
-         .defaultIdType(CollectionDefaultIdTypes.UUID)
+         .defaultId(CollectionDefaultIdTypes.UUID)
          .vectorize("nvidia","NV-Embed-QA");
         Collection<Document> collection = db
-          .createCollection("vectorize_test", builder.build());
+          .createCollection("vectorize_test", collectionDefinition);
 
         collection.deleteAll();
         CollectionInsertManyResult insertResult = collection.insertMany(

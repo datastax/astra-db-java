@@ -1260,7 +1260,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param rowClass  the class representing the row type; must not be null
      * @return the created table object
      */
-    private <T> String getTableName(Class<T> rowClass) {
+    public <T> String getTableName(Class<T> rowClass) {
         notNull(rowClass, "rowClass");
         EntityTable ann = rowClass.getAnnotation(EntityTable.class);
         if (ann == null) {

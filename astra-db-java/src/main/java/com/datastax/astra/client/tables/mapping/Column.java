@@ -35,7 +35,7 @@ public @interface Column {
     /**
      * Column Name, if not provided the field name will be used
      */
-    String value();
+    String name();
 
     /**
      * Column Type, if not provided the field type will be used

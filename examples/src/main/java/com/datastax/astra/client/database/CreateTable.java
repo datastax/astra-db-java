@@ -19,6 +19,7 @@ import static java.time.Duration.ofSeconds;
 public class CreateTable {
 
     public static void main(String[] args) {
+
         // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
         Database db = DataAPIClients.localDbWithDefaultKeyspace();
 
@@ -37,13 +38,16 @@ public class CreateTable {
         // Minimal creation
         Table<Row> table1 = db.createTable("game1", tableDefinition);
 
+        // Minimal Creation with a Bean
+        Table<Game> table2 = db.createTable("game2", tableDefinition, Game.class);
+
         // -- options --
 
         // One can add options to setup the creation with finer grained:
         CreateTableOptions createTableOptions = new CreateTableOptions()
                 .ifNotExists(true)
                 .timeout(ofSeconds(5));
-        Table<Row> table2 = db.createTable("game1", tableDefinition, createTableOptions);
+        Table<Row> table3 = db.createTable("game3", tableDefinition, createTableOptions);
 
         // One can can tuned the table object returned by the function
         TableOptions tableOptions = new TableOptions()
@@ -51,16 +55,7 @@ public class CreateTable {
                 .timeout(ofSeconds(5));
 
         // Change the Type of objects in use instead of default Row
-        Table<Row> table2 = db.createTable("game2", tableDefinition,
-                createTableOptions, Row.class, tableOptions);
-
-        // -- object Mapping --
-
-        // Assuming you created a class with proper fields
-        Table<Game> tableGame = db.createTable("game3", tableDefinition,
-                createTableOptions, Game.class, tableOptions);
-
-
-
+        Table<Row> table4 = db.createTable("game4", tableDefinition,Row.class,
+                createTableOptions, tableOptions);
     }
 }

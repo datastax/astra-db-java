@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.SET;
@@ -23,27 +22,32 @@ import static com.datastax.astra.client.tables.columns.ColumnTypes.UUID;
 import static com.datastax.astra.client.tables.columns.ColumnTypes.VECTOR;
 
 @Data
-@EntityTable("game_ann2")
+@EntityTable("game_ann1")
 @NoArgsConstructor
 @AllArgsConstructor
-public class GameWithAnnotation {
+public class GameWithAnnotationAllHints {
 
     @PartitionBy(0)
-    @Column(name ="match_id")
+    @Column(name ="match_id", type=TEXT )
     private String matchId;
 
-    @PartitionSort(position = 0, order = SortOrder.ASCENDING)
+    @PartitionSort(position = 0, order= SortOrder.ASCENDING)
+    @Column(name ="round", type=INT)
     private Integer round;
 
+    @Column(name ="score", type=INT)
     private Integer score;
 
+    @Column(name ="when", type=TIMESTAMP)
     private Instant when;
 
+    @Column(name ="winner", type=TEXT)
     private String winner;
 
-    private Set<UUID> fighters;
+    @Column(name ="fighters", type=SET, valueType = UUID)
+    private Set<java.util.UUID> fighters;
 
-    @Column(name ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
+    @Column(name ="m_vector", type=VECTOR, dimension = 3, metric = SimilarityMetric.COSINE)
     private DataAPIVector vector;
     
 }

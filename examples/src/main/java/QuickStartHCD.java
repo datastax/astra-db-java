@@ -62,10 +62,10 @@ public class QuickStartHCD {
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(openAiEmbeddingDimension)
                 .vectorize(openAiProvider, openAiModel);
-        Collection<Document> collectionLyrics = db.createCollection(collectionName, cd,
-                new CreateCollectionOptions().embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(openAiKey)),
-                Document.class,
-                new CollectionOptions());
+        CreateCollectionOptions createCollectionOptions = new CreateCollectionOptions()
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(openAiKey));
+        Collection<Document> collectionLyrics = db.createCollection(collectionName, cd, Document.class,
+                createCollectionOptions, new CollectionOptions());
         System.out.println("5/7 - Collection created with OpenAI embeddings");
 
         // Insert some documents

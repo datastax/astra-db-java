@@ -48,14 +48,13 @@ public class QuickStartAzureOpenAI {
         Map<String, Object > params = new HashMap<>();
         params.put("resourceName", RESOURCE_NAME);
         params.put("deploymentId", DEPLOYMENT_ID);
-        CollectionDefinition.CollectionOptionsBuilder builder = CollectionDefinition
-                .builder()
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(1536)
-                .defaultIdType(CollectionDefaultIdTypes.UUID)
+                .defaultId(CollectionDefaultIdTypes.UUID)
                 .vectorize("azureOpenAI","text-embedding-ada-002", API_KEY_NAME,params);
         Collection<Document> collection = db
-                .createCollection("vectorize_test", builder.build());
+                .createCollection("vectorize_test", collectionDefinition);
 
         collection.deleteAll();
         CollectionInsertManyResult insertResult = collection.insertMany(
