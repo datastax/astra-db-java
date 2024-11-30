@@ -554,52 +554,104 @@ public class Document implements Serializable {
         return toString();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Evaluation if a key is present in the document
+     * @param key
+     *     key to evaluate
+     * @return
+     *      true if the key is present
+     */
     public boolean containsKey(final Object key) {
         return documentMap.containsKey(key);
     }
 
-    /** {@inheritDoc} */
+
+    /**
+     * Retrieves the value associated with the specified key from the document.
+     *
+     * @param key the key whose associated value is to be returned
+     * @return the value associated with the specified key, or {@code null} if the key is not found
+     */
     public Object get(final Object key) {
         return documentMap.get(key);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Associates the specified value with the specified key in the document.
+     * If the key already has a value, the old value is replaced.
+     *
+     * @param key   the key with which the specified value is to be associated
+     * @param value the value to be associated with the specified key
+     * @return the previous value associated with the key, or {@code null} if there was no mapping for the key
+     */
     public Object put(final String key, final Object value) {
         return documentMap.put(key, value);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Removes the mapping for a key from the document if it is present.
+     *
+     * @param key the key whose mapping is to be removed
+     * @return the value that was associated with the key, or {@code null} if the key was not mapped
+     */
     public Object remove(final Object key) {
         return documentMap.remove(key);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Copies all mappings from the specified map to this document.
+     * Existing mappings will be replaced with mappings from the provided map.
+     *
+     * @param map the map containing mappings to be copied to this document
+     */
     public void putAll(final Map<? extends String, ?> map) {
         documentMap.putAll(map);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Copies all mappings from the specified {@code Document} to this document.
+     * Existing mappings will be replaced with mappings from the provided document.
+     *
+     * @param doc the document whose mappings are to be copied to this document
+     */
     public void putAll(Document doc) {
         documentMap.putAll(doc.getDocumentMap());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Removes all mappings from this document.
+     * The document will be empty after this operation.
+     */
     public void clear() {
         documentMap.clear();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Returns a collection view of the values contained in this document.
+     *
+     * @return a collection view of the values contained in this document
+     */
     public Collection<Object> values() {
         return documentMap.values();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Returns a set view of the mappings contained in this document.
+     * Each entry in the set is a key-value pair.
+     *
+     * @return a set view of the mappings contained in this document
+     */
     public Set<Map.Entry<String, Object>> entrySet() {
         return documentMap.entrySet();
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Compares this document to another object for equality.
+     * Two documents are considered equal if their underlying maps are equal.
+     *
+     * @param o the object to compare with this document
+     * @return {@code true} if the specified object is equal to this document, {@code false} otherwise
+     */
     @Override
     public boolean equals(final Object o) {
         if (this == o) {
@@ -612,12 +664,16 @@ public class Document implements Serializable {
         return documentMap.equals(document.documentMap);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Returns the hash code value for this document.
+     * The hash code is computed based on the underlying map.
+     *
+     * @return the hash code value for this document
+     */
     @Override
     public int hashCode() {
         return documentMap.hashCode();
     }
-
 
 
 

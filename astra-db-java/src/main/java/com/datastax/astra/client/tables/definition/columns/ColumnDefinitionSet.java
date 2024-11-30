@@ -23,15 +23,42 @@ package com.datastax.astra.client.tables.definition.columns;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents a column definition for a set type in a database schema.
+ * Extends {@link ColumnDefinition} to include details about the type of elements stored in the set.
+ * <p>
+ * This class is used to configure columns of type {@link ColumnTypes#SET}, allowing the specification
+ * of the data type for the values stored in the set.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * ColumnDefinitionSet setColumn = new ColumnDefinitionSet(ColumnTypes.TEXT);
+ * ColumnTypes valueType = setColumn.getValueType();
+ * }
+ * </pre>
+ */
 @Getter @Setter
 public class ColumnDefinitionSet extends ColumnDefinition {
 
+    /**
+     * The data type of the values stored in the set.
+     */
     private ColumnTypes valueType;
 
+    /**
+     * Constructs a new {@code ColumnDefinitionSet} instance with the column type set to {@link ColumnTypes#SET}.
+     */
     public ColumnDefinitionSet() {
         super(ColumnTypes.SET);
     }
 
+    /**
+     * Constructs a new {@code ColumnDefinitionSet} instance with the specified value type.
+     *
+     * @param valueType the data type of the values in the set
+     */
     public ColumnDefinitionSet(ColumnTypes valueType) {
         this();
         this.valueType = valueType;

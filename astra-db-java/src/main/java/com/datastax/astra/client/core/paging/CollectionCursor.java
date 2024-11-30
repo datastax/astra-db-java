@@ -127,6 +127,7 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
      *
      * @param newFilter
      *      a new filter
+     * @return a new {@code CollectionCursor} instance with the filter applied
      */
     public CollectionCursor<T> filter(Filter newFilter) {
         checkIdleState();
@@ -140,6 +141,7 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
      *
      * @param newProjection
      *      a new projection
+     * @return a new {@code CollectionCursor} instance with the projection applied
      */
     public CollectionCursor<T> project(Projection... newProjection) {
         checkIdleState();
@@ -236,7 +238,12 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         this.consumedCount = 0;
     }
 
-    // Buffer consumption
+    /**
+     * Consume the buffer and return the results.
+     *
+     * @return
+     *      list of results
+     */
     public List<T> consumeBuffer(int n) {
         if (state == CursorState.CLOSED || state == CursorState.IDLE) {
             return Collections.emptyList();
@@ -297,7 +304,9 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         }
     }
 
-    // Fetch next batch of documents
+    /**
+     * Fetch the next batch of documents into the buffer.
+     */
     private void fetchNextBatch() {
         if (currentPage == null) {
             currentPage = myCollection.findPage(filter, findOptions);
@@ -311,15 +320,32 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         }
     }
 
-    // Additional methods
+    /**
+     * Check if there is a next element.
+     *
+     * @return
+     *      true if there is a next element
+     */
     public boolean hasNext() {
         return iterator().hasNext();
     }
 
+    /**
+     * Retrieve the next element.
+     *
+     * @return
+     *      next element
+     */
     public T next() {
         return iterator().next();
     }
 
+    /**
+     * Retrieve all the elements in a list.
+     *
+     * @return
+     *      list of elements
+     */
     public List<T> toList() {
         List<T> result = new ArrayList<>();
         try {

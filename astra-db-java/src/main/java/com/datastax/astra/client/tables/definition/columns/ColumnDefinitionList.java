@@ -23,15 +23,43 @@ package com.datastax.astra.client.tables.definition.columns;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter @Setter
+/**
+ * Represents a column definition for a list type in a database schema.
+ * Extends {@link ColumnDefinition} to include details about the type of elements stored in the list.
+ * <p>
+ * This class is used to configure columns of type {@link ColumnTypes#LIST}, allowing the specification
+ * of the data type for the values stored in the list.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * ColumnDefinitionList listColumn = new ColumnDefinitionList(ColumnTypes.TEXT);
+ * ColumnTypes valueType = listColumn.getValueType();
+ * }
+ * </pre>
+ */
+@Getter
+@Setter
 public class ColumnDefinitionList extends ColumnDefinition {
 
+    /**
+     * The data type of the values stored in the list.
+     */
     private ColumnTypes valueType;
 
+    /**
+     * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link ColumnTypes#LIST}.
+     */
     public ColumnDefinitionList() {
         super(ColumnTypes.LIST);
     }
 
+    /**
+     * Constructs a new {@code ColumnDefinitionList} instance with the specified value type.
+     *
+     * @param valueType the data type of the values in the list
+     */
     public ColumnDefinitionList(ColumnTypes valueType) {
         this();
         this.valueType = valueType;

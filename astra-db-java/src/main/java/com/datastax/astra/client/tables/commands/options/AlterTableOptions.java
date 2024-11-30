@@ -27,30 +27,54 @@ import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
+/**
+ * Represents options for altering a table in a database schema.
+ * Extends {@link BaseOptions} to provide additional functionality for table alteration commands.
+ * <p>
+ * This class supports a fluent, chainable API using the {@link Accessors} annotation.
+ * Common options include specifying whether to include an "IF EXISTS" condition during the operation.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * AlterTableOptions options = new AlterTableOptions()
+ *     .ifExists(true);
+ * }
+ * </pre>
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class AlterTableOptions extends BaseOptions<AlterTableOptions> {
 
-    /** Improve syntax. */
+    /**
+     * A predefined instance of {@code AlterTableOptions} with the "IF EXISTS" condition enabled.
+     * This improves syntax for commonly used configurations.
+     */
     public static final AlterTableOptions IF_EXISTS = new AlterTableOptions().ifExists(true);
 
     /**
-     * Condition to upsert the table.
+     * Indicates whether the "IF EXISTS" condition should be applied to the table alteration.
+     * When {@code true}, the operation will only proceed if the table exists.
      */
-    boolean ifExists = true;
+    private boolean ifExists = true;
 
+    /**
+     * Constructs a new {@code AlterTableOptions} instance with default settings.
+     * Initializes the options with {@link CommandType#TABLE_ADMIN} and the default table serializer.
+     */
     public AlterTableOptions() {
         super(null, CommandType.TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }
 
     /**
-     * Accessor for serialization.
+     * Retrieves the value of the "IF EXISTS" condition.
+     * This condition determines whether the operation should check for the existence of the table.
      *
-     * @return
-     *      accessor for serialization
+     * @return {@code true} if the "IF EXISTS" condition is enabled, {@code false} otherwise
      */
     public boolean isIfExists() {
         return ifExists;
     }
-
 }
+
