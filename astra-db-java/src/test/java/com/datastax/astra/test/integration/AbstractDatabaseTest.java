@@ -45,9 +45,18 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     // --------- Collections --------------
     // ------------------------------------
 
+    public void cleanupCollections() {
+        // Removing a few collections to test mores elements
+        getDatabase().listCollectionNames().forEach(c -> {
+            System.out.println("Dropping collection ..." + c);
+            getDatabase().dropCollection(c);
+        });
+    }
+
     @Test
     @Order(1)
     public void shouldCreateCollectionSimple() {
+        cleanupCollections();
         // When
         getDatabase().createCollection(COLLECTION_SIMPLE);
         assertThat(getDatabase().collectionExists(COLLECTION_SIMPLE)).isTrue();
@@ -227,8 +236,6 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUID.class));
     }
 
-
-
     @Test
     @Order(11)
     public void shouldCollectionWorkWithObjectIds() {
@@ -263,12 +270,13 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         product.setCode(UUID.randomUUID());
         product.setPrice(0d);
         Collection<ProductObjectId> collectionObjectId = getDatabase().createCollection(COLLECTION_OBJECTID,
-                        new CollectionDefinition().defaultId(OBJECT_ID), ProductObjectId.class);
+                new CollectionDefinition().defaultId(OBJECT_ID), ProductObjectId.class);
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
         Optional<ProductObjectId> productObjectId = collectionObjectId.findOne(eq(product.getId()));
         assertThat(productObjectId).isPresent();
     }
+
 
     @Test
     @Order(12)
@@ -302,6 +310,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Test
     @Order(13)
     public void shouldCollectionWorkWithUUIDv7() {
+        cleanupCollections();
         // When
         Collection<Document> collectionUUID = getDatabase()
                 .createCollection(COLLECTION_UUID_V7, new CollectionDefinition()

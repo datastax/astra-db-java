@@ -20,6 +20,8 @@ package com.datastax.astra.client.exception;
  * #L%
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +32,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@JsonIgnoreProperties({"stackTrace", "suppressed", "cause", "localizedMessage"})
 public class DataAPIErrorDescriptor extends RuntimeException {
 
     /**
@@ -77,6 +80,7 @@ public class DataAPIErrorDescriptor extends RuntimeException {
      * @return A concatenated string representing the full error message, which may include the exception class name,
      * the error code in parentheses, and the detailed error message. Each element is included only if it is not {@code null}.
      */
+    @JsonIgnore
     public String getErrorMessage() {
         StringBuilder sb = new StringBuilder();
         if (exceptionClass != null) {
@@ -90,4 +94,11 @@ public class DataAPIErrorDescriptor extends RuntimeException {
         }
         return sb.toString().trim();
     }
+
+    @Override
+    @JsonIgnore
+    public String getLocalizedMessage() {
+        return super.getLocalizedMessage();
+    }
+
 }

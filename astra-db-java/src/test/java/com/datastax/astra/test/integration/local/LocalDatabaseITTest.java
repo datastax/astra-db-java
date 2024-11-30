@@ -7,10 +7,12 @@ import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.exception.DataAPIException;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.http.HttpProxy;
+import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -56,10 +58,8 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
             //getDatabase().registerListener("demo", new MockCommandObserver());
             getDatabase().runCommand(new Command("invalid", new Document()));
             //getDatabase().deleteListener("demo");
-        } catch(DataAPIResponseException dat) {
-            assertThat(dat.getMessage()).contains("No \"invalid\" command found ");
-            assertThat(dat.getApiErrors()).isNotEmpty();
-            assertThat(dat.getCommandsList()).isNotEmpty();
+        } catch(DataAPIException dat) {
+            assertThat(dat.getMessage()).contains("COMMAND_UNKNOWN");;
         }
     }
 

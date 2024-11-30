@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.local;
+package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;

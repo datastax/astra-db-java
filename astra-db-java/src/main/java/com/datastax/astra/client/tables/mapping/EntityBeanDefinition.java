@@ -152,10 +152,10 @@ public class EntityBeanDefinition<T> {
     }
 
     /**
-     * Build the partition Key based on annotated fields.
+     * Build the partition Key based on annotated fields with @PartitionBy with position.
      *
      * @return
-     *      list of partition keys
+     *      An ordered list of partition keys (partition key)
      */
     public List<String> getPartitionBy() {
         return getFields().values().stream()
@@ -171,10 +171,10 @@ public class EntityBeanDefinition<T> {
     }
 
     /**
-     * Build the clustering Key based on annotated fields.
+     * Build the partition sort based on annotated fields @PartitionSort with position and order.
      *
      * @return
-     *      list of clustering keys
+     *      an ordered map representing the partition sort (clustering columns)
      */
     public Map<String, Integer> getPartitionSort() {
         List<EntityFieldDefinition> fields = getFields().values().stream()
