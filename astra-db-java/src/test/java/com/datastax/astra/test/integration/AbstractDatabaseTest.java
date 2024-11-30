@@ -6,13 +6,25 @@ import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.options.ListTablesOptions;
 import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.ddl.CreateTableOptions;
+import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
+import com.datastax.astra.test.model.TableEntityGameWithAnnotation;
+import com.datastax.astra.test.model.TableEntityGameWithAnnotationAllHints;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +35,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,6 +44,10 @@ import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.OBJ
 import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV6;
 import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV7;
 import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Sort.ascending;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.tables.ddl.DropTableOptions.IF_EXISTS;
+import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -336,5 +353,75 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv7.class));
     }
+
+    // === TABLES ===
+
+    @Test
+    @Order(14)
+    public void shouldCreateTables() {
+        // Definition of the table in fluent style
+        TableDefinition tableDefinition = new TableDefinition()
+                .addColumnText("match_id")
+                .addColumnInt("round")
+                .addColumnVector("m_vector", new ColumnDefinitionVector().dimension(3).metric(COSINE))
+                .addColumn("score", ColumnTypes.INT)
+                .addColumn("when",  ColumnTypes.TIMESTAMP)
+                .addColumn("winner",  ColumnTypes.TEXT)
+                .addColumnSet("fighters", ColumnTypes.UUID)
+                .addPartitionBy("match_id")
+                .addPartitionSort(ascending("round"));
+        assertThat(tableDefinition).isNotNull();
+
+        // Minimal creation
+        Table<Row> table1 = getDatabase().createTable("game1", tableDefinition);
+        assertThat(table1).isNotNull();
+        assertThat(getDatabase().tableExists("game1")).isTrue();
+
+        // Creation with a fully annotated bean
+        String tableXName = getDatabase().getTableName(TableEntityGameWithAnnotation.class);
+        Table<TableEntityGameWithAnnotation> tableX = getDatabase().createTable(
+                TableEntityGameWithAnnotation.class,
+                CreateTableOptions.IF_NOT_EXISTS);
+        assertThat(getDatabase().tableExists(tableXName)).isTrue();
+
+        // Minimal creation
+        String tableYName = getDatabase().getTableName(TableEntityGameWithAnnotationAllHints.class);
+        Table<TableEntityGameWithAnnotationAllHints> tableY = getDatabase().createTable(
+                TableEntityGameWithAnnotationAllHints.class);
+        assertThat(getDatabase().tableExists(tableYName)).isTrue();
+
+        // -- options --
+
+        // One can add options to setup the creation with finer grained:
+        CreateTableOptions createTableOptions = new CreateTableOptions()
+                .ifNotExists(true)
+                .timeout(ofSeconds(5));
+       // Table<Row> table3 = db.createTable("game3", tableDefinition, createTableOptions);
+
+        // One can can tuned the table object returned by the function
+        TableOptions tableOptions = new TableOptions()
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
+                .timeout(ofSeconds(5));
+
+        // Change the Type of objects in use instead of default Row
+        Table<Row> table4 = getDatabase().createTable("game4", tableDefinition,Row.class, createTableOptions, tableOptions);
+    }
+
+
+    @Test
+    @Order(15)
+    public void shouldListTables() {
+        ListTablesOptions options = new ListTablesOptions().timeout(Duration.ofMillis(1000));
+        List<String> tableNames = getDatabase().listTableNames();
+        assertThat(tableNames).isNotEmpty();
+        assertThat(tableNames).contains("game1");
+
+        assertThat(getDatabase().listTableNames(options)).isNotEmpty();
+        List<TableDescriptor> tables = getDatabase().listTables();
+        assertThat().isNotEmpty();
+        assertThat(getDatabase().listTables(options)).isNotEmpty();
+
+    }
+
 
 }

@@ -319,18 +319,16 @@ public class AstraDBAdmin {
      *
      * @param databaseId
      *      database identifier
-     * @param keyspace
+     * @param options
      *      target keyspace name
      * @return
      *      database client
      */
-    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
+    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, DatabaseOptions dbOptions) {
         Assert.notNull(databaseId, "databaseId");
-        Assert.hasLength(keyspace, "keyspace");
         if (!adminOptions.getDataAPIClientOptions().isAstra()) {
             throwErrorRestrictedAstra("getDatabase(id, keyspace)", adminOptions.getDataAPIClientOptions().getDestination());
         }
-
         String databaseRegion = devopsDbClient
                 .findById(databaseId.toString())
                 .map(db -> db.getInfo().getRegion())
@@ -339,11 +337,24 @@ public class AstraDBAdmin {
         AstraApiEndpoint astraApiEndpoint = new AstraApiEndpoint(databaseId,
                 databaseRegion, adminOptions.getDataAPIClientOptions().getAstraEnvironment());
 
-        // Accessing DB with the right keyspace
-        DatabaseOptions dbOptions = new DatabaseOptions(this.adminOptions.getToken(), this.adminOptions.getDataAPIClientOptions())
-                .keyspace(keyspace);
-
         return new com.datastax.astra.client.databases.Database(astraApiEndpoint.getApiEndPoint(), dbOptions);
+    }
+
+    /**
+     * Access the database functions.
+     *
+     * @param databaseId
+     *      database identifier
+     * @param keyspace
+     *      target keyspace name
+     * @return
+     *      database client
+     */
+    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
+        return getDatabase(databaseId, new DatabaseOptions(
+                this.adminOptions.getToken(),
+                this.adminOptions.getDataAPIClientOptions())
+                .keyspace(keyspace));
     }
 
     /**

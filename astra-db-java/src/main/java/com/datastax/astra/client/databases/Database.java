@@ -111,6 +111,11 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     private final String rootEndpoint;
 
     /**
+     * Database information cached if (getInfo()) is called
+     */
+    private DatabaseInfo cachedDbInfo;
+
+    /**
      * Initializes a {@link Database} instance with the specified API endpoint and connection options.
      * This constructor configures the database client to interact with the Data API at the provided
      * root endpoint, setting up necessary parameters and constructing the API endpoint based on
@@ -199,14 +204,51 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
     /**
      * Retrieves information about the current database, including metadata and configuration details.
-     * This method interacts with the administration client to fetch database information.
+     *
+     * <p>This method interacts with the devops API to fetch database information. To optimize
+     * performance, the database information is cached after the first retrieval. Subsequent calls to this
+     * method return the cached {@link DatabaseInfo} object unless the cache is invalidated externally.</p>
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DatabaseInfo info = database.getInfo();
+     * System.out.println("Database Name: " + info.getName());
+     * System.out.println("Database Version: " + info.getVersion());
+     * }
+     * </pre>
      *
      * @return A {@link DatabaseInfo} object containing details about the current database.
      * @throws IllegalStateException if the database information cannot be retrieved or if the
      *         database is not properly configured for administration operations.
      */
     public DatabaseInfo getInfo() {
-        return getAdmin().getDatabaseInfo(getId());
+        if (cachedDbInfo == null) {
+            cachedDbInfo = getAdmin().getDatabaseInfo(getId());
+        }
+        return cachedDbInfo;
+    }
+
+    /**
+     * Retrieves the name of the current database.
+     *
+     * <p>This method provides a convenient way to access the database name from the {@link DatabaseInfo}
+     * object returned by {@link #getInfo()}. It encapsulates the process of fetching and extracting
+     * the database name.</p>
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * String dbName = database.getName();
+     * System.out.println("Database Name: " + dbName);
+     * }
+     * </pre>
+     *
+     * @return The name of the current database as a {@link String}.
+     * @throws IllegalStateException if the database information cannot be retrieved or is unavailable.
+     */
+    public String getName() {
+        return getInfo().getName();
     }
 
     /**
@@ -1365,18 +1407,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     @Override
     public String getApiEndpoint() {
        return this.apiEndpoint;
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link BaseOptions}.
-     *
-     * @param logger
-     *      name for the logger
-     * @param commandObserver
-     *      class for the logger
-     */
-    public void registerListener(String logger, CommandObserver commandObserver) {
-        this.options.registerObserver(logger, commandObserver);
     }
 
 }

@@ -3,6 +3,7 @@ package com.datastax.astra.test.integration.local;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.admin.AdminOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
@@ -72,7 +73,7 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
                 .addHeader("Content-Type", "application/json; charset=utf-8")
                 .setBody("{\n" +
                         "  \"status\": {\n" +
-                        "    \"namespaces\": [\n" +
+                        "    \"keyspaces\": [\n" +
                         "      \"mock1\",\n" +
                         "      \"mock2\"\n" +
                         "    ]\n" +
@@ -83,17 +84,16 @@ class LocalDatabaseITTest extends AbstractDatabaseTest {
         // Start the server
         mockWebServer.start();
 
-        DataAPIClient otherCallerClient = new DataAPIClient(
-                new UsernamePasswordTokenProvider().getToken(),
-                new DataAPIClientOptions()
-                        .destination(DataAPIDestination.CASSANDRA)
-                        .httpClientOptions(new HttpClientOptions()
-                        .httpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
-                )
-        );
+        DataAPIClient otherCallerClient = DataAPIClients.clientCassandra();
         Set<String> names = otherCallerClient
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL)
-                .getDatabaseAdmin()
+                // Moving to admin I add a HTTP PROXY
+                .getDatabaseAdmin(new AdminOptions()
+                        .dataAPIClientOptions(new DataAPIClientOptions()
+                                .httpClientOptions(new HttpClientOptions()
+                                        .httpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
+                                )
+                                .logRequests()))
                 .listKeyspaceNames();
         assertThat(names).isNotNull();
 
