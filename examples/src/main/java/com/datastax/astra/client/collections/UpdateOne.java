@@ -1,10 +1,10 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.collections.documents.Updates;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.commands.Updates;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 

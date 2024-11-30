@@ -301,6 +301,8 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *
      * @param timeoutMillis
      *      timeout for the request
+     * @param commandType
+     *      command type
      * @return
      *      service key
      */
@@ -421,6 +423,8 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      *      authentication token
      * @param type
      *      command type
+     * @param serializer
+     *      serializer
      * @param options
      *      data api options
      */
@@ -433,11 +437,13 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return getSerializer().marshall(this);
     }
 
+    /** {@inheritDoc} */
     @Override
     @SuppressWarnings("unchecked")
     public T clone() {

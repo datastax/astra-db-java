@@ -20,48 +20,48 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.BaseOptions;
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.paging.TableCursor;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.paging.Page;
+import com.datastax.astra.client.core.paging.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.options.ListIndexesOptions;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.tables.index.TableIndexDescriptor;
-import com.datastax.astra.client.tables.options.CountRowsOptions;
-import com.datastax.astra.client.tables.options.EstimatedCountRowsOptions;
-import com.datastax.astra.client.tables.options.TableDeleteManyOptions;
-import com.datastax.astra.client.tables.options.TableDeleteOneOptions;
-import com.datastax.astra.client.tables.options.TableFindOneOptions;
-import com.datastax.astra.client.tables.options.TableFindOptions;
-import com.datastax.astra.client.tables.options.TableInsertManyOptions;
-import com.datastax.astra.client.tables.results.TableInsertManyResult;
-import com.datastax.astra.client.tables.options.TableInsertOneOptions;
-import com.datastax.astra.client.tables.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.options.TableUpdateOneOptions;
-import com.datastax.astra.client.tables.ddl.AlterTableOperation;
-import com.datastax.astra.client.tables.ddl.AlterTableOptions;
-import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
-import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.tables.commands.AlterTableOperation;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
+import com.datastax.astra.client.tables.commands.options.AlterTableOptions;
+import com.datastax.astra.client.tables.commands.options.CountRowsOptions;
+import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.options.EstimatedCountRowsOptions;
+import com.datastax.astra.client.tables.commands.options.ListIndexesOptions;
+import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
+import com.datastax.astra.client.tables.commands.options.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.commands.options.TableInsertOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableUpdateOneOptions;
+import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.commands.results.TableUpdateResult;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
-import com.datastax.astra.client.tables.index.TableIndexDefinition;
-import com.datastax.astra.client.tables.index.TableVectorIndexDefinition;
-import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
 import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.client.tables.results.TableUpdateResult;
-import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.reflection.EntityBeanDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
@@ -86,8 +86,8 @@ import java.util.stream.Collectors;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -96,7 +96,12 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
- * Execute commands against tables
+ * Executes commands and operations on tables.
+ *
+ * <p>The {@code Table} class is designed to work with table entities of type {@code T}, where
+ * {@code T} represents the data model or schema associated with the table.</p>
+ *
+ * @param <T> the type of the table entity, representing the data model or schema
  */
 @Slf4j
 public class Table<T>  extends AbstractCommandRunner<TableOptions> {
@@ -499,11 +504,11 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
             findOne.withSort(findOneOptions.getSortArray())
-                   .withProjection(findOneOptions.getProjectionArray())
+                    .withProjection(findOneOptions.getProjectionArray())
                     .withOptions(new Document()
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
-            );
+                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                    );
         }
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
         if (data.getDocument() == null) {
@@ -625,7 +630,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      an iterable of distinct values
 
     public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
-        return distinct(fieldName, null, resultClass);
+    return distinct(fieldName, null, resultClass);
     }
 
     /**
@@ -643,9 +648,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      an iterable of distinct values
 
     public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
+    return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
     }
-*/
+     */
     // -------------------------
     // ---   updateOne      ----
     // -------------------------
@@ -660,7 +665,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdate update) {
+    public TableUpdateResult updateOne(Filter filter, TableUpdateOperation update) {
         return updateOne(filter, update, new TableUpdateOneOptions());
     }
 
@@ -676,7 +681,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
+    public TableUpdateResult updateOne(Filter filter, TableUpdateOperation update, TableUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
@@ -880,7 +885,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      If the number of rows counted exceeds the provided limit.
      */
     public int countRows(Filter filter, int upperBound, CountRowsOptions options)
-    throws TooManyRowsToCountException {
+            throws TooManyRowsToCountException {
         // Argument Validation
         if (upperBound < 1 || upperBound > MAX_COUNT) {
             throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + MAX_COUNT);
@@ -912,7 +917,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      If the number of rows counted exceeds the provided limit.
      */
     public int countRows(Filter filter, int upperBound)
-    throws TooManyRowsToCountException {
+            throws TooManyRowsToCountException {
         return countRows(filter, upperBound, new CountRowsOptions());
     }
 

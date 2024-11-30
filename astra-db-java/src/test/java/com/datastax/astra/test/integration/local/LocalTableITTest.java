@@ -16,30 +16,30 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.TableDuration;
-import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.ddl.AlterTableAddColumns;
-import com.datastax.astra.client.tables.ddl.AlterTableAddVectorize;
-import com.datastax.astra.client.tables.ddl.AlterTableDropColumns;
-import com.datastax.astra.client.tables.ddl.AlterTableDropVectorize;
-import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
-import com.datastax.astra.client.tables.ddl.CreateTableOptions;
-import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
-import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
-import com.datastax.astra.client.tables.index.TableIndexDefinition;
-import com.datastax.astra.client.tables.index.TableIndexDefinitionOptions;
-import com.datastax.astra.client.tables.index.TableVectorIndexDefinition;
-import com.datastax.astra.client.tables.index.TableVectorIndexDefinitionOptions;
-import com.datastax.astra.client.tables.options.TableFindOneOptions;
-import com.datastax.astra.client.tables.options.TableFindOptions;
-import com.datastax.astra.client.tables.options.TableInsertManyOptions;
-import com.datastax.astra.client.tables.results.TableInsertManyResult;
-import com.datastax.astra.client.tables.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.results.TableUpdateResult;
-import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.client.tables.row.TableUpdate;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDuration;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
+import com.datastax.astra.client.tables.commands.AlterTableAddVectorize;
+import com.datastax.astra.client.tables.commands.AlterTableDropColumns;
+import com.datastax.astra.client.tables.commands.AlterTableDropVectorize;
+import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.commands.results.TableUpdateResult;
+import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
@@ -71,8 +71,8 @@ import java.util.Set;
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
-import static com.datastax.astra.client.tables.ddl.CreateTableOptions.IF_NOT_EXISTS;
-import static com.datastax.astra.client.tables.ddl.DropTableOptions.IF_EXISTS;
+import static com.datastax.astra.client.tables.commands.options.CreateTableOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.client.tables.commands.options.DropTableOptions.IF_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
@@ -673,7 +673,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        TableUpdateResult birthday = table.updateOne(johnFilter, TableUpdate.create()
+        TableUpdateResult birthday = table.updateOne(johnFilter, TableUpdateOperation.create()
                 .set("age", 43));
                 //.updateMul(Map.of("price", 1.1d)));
         Assertions.assertThat(birthday.getMatchedCount()).isEqualTo(1);

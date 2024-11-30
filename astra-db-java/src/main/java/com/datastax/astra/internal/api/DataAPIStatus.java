@@ -20,8 +20,8 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
-import com.datastax.astra.client.tables.columns.ColumnDefinition;
+import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

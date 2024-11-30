@@ -1,11 +1,10 @@
 package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionDescriptor;
+import com.datastax.astra.client.collections.definition.CollectionDescriptor;
 import com.datastax.astra.client.databases.Database;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public class ListCollections {
     public static void main(String[] args) {

@@ -1,8 +1,8 @@
 package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;

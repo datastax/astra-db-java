@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;

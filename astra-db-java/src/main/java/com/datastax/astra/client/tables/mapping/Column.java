@@ -21,7 +21,7 @@ package com.datastax.astra.client.tables.mapping;
  */
 
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

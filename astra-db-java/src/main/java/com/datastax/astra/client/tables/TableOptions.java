@@ -21,12 +21,7 @@ package com.datastax.astra.client.tables;
  */
 
 import com.datastax.astra.client.core.commands.BaseOptions;
-import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-import com.datastax.astra.internal.serdes.tables.RowSerializer;
-import com.datastax.astra.internal.utils.Assert;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 

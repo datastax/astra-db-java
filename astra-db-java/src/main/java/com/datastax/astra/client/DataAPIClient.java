@@ -30,33 +30,32 @@ import com.datastax.astra.internal.utils.Assert;
 
 import java.util.UUID;
 
-import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
+import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorRestrictedAstra;
 
 /**
  * Serves as the primary entry point to the Data API client, providing an intuitive and streamlined interface
  * for interacting with the Data API. The client is compatible with both Astra environments and on-premise
  * DataStax Enterprise installations, offering flexibility across deployment scenarios.
  *
- * <p>The {@code DataAPIClient} is designed to simplify database interactions by providing:
+ * <p>The {@code DataAPIClient} is designed to simplify database interactions by providing:</p>
+ *
  * <ul>
  *   <li>A high-level, user-friendly API that adheres to fluent programming principles.</li>
  *   <li>Support for builder patterns to accommodate complex client configurations.</li>
  *   <li>Idiomatic method naming and design inspired by the MongoDB API, ensuring a familiar experience for developers.</li>
  * </ul>
- * This design philosophy facilitates quick onboarding and ease of use while enabling advanced customizations when needed.
- * </p>
  *
- * <p>Core Features:
+ * <p>This design philosophy facilitates quick onboarding and ease of use while enabling advanced customizations when needed.</p>
+ *
+ * <h2>Core Features:</h2>
  * <ul>
  *   <li>Data manipulation capabilities for databases, collections, and tables.</li>
  *   <li>Administrative operations, such as database and keyspace creation (requires appropriate privileges).</li>
  *   <li>Support for destination-specific options, including Astra and DSE environments.</li>
  * </ul>
- * </p>
  *
- * <p>Example usage:</p>
- * <pre>
- * {@code
+ * <h2>Example Usage:</h2>
+ * <pre>{@code
  * DataAPIClientOptions options = new DataAPIClientOptions()
  *         .destination(DataAPIDestination.DSE) // Set the destination
  *         .httpClientOptions(new HttpClientOptions()
@@ -68,8 +67,7 @@ import static com.datastax.astra.client.exception.InvalidEnvironmentException.th
  *         .enableFeatureFlagTables() // Enable feature flag for tables
  *         .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true"); // Add custom headers
  * DataAPIClient client = new DataAPIClient("token", options);
- * }
- * </pre>
+ * }</pre>
  */
 public class DataAPIClient {
 
@@ -214,14 +212,13 @@ public class DataAPIClient {
      * performing administrative tasks such as database creation, user management, and configuration adjustments.
      * It provides a programmatic interface for managing Astra resources securely and efficiently.
      *
-     * <p>This method has three variants, allowing for flexibility in token usage:
+     * <p>This method has three variants, allowing for flexibility in token usage:</p>
      * <ul>
      *   <li>{@link #getAdmin()}: Uses the authentication token provided during the {@code DataAPIClient} initialization.</li>
      *   <li>{@link #getAdmin(String superToken)}: Uses a custom token with elevated privileges, overriding the default token.</li>
      *   <li>{@link #getAdmin(AdminOptions adminOptions)}: Allows fine-grained control by specifying both the token and
      *       additional options.</li>
      * </ul>
-     * </p>
      *
      * <p>To perform administrative tasks, the token must belong to a user with sufficient privileges (e.g., Database
      * Administrator or Organization Administrator). If these conditions are not met, a {@code SecurityException} is thrown.</p>
@@ -288,7 +285,7 @@ public class DataAPIClient {
      * with the specified Data API endpoint, supporting a wide range of data manipulation operations such as querying,
      * inserting, updating, and deleting data.
      *
-     * <p>The {@code getDatabase} method has multiple variants to cater to different usage scenarios:
+     * <p>The {@code getDatabase} method has multiple variants to cater to different usage scenarios:</p>
      * <ul>
      *   <li>{@link #getDatabase(String)}: Connects to the Data API using a specified API endpoint with default options.</li>
      *   <li>{@link #getDatabase(UUID)}: Connects to the Data API using a database identifier, automatically resolving the endpoint.</li>
@@ -296,7 +293,6 @@ public class DataAPIClient {
      *   <li>{@link #getDatabase(UUID, DatabaseOptions)}: Resolves the endpoint using a database identifier and applies custom database options.</li>
      *   <li>{@link #getDatabase(UUID, String, DatabaseOptions)}: Provides fine-grained control by specifying the database ID, region, and additional options.</li>
      * </ul>
-     * </p>
      *
      * <p>By providing flexibility in how connections are established and configured, these methods simplify the process
      * of interacting with Cassandra databases through the Data API. They are suitable for various deployment scenarios,

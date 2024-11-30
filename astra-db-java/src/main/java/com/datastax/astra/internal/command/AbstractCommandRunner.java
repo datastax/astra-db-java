@@ -26,15 +26,13 @@ import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.exception.DataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
-import com.dtsx.astra.sdk.db.domain.Database;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +50,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
+import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.internal.http.RetryHttpClient.CONTENT_TYPE_JSON;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_ACCEPT;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_AUTHORIZATION;
@@ -62,7 +60,37 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_TOKEN;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT;
 
 /**
- * Execute the command and parse results throwing DataApiResponseException when needed.
+ * Abstract base class for executing commands and handling their results.
+ * <p>
+ * This class provides a template for implementing a command runner that executes commands
+ * with specific options and parses their results. It ensures consistent error handling by
+ * throwing a {@link DataAPIResponseException} when necessary.
+ * </p>
+ *
+ * <p>Subclasses must implement the command execution logic as required by the specific context.</p>
+ *
+ * @param <OPTIONS> the type of options used by the command runner, extending {@link BaseOptions}
+ *
+ * Example usage:
+ * <pre>
+ * {@code
+ * public class MyCommandRunner extends AbstractCommandRunner<MyOptions> {
+ *
+ *     @Override
+ *     protected void runCommand(MyOptions options) {
+ *         // Implement the command execution logic here
+ *     }
+ *
+ *     @Override
+ *     protected void parseResults() {
+ *         // Implement result parsing logic here
+ *     }
+ * }
+ *
+ * MyCommandRunner runner = new MyCommandRunner();
+ * runner.execute(new MyOptions());
+ * }
+ * </pre>
  */
 @Slf4j
 @Getter
@@ -119,9 +147,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     /** Api Endpoint for the API. */
     protected String apiEndpoint;
 
-    /**
-     * Default command options when not override
-     */
+    /**  Default command options when not override. */
     protected OPTIONS options;
 
     /**
@@ -130,6 +156,14 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     protected AbstractCommandRunner() {
     }
 
+    /**
+     * Constructor with the API endpoint and default options.
+     *
+     * @param apiEndpoint
+     *      the API endpoint
+     * @param options
+     *     the default options
+     */
     public AbstractCommandRunner(String apiEndpoint, OPTIONS options) {
         Assert.hasLength(apiEndpoint, "apiEndpoint");
         Assert.notNull(options, "options");
@@ -320,7 +354,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
      *      operations to execute
      * @param observers
      *      list of observers to check
-     *
      */
     private void notifyASync(Consumer<CommandObserver> lambda, List<CommandObserver> observers) {
         if (observers != null) {
@@ -330,12 +363,28 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         }
     }
 
+    /**
+     * Validates that the current options are configured for Astra.
+     *
+     * <p>
+     * This method ensures that the operation is being performed in an Astra environment.
+     * If the options are not set for Astra, it throws an exception with details about the restriction.
+     * </p>
+     *
+     * @throws IllegalStateException if the configuration is not set for Astra
+     */
     protected void assertIsAstra() {
         if (!options.getDataAPIClientOptions().isAstra()) {
             throwErrorRestrictedAstra("getRegion", options.getDataAPIClientOptions().getDestination());
         }
     }
 
+    /**
+     * Gets the serializer currently in place to parse inputs and outputs.
+     *
+     * @return
+     *      the serializer
+     */
     protected DataAPISerializer getSerializer() {
         return this.options.getSerializer();
     }

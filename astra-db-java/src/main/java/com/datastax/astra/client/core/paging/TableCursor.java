@@ -23,9 +23,9 @@ package com.datastax.astra.client.core.paging;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.exception.CursorException;
+import com.datastax.astra.client.exceptions.CursorException;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.options.TableFindOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import lombok.Getter;
 
 import java.io.Closeable;

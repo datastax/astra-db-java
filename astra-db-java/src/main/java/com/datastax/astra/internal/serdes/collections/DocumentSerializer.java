@@ -36,7 +36,7 @@ package com.datastax.astra.internal.serdes.collections;
  * #L%
  */
 
-import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;

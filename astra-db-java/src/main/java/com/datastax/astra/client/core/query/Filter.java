@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.query;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.NonNull;

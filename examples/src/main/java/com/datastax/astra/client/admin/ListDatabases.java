@@ -1,7 +1,7 @@
 package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.databases.DatabaseInfo;
+import com.datastax.astra.client.databases.definition.DatabaseInfo;
 
 public class ListDatabases {
     public static void main(String[] args) {

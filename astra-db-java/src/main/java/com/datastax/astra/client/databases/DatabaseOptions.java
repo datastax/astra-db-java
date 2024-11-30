@@ -25,7 +25,6 @@ import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
-import com.datastax.astra.internal.utils.Assert;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 

@@ -20,13 +20,13 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.commands.Update;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.tables.row.TableUpdate;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -37,7 +37,6 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -278,7 +277,7 @@ public class Command implements Serializable {
      * @return
      *      self-reference
      */
-    public Command withUpdate(TableUpdate update) {
+    public Command withUpdate(TableUpdateOperation update) {
         payload.appendIfNotNull("update", update);
         return this;
     }

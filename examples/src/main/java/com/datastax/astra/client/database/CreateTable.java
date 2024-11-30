@@ -5,12 +5,12 @@ import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Game;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.TableOptions;
-import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.datastax.astra.client.tables.ddl.CreateTableOptions;
-import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.definition.rows.Row;
 
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;

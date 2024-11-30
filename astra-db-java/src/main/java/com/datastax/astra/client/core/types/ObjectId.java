@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.types;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIException;
 import lombok.Getter;
 
 import java.io.InvalidObjectException;
@@ -31,7 +31,7 @@ import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_RANDOM;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_RANDOM;
 import static com.datastax.astra.internal.utils.Assert.isTrue;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 

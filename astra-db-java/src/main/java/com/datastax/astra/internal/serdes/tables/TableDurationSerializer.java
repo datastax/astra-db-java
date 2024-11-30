@@ -21,7 +21,7 @@ package com.datastax.astra.internal.serdes.tables;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.tables.TableDuration;
+import com.datastax.astra.client.tables.definition.TableDuration;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;

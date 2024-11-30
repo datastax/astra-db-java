@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.tables.TableDuration;
+import com.datastax.astra.client.tables.definition.TableDuration;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;

@@ -1,0 +1,143 @@
+package com.datastax.astra.client.tables.definition;
+
+/*-
+ * #%L
+ * Data API Java Client
+ * --
+ * Copyright (C) 2024 DataStax
+ * --
+ * Licensed under the Apache License, Version 2.0
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
+
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionList;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionMap;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionSet;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.internal.utils.Assert;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+
+@Data @NoArgsConstructor
+public class TableDefinition {
+
+    private LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
+
+    private TablePrimaryKey primaryKey = new TablePrimaryKey();
+
+    public TableDefinition addColumn(String columnName, ColumnDefinition columnDefinition) {
+        Assert.notNull(columnName, "Column columnName");
+        columns.put(columnName, columnDefinition);
+        return this;
+    }
+
+    public TableDefinition addColumn(String name, ColumnTypes type) {
+        columns.put(name, new ColumnDefinition(type));
+        return this;
+    }
+
+    public TableDefinition addColumnText(String name) {
+        return addColumn(name, ColumnTypes.TEXT);
+    }
+
+    public TableDefinition addColumnInt(String name) {
+        return addColumn(name, ColumnTypes.INT);
+    }
+    public TableDefinition addColumnTimestamp(String name) {
+        return addColumn(name, ColumnTypes.TIMESTAMP);
+    }
+
+    public TableDefinition addColumnBoolean(String name) {
+        return addColumn(name, ColumnTypes.BOOLEAN);
+    }
+
+    public TableDefinition addColumnList(String name, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionList(valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnSet(String name, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionSet(valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnMap(String name,  ColumnTypes keyType, ColumnTypes valueType) {
+        columns.put(name, new ColumnDefinitionMap(keyType, valueType));
+        return this;
+    }
+
+    public TableDefinition addColumnVector(String name, ColumnDefinitionVector colDefVector) {
+        columns.put(name,colDefVector);
+        return this;
+    }
+
+    public TableDefinition addPartitionBy(String partitionKey) {
+        primaryKey.getPartitionBy().add(partitionKey);
+        return this;
+    }
+
+    public TableDefinition addPartitionSort(Sort column) {
+        Assert.notNull(column, "Column");
+        Assert.notNull(column.getOrder(), "column order");
+        Assert.hasLength(column.getField(), "column name");
+        if (primaryKey.getPartitionSort() == null) {
+            primaryKey.setPartitionSort(new LinkedHashMap<>());
+        }
+        primaryKey.getPartitionSort().put(column.getField(), column.getOrder().getCode());
+        return this;
+    }
+
+    public TableDefinition partitionKey(String... partitionKeys) {
+        if (partitionKeys != null) {
+            primaryKey.getPartitionBy().clear();
+            Arrays.asList(partitionKeys).forEach(pk -> {
+                if (!columns.containsKey(pk)) {
+                    throw new IllegalArgumentException("Cannot create primaryKey: Column '" + pk + "' has not been found in table");
+                }
+                primaryKey.getPartitionBy().add(pk);
+            });
+        }
+        return this;
+    }
+
+    public TableDefinition partitionSort(Sort... clusteringColumns) {
+        return clusteringColumns(clusteringColumns);
+    }
+
+    public TableDefinition addClusteringColumn(Sort clusteringColumn) {
+        return addPartitionSort(clusteringColumn);
+    }
+
+    public TableDefinition clusteringColumns(Sort... clusteringColumns) {
+        if (clusteringColumns != null) {
+            primaryKey.setPartitionSort(new LinkedHashMap<>());
+            Arrays.asList(clusteringColumns).forEach(cc -> {
+                    if (!columns.containsKey(cc.getField())) {
+                        throw new IllegalArgumentException("Cannot create primaryKey: Column '" + cc.getField() + "' has not been found in table");
+                    }
+                    primaryKey.getPartitionSort().put(cc.getField(), cc.getOrder().getCode());
+               }
+            );
+        }
+        return this;
+    }
+
+
+
+}

@@ -20,7 +20,9 @@ package com.datastax.astra.client.tables.mapping;
  * #L%
  */
 
-import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.internal.reflection.EntityBeanDefinition;
+import com.datastax.astra.internal.reflection.EntityFieldDefinition;
 
 public class TableRowMapper<T> {
 

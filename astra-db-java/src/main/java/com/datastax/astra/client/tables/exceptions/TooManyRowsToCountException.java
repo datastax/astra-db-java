@@ -21,8 +21,8 @@ package com.datastax.astra.client.tables.exceptions;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.exception.ClientErrorCodes;
-import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exceptions.ClientErrorCodes;
+import com.datastax.astra.client.exceptions.DataAPIException;
 
 /**
  * Error when too many documents in the collection

@@ -36,10 +36,10 @@ package com.datastax.astra.internal.serdes;
  * #L%
  */
 
-import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeDeserializer;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeSerializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;

@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 
 /**

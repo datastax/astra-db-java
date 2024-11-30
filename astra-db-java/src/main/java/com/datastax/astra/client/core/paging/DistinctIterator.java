@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.paging;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import lombok.extern.slf4j.Slf4j;
 

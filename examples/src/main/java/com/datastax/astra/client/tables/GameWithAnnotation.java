@@ -15,13 +15,6 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.SET;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.TIMESTAMP;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.UUID;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.VECTOR;
-
 @Data
 @EntityTable("game_ann2")
 @NoArgsConstructor

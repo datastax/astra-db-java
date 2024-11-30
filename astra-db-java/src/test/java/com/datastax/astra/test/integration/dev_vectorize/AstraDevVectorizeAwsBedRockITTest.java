@@ -1,11 +1,11 @@
 package com.datastax.astra.test.integration.dev_vectorize;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.auth.AWSEmbeddingHeadersProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.query.Projection;

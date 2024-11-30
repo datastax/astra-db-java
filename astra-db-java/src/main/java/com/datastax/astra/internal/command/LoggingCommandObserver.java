@@ -21,9 +21,7 @@ package com.datastax.astra.internal.command;
  */
 
 import com.datastax.astra.internal.api.DataAPIData;
-import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
-import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
+import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
 import com.datastax.astra.internal.utils.AnsiUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,18 +1,18 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.Update;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
-import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.collections.commands.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.paging.CollectionCursor;
@@ -44,7 +44,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.datastax.astra.client.collections.documents.ReturnDocument.AFTER;
+import static com.datastax.astra.client.collections.commands.ReturnDocument.AFTER;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.gt;

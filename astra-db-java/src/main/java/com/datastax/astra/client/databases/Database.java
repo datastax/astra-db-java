@@ -26,32 +26,28 @@ import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.CollectionDescriptor;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.CollectionDescriptor;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.databases.options.CreateCollectionOptions;
-import com.datastax.astra.client.databases.options.DropCollectionOptions;
-import com.datastax.astra.client.databases.options.ListCollectionOptions;
-import com.datastax.astra.client.databases.options.ListIndexesOptions;
-import com.datastax.astra.client.databases.options.ListTablesOptions;
-import com.datastax.astra.client.exception.InvalidConfigurationException;
+import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
+import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
+import com.datastax.astra.client.collections.commands.options.ListCollectionOptions;
+import com.datastax.astra.client.databases.definition.DatabaseInfo;
+import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
+import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDescriptor;
 import com.datastax.astra.client.tables.TableOptions;
-import com.datastax.astra.client.tables.ddl.CreateTableOptions;
-import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
-import com.datastax.astra.client.tables.ddl.DropTableOptions;
-import com.datastax.astra.client.tables.index.TableIndexDefinition;
-import com.datastax.astra.client.tables.index.TableIndexDescriptor;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
+import com.datastax.astra.client.tables.commands.options.DropTableOptions;
 import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
@@ -59,7 +55,7 @@ import lombok.Getter;
 import java.util.List;
 import java.util.UUID;
 
-import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
+import static com.datastax.astra.internal.reflection.EntityBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -78,7 +74,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * instance of {@code Database} ensures connectivity to a specific regional endpoint for optimal
  * performance and consistency.</p>
  *
- * <h2>Key Features:</h2>
+ * <p><strong>Key Features:</strong></p>
  * <ul>
  *   <li>Direct access to database-level operations, including collection management.</li>
  *   <li>Region-specific connectivity for multi-region database configurations.</li>
@@ -337,13 +333,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * {@link AdminOptions} object determines the authentication and configuration used for the client.
      * </p>
      *
-     * <p>Key behaviors:
+     * <p>Key behaviors:</p>
      * <ul>
      *   <li>If no {@code adminOptions} are provided, a default configuration is derived from the current options.</li>
      *   <li>If the deployment is Astra, an {@link AstraDBDatabaseAdmin} instance is returned.</li>
      *   <li>For non-Astra deployments, a {@link DataAPIDatabaseAdmin} instance is returned.</li>
      * </ul>
-     * </p>
      *
      * @param adminOptions The {@link AdminOptions} object containing authentication and configuration details.
      * @return A {@link DatabaseAdmin} instance tailored for the current deployment type and configured with the provided options.
@@ -403,7 +398,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * current state programmatically.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint);
@@ -413,7 +408,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      *
      * @return A {@link List} containing the names of all collections in this database.
-     * @throws com.datastax.astra.client.exception.DataAPIException if an error occurs while retrieving the collection names.
+     * @throws com.datastax.astra.client.exceptions.DataAPIException if an error occurs while retrieving the collection names.
      */
     public List<String> listCollectionNames() {
         return listCollectionNames(null);
@@ -428,13 +423,13 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * {@link ListCollectionOptions}, enabling filtering or additional configuration as needed.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code listCollectionOptions} - The options to customize the collection listing operation,
      *       such as filtering criteria or additional query parameters.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create list collection options
@@ -468,7 +463,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * convenient entry point for obtaining all collection definitions without any filtering or additional options.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint);
@@ -492,13 +487,13 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * for each collection that matches the provided options.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code listCollectionOptions} - The {@link ListCollectionOptions} to customize the listing behavior,
      *       such as filtering criteria or additional query parameters. If {@code null}, all collections are returned.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create options for listing collections with a specific prefix
@@ -530,7 +525,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * as querying, inserting, or updating data.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint");
@@ -564,12 +559,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * such as querying, inserting, or updating documents.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint");
@@ -594,14 +589,14 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * allows for further operations on the collection, such as querying, inserting, or updating documents.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code collectionOptions} - The {@link CollectionOptions} to customize the collection behavior,
      *       such as setting a custom serializer or specifying additional options. If {@code null}, default options are used.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create custom collection options
@@ -631,14 +626,14 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * the caller to specify {@link CollectionOptions} to customize the behavior of the collection.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code collectionOptions} - A {@link CollectionOptions} object that specifies custom
      *       behaviors for the collection. If {@code null}, default options will be used.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      *
@@ -668,7 +663,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * clients to specify custom options and the type of documents in the collection.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code options} - The {@link CollectionOptions} to customize the collection behavior. Must not be null.</li>
@@ -676,7 +671,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *       This enables type safety when working with the collection's documents. Must not be null.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * CollectionOptions options = new CollectionOptions()

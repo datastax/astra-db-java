@@ -1,8 +1,8 @@
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;

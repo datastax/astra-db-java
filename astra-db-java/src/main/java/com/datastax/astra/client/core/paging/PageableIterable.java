@@ -21,7 +21,7 @@ package com.datastax.astra.client.core.paging;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.query.Filter;
 import lombok.Getter;
 import lombok.Setter;

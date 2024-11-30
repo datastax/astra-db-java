@@ -1,8 +1,8 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;

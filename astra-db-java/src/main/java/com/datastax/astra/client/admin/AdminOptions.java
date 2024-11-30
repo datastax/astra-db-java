@@ -28,17 +28,52 @@ import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+/**
+ * Represents the configuration options for administrative operations in the database API.
+ * This class extends {@link BaseOptions} to inherit common configuration options
+ * and provides additional functionality specific to administrative commands.
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * AdminOptions options = new AdminOptions()
+ *     .token("your-token-here")
+ *     .options(new DataAPIClientOptions())
+ *     .serializer(new CustomSerializer());
+ * }
+ * </pre>
+ *
+ * <p>Key Features:</p>
+ * <ul>
+ *   <li>Provides default serialization through {@link DatabaseSerializer}.</li>
+ *   <li>Fluent and chainable setter methods for seamless configuration.</li>
+ *   <li>Supports administrative command types via {@link CommandType#DATABASE_ADMIN}.</li>
+ * </ul>
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class AdminOptions extends BaseOptions<AdminOptions> {
 
-    /** Serializer for the Collections. */
+    /**
+     * Serializer for the collections.
+     * Defaults to {@link DatabaseSerializer}.
+     */
     private static final DataAPISerializer DEFAULT_SERIALIZER = new DatabaseSerializer();
 
+    /**
+     * Serializer for the collections.
+     * Defaults to {@link DatabaseSerializer}.
+     */
     public AdminOptions() {
         this(null, null);
     }
 
+    /**
+     * Constructs an {@code AdminOptions} instance with the specified token and options.
+     *
+     * @param token the authentication token to use.
+     * @param options additional configuration options for the Data API client.
+     */
     public AdminOptions(String token, DataAPIClientOptions options) {
         super(token, CommandType.DATABASE_ADMIN, DEFAULT_SERIALIZER, options);
     }

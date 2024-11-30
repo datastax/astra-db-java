@@ -20,10 +20,10 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
-import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -21,11 +21,11 @@ package com.datastax.astra.client.core.paging;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.exception.CursorException;
+import com.datastax.astra.client.exceptions.CursorException;
 import lombok.Getter;
 
 import java.io.Closeable;
@@ -146,8 +146,14 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         CollectionCursor<T> newTableCursor = this.clone();
         newTableCursor.findOptions.projection(newProjection);
         return newTableCursor;
-    }
-
+    }/**
+     * Applies a sorting order to the cursor.
+     * Creates a new instance of the cursor with the specified sort options applied.
+     *
+     * @param sort the sort options to apply
+     * @return a new {@code CollectionCursor} instance with the sorting applied
+     * @throws IllegalStateException if the cursor is not in an idle state
+     */
     public CollectionCursor<T> sort(Sort... sort) {
         checkIdleState();
         CollectionCursor<T> newTableCursor = this.clone();
@@ -155,6 +161,14 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Sets a limit on the number of results returned by the cursor.
+     * Creates a new instance of the cursor with the specified limit applied.
+     *
+     * @param newLimit the maximum number of results to return
+     * @return a new {@code CollectionCursor} instance with the limit applied
+     * @throws IllegalStateException if the cursor is not in an idle state
+     */
     public CollectionCursor<T> limit(int newLimit) {
         checkIdleState();
         CollectionCursor<T> newTableCursor = this.clone();
@@ -162,6 +176,14 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Skips the specified number of results.
+     * Creates a new instance of the cursor with the specified skip applied.
+     *
+     * @param newSkip the number of results to skip
+     * @return a new {@code CollectionCursor} instance with the skip applied
+     * @throws IllegalStateException if the cursor is not in an idle state
+     */
     public CollectionCursor<T> skip(int newSkip) {
         checkIdleState();
         CollectionCursor<T> newTableCursor = this.clone();
@@ -169,6 +191,13 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Includes similarity information in the results.
+     * Creates a new instance of the cursor with similarity information included.
+     *
+     * @return a new {@code CollectionCursor} instance with similarity information included
+     * @throws IllegalStateException if the cursor is not in an idle state
+     */
     public CollectionCursor<T> includeSimilarity() {
         checkIdleState();
         CollectionCursor<T> newTableCursor = this.clone();
@@ -176,6 +205,13 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Includes sort vector information in the results.
+     * Creates a new instance of the cursor with sort vector information included.
+     *
+     * @return a new {@code CollectionCursor} instance with sort vector information included
+     * @throws IllegalStateException if the cursor is not in an idle state
+     */
     public CollectionCursor<T> includeSortVector() {
         checkIdleState();
         CollectionCursor<T> newTableCursor = this.clone();

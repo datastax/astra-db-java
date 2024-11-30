@@ -1,6 +1,6 @@
 package com.datastax.astra.test.unit;
 
-import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import org.junit.jupiter.api.Test;

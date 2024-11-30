@@ -20,13 +20,13 @@ package com.datastax.astra.internal.serdes;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Objects;
 
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_SERIALIZATION;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_SERIALIZATION;
 
 /**
  * Definition of a serializer for the Data API

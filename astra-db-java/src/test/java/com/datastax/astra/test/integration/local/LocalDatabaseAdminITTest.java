@@ -4,7 +4,7 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 import com.datastax.astra.test.integration.AbstractDatabaseAdminITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;

@@ -21,8 +21,8 @@ package com.datastax.astra.langchain4j.store.memory;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.databases.Database;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
