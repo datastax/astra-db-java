@@ -41,8 +41,10 @@ import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.TableDuration;
 import com.datastax.astra.client.tables.columns.ColumnTypes;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DataAPIVectorDeserializer;
-import com.datastax.astra.internal.serdes.DataAPIVectorSerializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
+import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
+import com.datastax.astra.internal.serdes.shared.SimilarityMetricSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.StreamReadFeature;
@@ -78,15 +80,9 @@ public class RowSerializer implements DataAPISerializer {
      * Default constructor
      */
     public RowSerializer() {
-        // left blank, hiding constructor for utility class
     }
 
-    /**
-     * Building the data api specific object mapper.
-     *
-     * @return
-     *      object mapper.
-     */
+    @Override
     public ObjectMapper getMapper() {
         if (objectMapper == null) {
             JsonFactory jsonFactory = JsonFactory.builder()
@@ -148,7 +144,4 @@ public class RowSerializer implements DataAPISerializer {
         }
         return objectMapper;
     }
-
-
-
 }

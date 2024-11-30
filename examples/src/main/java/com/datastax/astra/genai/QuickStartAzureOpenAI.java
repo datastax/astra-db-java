@@ -2,8 +2,8 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionIdTypes;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
@@ -48,14 +48,13 @@ public class QuickStartAzureOpenAI {
         Map<String, Object > params = new HashMap<>();
         params.put("resourceName", RESOURCE_NAME);
         params.put("deploymentId", DEPLOYMENT_ID);
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions
-                .builder()
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(1536)
-                .defaultIdType(CollectionIdTypes.UUID)
+                .defaultId(CollectionDefaultIdTypes.UUID)
                 .vectorize("azureOpenAI","text-embedding-ada-002", API_KEY_NAME,params);
         Collection<Document> collection = db
-                .createCollection("vectorize_test", builder.build());
+                .createCollection("vectorize_test", collectionDefinition);
 
         collection.deleteAll();
         CollectionInsertManyResult insertResult = collection.insertMany(

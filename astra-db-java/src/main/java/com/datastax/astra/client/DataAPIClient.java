@@ -21,66 +21,57 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
-import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.admin.AdminOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.util.UUID;
 
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 
 /**
- * Serves as the primary entry point to the Data API client, offering streamlined access to the functionalities
- * provided by the Data API, whether deployed within Astra environments or on-premise DataStax Enterprise installations.
- * <p>
- * This client aims to simplify interactions with the Data API through a user-friendly, high-level API design. It
- * supports fluent API patterns, builder mechanisms for complex configurations, and employs idiomatic method naming
- * conventions to enhance readability and ease of use. The design philosophy of this client closely mirrors that of
- * the established MongoDB API, providing a familiar experience to developers accustomed to MongoDB's client interface.
+ * Serves as the primary entry point to the Data API client, providing an intuitive and streamlined interface
+ * for interacting with the Data API. The client is compatible with both Astra environments and on-premise
+ * DataStax Enterprise installations, offering flexibility across deployment scenarios.
+ *
+ * <p>The {@code DataAPIClient} is designed to simplify database interactions by providing:
+ * <ul>
+ *   <li>A high-level, user-friendly API that adheres to fluent programming principles.</li>
+ *   <li>Support for builder patterns to accommodate complex client configurations.</li>
+ *   <li>Idiomatic method naming and design inspired by the MongoDB API, ensuring a familiar experience for developers.</li>
+ * </ul>
+ * This design philosophy facilitates quick onboarding and ease of use while enabling advanced customizations when needed.
  * </p>
- * <p>
- * Through this client, users can perform a wide range of operations, from basic data manipulation in databases and
- * collections to more advanced administrative tasks. Administrative capabilities, such as database creation and
- * keyspace management, are available to users with the appropriate administrative privileges.
+ *
+ * <p>Core Features:
+ * <ul>
+ *   <li>Data manipulation capabilities for databases, collections, and tables.</li>
+ *   <li>Administrative operations, such as database and keyspace creation (requires appropriate privileges).</li>
+ *   <li>Support for destination-specific options, including Astra and DSE environments.</li>
+ * </ul>
  * </p>
  *
  * <p>Example usage:</p>
  * <pre>
  * {@code
- * // Initialize the client with default settings
- * DataAPIClient client = new DataAPIClient("yourAuthTokenHere");
- *
- * // Initialize the client with custom HTTP configuration
- * DataAPIClient clientWithCustomConfig = new DataAPIClient("yourAuthTokenHere", DataAPIOptions.builder()
- *                 .withHttpRequestTimeout(1000) // Request timeout in milliseconds
- *                 .withHttpConnectTimeout(10) // Connection timeout in milliseconds
- *                 .withHttpVersion(HttpClient.Version.HTTP_2) // HTTP protocol version
- *                 .withDestination("ASTRA") // Target destination, e.g., Astra
- *                 .build());
+ * DataAPIClientOptions options = new DataAPIClientOptions()
+ *         .destination(DataAPIDestination.DSE) // Set the destination
+ *         .httpClientOptions(new HttpClientOptions()
+ *                 .httpRedirect(HttpClient.Redirect.NORMAL) // Configure HTTP redirects
+ *                 .httpProxy(new HttpProxy("localhost", 8080)) // Set up an HTTP proxy
+ *                 .httpRetries(1, Duration.ofSeconds(10))) // Configure retries
+ *         .timeoutOptions(new TimeoutOptions()
+ *                 .requestTimeoutMillis(1000)) // Set request timeout
+ *         .enableFeatureFlagTables() // Enable feature flag for tables
+ *         .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true"); // Add custom headers
+ * DataAPIClient client = new DataAPIClient("token", options);
  * }
  * </pre>
- *
- * This documentation highlights the ease of starting with the DataAPIClient, whether opting for a quick setup with
- * default configurations or a more tailored approach via detailed HTTP client settings. The examples demonstrate
- * both the straightforward initialization process and the method to apply fine-grained configurations for developers'
- * specific needs.
  */
 public class DataAPIClient {
-
-    /** parameters names. */
-    private static final String ARG_KEYSPACE = "keyspace";
-    /** parameters names. */
-    private static final String ARG_OPTIONS = "options";
-    /** parameters names. */
-    private static final String ARG_TOKEN = "token";
-    /** parameters names. */
-    private static final String ARG_DATABASE_ID = "databaseId";
-    /** parameters names. */
-    private static final String ARG_REGION = "region";
 
     /**
      * The authentication token used as credentials in HTTP requests, specifically as the Authorization bearer token.
@@ -130,9 +121,7 @@ public class DataAPIClient {
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * String myAuthToken = "AstraCS:...";
-     * DataAPIClient client = new DataAPIClient(myAuthToken);
-     * // Now the client is ready to make authenticated requests with default settings
+     * DataAPIClient client = new DataAPIClient("token");
      * }
      * </pre>
      *
@@ -140,7 +129,7 @@ public class DataAPIClient {
      *              by the server, typically starting with "AstraCS:.." for Astra environments.
      */
     public DataAPIClient(String token) {
-        this(token, DataAPIClientOptions.builder().build());
+        this(token, new DataAPIClientOptions());
     }
 
     /**
@@ -161,15 +150,17 @@ public class DataAPIClient {
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * String myAuthToken = "AstraCS:...";
-     * DataAPIOptions myOptions = DataAPIOptions.builder()
-     *      .withHttpRequestTimeout(1000)
-     *      .withHttpConnectTimeout(500)
-     *      .withHttpVersion(HttpClient.Version.HTTP_2)
-     *      .build();
-     *
-     * DataAPIClient myClient = new DataAPIClient(myAuthToken, myOptions);
-     * // The client is now ready to perform actions with custom configurations.
+     * DataAPIClientOptions options = new DataAPIClientOptions()
+     *         .destination(DataAPIDestination.DSE) // Set the destination
+     *         .httpClientOptions(new HttpClientOptions()
+     *                 .httpRedirect(HttpClient.Redirect.NORMAL) // Configure HTTP redirects
+     *                 .httpProxy(new HttpProxy("localhost", 8080)) // Set up an HTTP proxy
+     *                 .httpRetries(1, Duration.ofSeconds(10))) // Configure retries
+     *         .timeoutOptions(new TimeoutOptions()
+     *                 .requestTimeoutMillis(1000)) // Set request timeout
+     *         .enableFeatureFlagTables() // Enable feature flag for tables
+     *         .addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true"); // Add custom headers
+     * DataAPIClient client = new DataAPIClient("token", options);
      * }
      * </pre>
      *
@@ -180,9 +171,37 @@ public class DataAPIClient {
      * @throws IllegalArgumentException if the token is empty or null, or if the options are null.
      */
     public DataAPIClient(String token, DataAPIClientOptions options) {
-        Assert.hasLength(token, ARG_TOKEN);
-        Assert.notNull(options, ARG_OPTIONS);
+        Assert.hasLength(token, "token");
+        Assert.notNull(options, "options");
         this.token   = token;
+        this.options = options;
+    }
+
+    /**
+     * Constructs a new instance of the {@link DataAPIClient} without a default token. The token will instead need to
+     * be specified when calling `.getDatabase()` or `.getAdmin()`. Prefer this method when using a db-scoped token
+     * instead of a more universal token.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DataAPIClientOptions options = new DataAPIClientOptions()
+     *                 .timeoutOptions(new TimeoutOptions()
+     *                     .connectTimeoutMillis(1000)
+     *                     .requestTimeoutMillis(1000))
+     *                 .httpClientOptions(new HttpClientOptions()
+     *                     .httpVersion(HttpClient.Version.HTTP_2)
+     *                 );
+     * DataAPIClient myClient = new DataAPIClient(myOptions);
+     * // The client is now ready to perform actions with custom configurations.
+     * }
+     * </pre>
+     *
+     * @param options - The default options to use when spawning new instances of {@link Database} or {@link AstraDBAdmin}.
+     */
+    public DataAPIClient(DataAPIClientOptions options) {
+        Assert.notNull(options, "options");
+        this.token   = null;
         this.options = options;
     }
 
@@ -191,71 +210,73 @@ public class DataAPIClient {
     // --------------------------------------------------
 
     /**
-     * Retrieves an administration client specific to Astra deployments. This client is intended for performing
-     * administrative tasks such as creating databases. It requires the use of a token with sufficient privileges.
-     * <p>
-     * To use this method effectively, the provided authentication token must be associated with a user having
-     * elevated privileges, such as a Database Administrator or Organization Administrator. This ensures that
-     * the client has the necessary permissions to execute administrative operations within the Astra environment.
+     * Retrieves an administration client specifically designed for Astra deployments. This client is used for
+     * performing administrative tasks such as database creation, user management, and configuration adjustments.
+     * It provides a programmatic interface for managing Astra resources securely and efficiently.
+     *
+     * <p>This method has three variants, allowing for flexibility in token usage:
+     * <ul>
+     *   <li>{@link #getAdmin()}: Uses the authentication token provided during the {@code DataAPIClient} initialization.</li>
+     *   <li>{@link #getAdmin(String superToken)}: Uses a custom token with elevated privileges, overriding the default token.</li>
+     *   <li>{@link #getAdmin(AdminOptions adminOptions)}: Allows fine-grained control by specifying both the token and
+     *       additional options.</li>
+     * </ul>
      * </p>
-     * <p>
-     * The administration client provides a programmatic interface for managing various aspects of the Astra
-     * deployment, enabling tasks such as database creation, user management, and configuration adjustments
-     * without the need for direct interaction with the Astra UI.
-     * </p>
+     *
+     * <p>To perform administrative tasks, the token must belong to a user with sufficient privileges (e.g., Database
+     * Administrator or Organization Administrator). If these conditions are not met, a {@code SecurityException} is thrown.</p>
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
+     * // Example 1: Using the default token provided at client initialization
      * DataAPIClient apiClient = new DataAPIClient("AstraCS:your_admin_token_here");
      * AstraDBAdmin adminClient = apiClient.getAdmin();
-     * // Use adminClient to perform administrative operations, e.g., create a database
+     * adminClient.createDatabase("new_database", "keyspace_name");
+     *
+     * // Example 2: Using a custom super token for administrative operations
+     * AstraDBAdmin adminClientWithSuperToken = apiClient.getAdmin("AstraCS:your_super_admin_token_here");
+     * adminClientWithSuperToken.createDatabase("another_database", "another_keyspace");
+     *
+     * // Example 3: Using advanced options for fine-grained control
+     * AdminOptions options = new AdminOptions("AstraCS:custom_token", new DataAPIClientOptions().logRequests());
+     * AstraDBAdmin advancedAdminClient = apiClient.getAdmin(options);
+     * advancedAdminClient.createDatabase("custom_database", "custom_keyspace");
      * }
      * </pre>
      *
-     * @return An instance of {@link AstraDBAdmin} configured with the current authentication token, ready for
-     *         administrative operations.
-     * @throws SecurityException if the current token does not have the necessary administrative privileges.
+     * @return An instance of {@link AstraDBAdmin} configured with the appropriate authentication token and options,
+     *         ready for administrative operations.
      */
-    public AstraDBAdmin getAdmin() {
-        return getAdmin(this.token);
-    }
-
-    /**
-     * Retrieves an administration client capable of performing CRUD operations on databases, requiring a token with
-     * advanced privileges. This method is designed for scenarios where administrative access is necessary beyond the
-     * default token capabilities associated with the {@code DataAPIClient}.
-     * <p>
-     * The provided {@code superUserToken} should be granted sufficient privileges to perform administrative operations,
-     * such as creating, updating, and deleting databases. This typically involves tokens associated with roles like
-     * Database Administrator or Organization Administrator within the Astra environment.
-     * </p>
-     * <p>
-     * Utilizing this method allows for direct access to the Astra database's administrative functionalities, enabling
-     * comprehensive management capabilities through the returned {@link AstraDBAdmin} client. This includes but is not
-     * limited to database creation, modification, and deletion.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * String superUserToken = "AstraCS:super_user_token_here";
-     * DataAPIClient apiClient = new DataAPIClient(superUserToken);
-     * AstraDBAdmin adminClient = apiClient.getAdmin(superUserToken);
-     * // Now you can use adminClient for administrative operations like creating a database
-     * }
-     * </pre>
-     *
-     * @param superUserToken A token with elevated privileges, enabling administrative actions within the Astra
-     *        environment. This token must be authorized to perform operations such as creating and managing databases.
-     * @return An instance of {@link AstraDBAdmin}, configured for administrative tasks with the provided  user token.
-     * @throws SecurityException if the provided {@code superUserToken} lacks the necessary privileges for administrative operations.
-     */
-    public AstraDBAdmin getAdmin(String superUserToken) {
+    public AstraDBAdmin getAdmin(AdminOptions adminOptions) {
         if (!options.isAstra()) {
             throwErrorRestrictedAstra("getAdmin()", options.getDestination());
         }
-        return new AstraDBAdmin(superUserToken, options);
+        return new AstraDBAdmin(adminOptions);
+    }
+
+    /**
+     * Retrieves an administration client using the default authentication token provided during
+     * {@code DataAPIClient} initialization.
+     *
+     * @return An instance of {@link AstraDBAdmin} configured with the default token.
+     * @throws SecurityException if the token does not have the necessary privileges or the operation is not in an Astra environment.
+     * @see #getAdmin(AdminOptions)
+     */
+    public AstraDBAdmin getAdmin() {
+        return getAdmin(new AdminOptions(token, options));
+    }
+
+    /**
+     * Retrieves an administration client using the default authentication token provided during
+     * {@code DataAPIClient} initialization.
+     *
+     * @param superToken The custom token to use for administrative operations.
+     * @return An instance of {@link AstraDBAdmin} configured with the default token.
+     * @see #getAdmin(AdminOptions)
+     */
+    public AstraDBAdmin getAdmin(String superToken) {
+        return getAdmin(new AdminOptions(superToken, options));
     }
 
     // --------------------------------------------------
@@ -263,188 +284,147 @@ public class DataAPIClient {
     // --------------------------------------------------
 
     /**
-     * Retrieves a client for a specific database, enabling interactions with the Data API. This method allows for
-     * operations such as querying, updating, and managing data within the specified database and keyspace.
-     * <p>
-     * The {@code databaseId} parameter is a unique identifier for the target database. This ID ensures that operations
-     * performed through the returned client are executed against the correct database instance within the Astra
-     * environment or an on-premise DataStax Enterprise setup.
+     * Retrieves a database client configured to interact with the Data API. This client enables direct communication
+     * with the specified Data API endpoint, supporting a wide range of data manipulation operations such as querying,
+     * inserting, updating, and deleting data.
+     *
+     * <p>The {@code getDatabase} method has multiple variants to cater to different usage scenarios:
+     * <ul>
+     *   <li>{@link #getDatabase(String)}: Connects to the Data API using a specified API endpoint with default options.</li>
+     *   <li>{@link #getDatabase(UUID)}: Connects to the Data API using a database identifier, automatically resolving the endpoint.</li>
+     *   <li>{@link #getDatabase(String, DatabaseOptions)}: Allows customization of database options while connecting to a specific API endpoint.</li>
+     *   <li>{@link #getDatabase(UUID, DatabaseOptions)}: Resolves the endpoint using a database identifier and applies custom database options.</li>
+     *   <li>{@link #getDatabase(UUID, String, DatabaseOptions)}: Provides fine-grained control by specifying the database ID, region, and additional options.</li>
+     * </ul>
      * </p>
-     * <p>
-     * The {@code keyspace} parameter specifies the keyspace (often synonymous with "keyspace" in Cassandra terminology)
-     * within the database to which the client will have access. Keyspaces are used to organize and isolate data within
-     * the database, providing a layer of abstraction and security.
-     * </p>
+     *
+     * <p>By providing flexibility in how connections are established and configured, these methods simplify the process
+     * of interacting with Cassandra databases through the Data API. They are suitable for various deployment scenarios,
+     * including Astra cloud services and on-premise installations.</p>
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
-     * UUID databaseId = UUID.fromString("your-database-uuid-here");
-     * String keyspace = "your_keyspace_here";
-     * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
-     * Database databaseClient = apiClient.getDatabase(databaseId, keyspace);
-     * // Use databaseClient to perform data operations within the specified keyspace
-     * }
-     * </pre>
-     *
-     * @param databaseId The unique identifier of the database to interact with.
-     * @param keyspace The keyspace within the specified database to which operations will be scoped.
-     * @return A {@link Database} client configured to interact with the specified database and keyspace, allowing for
-     *         data manipulation and query operations.
-     */
-    public Database getDatabase(UUID databaseId, String keyspace) {
-        Assert.notNull(databaseId, ARG_DATABASE_ID);
-        Assert.hasLength(keyspace, ARG_KEYSPACE);
-        if (!options.isAstra()) {
-            throwErrorRestrictedAstra("getDatabase(id,keyspace)", options.getDestination());
-        }
-        return new Database(new AstraApiEndpoint(databaseId,
-                getAdmin().getDatabaseInfo(databaseId).getRegion(),
-                options.getAstraEnvironment()).getApiEndPoint(),
-                this.token, keyspace, options);
-    }
-
-    /**
-     * Retrieves a client for a specific database, enabling interactions with the Data API. This method allows for
-     * operations such as querying, updating, and managing data within the specified database and keyspace.
-     *
-     * @param databaseId The unique identifier of the database to interact with.
-     * @param keyspace The keyspace associated to this database
-     * @param region The cloud provider region where the database is deployed.
-     *
-     * @return
-     *      A {@link Database} client configured to interact with the specified database and keyspace, allowing for
-     *      data manipulation and query operations.
-     */
-    public Database getDatabase(UUID databaseId, String keyspace, String region) {
-        Assert.notNull(databaseId, ARG_DATABASE_ID);
-        Assert.hasLength(keyspace, ARG_KEYSPACE);
-        Assert.hasLength(region, ARG_REGION);
-        if (!options.isAstra()) {
-            throwErrorRestrictedAstra("getDatabase(dbId,keyspace,region)", options.getDestination());
-        }
-        return new Database(new AstraApiEndpoint(databaseId, region,
-                options.getAstraEnvironment()).getApiEndPoint(),
-                this.token, keyspace, options);
-    }
-
-    /**
-     * Retrieves a client for interacting with a specified database using its unique identifier. This client facilitates
-     * direct communication with the Data API, enabling a range of operations such as querying, inserting, updating, and
-     * deleting data within the database. This streamlined method provides access to the default keyspace or keyspace.
-     * <p>
-     * The {@code databaseId} serves as a unique identifier for the database within the Astra environment or an on-premise
-     * DataStax Enterprise setup, ensuring that all operations through the client are correctly routed to the intended
-     * database instance.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * UUID databaseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
-     * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
-     * Database databaseClient = apiClient.getDatabase(databaseId);
-     * // Perform data operations using the databaseClient
-     * }
-     * </pre>
-     *
-     * @param databaseId The unique identifier of the database for which to retrieve the client.
-     * @return A {@link Database} client that provides the ability to perform operations on the specified database.
-     */
-    public Database getDatabase(UUID databaseId) {
-        return getDatabase(databaseId, DEFAULT_KEYSPACE);
-    }
-
-    /**
-     * Creates and returns a database client configured to interact with the Data API at the specified API endpoint
-     * and within the given keyspace. This method facilitates operations such as querying, inserting, updating, and
-     * deleting data by directly communicating with the Data API, allowing for a wide range of data manipulation
-     * tasks in a specified keyspace.
-     * <p>
-     * The {@code apiEndpoint} parameter should be the URL of the API endpoint where the Data API is hosted. This
-     * is typically a fully qualified URL that points to the Astra service or an on-premise DataStax Enterprise
-     * deployment hosting the Data API.
-     * </p>
-     * <p>
-     * The {@code keyspace} parameter specifies the keyspace (or keyspace in Cassandra terms) within the database
-     * that the client will interact with. Keyspaces help organize data within the database and provide a way to
-     * isolate and manage access to data.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * String apiEndpoint = "https://example-astra-data-api.com";
-     * String keyspace = "my_keyspace";
-     * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
-     * Database databaseClient = apiClient.getDatabase(apiEndpoint, keyspace);
-     * // Now you can use the databaseClient to perform operations within "my_keyspace"
-     * }
-     * </pre>
-     *
-     * @param apiEndpoint The URL of the Data API endpoint. This specifies the location of the API the client will connect to.
-     * @param keyspace The keyspace within the database that the client will access and perform operations in.
-     * @return A {@link Database} client configured for the specified API endpoint and keyspace, enabling data manipulation
-     *         and query operations within the targeted keyspace.
-     */
-    public Database getDatabase(String apiEndpoint, String keyspace) {
-        return new Database(apiEndpoint, token, keyspace, options);
-    }
-
-    /**
-     * Retrieves a client for interacting with a specified database using its unique identifier.
-     *
-     * @param apiEndpoint
-     *      apiEndpoint for the database.
-     * @return
-     *      an instance of Database admin
-     */
-    public DatabaseAdmin getDatabaseAdmin(String apiEndpoint) {
-        return getDatabase(apiEndpoint).getDatabaseAdmin();
-    }
-
-    /**
-     * Retrieves a client for interacting with a specified database using its unique identifier.
-     *
-     * @param databaseId
-     *      database identifier
-     * @return
-     *      the database admin if exists
-     */
-    public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
-        return (AstraDBDatabaseAdmin) getDatabase(databaseId).getDatabaseAdmin();
-    }
-
-    /**
-     * Retrieves a database client configured to interact with the Data API at the specified API endpoint. This method
-     * enables direct communication with the Data API, facilitating a range of data manipulation operations such as querying,
-     * inserting, updating, and deleting data. The client accesses the default keyspace or keyspace for operations, unless
-     * otherwise specified through additional configuration.
-     * <p>
-     * The {@code apiEndpoint} parameter should be the URL of the Data API endpoint you wish to connect to. This URL
-     * points to the location where the Data API is hosted, which could be an Astra cloud service or an on-premise DataStax
-     * Enterprise instance.
-     * </p>
-     * <p>
-     * Utilizing this method simplifies the process of connecting to the Data API by focusing on essential configuration,
-     * making it particularly useful for scenarios where detailed keyspace management is handled separately or not required.
-     * </p>
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
+     * // Example 1: Connect using a direct API endpoint
      * String apiEndpoint = "https://<database_id>-<database_region>.apps.astra.datastax.com";
      * DataAPIClient apiClient = new DataAPIClient("yourAuthTokenHere");
      * Database databaseClient = apiClient.getDatabase(apiEndpoint);
-     * // The databaseClient is now ready to perform data operations at the specified API endpoint
+     *
+     * // Example 2: Connect using a database ID (with automatic endpoint resolution)
+     * UUID databaseId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
+     * Database databaseClientById = apiClient.getDatabase(databaseId);
+     *
+     * // Example 3: Customize options while connecting
+     * DatabaseOptions options = new DatabaseOptions("yourAuthTokenHere", new DataAPIClientOptions().logRequests());
+     * Database customDatabaseClient = apiClient.getDatabase(apiEndpoint, options);
      * }
      * </pre>
      *
-     * @param apiEndpoint The URL of the Data API endpoint to connect to, specifying the API's location.
-     * @return A {@link Database} client tailored for interaction with the Data API at the provided API endpoint,
-     *         ready for executing data manipulation tasks.
+     * @return A {@link Database} client tailored for interaction with the Data API, configured according to the
+     *         provided parameters.
+     *
+     * @throws IllegalArgumentException If the provided parameters are invalid or insufficient for resolving the endpoint.
+     */
+    public Database getDatabase(String apiEndpoint, DatabaseOptions dbOptions) {
+        return new Database(apiEndpoint, dbOptions);
+    }
+
+    /**
+     * Retrieves a database client configured to connect to the Data API using the specified API endpoint.
+     * <p>
+     * Uses default {@link DatabaseOptions} for configuration.
+     * </p>
+     *
+     * @param apiEndpoint The URL of the Data API endpoint to connect to.
+     * @return A {@link Database} client configured with default options for the specified endpoint.
+     * @see #getDatabase(String, DatabaseOptions)
      */
     public Database getDatabase(String apiEndpoint) {
-        return getDatabase(apiEndpoint, DEFAULT_KEYSPACE);
+        return getDatabase(apiEndpoint, new DatabaseOptions(token, options));
     }
+
+    /**
+     * Retrieves a database client configured to connect to the Data API using a database identifier.
+     * <p>
+     * Automatically resolves the API endpoint based on the database ID and uses default {@link DatabaseOptions}.
+     * </p>
+     *
+     * @param databaseId The unique identifier of the database.
+     * @return A {@link Database} client configured with default options for the resolved endpoint.
+     * @see #getDatabase(UUID, DatabaseOptions)
+     */
+    public Database getDatabase(UUID databaseId) {
+        return getDatabase(lookupEndpoint(databaseId, null), new DatabaseOptions(token, options));
+    }
+
+    /**
+     * Retrieves a database client configured to connect to the Data API using a database identifier,
+     * with custom {@link DatabaseOptions}.
+     * <p>
+     * Automatically resolves the API endpoint based on the database ID.
+     * </p>
+     *
+     * @param databaseId The unique identifier of the database.
+     * @param dbOptions  The options to configure the database client.
+     * @return A {@link Database} client configured for the resolved endpoint and custom options.
+     * @see #getDatabase(UUID)
+     */
+    public Database getDatabase(UUID databaseId, DatabaseOptions dbOptions) {
+        return getDatabase(databaseId, null, dbOptions);
+    }
+
+    /**
+     * Retrieves a database client configured to connect to the Data API using a database identifier,
+     * a specified region, and custom {@link DatabaseOptions}.
+     *
+     * @param databaseId The unique identifier of the database.
+     * @param region     The region where the database is deployed (optional).
+     * @param dbOptions  The options to configure the database client.
+     * @return A {@link Database} client configured for the specified database ID, region, and options.
+     * @see #getDatabase(UUID, DatabaseOptions)
+     */
+    public Database getDatabase(UUID databaseId, String region, DatabaseOptions dbOptions) {
+        return getDatabase(lookupEndpoint(databaseId, region), dbOptions);
+    }
+
+    // --------------------------------------------------
+    // ---       Getters                              ---
+    // --------------------------------------------------
+
+    /**
+     * Gets token
+     *
+     * @return value of token
+     */
+    public String getToken() {
+        return token;
+    }
+
+    /**
+     * Gets options
+     *
+     * @return value of options
+     */
+    public DataAPIClientOptions getOptions() {
+        return options;
+    }
+
+    /**
+     * Compute the endpoint for the database based on its ID and region.
+     * @param databaseId
+     *      database ID (mandotory)
+     * @param region
+     *     region (optional), if not provided the default region of the database is used.
+     * @return
+     *      the endpoint for the database
+     */
+    private String lookupEndpoint(UUID databaseId, String region) {
+        Assert.notNull(databaseId, "databaseId");
+        String dbRegion = region;
+        if (dbRegion == null) {
+            dbRegion = getAdmin().getDatabaseInfo(databaseId).getRegion();
+        }
+        return new AstraApiEndpoint(databaseId, dbRegion, options.getAstraEnvironment()).getApiEndPoint();
+    }
+
 }

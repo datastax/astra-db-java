@@ -21,7 +21,9 @@ package com.datastax.astra.internal.api;
  */
 
 import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
+import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -89,7 +91,9 @@ public class DataAPIResponse implements Serializable {
      */
     @SuppressWarnings("unchecked")
     public Stream<String> getStatusKeyAsStringStream(@NonNull String key) {
-        Assert.isTrue(status.containsKey(key), "Key not found in status map");
+        if (!status.containsKey(key)) {
+            throw new UnexpectedDataAPIResponseException(new Command(), this, "Key '" + key + "' has not been found in response.");
+        }
         return ((ArrayList<String>) status.get(key)).stream();
     }
 

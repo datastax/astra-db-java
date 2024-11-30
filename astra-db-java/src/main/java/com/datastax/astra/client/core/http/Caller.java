@@ -23,11 +23,16 @@ package com.datastax.astra.client.core.http;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * Caller information.
  */
-@Data @NoArgsConstructor @AllArgsConstructor
+@Setter
+@Accessors(fluent = true, chain = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Caller {
 
     /** caller name. */
@@ -35,4 +40,22 @@ public class Caller {
 
     /** caller version. */
     String version;
+
+    /**
+     * Gets name
+     *
+     * @return value of name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * Gets version
+     *
+     * @return value of version
+     */
+    public String getVersion() {
+        return version;
+    }
 }

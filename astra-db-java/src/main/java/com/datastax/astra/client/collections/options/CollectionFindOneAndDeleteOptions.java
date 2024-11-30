@@ -20,19 +20,16 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
 /**
  * Options to find one and delete.
  */
 @NoArgsConstructor
-public class CollectionFindOneAndDeleteOptions extends CommandOptions<CollectionFindOneAndDeleteOptions> {
+public class CollectionFindOneAndDeleteOptions extends BaseOptions<CollectionFindOneAndDeleteOptions> {
 
     /** Order by. */
     Sort[] sort;

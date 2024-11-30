@@ -24,11 +24,15 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 /**
  * Subclass representing the vector options.
  */
-@Data @NoArgsConstructor
+@Setter
+@NoArgsConstructor
+@Accessors(fluent = true, chain = true)
 public class VectorOptions {
 
     /**
@@ -55,6 +59,33 @@ public class VectorOptions {
     @JsonIgnore
     public SimilarityMetric getSimilarityMetric() {
         return SimilarityMetric.fromValue(metric);
+    }
+
+    /**
+     * Gets dimension
+     *
+     * @return value of dimension
+     */
+    public Integer getDimension() {
+        return dimension;
+    }
+
+    /**
+     * Gets metric
+     *
+     * @return value of metric
+     */
+    public String getMetric() {
+        return metric;
+    }
+
+    /**
+     * Gets service
+     *
+     * @return value of service
+     */
+    public VectorServiceOptions getService() {
+        return service;
     }
 }
 

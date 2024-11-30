@@ -21,7 +21,7 @@ package com.datastax.astra.client.tables.options;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,7 +33,7 @@ import lombok.experimental.Accessors;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class TableInsertManyOptions extends CommandOptions<TableInsertManyOptions> {
+public class TableInsertManyOptions extends BaseOptions<TableInsertManyOptions> {
 
     /**
      * If the flag is set to true the command is failing on first error
@@ -58,6 +58,6 @@ public class TableInsertManyOptions extends CommandOptions<TableInsertManyOption
     /**
      * If the flag is set to true the command is failing on first error
      */
-    int chunkSize = DataAPIClientOptions.DEFAULT_MAX_CHUNK_SIZE;
+    int chunkSize = DataAPIClientOptions.MAX_CHUNK_SIZE;
 
 }

@@ -1,15 +1,17 @@
 package com.datastax.astra.client.database_admin;
 
-import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.Database;
 
 import java.util.Map;
 
 public class FindEmbeddingProviders {
     public static void main(String[] args) {
-        Database db = new Database("API_ENDPOINT","TOKEN");
+        Database db = new DataAPIClient("TOKEN")
+                .getDatabase("API_ENDPOINT");
         DatabaseAdmin dbAdmin = db.getDatabaseAdmin();
 
         // was actually a new object not the initial

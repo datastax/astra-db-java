@@ -80,24 +80,24 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
         // Then
         assertThat(getDatabaseAdmin().keyspaceExists("nsx")).isTrue();
         assertThat(getDatabaseAdmin().getDatabase("nsx")
-                .getKeyspaceName()).isEqualTo("nsx");
+                .getKeyspace()).isEqualTo("nsx");
 
         if (!getDatabaseAdmin().keyspaceExists("nsx2")) {
             getDatabaseAdmin().createKeyspace("nsx2", true);
             while (!getDatabaseAdmin().keyspaceExists("nsx2")) {
                 Thread.sleep(1000);
             }
-            assertThat(getDatabaseAdmin().getDatabase().getKeyspaceName()).isEqualTo("nsx2");
+            assertThat(getDatabaseAdmin().getDatabase().getKeyspace()).isEqualTo("nsx2");
         }
 
         // Surface
         final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin2.createKeyspace(null))
-                .withMessage("Parameter 'keyspace' should be null nor empty");
+                .withMessage("Parameter 'keyspaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin2.createKeyspace(""))
-                .withMessage("Parameter 'keyspace' should be null nor empty");
+                .withMessage("Parameter 'keyspaceName' should be null nor empty");
     }
 
     @Test

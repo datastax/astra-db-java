@@ -26,7 +26,7 @@ import lombok.Getter;
  * List of possible types for the collection 'defaultId'.
  */
 @Getter
-public enum CollectionIdTypes {
+public enum CollectionDefaultIdTypes {
 
     /**
      * Represent a BSON ObjectId.
@@ -56,7 +56,7 @@ public enum CollectionIdTypes {
      * @param value
      *      value to the types
      */
-    CollectionIdTypes(String value) {
+    CollectionDefaultIdTypes(String value) {
         this.value = value;
     }
 
@@ -67,8 +67,8 @@ public enum CollectionIdTypes {
      * @return The corresponding CollectionIdTypes enum constant.
      * @throws IllegalArgumentException if the value does not correspond to any CollectionIdTypes.
      */
-    public static CollectionIdTypes fromValue(String value) {
-        for (CollectionIdTypes type : values()) {
+    public static CollectionDefaultIdTypes fromValue(String value) {
+        for (CollectionDefaultIdTypes type : values()) {
             if (type.getValue().equals(value)) {
                 return type;
             }

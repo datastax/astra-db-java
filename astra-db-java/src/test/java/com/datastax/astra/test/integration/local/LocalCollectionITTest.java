@@ -15,6 +15,7 @@ import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.options.ListCollectionOptions;
 import com.datastax.astra.client.exception.DataAPIResponseException;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
@@ -56,7 +57,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }
@@ -118,13 +119,14 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     @Test
     void shouldInsertManyWithDuplicatesOrder() {
         getDatabase().dropCollection(COLLECTION_SIMPLE);
-        Collection<Document> collectionSimple = getDatabase()
-                .createCollection(COLLECTION_SIMPLE, Document.class);
+        Collection<Document> collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
         collectionSimple.deleteAll();
         List<Document> players = new ArrayList<>(FRENCH_SOCCER_TEAM.subList(0, 5));
         // duplicate
         players.add(FRENCH_SOCCER_TEAM.get(4));
         players.addAll(FRENCH_SOCCER_TEAM.subList(5,7));
+
+        getDatabase().listCollectionNames(new ListCollectionOptions().timeout(1000));
 
         try {
             CollectionInsertManyResult res = collectionSimple.insertMany(players,
@@ -229,7 +231,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
        getCollectionVector();
 
        // Made at environment level for Serializers
-       DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
+       DataAPIClientOptions.getSerdesOptions().disableEncodeDataApiVectorsAsBase64();
 
        Collection<Document> collectionVectorRaw = getDatabase().getCollection(COLLECTION_VECTOR);
        collectionVectorRaw.deleteAll();

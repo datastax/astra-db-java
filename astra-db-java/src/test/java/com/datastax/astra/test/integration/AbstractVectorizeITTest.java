@@ -1,6 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
@@ -9,13 +10,14 @@ import com.datastax.astra.client.collections.options.CollectionInsertManyOptions
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.types.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.options.CreateCollectionOptions;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -85,7 +87,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionHeader(key, model, apiKey, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollection(collection, new EmbeddingAPIKeyHeaderProvider(apiKey));
                 collection.drop();
 
@@ -103,7 +105,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionSharedSecret(key, model, keyName, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollectionSharedKey(collection);
                 collection.drop();
 
@@ -180,15 +182,21 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     // ===================================================================================
 
     protected Collection<Document> createCollectionHeader(String provider, EmbeddingProvider.Model model, String apiKey, Map<String, Object> parameters) {
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions.builder();
-        builder.vectorSimilarity(SimilarityMetric.COSINE);
+        String collectionName = getCollectionNameFromModel(model.getName());
+
+        CollectionDefinition colDef =  new CollectionDefinition();
+        colDef.vectorSimilarity(SimilarityMetric.COSINE);
         if (model.getVectorDimension() != null) {
-            builder.vectorDimension(model.getVectorDimension());
+            colDef.vectorDimension(model.getVectorDimension());
         }
-        builder.vectorize(provider, model.getName(), null, parameters);
-        return getDatabase().createCollection(
-                getCollectionNameFromModel(model.getName()), builder.build(),
-                new CommandOptions<>().embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(apiKey)));
+        colDef.vectorize(provider, model.getName(), null, parameters);
+
+        CreateCollectionOptions ccOptions = new CreateCollectionOptions();
+
+        CollectionOptions colOptions = new CollectionOptions();
+        colOptions.embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(apiKey));
+
+        return getDatabase().createCollection(collectionName, colDef, ccOptions, colOptions);
     }
 
     private String getCollectionNameFromModel(String modelName) {
@@ -204,21 +212,19 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     }
 
     private Collection<Document> createCollectionSharedSecret(String provider, EmbeddingProvider.Model model, String keyName, Map<String, Object> parameters) {
-        CollectionOptions.CollectionOptionsBuilder builder = CollectionOptions.builder();
-        builder.vectorSimilarity(SimilarityMetric.COSINE);
+        CollectionDefinition cd = new CollectionDefinition().vectorSimilarity(SimilarityMetric.COSINE);
         if (model.getVectorDimension() != null) {
-            builder.vectorDimension(model.getVectorDimension());
+            cd.vectorDimension(model.getVectorDimension());
         }
-        builder.vectorize(provider, model.getName(), keyName, parameters);
-        return getDatabase().createCollection(
-                getCollectionNameFromModel(model.getName()),
-                builder.build(), new CommandOptions<>());
+        cd.vectorize(provider, model.getName(), keyName, parameters);
+        String collectionName = getCollectionNameFromModel(model.getName());
+        return getDatabase().createCollection(collectionName, cd, Document.class);
     }
 
     protected void testEmbeddingModelSharedSecret(String provider, EmbeddingProvider.Model model, String keyName, Map<String, Object> parameters) {
         log.info("Testing model {}", model);
         Collection<Document> collection = createCollectionSharedSecret(provider, model, keyName, parameters);
-        log.info("Collection created {}", collection.getName());
+        log.info("Collection created {}", collection.getCollectionName());
         testCollection(collection, null);
     }
 
@@ -267,7 +273,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             try {
                 log.info("Testing model {}", model);
                 Collection<Document> collection = createCollectionHeader(key, model, targetApiKey, params);
-                log.info("Collection created {}", collection.getName());
+                log.info("Collection created {}", collection.getCollectionName());
                 testCollection(collection, new EmbeddingAPIKeyHeaderProvider(targetApiKey));
                 collection.drop();
 

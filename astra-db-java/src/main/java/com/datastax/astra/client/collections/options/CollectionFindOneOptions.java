@@ -20,7 +20,7 @@ package com.datastax.astra.client.collections.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
@@ -34,7 +34,7 @@ import lombok.experimental.Accessors;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CollectionFindOneOptions extends CommandOptions<CollectionFindOneOptions> {
+public class CollectionFindOneOptions extends BaseOptions<CollectionFindOneOptions> {
 
     /**
      * Order by.

@@ -122,7 +122,7 @@ public class Sort {
      *       sort instance.
      */
     public static Sort vectorize(String vectorize) {
-        return new Sort(DataAPIKeywords.VECTOR.getKeyword(), null, vectorize, null);
+        return new Sort(DataAPIKeywords.VECTORIZE.getKeyword(), null, vectorize, null);
     }
 
 }

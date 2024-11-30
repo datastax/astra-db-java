@@ -1,18 +1,30 @@
 package com.datastax.astra.test.integration;
 
-import com.datastax.astra.client.collections.CollectionIdTypes;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.types.ObjectId;
 import com.datastax.astra.client.core.types.UUIDv6;
 import com.datastax.astra.client.core.types.UUIDv7;
-import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.options.ListTablesOptions;
+import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.TableDefinition;
+import com.datastax.astra.client.tables.TableDescriptor;
+import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.ddl.CreateTableOptions;
+import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
+import com.datastax.astra.test.model.TableEntityGameWithAnnotation;
+import com.datastax.astra.test.model.TableEntityGameWithAnnotationAllHints;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,15 +35,19 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.collections.CollectionIdTypes.OBJECT_ID;
-import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV6;
-import static com.datastax.astra.client.collections.CollectionIdTypes.UUIDV7;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.OBJECT_ID;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV6;
+import static com.datastax.astra.client.collections.CollectionDefaultIdTypes.UUIDV7;
 import static com.datastax.astra.client.core.query.Filters.eq;
+import static com.datastax.astra.client.core.query.Sort.ascending;
+import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
+import static com.datastax.astra.client.tables.ddl.DropTableOptions.IF_EXISTS;
+import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -46,47 +62,52 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     // --------- Collections --------------
     // ------------------------------------
 
+    public void cleanupCollections() {
+        // Removing a few collections to test mores elements
+        getDatabase().listCollectionNames().forEach(c -> {
+            System.out.println("Dropping collection ..." + c);
+            getDatabase().dropCollection(c);
+        });
+    }
+
     @Test
     @Order(1)
     public void shouldCreateCollectionSimple() {
+        cleanupCollections();
         // When
         getDatabase().createCollection(COLLECTION_SIMPLE);
         assertThat(getDatabase().collectionExists(COLLECTION_SIMPLE)).isTrue();
         // When
         Collection<Document> collection_simple = getDatabase().getCollection(COLLECTION_SIMPLE);
         assertThat(collection_simple).isNotNull();
-        assertThat(collection_simple.getName()).isEqualTo(COLLECTION_SIMPLE);
+        assertThat(collection_simple.getCollectionName()).isEqualTo(COLLECTION_SIMPLE);
 
         Collection<Document> c1 = getDatabase().createCollection(COLLECTION_SIMPLE, Document.class);
         assertThat(c1).isNotNull();
-        assertThat(c1.getName()).isEqualTo(COLLECTION_SIMPLE);
+        assertThat(c1.getCollectionName()).isEqualTo(COLLECTION_SIMPLE);
     }
 
     @Test
     @Order(2)
     public void shouldCreateCollectionsVector() {
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                CollectionOptions.builder()
-                        .vectorDimension(14)
-                        .vectorSimilarity(SimilarityMetric.COSINE)
-                        .build());
-        assertThat(collectionVector).isNotNull();
-        assertThat(collectionVector.getName()).isEqualTo(COLLECTION_VECTOR);
+                new CollectionDefinition().vector(14, SimilarityMetric.COSINE));
 
-        CollectionOptions options = collectionVector.getOptions();
-        assertThat(options.getVector()).isNotNull();
-        assertThat(options.getVector().getDimension()).isEqualTo(14);
+        assertThat(collectionVector).isNotNull();
+        assertThat(collectionVector.getCollectionName()).isEqualTo(COLLECTION_VECTOR);
+
+        CollectionDefinition colDefinition = collectionVector.getDefinition();
+        assertThat(colDefinition.getVector()).isNotNull();
+        assertThat(colDefinition.getVector().getDimension()).isEqualTo(14);
     }
 
     @Test
     @Order(3)
     public void shouldCreateCollectionsAllows() {
         Collection<Document> collectionAllow = getDatabase().createCollection(COLLECTION_ALLOW,
-                CollectionOptions.builder()
-                        .indexingAllow("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingAllow("a", "b", "c"));
         assertThat(collectionAllow).isNotNull();
-        CollectionOptions options = collectionAllow.getOptions();
+        CollectionDefinition options = collectionAllow.getDefinition();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getAllow()).isNotNull();
     }
@@ -95,11 +116,9 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(4)
     public void shouldCreateCollectionsDeny() {
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionOptions.builder()
-                        .indexingDeny("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingDeny("a", "b", "c"));
         assertThat(collectionDeny).isNotNull();
-        CollectionOptions options = collectionDeny.getOptions();
+        CollectionDefinition options = collectionDeny.getDefinition();
         assertThat(options.getIndexing()).isNotNull();
         assertThat(options.getIndexing().getDeny()).isNotNull();
     }
@@ -108,7 +127,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(5)
     public void shouldListCollections() {
         shouldCreateCollectionSimple();
-        assertThat(getDatabase().listCollectionNames().collect(Collectors.toList())).isNotNull();
+        assertThat(getDatabase().listCollectionNames()).isNotNull();
     }
 
     @Test
@@ -128,9 +147,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldDropCollectionsDeny() {
         // Given
         Collection<Document> collectionDeny = getDatabase().createCollection(COLLECTION_DENY,
-                CollectionOptions.builder()
-                        .indexingDeny("a", "b", "c")
-                        .build());
+                new CollectionDefinition().indexingDeny("a", "b", "c"));
         assertThat(getDatabase().collectionExists(COLLECTION_DENY)).isTrue();
         // When
         collectionDeny.drop();
@@ -165,10 +182,10 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         Collection<Document> collection = getDatabase().getCollection("invalid");
         assertThat(collection).isNotNull();
         assertThat(getDatabase().collectionExists("invalid")).isFalse();
-        assertThatThrownBy(collection::getOptions)
+        assertThatThrownBy(collection::getDefinition)
                 .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST");
-        assertThatThrownBy(collection::getOptions)
+        assertThatThrownBy(collection::getDefinition)
                 .isInstanceOf(DataAPIException.class)
                 .hasMessageContaining("COLLECTION_NOT_EXIST")
                 .extracting("errorCode")  // Extract the errorCode attribute
@@ -213,9 +230,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     public void shouldCollectionWorkWithUUIDs() {
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID, CollectionOptions.builder()
-                .defaultIdType(CollectionIdTypes.UUID)
-                .build());
+                .createCollection(COLLECTION_UUID, new CollectionDefinition().defaultId(CollectionDefaultIdTypes.UUID));
         collectionUUID.deleteAll();
         UUID uid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
@@ -238,16 +253,12 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUID.class));
     }
 
-
-
     @Test
     @Order(11)
     public void shouldCollectionWorkWithObjectIds() {
         // When
-        Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
-                        .defaultIdType(OBJECT_ID)
-                        .build());
+        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_OBJECTID,
+                new CollectionDefinition().defaultId(OBJECT_ID));
         collectionUUID.deleteAll();
 
         // Insert One
@@ -275,29 +286,27 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         product.setName("name");
         product.setCode(UUID.randomUUID());
         product.setPrice(0d);
-        Collection<ProductObjectId> collectionObjectId = getDatabase()
-                .createCollection(COLLECTION_OBJECTID, CollectionOptions.builder()
-                        .defaultIdType(OBJECT_ID)
-                        .build(), ProductObjectId.class);
+        Collection<ProductObjectId> collectionObjectId = getDatabase().createCollection(COLLECTION_OBJECTID,
+                new CollectionDefinition().defaultId(OBJECT_ID), ProductObjectId.class);
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
         Optional<ProductObjectId> productObjectId = collectionObjectId.findOne(eq(product.getId()));
         assertThat(productObjectId).isPresent();
     }
 
+
     @Test
     @Order(12)
     public void shouldCollectionWorkWithUUIDv6() {
         // When
-        Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V6, CollectionOptions.builder()
-                        .defaultIdType(UUIDV6)
-                        .build());
+        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_UUID_V6,
+                        new CollectionDefinition().defaultId(UUIDV6));
         collectionUUID.deleteAll();
 
         // Insert One
         UUIDv6 id1 = new UUIDv6();
-        CollectionInsertOneResult res = collectionUUID.insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
+        CollectionInsertOneResult res = collectionUUID
+                .insertOne(new Document().id(id1).append("sample", UUID.randomUUID()));
         assertThat(res).isNotNull();
         assertThat(res.getInsertedId()).isInstanceOf(UUIDv6.class);
         Optional<Document> doc = collectionUUID.findOne(eq(id1));
@@ -318,11 +327,11 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Test
     @Order(13)
     public void shouldCollectionWorkWithUUIDv7() {
+        cleanupCollections();
         // When
         Collection<Document> collectionUUID = getDatabase()
-                .createCollection(COLLECTION_UUID_V7, CollectionOptions.builder()
-                        .defaultIdType(UUIDV7)
-                        .build());
+                .createCollection(COLLECTION_UUID_V7, new CollectionDefinition()
+                        .defaultId(UUIDV7));
         collectionUUID.deleteAll();
 
         // Insert One
@@ -344,5 +353,75 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(resultsList).isNotNull();
         resultsList.getInsertedIds().forEach(id -> assertThat(id).isInstanceOf(UUIDv7.class));
     }
+
+    // === TABLES ===
+
+    @Test
+    @Order(14)
+    public void shouldCreateTables() {
+        // Definition of the table in fluent style
+        TableDefinition tableDefinition = new TableDefinition()
+                .addColumnText("match_id")
+                .addColumnInt("round")
+                .addColumnVector("m_vector", new ColumnDefinitionVector().dimension(3).metric(COSINE))
+                .addColumn("score", ColumnTypes.INT)
+                .addColumn("when",  ColumnTypes.TIMESTAMP)
+                .addColumn("winner",  ColumnTypes.TEXT)
+                .addColumnSet("fighters", ColumnTypes.UUID)
+                .addPartitionBy("match_id")
+                .addPartitionSort(ascending("round"));
+        assertThat(tableDefinition).isNotNull();
+
+        // Minimal creation
+        Table<Row> table1 = getDatabase().createTable("game1", tableDefinition);
+        assertThat(table1).isNotNull();
+        assertThat(getDatabase().tableExists("game1")).isTrue();
+
+        // Creation with a fully annotated bean
+        String tableXName = getDatabase().getTableName(TableEntityGameWithAnnotation.class);
+        Table<TableEntityGameWithAnnotation> tableX = getDatabase().createTable(
+                TableEntityGameWithAnnotation.class,
+                CreateTableOptions.IF_NOT_EXISTS);
+        assertThat(getDatabase().tableExists(tableXName)).isTrue();
+
+        // Minimal creation
+        String tableYName = getDatabase().getTableName(TableEntityGameWithAnnotationAllHints.class);
+        Table<TableEntityGameWithAnnotationAllHints> tableY = getDatabase().createTable(
+                TableEntityGameWithAnnotationAllHints.class);
+        assertThat(getDatabase().tableExists(tableYName)).isTrue();
+
+        // -- options --
+
+        // One can add options to setup the creation with finer grained:
+        CreateTableOptions createTableOptions = new CreateTableOptions()
+                .ifNotExists(true)
+                .timeout(ofSeconds(5));
+       // Table<Row> table3 = db.createTable("game3", tableDefinition, createTableOptions);
+
+        // One can can tuned the table object returned by the function
+        TableOptions tableOptions = new TableOptions()
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
+                .timeout(ofSeconds(5));
+
+        // Change the Type of objects in use instead of default Row
+        Table<Row> table4 = getDatabase().createTable("game4", tableDefinition,Row.class, createTableOptions, tableOptions);
+    }
+
+
+    @Test
+    @Order(15)
+    public void shouldListTables() {
+        ListTablesOptions options = new ListTablesOptions().timeout(Duration.ofMillis(1000));
+        List<String> tableNames = getDatabase().listTableNames();
+        assertThat(tableNames).isNotEmpty();
+        assertThat(tableNames).contains("game1");
+
+        assertThat(getDatabase().listTableNames(options)).isNotEmpty();
+        List<TableDescriptor> tables = getDatabase().listTables();
+        assertThat().isNotEmpty();
+        assertThat(getDatabase().listTables(options)).isNotEmpty();
+
+    }
+
 
 }

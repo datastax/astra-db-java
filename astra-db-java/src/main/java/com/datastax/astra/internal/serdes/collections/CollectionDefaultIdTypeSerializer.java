@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.serdes.tables;
+package com.datastax.astra.internal.serdes.collections;
 
 /*-
  * #%L
@@ -20,23 +20,18 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
-/**
- * Object Id Could be
- * objectId|uuid|uuidv6|uuidv7
- */
-public class SimilarityMetricSerializer extends StdSerializer<SimilarityMetric> {
+public class CollectionDefaultIdTypeSerializer extends StdSerializer<CollectionDefaultIdTypes> {
     /**
      * Default constructor.
      */
-    public SimilarityMetricSerializer() {
+    public CollectionDefaultIdTypeSerializer() {
         this(null);
     }
 
@@ -45,14 +40,14 @@ public class SimilarityMetricSerializer extends StdSerializer<SimilarityMetric> 
      * @param t
      *      type
      */
-    public SimilarityMetricSerializer(Class<SimilarityMetric> t) {
+    public CollectionDefaultIdTypeSerializer(Class<CollectionDefaultIdTypes> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(SimilarityMetric columnType, JsonGenerator gen, SerializerProvider provider)
-    throws IOException {
-        gen.writeString(columnType.getValue());
+    public void serialize(CollectionDefaultIdTypes defaultId, JsonGenerator gen, SerializerProvider provider)
+            throws IOException {
+        gen.writeString(defaultId.getValue());
     }
 }

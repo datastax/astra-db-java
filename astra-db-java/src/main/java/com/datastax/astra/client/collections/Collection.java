@@ -43,9 +43,8 @@ import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.CollectionCursor;
 import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
@@ -62,7 +61,6 @@ import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
-import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
@@ -87,7 +85,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.core.commands.CommandType.DATA;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
@@ -130,56 +129,33 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  *     Java bean to unmarshall documents for collection.
  */
 @Slf4j
-public class Collection<T> extends AbstractCommandRunner {
+public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
 
     /** parameters names. */
     protected static final String ARG_OPTIONS = "options";
-    /** parameters names. */
-    protected static final String ARG_FILTER = "filter";
-    /** parameters names. */
-    protected static final String ARG_DATABASE = "database";
-    /** parameters names. */
-    protected static final String ARG_CLAZZ = "working class 'clazz'";
-    /** parameters names. */
-    protected static final String ARG_COLLECTION_NAME = "collectionName";
     /** parameters names. */
     protected static final String ARG_UPDATE = "update";
     /** parameters names. */
     protected static final String DOCUMENT = "document";
 
-    // Json Outputs
-
-    /** Serializer for the Collections. */
-    private static final DocumentSerializer SERIALIZER = new DocumentSerializer();
+    /** Default collection serializer. */
+    public static final DataAPISerializer DEFAULT_COLLECTION_SERIALIZER = new DocumentSerializer();
 
     /** Collection identifier. */
     @Getter
     private final String collectionName;
 
-    /** Working class representing documents of the collection. The default value is {@link Document}. */
-    @Getter
-    protected final Class<T> documentClass;
-
     /** Parent Database reference.  */
     @Getter
     private final Database database;
 
-    /** Get global Settings for the client. */
     @Getter
-    private final DataAPIClientOptions dataAPIClientOptions;
-
-    /** Api Endpoint for the Database, if using an astra environment it will contain the database id and the database region.  */
-    private final String apiEndpoint;
+    private final Class<T> documentClass;
 
     /**
      * Keep Collection options in -memory to avoid multiple calls to the API.
      */
-    private CollectionOptions options;
-
-    /**
-     * Check if options has been fetched
-     */
-    private boolean optionChecked = false;
+    private CollectionDefinition collectionDefinition;
 
     /**
      * Constructs an instance of a collection within the specified database. This constructor
@@ -194,11 +170,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @param collectionName A {@code String} that uniquely identifies the collection within the
      *                       database. This name is used to route operations to the correct
      *                       collection and should adhere to the database's naming conventions.
-     * @param clazz The {@code Class<DOC>} object that represents the model for documents within
-     *              this collection. This class is used for serialization and deserialization of
-     *              documents to and from the database. It ensures type safety and facilitates
-     *              the mapping of database documents to Java objects.
-     * @param commandOptions the options to apply to the command operation. If left blank the default collection
+     * @param collectionOptions the options to apply to the command operation. If left blank the default collection
      *
      * <p>Example usage:</p>
      * <pre>
@@ -212,18 +184,15 @@ public class Collection<T> extends AbstractCommandRunner {
      * }
      * </pre>
      */
-    public Collection(Database db, String collectionName, CommandOptions<?> commandOptions, Class<T> clazz) {
-        notNull(db, ARG_DATABASE);
-        notNull(clazz, ARG_CLAZZ);
-        hasLength(collectionName, ARG_COLLECTION_NAME);
-        this.collectionName = collectionName;
+    public Collection(Database db, String collectionName, CollectionOptions collectionOptions, Class<T> documentClass) {
+        super(db.getApiEndpoint() + "/" + collectionName, collectionOptions);
+        hasLength(collectionName, "collection name");
+        notNull(documentClass, "documentClass");
+        notNull(collectionOptions, "collection options");
         this.database       = db;
-        this.dataAPIClientOptions = db.getOptions();
-        this.documentClass  = clazz;
-        this.commandOptions = commandOptions;
-        // Defaulting to data in case of a Collection
-        this.commandOptions.commandType(DATA);
-        this.apiEndpoint    = db.getApiEndpoint() + "/" + collectionName;
+        this.collectionName = collectionName;
+        this.documentClass  = documentClass;
+        this.options.serializer(new DocumentSerializer());
     }
 
     // ----------------------------
@@ -251,7 +220,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * </pre>
      */
     public String getKeyspaceName() {
-        return getDatabase().getKeyspaceName();
+        return getDatabase().getKeyspace();
     }
 
     /**
@@ -284,57 +253,16 @@ public class Collection<T> extends AbstractCommandRunner {
      *         and identity within the database.
      */
     public CollectionDefinition getDefinition() {
-        return database
-                .listCollections()
-                .filter(col -> col.getName().equals(collectionName))
-                .findFirst()
-                .orElseThrow(() -> new DataAPIException("[COLLECTION_NOT_EXIST] - Collection does not exist, " +
-                        "collection name: '" + collectionName + "'", "COLLECTION_NOT_EXIST", null));
-    }
-
-    /**
-     * Retrieves the configuration options for the collection, including vector and indexing settings.
-     * These options specify how the collection should be created and managed, potentially affecting
-     * performance, search capabilities, and data organization.
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Given a collection
-     * DataApiCollection<Document> collection;
-     * // Access its Options
-     * CollectionOptions options = collection.getOptions();
-     * if (null != c.getVector()) {
-     *   System.out.println(c.getVector().getDimension());
-     *   System.out.println(c.getVector().getMetric());
-     * }
-     * if (null != c.getIndexing()) {
-     *   System.out.println(c.getIndexing().getAllow());
-     *   System.out.println(c.getIndexing().getDeny());
-     * }
-     * }
-     * </pre>
-     *
-     * @return An instance of {@link CollectionOptions} containing the collection's configuration settings,
-     *         such as vector and indexing options. Returns {@code null} if no options are set or applicable.
-     */
-    public CollectionOptions getOptions() {
-        if (!optionChecked) {
-            options = Optional.ofNullable(getDefinition().getOptions()).orElse(new CollectionOptions());
-            optionChecked = true;
+        if (collectionDefinition == null) {
+            collectionDefinition = database
+                    .listCollections().stream()
+                    .filter(col -> col.getName().equals(collectionName))
+                    .findFirst()
+                    .map(CollectionDescriptor::getOptions)
+                    .orElseThrow(() -> new DataAPIException("[COLLECTION_NOT_EXIST] - Collection does not exist, " +
+                            "collection name: '" + collectionName + "'", "COLLECTION_NOT_EXIST", null));
         }
-        return options;
-    }
-
-    /**
-     * Retrieves the name of the collection. This name serves as a unique identifier within the database and is
-     * used to reference the collection in database operations such as queries, updates, and deletions. The collection
-     * name is defined at the time of collection creation and is immutable.
-     *
-     * @return A {@code String} representing the name of the collection. This is the same name that was specified
-     *         when the collection was created or initialized.
-     */
-    public String getName() {
-        return collectionName;
+        return collectionDefinition;
     }
 
     // --------------------------
@@ -454,7 +382,11 @@ public class Collection<T> extends AbstractCommandRunner {
      */
     public final CollectionInsertOneResult insertOne(T document, CollectionInsertOneOptions collectionInsertOneOptions) {
         Assert.notNull(document, DOCUMENT);
-        return internalInsertOne(SERIALIZER.convertValue(document, Document.class), collectionInsertOneOptions);
+        DataAPISerializer serializer = getSerializer();
+        if (collectionInsertOneOptions != null && collectionInsertOneOptions.getSerializer() != null) {
+            serializer = collectionInsertOneOptions.getSerializer();
+        }
+        return internalInsertOne(serializer.convertValue(document, Document.class), collectionInsertOneOptions);
     }
 
     /**
@@ -545,16 +477,14 @@ public class Collection<T> extends AbstractCommandRunner {
             if (mapId.containsKey(DataAPIKeywords.UUID.getKeyword())) {
                 // defaultId with UUID
                 UUID uid = UUID.fromString((String) mapId.get(DataAPIKeywords.UUID.getKeyword()));
-                if (getOptions() != null && getOptions().getDefaultId() != null) {
-                    CollectionIdTypes defaultIdType = CollectionIdTypes.fromValue(getOptions().getDefaultId().getType());
-                    switch(defaultIdType) {
-                        case UUIDV6:
-                            return new UUIDv6(uid);
-                        case UUIDV7:
-                            return new UUIDv7(uid);
-                        default:
-                            return uid;
-                    }
+
+                if (getDefinition().getDefaultId() != null) {
+                    CollectionDefaultIdTypes defaultIdType = getDefinition().getDefaultId().getType();
+                    return switch (defaultIdType) {
+                        case UUIDV6 -> new UUIDv6(uid);
+                        case UUIDV7 -> new UUIDv7(uid);
+                        default -> uid;
+                    };
                 }
                 throw new IllegalStateException("Returned is is a UUID, but no defaultId is set in the collection definition.");
             }
@@ -628,16 +558,16 @@ public class Collection<T> extends AbstractCommandRunner {
     public CollectionInsertManyResult insertMany(List<? extends T> documents, CollectionInsertManyOptions options) {
         Assert.isTrue(documents != null && !documents.isEmpty(), "documents list cannot be null or empty");
         Assert.notNull(options, "insertMany options cannot be null");
-        if (options.concurrency() > 1 && options.ordered()) {
+        if (options.getConcurrency() > 1 && options.isOrdered()) {
             throw new IllegalArgumentException("Cannot run ordered insert_many concurrently.");
         }
-        if (options.chunkSize() > dataAPIClientOptions.getMaxRecordsInInsert()) {
-            throw new IllegalArgumentException("Cannot insert more than " + dataAPIClientOptions.getMaxRecordsInInsert() + " at a time.");
+        if (options.getChunkSize() > MAX_CHUNK_SIZE) {
+            throw new IllegalArgumentException("Cannot insert more than " + MAX_CHUNK_SIZE + " at a time.");
         }
         long start = System.currentTimeMillis();
-        ExecutorService executor = Executors.newFixedThreadPool(options.concurrency());
+        ExecutorService executor = Executors.newFixedThreadPool(options.getConcurrency());
         List<Future<CollectionInsertManyResult>> futures = new ArrayList<>();
-        for (int i = 0; i < documents.size(); i += options.chunkSize()) {
+        for (int i = 0; i < documents.size(); i += options.getChunkSize()) {
             futures.add(executor.submit(getInsertManyResultCallable(documents, options, i)));
         }
         executor.shutdown();
@@ -651,11 +581,9 @@ public class Collection<T> extends AbstractCommandRunner {
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
             // Set a default timeouts for the overall operation
-            long totalTimeout = this.commandOptions
-                    .getTimeoutOptions()
-                    .getDataOperationTimeoutMillis();
-            if (options.getTimeoutOptions() != null) {
-                totalTimeout = options.getTimeoutOptions().dataOperationTimeoutMillis();
+            long totalTimeout = this.options.getTimeout();
+            if (options.getDataAPIClientOptions() != null) {
+                totalTimeout = options.getTimeout();
             }
             if (executor.awaitTermination(totalTimeout, TimeUnit.MILLISECONDS)) {
                 log.debug(magenta(".[total insertMany.responseTime]") + "=" + yellow("{}") + " millis.",
@@ -840,15 +768,15 @@ public class Collection<T> extends AbstractCommandRunner {
      *      insert many result for a paged call
      */
     private Callable<CollectionInsertManyResult> getInsertManyResultCallable(List<? extends T> documents, CollectionInsertManyOptions collectionInsertManyOptions, int start) {
-        int end = Math.min(start + collectionInsertManyOptions.chunkSize(), documents.size());
+        int end = Math.min(start + collectionInsertManyOptions.getChunkSize(), documents.size());
         return () -> {
             log.debug("Insert block (" + cyan("size={}") + ") in collection {}", end - start, green(getCollectionName()));
 
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, collectionInsertManyOptions.ordered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.returnDocumentResponses()));
+                            .append(INPUT_ORDERED, collectionInsertManyOptions.isOrdered())
+                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
 
             DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
             CollectionInsertManyResult result = new CollectionInsertManyResult();
@@ -1308,8 +1236,8 @@ public class Collection<T> extends AbstractCommandRunner {
     public int countDocuments(Filter filter, int upperBound, CountDocumentsOptions options)
     throws TooManyDocumentsToCountException {
         // Argument Validation
-        if (upperBound<1 || upperBound> dataAPIClientOptions.getMaxCount()) {
-            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + dataAPIClientOptions.getMaxCount());
+        if (upperBound < 1 || upperBound > MAX_COUNT) {
+            throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + MAX_COUNT);
         }
         // Build command
         Command command = new Command("countDocuments").withFilter(filter);
@@ -1354,7 +1282,6 @@ public class Collection<T> extends AbstractCommandRunner {
      *      the query filter to apply the delete operation
      * @return
      *      the result of the remove one operation
-     *
      */
     public CollectionDeleteResult deleteOne(Filter filter) {
         return deleteOne(filter, new CollectionDeleteOneOptions());
@@ -1446,7 +1373,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return {@code true} if the collection exists within the namespace, {@code false} otherwise.
      */
     public boolean exists() {
-        return getDatabase().collectionExists(getName());
+        return getDatabase().collectionExists(getCollectionName());
     }
 
     /**
@@ -1558,7 +1485,7 @@ public class Collection<T> extends AbstractCommandRunner {
         result.setMatchedCount(res.getMatchedCount());
         result.setModifiedCount(res.getModifiedCount());
         if (res.getDocument() != null) {
-            Document doc = SERIALIZER.convertValue(res.getDocument(), Document.class);
+            Document doc = getSerializer().convertValue(res.getDocument(), Document.class);
             if (doc.getId(Object.class) != null) {
                 result.setUpsertedId(doc.getId(Object.class));
             }
@@ -1574,7 +1501,7 @@ public class Collection<T> extends AbstractCommandRunner {
      * @return
      *      command result
      */
-    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, CommandOptions<?> options) {
+    private FindOneAndReplaceResult<T> executeFindOneAndReplace(Command cmd, BaseOptions<?> options) {
         // Run Command
         DataAPIResponse apiResponse = runCommand(cmd, options);
         // Parse Command Result
@@ -1831,38 +1758,5 @@ public class Collection<T> extends AbstractCommandRunner {
         return Optional.empty();
     }
 
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
-     *
-     * @param logger
-     *      name for the logger
-     * @param commandObserver
-     *      class for the logger
-     */
-    public void registerListener(String logger, CommandObserver commandObserver) {
-        this.commandOptions.registerObserver(logger, commandObserver);
-    }
-
-    /**
-     * Register a listener to execute commands on the collection. Please now use {@link CommandOptions}.
-     *
-     * @param name
-     *      name for the observer
-     */
-    public void deleteListener(String name) {
-        this.commandOptions.unregisterObserver(name);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected DataAPISerializer getSerializer() {
-        return SERIALIZER;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    protected String getApiEndpoint() {
-        return apiEndpoint;
-    }
 
 }

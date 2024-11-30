@@ -19,20 +19,20 @@ import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
 public class TableSimpleAnnotatedRow {
 
     @PartitionBy(0)
-    @Column(value="email", type= TEXT)
+    @Column(name ="email", type= TEXT)
     private String email;
 
     @PartitionSort(position = 0, order = ASCENDING)
-    @Column(value="age", type = INT)
+    @Column(name ="age", type = INT)
     private Integer age;
 
-    @Column(value="country", type = TEXT)
+    @Column(name ="country", type = TEXT)
     private String country;
 
-    @Column(value="name", type = TEXT)
+    @Column(name ="name", type = TEXT)
     private String name;
 
-    @Column(value="human", type = BOOLEAN)
+    @Column(name ="human", type = BOOLEAN)
     private Boolean human;
 
 }

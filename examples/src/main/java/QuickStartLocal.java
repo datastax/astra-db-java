@@ -1,14 +1,16 @@
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.collections.options.CollectionFindOptions;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 
 import static com.datastax.astra.client.DataAPIDestination.CASSANDRA;
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.builder;
 import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 
@@ -17,19 +19,26 @@ public class QuickStartLocal {
     public static void main(String[] args) {
 
         // Create a Token
-        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getTokenAsString();
+        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra")
+                .getTokenAsString();
         System.out.println("Token: " + token);
 
         // Initialize the client
-        DataAPIClient client = new DataAPIClient(token, builder().withDestination(CASSANDRA).build());
+        DataAPIClientOptions dataApiOptions = new DataAPIClientOptions().destination(CASSANDRA);
+        DataAPIClient client = new DataAPIClient(token, dataApiOptions);
         System.out.println("Connected to Data API");
 
-        Database db = client.getDatabase("http://localhost:8181", "default_keyspace");
+        // Initialize the database
+        DatabaseOptions dbOptions = new DatabaseOptions().keyspace("default_keyspace");
+        Database db = client.getDatabase("http://localhost:8181", dbOptions);
         System.out.println("Connected to Database");
 
         // Create a collection. The default similarity metric is cosine.
-        Collection<Document> collection = db.createCollection("vector_test", 5, COSINE);
-        System.out.println("Created a Collection");
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
+                .vectorDimension(5)
+                .vectorSimilarity(COSINE);
+        Collection<Document> collection = db.createCollection("vector_test", collectionDefinition);
+        System.out.println("Collection created");
 
         collection.insertMany(
                 new Document("1")

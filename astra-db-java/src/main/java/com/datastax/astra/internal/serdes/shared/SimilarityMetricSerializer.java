@@ -1,4 +1,4 @@
-package com.datastax.astra.internal.serdes.tables;
+package com.datastax.astra.internal.serdes.shared;
 
 /*-
  * #%L
@@ -21,32 +21,37 @@ package com.datastax.astra.internal.serdes.tables;
  */
 
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
 /**
- * Custom deserializer for EJson Date type.
+ * Object Id Could be
+ * objectId|uuid|uuidv6|uuidv7
  */
-public class SimilarityMetricDeserializer extends JsonDeserializer<SimilarityMetric> {
-
+public class SimilarityMetricSerializer extends StdSerializer<SimilarityMetric> {
     /**
      * Default constructor.
      */
-    public SimilarityMetricDeserializer() {
-        // left blank, will be populated by jackson
+    public SimilarityMetricSerializer() {
+        this(null);
+    }
+
+    /**
+     * Constructor with type
+     * @param t
+     *      type
+     */
+    public SimilarityMetricSerializer(Class<SimilarityMetric> t) {
+        super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public SimilarityMetric deserialize(JsonParser jp, DeserializationContext ctxt)
+    public void serialize(SimilarityMetric columnType, JsonGenerator gen, SerializerProvider provider)
     throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
-        return SimilarityMetric.valueOf(node.asText().toUpperCase());
+        gen.writeString(columnType.getValue());
     }
-
 }

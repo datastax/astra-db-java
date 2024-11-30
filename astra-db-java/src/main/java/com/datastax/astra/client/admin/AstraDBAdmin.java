@@ -22,6 +22,7 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.DatabaseInfo;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -47,6 +48,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
@@ -66,20 +68,11 @@ public class AstraDBAdmin {
     /** Default region. (free-tier) */
     public static final String FREE_TIER_CLOUD_REGION = "us-east1";
 
-    /** Header name used to hold the Astra Token. */
-    public static final String TOKEN_HEADER_PARAM = "X-Token";
-
-    /** Default keyspace (same created by the ui). */
-    public static final String DEFAULT_KEYSPACE = "default_keyspace";
-
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
 
     /** Options to personalized http client other client options. */
-    final DataAPIClientOptions dataAPIClientOptions;
-
-    /** Astra Token (credentials). */
-    final String token;
+    final AdminOptions adminOptions;
 
     /** Side Http Client (use only to resume a db). */
     final HttpClient httpClient;
@@ -100,31 +93,30 @@ public class AstraDBAdmin {
 
     /**
      * Initialization with an authentication token and target environment, Use this constructor for testing purpose.
-     *
-     * @param token
-     *      authentication token
+
      * @param options
      *      options for client
      */
-    public AstraDBAdmin(String token, DataAPIClientOptions options) {
-        Assert.hasLength(token, "token");
+    public AstraDBAdmin(AdminOptions options) {
         Assert.notNull(options, "options");
-        this.token = token;
-        this.dataAPIClientOptions = options;
-        if (options.getObservers() != null) {
+        this.adminOptions = options;
+        DataAPIClientOptions dataAPIClientOptions = options.getDataAPIClientOptions();
+        if (dataAPIClientOptions.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
-            if (options.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
+            if (dataAPIClientOptions.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
-            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment(), devopsObservers);
+            this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
         } else {
-            this.devopsDbClient = new AstraDBOpsClient(token, options.getAstraEnvironment());
+            this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment());
         }
 
         // Local Agent for Resume
         HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
-        httpClientBuilder.version(options.getHttpClientOptions().getHttpVersion());
-        httpClientBuilder.connectTimeout(Duration.ofMillis(options.getTimeoutOptions().connectTimeoutMillis()));
+        httpClientBuilder.version(dataAPIClientOptions.getHttpClientOptions().getHttpVersion());
+        httpClientBuilder.connectTimeout(Duration.ofMillis(dataAPIClientOptions.getTimeoutOptions().getConnectTimeoutMillis()));
         this.httpClient = httpClientBuilder.build();
     }
 
@@ -327,25 +319,42 @@ public class AstraDBAdmin {
      *
      * @param databaseId
      *      database identifier
+     * @param options
+     *      target keyspace name
+     * @return
+     *      database client
+     */
+    public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, DatabaseOptions dbOptions) {
+        Assert.notNull(databaseId, "databaseId");
+        if (!adminOptions.getDataAPIClientOptions().isAstra()) {
+            throwErrorRestrictedAstra("getDatabase(id, keyspace)", adminOptions.getDataAPIClientOptions().getDestination());
+        }
+        String databaseRegion = devopsDbClient
+                .findById(databaseId.toString())
+                .map(db -> db.getInfo().getRegion())
+                .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
+
+        AstraApiEndpoint astraApiEndpoint = new AstraApiEndpoint(databaseId,
+                databaseRegion, adminOptions.getDataAPIClientOptions().getAstraEnvironment());
+
+        return new com.datastax.astra.client.databases.Database(astraApiEndpoint.getApiEndPoint(), dbOptions);
+    }
+
+    /**
+     * Access the database functions.
+     *
+     * @param databaseId
+     *      database identifier
      * @param keyspace
      *      target keyspace name
      * @return
      *      database client
      */
     public com.datastax.astra.client.databases.Database getDatabase(UUID databaseId, String keyspace) {
-        Assert.notNull(databaseId, "databaseId");
-        Assert.hasLength(keyspace, "keyspace");
-        if (!dataAPIClientOptions.isAstra()) {
-            throwErrorRestrictedAstra("getDatabase(id, keyspace)", dataAPIClientOptions.getDestination());
-        }
-        String databaseRegion = devopsDbClient
-                .findById(databaseId.toString())
-                .map(db -> db.getInfo().getRegion())
-                .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
-        return new com.datastax.astra.client.databases.Database(
-            new AstraApiEndpoint(databaseId, databaseRegion, dataAPIClientOptions.getAstraEnvironment()).getApiEndPoint(),
-            token, keyspace, dataAPIClientOptions) {
-        };
+        return getDatabase(databaseId, new DatabaseOptions(
+                this.adminOptions.getToken(),
+                this.adminOptions.getDataAPIClientOptions())
+                .keyspace(keyspace));
     }
 
     /**
@@ -370,7 +379,9 @@ public class AstraDBAdmin {
      */
     public AstraDBDatabaseAdmin getDatabaseAdmin(UUID databaseId) {
         Assert.notNull(databaseId, "databaseId");
-        return new AstraDBDatabaseAdmin(token, databaseId, dataAPIClientOptions);
+        return new AstraDBDatabaseAdmin(
+                adminOptions.getToken(), databaseId,
+                adminOptions.getDataAPIClientOptions());
     }
 
     /**

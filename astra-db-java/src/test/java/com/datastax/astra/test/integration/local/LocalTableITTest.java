@@ -1,8 +1,12 @@
 package com.datastax.astra.test.integration.local;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
+import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -10,6 +14,7 @@ import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableDefinition;
 import com.datastax.astra.client.tables.TableDuration;
@@ -23,10 +28,10 @@ import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
 import com.datastax.astra.client.tables.ddl.CreateTableOptions;
 import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
-import com.datastax.astra.client.tables.index.IndexDefinition;
-import com.datastax.astra.client.tables.index.IndexDefinitionOptions;
-import com.datastax.astra.client.tables.index.VectorIndexDefinition;
-import com.datastax.astra.client.tables.index.VectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.TableIndexDefinition;
+import com.datastax.astra.client.tables.index.TableIndexDefinitionOptions;
+import com.datastax.astra.client.tables.index.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.index.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.options.TableFindOptions;
 import com.datastax.astra.client.tables.options.TableInsertManyOptions;
@@ -35,6 +40,7 @@ import com.datastax.astra.client.tables.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.results.TableUpdateResult;
 import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.client.tables.row.TableUpdate;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
@@ -49,6 +55,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.net.http.HttpClient;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -60,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
@@ -94,19 +100,21 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }
 
     @Test
     @Order(1)
-    public void shouldInitiateDatabase() {
+    public void shouldInitiateDatabase() throws Exception {
         Database db = getDatabase();
         db.dropTableIndex(INDEX_COUNTRY, DropTableIndexOptions.IF_EXISTS);
         db.dropTableIndex(INDEX_ALL_RETURNS_PTEXT, DropTableIndexOptions.IF_EXISTS);
         db.dropTableIndex(INDEX_ALL_RETURNS_VECTOR, DropTableIndexOptions.IF_EXISTS);
 
+        System.out.println("ok");
+        System.out.println(new RowSerializer().marshall(db.getOptions()));
         db.dropTable(TABLE_SIMPLE, IF_EXISTS);
         db.dropTable(TABLE_COMPOSITE, IF_EXISTS);
         db.dropTable(TABLE_ALL_RETURNS, IF_EXISTS);
@@ -129,17 +137,25 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumnText("name")
                 .addColumnText("country")
                 .addColumnBoolean("human")
-                .withPartitionKey("email"));
+                .partitionKey("email"));
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isTrue();
 
         // Create Index Simple
-        tableSimple.createIndex(INDEX_COUNTRY, new IndexDefinition()
+        tableSimple.createIndex(INDEX_COUNTRY, new TableIndexDefinition()
                     .column("country")
-                    .options(new IndexDefinitionOptions()
+                    .options(new TableIndexDefinitionOptions()
                             .ascii(true)
                             .caseSensitive(true)
                             .normalize(true)),
                 CreateIndexOptions.IF_NOT_EXISTS);
+    }
+
+    @Test
+    public void listIndex() {
+        for (TableIndexDefinition tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
+            System.out.println(tid.getColumn());
+            System.out.println(tid.getOptions());
+        }
     }
 
     @Test
@@ -149,7 +165,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnText("id")
                         .addColumnInt("age")
                         .addColumnText("name")
-                        .withPartitionKey("id", "name"));
+                        .partitionKey("id", "name"));
         assertThat(getDatabase().tableExists(TABLE_COMPOSITE)).isTrue();
     }
 
@@ -188,21 +204,21 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumn("p_double_minf", ColumnTypes.DOUBLE)
                 .addColumn("p_double_pinf", ColumnTypes.DOUBLE)
                 .addColumn("p_float_nan", ColumnTypes.FLOAT)
-                .withPartitionKey("p_ascii", "p_bigint")
-                .withClusteringColumns(ascending("p_int"), descending("p_boolean")),
+                .partitionKey("p_ascii", "p_bigint")
+                .clusteringColumns(ascending("p_int"), descending("p_boolean")),
                 new CreateTableOptions().ifNotExists(true));
         assertThat(getDatabase().tableExists(TABLE_ALL_RETURNS)).isTrue();
 
         tableAllReturns
                 .createVectorIndex(INDEX_ALL_RETURNS_VECTOR,
-                        new VectorIndexDefinition()
+                        new TableVectorIndexDefinition()
                         .column("p_vector")
-                        .options(new VectorIndexDefinitionOptions().metric(COSINE)),
+                        .options(new TableVectorIndexDefinitionOptions().metric(COSINE)),
                         new CreateVectorIndexOptions().ifNotExists(true));
 
-        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new IndexDefinition()
+        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new TableIndexDefinition()
                         .column("p_text")
-                        .options(new IndexDefinitionOptions()
+                        .options(new TableIndexDefinitionOptions()
                                 .ascii(true)
                                 .caseSensitive(true)
                                 .normalize(true)),
@@ -221,8 +237,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
                         .addColumnVector("vector", new ColumnDefinitionVector()
                                 .dimension(1536).metric(COSINE))
-                        .withPartitionKey("partition_id")
-                        .withClusteringColumns(Sort.descending("row_id")));
+                        .partitionKey("partition_id")
+                        .clusteringColumns(Sort.descending("row_id")));
         assertThat(getDatabase().tableExists("table_cassio")).isTrue();
     }
 
@@ -239,8 +255,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Order(7)
     public void shouldListTableNames() {
         assertThat(getDatabase()
-                .listTableNames()
-                .collect(Collectors.toList()))
+                .listTableNames())
                 .isNotNull();
     }
 
@@ -348,7 +363,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
         LocalTime localTime = LocalTime.parse(timeString, formatter);
 
-        DataAPIClientOptions.disableEncodeDataApiVectorsAsBase64();
+        DataAPIClientOptions.getSerdesOptions().disableEncodeDataApiVectorsAsBase64();
 
         Row row = new Row()
                 .addAscii("p_ascii", "abc")
@@ -395,54 +410,17 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .orElseThrow(() -> new IllegalArgumentException("Row not found"));
         assertThat(row.getText("p_ascii")).isEqualTo( "abc");
         assertThat(row.getBigInt("p_bigint")).isEqualTo( 10002L);
-
-        //Row row2 = tableAllReturns.findOne(
-        //        and(eq( "p_ascii", "abc"),
-        //            eq("p_bigint", 10002L)
-        //        )).orElseThrow(() -> new IllegalArgumentException("Row not found"));
-
-        //assertThat(row2.getText("p_ascii")).isEqualTo( "abc");
-        //assertThat(row2.getBigInt("p_bigint")).isEqualTo( 10002L);
-        /*
-        .addAscii("p_ascii", "abc")
-                .addBigInt("p_bigint", 10002L)
-                .addInt("p_int", 987)
-                .addBoolean("p_boolean", false)
-                .addText("p_text", "Ålesund")
-                .addText("p_text_omitted", null)
-                .addDouble("p_double_pinf", Double.MAX_VALUE)
-                .addDouble("p_double_minf", Double.NEGATIVE_INFINITY)
-                .addBlob("p_blob", "blob".getBytes())
-                .addSmallInt("p_smallint", (short) 200)
-                .addVarInt("p_varint",444)
-                .addTinyInt("p_tinyint",(short) 17)
-                .addDuration("p_duration", Duration.ofHours(12).plusMinutes(48))
-                .addInet("p_inet", InetAddress.getByAddress(new byte[]{12, 34, 56, 78}))
-                .addDouble("p_double", 987.6543d)
-                .addFloat("p_float", 66.55f)
-                .addFloat("p_float_nan", Float.NaN)
-                .addTimeStamp("p_timestamp", Instant.now())
-                .addTime("p_time", localTime)
-                .addUUID("p_uuid", java.util.UUID.fromString("9c5b94b1-35ad-49bb-b118-8e8fc24abf80"))
-                .addDate("p_date", LocalDate.of(2015,5,3))
-                .addDecimal("p_decimal", new BigDecimal("123.45"))
-                .addVector("p_vector", DataAPIVector.of(.1f, 0.2f, 0.3f))
-                .addList("p_list_int", List.of(4, 17, 34))
-                .addSet("p_set_int",  Set.of(9, 81));
-
-                //.addTableDuration("p_duration", TableDuration.of(
-                //        Period.ofDays(3),
-                //        Duration.ofHours(12).plusMinutes(48)));
-         */
     }
 
     @Test
+    @Order(18)
     public void shouldCreateTableFromBeanDefinition() {
         getDatabase().createTable(TableCompositeAnnotatedRow.class, IF_NOT_EXISTS);
         assertThat(getDatabase().tableExists("table_composite_pk_annotated")).isTrue();
     }
 
     @Test
+    @Order(19)
     public void shouldAlterAddColumns() {
         Table<Row> t = getDatabase().getTable(TABLE_SIMPLE);
         // Add Column (simple)
@@ -459,8 +437,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         t.alter(new AlterTableAddVectorize().columns(
                 Map.of("vv", new VectorServiceOptions()
                         .modelName("mistral-embed")
-                        .provider("mistral"))))
-        ;
+                        .provider("mistral"))));
 
         // Drop Vectorize
         t.alter(new AlterTableDropVectorize("vv"));
@@ -472,6 +449,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     }
 
     @Test
+    @Order(20)
     public void should_insert_many() {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
 
@@ -482,6 +460,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         TableInsertManyResult res = table.insertMany(
                 List.of(row1, row2, row3), new TableInsertManyOptions()
                 .ordered(false)
+                .timeout(10000L)
                 .returnDocumentResponses(true));
         System.out.println(res.getInsertedIds());
         System.out.println(res.getPrimaryKeySchema());
@@ -521,8 +500,8 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addColumnText("country")
                 .addColumnText("city")
                 .addColumnInt("population")
-                .withPartitionKey("country")
-                .withClusteringColumns(Sort.ascending("city")), IF_NOT_EXISTS);
+                .partitionKey("country")
+                .clusteringColumns(Sort.ascending("city")), IF_NOT_EXISTS);
         tableCities.deleteAll();
 
         List<Row> rowsFrance = new ArrayList<>();
@@ -682,6 +661,9 @@ public class LocalTableITTest extends AbstractTableITTest {
         Table<Row> table = getDatabase().getTable(TABLE_COMPOSITE);
         table.deleteAll();
 
+        TableInsertManyOptions options = new TableInsertManyOptions()
+                .returnDocumentResponses(true);
+
         Row row = new Row()
                 .addInt("age", 42)
                 .addText("name", "Cedrick")
@@ -691,12 +673,34 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        TableUpdateResult u1 = table.updateOne(johnFilter, TableUpdate.create()
-                .set("name", "new"));
+        TableUpdateResult birthday = table.updateOne(johnFilter, TableUpdate.create()
+                .set("age", 43));
                 //.updateMul(Map.of("price", 1.1d)));
-        Assertions.assertThat(u1.getMatchedCount()).isEqualTo(1);
-        Assertions.assertThat(u1.getModifiedCount()).isEqualTo(1);
+        Assertions.assertThat(birthday.getMatchedCount()).isEqualTo(1);
+        Assertions.assertThat(birthday.getModifiedCount()).isEqualTo(1);
     }
 
+    @Test
+    public void revampingOptions() {
+        DataAPIClientOptions options = new DataAPIClientOptions()
+                .destination(DataAPIDestination.ASTRA)
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("myKey"))
+                .addCaller("myCaller", "ssss")
+                .httpClientOptions(new HttpClientOptions()
+                        .httpVersion(HttpClient.Version.HTTP_2)
+                        .httpRedirect(HttpClient.Redirect.NORMAL))
+                .timeoutOptions(new TimeoutOptions()
+                        .requestTimeoutMillis(1000));
+
+        DataAPIClient client = new DataAPIClient("token", options);
+
+        Database database1 = client.getDatabase("endpoint");
+
+        Database database2 = client.getDatabase("endpoints",
+                new DatabaseOptions("token" , options).keyspace("otherKeyspace"));
+
+        database2.getOptions().getDataAPIClientOptions();
+        Table<Row> table = database1.getTable("table");
+    }
 
 }

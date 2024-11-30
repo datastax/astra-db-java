@@ -20,7 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
@@ -51,13 +51,13 @@ public class ExecutionInfos implements Serializable {
      * The original command request that was executed. This field provides access to the details of the
      * command that triggered the execution, allowing observers to understand what operation was performed.
      */
-    private final CommandOptions<?> commandOptions;
+    private final BaseOptions<?> baseOptions;
 
     /**
      * The original command request that was executed. This field provides access to the details of the
      * command that triggered the execution, allowing observers to understand what operation was performed.
      */
-    private final CommandOptions<?> overridingCommandOptions;
+    private final BaseOptions<?> overridingBaseOptions;
 
     /**
      * A map containing the HTTP headers from the request.
@@ -120,8 +120,8 @@ public class ExecutionInfos implements Serializable {
         this.executionDate       = builder.executionDate;
         this.requestUrl          = builder.requestUrl;
         this.serializer          = builder.serializer;
-        this.commandOptions      = builder.commandOptions;
-        this.overridingCommandOptions = builder.specialOptions;
+        this.baseOptions = builder.baseOptions;
+        this.overridingBaseOptions = builder.specialOptions;
     }
 
     /**
@@ -139,8 +139,8 @@ public class ExecutionInfos implements Serializable {
      */
     public static class DataApiExecutionInfoBuilder {
         private Command command;
-        private CommandOptions<?> commandOptions;
-        private CommandOptions<?> specialOptions;
+        private BaseOptions<?> baseOptions;
+        private BaseOptions<?> specialOptions;
         private DataAPIResponse response;
         private long executionTime;
         private int responseHttpCode;
@@ -173,26 +173,26 @@ public class ExecutionInfos implements Serializable {
         /**
          * Populate after http call.
          *
-         * @param commandOptions
+         * @param baseOptions
          *      current command options
          * @return
          *      current reference
          */
-        public DataApiExecutionInfoBuilder withCommandOptions(CommandOptions<?> commandOptions) {
-            this.commandOptions = commandOptions;
+        public DataApiExecutionInfoBuilder withCommandOptions(BaseOptions<?> baseOptions) {
+            this.baseOptions = baseOptions;
             return this;
         }
 
         /**
          * Populate after http call.
          *
-         * @param commandOptions
+         * @param baseOptions
          *      special commands
          * @return
          *      current reference
          */
-        public DataApiExecutionInfoBuilder withOverrideCommandOptions(CommandOptions<?> commandOptions) {
-            this.specialOptions = commandOptions;
+        public DataApiExecutionInfoBuilder withOverrideCommandOptions(BaseOptions<?> baseOptions) {
+            this.specialOptions = baseOptions;
             return this;
         }
 

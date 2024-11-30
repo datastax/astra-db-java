@@ -26,16 +26,18 @@ import com.datastax.astra.client.tables.columns.ColumnTypes;
 import lombok.Data;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 @Data
 public class EntityFieldDefinition {
 
     // --- Java Types --
-
     private String   name;
     private Class<?> type;
     private Method   getter;
     private Method   setter;
+    private Class<?> genericValueType;
+    private Class<?> genericKeyType;
 
     // --- Table Hints --
 

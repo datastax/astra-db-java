@@ -21,33 +21,25 @@ package com.datastax.astra.client.tables.index;
  */
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Options for the Index definitions
- * Using booleans as those flag could be null.
+ * Index Definitions.
  */
-@Data @NoArgsConstructor
-public class IndexDefinitionOptions {
+@Getter
+@NoArgsConstructor
+public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
 
-    Boolean ascii;
+    TableVectorIndexDefinitionOptions options;
 
-    Boolean normalize;
-
-    Boolean caseSensitive;
-
-    public IndexDefinitionOptions ascii(boolean ascii) {
-        this.ascii = ascii;
+    public TableVectorIndexDefinition column(String column) {
+        this.column = column;
         return this;
     }
 
-    public IndexDefinitionOptions normalize(boolean normalize) {
-        this.normalize = normalize;
-        return this;
-    }
-
-    public IndexDefinitionOptions caseSensitive(boolean caseSensitive) {
-        this.caseSensitive = caseSensitive;
+    public TableVectorIndexDefinition options(TableVectorIndexDefinitionOptions options) {
+        this.options = options;
         return this;
     }
 

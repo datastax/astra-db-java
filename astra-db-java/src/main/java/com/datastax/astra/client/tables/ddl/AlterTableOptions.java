@@ -20,17 +20,19 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.commands.CommandType;
 import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-@Getter
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
+
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class AlterTableOptions {
+public class AlterTableOptions extends BaseOptions<AlterTableOptions> {
 
     /** Improve syntax. */
     public static final AlterTableOptions IF_EXISTS = new AlterTableOptions().ifExists(true);
@@ -39,6 +41,10 @@ public class AlterTableOptions {
      * Condition to upsert the table.
      */
     boolean ifExists = true;
+
+    public AlterTableOptions() {
+        super(null, CommandType.TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
+    }
 
     /**
      * Accessor for serialization.

@@ -20,7 +20,7 @@ package com.datastax.astra.client.tables.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandOptions;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,7 +34,7 @@ import lombok.experimental.Accessors;
 @Getter @Setter
 @NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class TableUpdateOneOptions extends CommandOptions<TableUpdateOneOptions> {
+public class TableUpdateOneOptions extends BaseOptions<TableUpdateOneOptions> {
 
     /**
      * if upsert is selected

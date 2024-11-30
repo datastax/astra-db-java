@@ -20,21 +20,21 @@ package com.datastax.astra.client.tables.ddl;
  * #L%
  */
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.datastax.astra.client.core.commands.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
+
 /**
  * Set of options used when creating a table
  */
-@Getter
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CreateIndexOptions {
+public class CreateIndexOptions extends BaseOptions<CreateIndexOptions> {
 
     /** Improve syntax. */
     public static final CreateIndexOptions IF_NOT_EXISTS = new CreateIndexOptions().ifNotExists(true);
@@ -43,6 +43,10 @@ public class CreateIndexOptions {
      * Condition to upsert the table.
      */
     boolean ifNotExists = true;
+
+    public CreateIndexOptions() {
+        super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
+    }
 
     /**
      * Accessor for serialization.

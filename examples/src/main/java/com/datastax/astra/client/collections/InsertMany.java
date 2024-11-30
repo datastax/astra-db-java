@@ -43,7 +43,7 @@ public class InsertMany {
                 .concurrency(1) // parallel processing
                 .ordered(false) // allows parallel processing
                 .timeoutOptions(new TimeoutOptions()
-                        .dataOperationTimeoutMillis(50000)
+                        .generalMethodTimeoutMillis(50000)
                         .requestTimeoutMillis(2000)); // timeout in millis
 
         CollectionInsertManyResult res2 = collectionProduct.insertMany(

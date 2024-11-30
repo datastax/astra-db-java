@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.index;
+package com.datastax.astra.client.collections;
 
 /*-
  * #%L
@@ -20,52 +20,36 @@ package com.datastax.astra.client.tables.index;
  * #L%
  */
 
-import com.datastax.astra.internal.serdes.tables.RowSerializer;
+import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
-public class VectorIndexDescriptor {
+/**
+ * Represents the Collection definition with its name and metadata.
+ */
+@Getter @Setter
+public class CollectionDescriptor {
 
     /**
-     * Name of the table.
+     * Name of the collection.
      */
     private String name;
 
     /**
-     * Options for the table.
+     * Options for the collection.
      */
-    private VectorIndexDefinition definition;
+    private CollectionDefinition options;
 
     /**
      * Default constructor.
      */
-    public VectorIndexDescriptor() {
+    public CollectionDescriptor() {
         // left blank, serialization with jackson
-    }
-
-    /**
-     * Default constructor.
-     */
-    public VectorIndexDescriptor(String name) {
-        // left blank, serialization with jackson
-        this.name = name;
-    }
-
-    public VectorIndexDescriptor name(String name) {
-        this.name = name;
-        return this;
-    }
-
-    public VectorIndexDescriptor definition(VectorIndexDefinition def) {
-        this.definition = def;
-        return this;
     }
 
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return new RowSerializer().marshall(this);
+        return new DocumentSerializer().marshall(this);
     }
 }

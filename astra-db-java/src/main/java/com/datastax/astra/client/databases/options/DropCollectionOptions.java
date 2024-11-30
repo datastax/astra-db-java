@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.index;
+package com.datastax.astra.client.databases.options;
 
 /*-
  * #%L
@@ -20,27 +20,14 @@ package com.datastax.astra.client.tables.index;
  * #L%
  */
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.datastax.astra.client.core.commands.BaseOptions;
 
-/**
- * Index Definitions.
- */
-@Data @NoArgsConstructor
-public class VectorIndexDefinition {
+import static com.datastax.astra.client.collections.Collection.DEFAULT_COLLECTION_SERIALIZER;
+import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
-    String column;
+public class DropCollectionOptions extends BaseOptions<DropCollectionOptions> {
 
-    VectorIndexDefinitionOptions options;
-
-    public VectorIndexDefinition column(String column) {
-        this.column = column;
-        return this;
+    public DropCollectionOptions() {
+        super(null, COLLECTION_ADMIN, DEFAULT_COLLECTION_SERIALIZER, null);
     }
-
-    public VectorIndexDefinition options(VectorIndexDefinitionOptions options) {
-        this.options = options;
-        return this;
-    }
-
 }

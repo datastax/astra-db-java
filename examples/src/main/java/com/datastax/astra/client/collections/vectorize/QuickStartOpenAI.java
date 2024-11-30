@@ -2,7 +2,7 @@ package com.datastax.astra.client.collections.vectorize;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionOptions;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.documents.Document;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Sort;
@@ -11,6 +11,7 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
 import static com.datastax.astra.client.DataAPIDestination.CASSANDRA;
-import static com.datastax.astra.client.admin.AstraDBAdmin.DEFAULT_KEYSPACE;;
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 
 /**
  * This demo want to illustrate how to use the java client in GenAI Context
@@ -35,15 +36,14 @@ public class QuickStartOpenAI {
         String dataAPICassandraToken =  new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
 
         // Create the Client, option is provided at top level and will be available
-        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, DataAPIClientOptions.builder()
-              .withDestination(CASSANDRA)
-              .withEmbeddingAPIKey(embeddingApiKey)
-              .withObserver(new LoggingCommandObserver(DataAPIClient.class))
-              .build());
+        DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, new DataAPIClientOptions()
+              .destination(CASSANDRA)
+              .embeddingAPIKey(embeddingApiKey)
+              .logRequests());
 
         // Access to the database
         Database localDb = localDataAPI
-                .getDatabase(DEFAULT_ENDPOINT_LOCAL, DEFAULT_KEYSPACE);
+                .getDatabase(DEFAULT_ENDPOINT_LOCAL, new DatabaseOptions().keyspace("ks1"));
 
         // Create a Namespace if Needed
         localDb.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
@@ -52,12 +52,11 @@ public class QuickStartOpenAI {
         Collection<Document> collection = localDb.createCollection(
                 embeddingModel.name().toLowerCase(),
                 // Create collection with a Service in vectorize
-                CollectionOptions.builder()
+                new CollectionDefinition()
                         .indexingAllow()
                         .vectorDimension(embeddingModel.getDimension())
                         .vectorSimilarity(SimilarityMetric.COSINE)
-                        .vectorize(embeddingModel.getProvider(), embeddingModel.getName())
-                        .build());
+                        .vectorize(embeddingModel.getProvider(), embeddingModel.getName()));
 
         // Insert documents
         collection.deleteAll();

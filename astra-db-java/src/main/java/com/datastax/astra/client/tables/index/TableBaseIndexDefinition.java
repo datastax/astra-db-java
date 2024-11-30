@@ -20,27 +20,16 @@ package com.datastax.astra.client.tables.index;
  * #L%
  */
 
-import lombok.Data;
+
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * Index Definitions.
- */
-@Data @NoArgsConstructor
-public class IndexDefinition {
+@Getter
+@NoArgsConstructor
+public abstract class TableBaseIndexDefinition {
 
-    String column;
+    protected String column;
 
-    IndexDefinitionOptions options;
-
-    public IndexDefinition column(String column) {
-        this.column = column;
-        return this;
-    }
-
-    public IndexDefinition options(IndexDefinitionOptions options) {
-        this.options = options;
-        return this;
-    }
+    protected TableIndexDefinitionApiSupport apiSupport;
 
 }

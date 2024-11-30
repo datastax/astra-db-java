@@ -30,7 +30,7 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
     @Override
     protected Database getDatabase() {
         if (database == null) {
-            database = DataAPIClients.defaultLocalDatabase();
+            database = DataAPIClients.localDbWithDefaultKeyspace();
         }
         return database;
     }
@@ -53,7 +53,7 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
     }
 
     @Test
-    void shouldCreateNamespaceNetworkStrategy() {
+    void shouldCreateKeyspaceNetworkStrategy() {
         // Given
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) getDatabaseAdmin();
         // When
@@ -75,9 +75,9 @@ class LocalDatabaseAdminITTest extends AbstractDatabaseAdminITTest {
         // non-passing case
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropKeyspace(null))
-                .withMessage("Parameter 'namespaceName' should be null nor empty");
+                .withMessage("Parameter 'keyspace' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin.dropKeyspace(""))
-                .withMessage("Parameter 'namespaceName' should be null nor empty");
+                .withMessage("Parameter 'keyspace' should be null nor empty");
     }
 }

@@ -1,22 +1,24 @@
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.CollectionDefinition;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.commands.CommandOptions;
-import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.databases.options.CreateCollectionOptions;
 import com.datastax.astra.client.keyspaces.KeyspaceOptions;
 
 import java.util.Optional;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
 import static com.datastax.astra.client.DataAPIDestination.HCD;
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.builder;
 import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class QuickStartHCD {
@@ -41,7 +43,7 @@ public class QuickStartHCD {
         System.out.println("1/7 - Creating Token: " + token);
 
         // Initialize the client
-        DataAPIClient client = new DataAPIClient(token, builder().withDestination(HCD).build());
+        DataAPIClient client = new DataAPIClient(token, new DataAPIClientOptions().destination(HCD));
         System.out.println("2/7 - Connected to Data API");
 
         // Create a default keyspace
@@ -51,16 +53,19 @@ public class QuickStartHCD {
                 .createKeyspace(keyspaceName, KeyspaceOptions.simpleStrategy(1));
         System.out.println("3/7 - Keyspace '" + keyspaceName + "'created ");
 
-        Database db = client.getDatabase(dataApiUrl, keyspaceName);
+        DatabaseOptions options = new DatabaseOptions().keyspace(keyspaceName);
+        Database db = client.getDatabase(dataApiUrl, options);
         System.out.println("4/7 - Connected to Database");
 
         // Create a collection with Vector embeddings OPEN AI
-        Collection<Document> collectionLyrics = db.createCollection(collectionName, CollectionOptions.builder()
+        CollectionDefinition cd = new CollectionDefinition()
                 .vectorSimilarity(SimilarityMetric.COSINE)
                 .vectorDimension(openAiEmbeddingDimension)
-                .vectorize(openAiProvider, openAiModel)
-                .build(),
-                new CommandOptions<>().embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(openAiKey)));
+                .vectorize(openAiProvider, openAiModel);
+        CreateCollectionOptions createCollectionOptions = new CreateCollectionOptions()
+                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(openAiKey));
+        Collection<Document> collectionLyrics = db.createCollection(collectionName, cd, Document.class,
+                createCollectionOptions, new CollectionOptions());
         System.out.println("5/7 - Collection created with OpenAI embeddings");
 
         // Insert some documents
