@@ -166,6 +166,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         this.database  = db;
         this.rowClass  = rowClass;
         this.options.serializer(DEFAULT_TABLE_SERIALIZER);
+        if (tableOptions.getKeyspace() != null) {
+            this.database.useKeyspace(tableOptions.getKeyspace());
+        }
     }
 
     // ----------------------------

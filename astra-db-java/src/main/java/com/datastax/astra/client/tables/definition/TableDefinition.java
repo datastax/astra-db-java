@@ -29,69 +29,186 @@ import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVecto
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
-@Data @NoArgsConstructor
+@Data
 public class TableDefinition {
 
     private LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
 
     private TablePrimaryKey primaryKey = new TablePrimaryKey();
 
+    /**
+     * Default constructor.
+     */
+    public TableDefinition() {
+    }
+
+    /**
+     * Adds a column to the table definition.
+     *
+     * @param columnName the name of the column
+     * @param columnDefinition the definition of the column
+     * @return the updated {@link TableDefinition} instance
+     * @throws IllegalArgumentException if {@code columnName} is null
+     */
     public TableDefinition addColumn(String columnName, ColumnDefinition columnDefinition) {
         Assert.notNull(columnName, "Column columnName");
         columns.put(columnName, columnDefinition);
         return this;
     }
 
+    /**
+     * Adds a column to the table with a specific type.
+     *
+     * @param name the name of the column
+     * @param type the type of the column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumn(String name, ColumnTypes type) {
         columns.put(name, new ColumnDefinition(type));
         return this;
     }
 
+    /**
+     * Adds a text column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnText(String name) {
         return addColumn(name, ColumnTypes.TEXT);
     }
 
+    /**
+     * Adds an ascii column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnAscii(String name) {
+        return addColumn(name, ColumnTypes.ASCII);
+    }
+
+    /**
+     * Adds an integer column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnInt(String name) {
         return addColumn(name, ColumnTypes.INT);
     }
+
+    /**
+     * Adds a timestamp column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnTimestamp(String name) {
         return addColumn(name, ColumnTypes.TIMESTAMP);
     }
 
+    /**
+     * Adds a boolean column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnBoolean(String name) {
         return addColumn(name, ColumnTypes.BOOLEAN);
     }
 
+    /**
+     * Adds a boolean column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnBigInt(String name) {
+        return addColumn(name, ColumnTypes.BIGINT);
+    }
+
+    /**
+     * Adds a blob column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnBlob(String name) {
+        return addColumn(name, ColumnTypes.BLOB);
+    }
+
+    /**
+     * Adds a list column to the table.
+     *
+     * @param name the name of the column
+     * @param valueType the type of the elements in the list
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnList(String name, ColumnTypes valueType) {
         columns.put(name, new ColumnDefinitionList(valueType));
         return this;
     }
 
+    /**
+     * Adds a set column to the table.
+     *
+     * @param name the name of the column
+     * @param valueType the type of the elements in the set
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnSet(String name, ColumnTypes valueType) {
         columns.put(name, new ColumnDefinitionSet(valueType));
         return this;
     }
 
-    public TableDefinition addColumnMap(String name,  ColumnTypes keyType, ColumnTypes valueType) {
+    /**
+     * Adds a map column to the table.
+     *
+     * @param name the name of the column
+     * @param keyType the type of the keys in the map
+     * @param valueType the type of the values in the map
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnMap(String name, ColumnTypes keyType, ColumnTypes valueType) {
         columns.put(name, new ColumnDefinitionMap(keyType, valueType));
         return this;
     }
 
+    /**
+     * Adds a vector column to the table.
+     *
+     * @param name the name of the column
+     * @param colDefVector the definition of the vector column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addColumnVector(String name, ColumnDefinitionVector colDefVector) {
-        columns.put(name,colDefVector);
+        columns.put(name, colDefVector);
         return this;
     }
 
+    /**
+     * Adds a partition key to the table's primary key.
+     *
+     * @param partitionKey the name of the partition key column
+     * @return the updated {@link TableDefinition} instance
+     */
     public TableDefinition addPartitionBy(String partitionKey) {
         primaryKey.getPartitionBy().add(partitionKey);
         return this;
     }
 
+    /**
+     * Adds a sort column to the table's primary key.
+     *
+     * @param column the sort column to add
+     * @return the updated {@link TableDefinition} instance
+     * @throws IllegalArgumentException if {@code column} is null or invalid
+     */
     public TableDefinition addPartitionSort(Sort column) {
         Assert.notNull(column, "Column");
         Assert.notNull(column.getOrder(), "column order");
@@ -103,6 +220,13 @@ public class TableDefinition {
         return this;
     }
 
+    /**
+     * Sets the partition keys for the table.
+     *
+     * @param partitionKeys the partition keys
+     * @return the updated {@link TableDefinition} instance
+     * @throws IllegalArgumentException if any of the partition keys are not valid columns
+     */
     public TableDefinition partitionKey(String... partitionKeys) {
         if (partitionKeys != null) {
             primaryKey.getPartitionBy().clear();
@@ -116,24 +240,22 @@ public class TableDefinition {
         return this;
     }
 
-    public TableDefinition partitionSort(Sort... clusteringColumns) {
-        return clusteringColumns(clusteringColumns);
-    }
-
-    public TableDefinition addClusteringColumn(Sort clusteringColumn) {
-        return addPartitionSort(clusteringColumn);
-    }
-
+    /**
+     * Sets the clustering columns for the table.
+     *
+     * @param clusteringColumns the clustering columns
+     * @return the updated {@link TableDefinition} instance
+     * @throws IllegalArgumentException if any of the clustering columns are not valid columns
+     */
     public TableDefinition clusteringColumns(Sort... clusteringColumns) {
         if (clusteringColumns != null) {
             primaryKey.setPartitionSort(new LinkedHashMap<>());
             Arrays.asList(clusteringColumns).forEach(cc -> {
-                    if (!columns.containsKey(cc.getField())) {
-                        throw new IllegalArgumentException("Cannot create primaryKey: Column '" + cc.getField() + "' has not been found in table");
-                    }
-                    primaryKey.getPartitionSort().put(cc.getField(), cc.getOrder().getCode());
-               }
-            );
+                if (!columns.containsKey(cc.getField())) {
+                    throw new IllegalArgumentException("Cannot create primaryKey: Column '" + cc.getField() + "' has not been found in table");
+                }
+                primaryKey.getPartitionSort().put(cc.getField(), cc.getOrder().getCode());
+            });
         }
         return this;
     }

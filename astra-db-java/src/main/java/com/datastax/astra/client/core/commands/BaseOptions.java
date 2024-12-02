@@ -20,6 +20,7 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
+import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
@@ -162,6 +163,19 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
         Assert.notNull(embeddingAuthProvider, "embeddingAuthProvider");
         getDataAPIClientOptions().embeddingAuthProvider(embeddingAuthProvider);
         return (T) this;
+    }
+
+    /**
+     * Provide the embedding service API key.
+     *
+     * @param apiKey
+     *      target api key
+     * @return
+     *      service key
+     */
+    public T embeddingApiKey(String apiKey) {
+        Assert.hasLength(apiKey, "apiKey");
+        return embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(apiKey));
     }
 
     /**

@@ -196,6 +196,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         this.collectionName = collectionName;
         this.documentClass  = documentClass;
         this.options.serializer(new DocumentSerializer());
+        if (collectionOptions.getKeyspace() != null) {
+            this.database.useKeyspace(collectionOptions.getKeyspace());
+        }
     }
 
     // ----------------------------

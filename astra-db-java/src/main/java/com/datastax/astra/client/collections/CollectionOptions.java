@@ -36,6 +36,11 @@ import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADM
 public class CollectionOptions extends BaseOptions<CollectionOptions> {
 
     /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+
+    /**
      * Default constructor nor overriding token nor options
      * but stilling setting the default timeouts and serializer
      * for collection.
@@ -54,6 +59,15 @@ public class CollectionOptions extends BaseOptions<CollectionOptions> {
      */
     public CollectionOptions(String token, DataAPIClientOptions options) {
         super(token, COLLECTION_ADMIN, DEFAULT_COLLECTION_SERIALIZER, options);
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }

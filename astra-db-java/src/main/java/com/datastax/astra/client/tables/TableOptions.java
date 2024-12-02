@@ -35,6 +35,14 @@ import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 @Accessors(fluent = true, chain = true)
 public class TableOptions extends BaseOptions<TableOptions> {
 
+    /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+
+    /**
+     * Default constructor nor overriding token nor options
+     */
     public TableOptions() {
         this(null, null);
     }
@@ -49,6 +57,15 @@ public class TableOptions extends BaseOptions<TableOptions> {
      */
     public TableOptions(String token, DataAPIClientOptions options) {
         super(token, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, options);
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }

@@ -18,44 +18,45 @@ import static java.time.Duration.ofSeconds;
 
 public class CreateTable {
 
-    public static void main(String[] args) {
+ public static void main(String[] args) {
+  // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
+  Database db = DataAPIClients.localDbWithDefaultKeyspace();
 
-        // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+  // Definition of the table in fluent style
+  TableDefinition tableDefinition = new TableDefinition()
+   .addColumnText("match_id")
+   .addColumnInt("round")
+   .addColumnVector("m_vector", 
+     new ColumnDefinitionVector().dimension(3).metric(COSINE))
+   .addColumn("score", ColumnTypes.INT)
+   .addColumn("when",  ColumnTypes.TIMESTAMP)
+   .addColumn("winner",  ColumnTypes.TEXT)
+   .addColumnSet("fighters", ColumnTypes.UUID)
+   .addPartitionBy("match_id")
+   .addPartitionSort(ascending("round"));
 
-        // Definition of the table in fluent style
-        TableDefinition tableDefinition = new TableDefinition()
-                .addColumnText("match_id")
-                .addColumnInt("round")
-                .addColumnVector("m_vector", new ColumnDefinitionVector().dimension(3).metric(COSINE))
-                .addColumn("score", ColumnTypes.INT)
-                .addColumn("when",  ColumnTypes.TIMESTAMP)
-                .addColumn("winner",  ColumnTypes.TEXT)
-                .addColumnSet("fighters", ColumnTypes.UUID)
-                .addPartitionBy("match_id")
-                .addPartitionSort(ascending("round"));
+  // Minimal creation
+  Table<Row> table1 =
+    db.createTable("game1", tableDefinition);
 
-        // Minimal creation
-        Table<Row> table1 = db.createTable("game1", tableDefinition);
+  // Minimal Creation with a Bean
+  Table<Game> table2 =
+    db.createTable("game2", tableDefinition, Game.class);
 
-        // Minimal Creation with a Bean
-        Table<Game> table2 = db.createTable("game2", tableDefinition, Game.class);
+  // One can add options to setup the creation with finer grained:
+  CreateTableOptions createTableOptions = new CreateTableOptions()
+   .ifNotExists(true)
+   .timeout(ofSeconds(5));
+  Table<Row> table3 =
+    db.createTable("game3", tableDefinition, createTableOptions);
 
-        // -- options --
+  // One can can tuned the table object returned by the function
+  TableOptions tableOptions = new TableOptions()
+    .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
+    .timeout(ofSeconds(5));
 
-        // One can add options to setup the creation with finer grained:
-        CreateTableOptions createTableOptions = new CreateTableOptions()
-                .ifNotExists(true)
-                .timeout(ofSeconds(5));
-        Table<Row> table3 = db.createTable("game3", tableDefinition, createTableOptions);
-
-        // One can can tuned the table object returned by the function
-        TableOptions tableOptions = new TableOptions()
-                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
-                .timeout(ofSeconds(5));
-
-        // Change the Type of objects in use instead of default Row
-        Table<Row> table4 = db.createTable("game4", tableDefinition,Row.class,
-                createTableOptions, tableOptions);
-    }
+  // Change the Type of objects in use instead of default Row
+  Table<Row> table4 = db.createTable("game4", tableDefinition,Row.class,
+    createTableOptions, tableOptions);
+ }
 }

@@ -614,9 +614,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @throws IllegalArgumentException if the collection name is {@code null} or empty.
      */
     public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {
-        return getCollection(collectionName, new CollectionOptions(
-                options.getToken(),
-                options.getDataAPIClientOptions()), documentClass);
+        return getCollection(collectionName, defaultCollectionOptions(), documentClass);
     }
 
     /**
@@ -787,7 +785,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                 documentClass,
                 // No create collection options
                 null,
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions())
+                defaultCollectionOptions()
                 );
     }
 
@@ -831,7 +829,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                 def,
                 documentClass,
                 null,
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions()));
+                defaultCollectionOptions());
     }
 
     /**
@@ -905,6 +903,18 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public void dropCollection(String collectionName) {
         dropCollection(collectionName, null);
+    }
+
+    /**
+     * Initialize a TableOption from the current database options.
+     *
+     * @return
+     *      default table options
+     */
+    private CollectionOptions defaultCollectionOptions() {
+        return new CollectionOptions(this.options.getToken(),
+                this.options.getDataAPIClientOptions())
+                .keyspace(getKeyspace());
     }
 
     // ------------------------------------------
@@ -1031,7 +1041,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * }
      * </pre>
      */
-    public <T> Table<T> getTable(String tableName, TableOptions tableOptions, Class<T> rowClass) {
+    public <T> Table<T> getTable(String tableName, Class<T> rowClass, TableOptions tableOptions) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
         return new Table<>(this, tableName, tableOptions, rowClass);
@@ -1073,9 +1083,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public <T> Table<T> getTable(String tableName, Class<T> rowClass) {
-        return getTable(tableName, new TableOptions(
-                options.getToken(),
-                options.getDataAPIClientOptions()), rowClass);
+        return getTable(tableName, rowClass, defaultTableOptions());
     }
 
     /**
@@ -1095,7 +1103,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public Table<Row> getTable(String tableName, TableOptions tableOptions) {
-        return getTable(tableName, tableOptions, Row.class);
+        return getTable(tableName,  Row.class, tableOptions);
     }
 
     /**
@@ -1187,7 +1195,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             createTable.append("options", creatTableOptions);
         }
         runCommand(createTable, tableOptions);
-        return getTable(tableName, tableOptions, rowClass);
+        return getTable(tableName, rowClass, tableOptions);
     }
 
     /**
@@ -1200,8 +1208,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition, rowClass, new CreateTableOptions(),
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
+        return createTable(tableName, tableDefinition, rowClass, new CreateTableOptions(), defaultTableOptions());
     }
 
     /**
@@ -1226,8 +1233,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(tableName, tableDefinition, rowClass, createTableOptions,
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
+        return createTable(tableName, tableDefinition, rowClass, createTableOptions, defaultTableOptions());
     }
 
     /**
@@ -1262,7 +1268,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(getTableName(rowClass), rowClass, createTableOptions, new TableOptions());
+        return createTable(getTableName(rowClass), rowClass, createTableOptions, defaultTableOptions());
     }
 
     /**
@@ -1287,7 +1293,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             createTable.append("options", createTableOptions);
         }
         runCommand(createTable, createTableOptions);
-        return getTable(tableName, tableOptions, rowClass);
+        return getTable(tableName, rowClass, tableOptions);
     }
 
     /**
@@ -1307,6 +1313,18 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             throw new IllegalArgumentException("Annotation @Table on class " + rowClass.getName() + " has no name");
         }
         return ann.value();
+    }
+
+    /**
+     * Initialize a TableOption from the current database options.
+     *
+     * @return
+     *      default table options
+     */
+    private TableOptions defaultTableOptions() {
+        return new TableOptions(this.options.getToken(),
+                this.options.getDataAPIClientOptions())
+                .keyspace(getKeyspace());
     }
 
     // -------------------------------------
