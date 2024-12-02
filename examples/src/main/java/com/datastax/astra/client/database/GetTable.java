@@ -14,8 +14,7 @@ import java.util.Map;
 public class GetTable {
 
  public static void main(String[] args) {
-  // Database astraDb =
-  // new DataAPIClient(token).getDatabase(endpoint);
+  // Database astraDb =  new DataAPIClient(token).getDatabase(endpoint);
   Database db =
     DataAPIClients.localDbWithDefaultKeyspace();
 
@@ -37,9 +36,5 @@ public class GetTable {
   // Typing + Options
   Table<Game> myTable4 =
    db.getTable("games", Game.class, new TableOptions());
-
-
-
-}
-
+ }
 }
