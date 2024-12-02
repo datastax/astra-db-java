@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.collections;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.UUIDv6;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;

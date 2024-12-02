@@ -23,10 +23,10 @@ package com.datastax.astra.client.tables;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.core.paging.TableCursor;
+import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
@@ -85,7 +85,7 @@ import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
-import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
+import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
@@ -253,11 +253,47 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---    alterTable     ----
     // --------------------------
 
-    public final void alter(AlterTableOperation operation) {
-        alter(operation, null);
+    /**
+     * Performs an alteration operation on the table with default options.
+     *
+     * <p>This method delegates to {@link #alter(AlterTableOperation, AlterTableOptions)}
+     * with {@code options} set to {@code null}.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @return a new {@link Table} instance representing the altered table.
+     */
+    public final Table<T> alter(AlterTableOperation operation) {
+        return alter(operation, null);
     }
 
-    public final void alter(AlterTableOperation operation, AlterTableOptions options) {
+    /**
+     * Performs an alteration operation on the table with the specified options.
+     *
+     * <p>This method delegates to {@link #alter(AlterTableOperation, AlterTableOptions, Class)}
+     * using the row class of the current table.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @param options   the options for the alteration operation; may be {@code null}.
+     * @return a new {@link Table} instance representing the altered table.
+     */
+    public final Table<T> alter(AlterTableOperation operation, AlterTableOptions options) {
+        return alter(operation, options, getRowClass());
+    }
+
+    /**
+     * Performs an alteration operation on the table with the specified options and row class.
+     *
+     * <p>This is the most granular method for altering a table. It builds and executes the command
+     * to perform the specified alteration operation, with optional parameters and custom row class.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @param options   the options for the alteration operation; may be {@code null}.
+     * @param clazz     the class representing the row type for the altered table; must not be {@code null}.
+     * @param <R>       the type of the rows in the altered table.
+     * @return a new {@link Table} instance of the specified row class representing the altered table.
+     * @throws NullPointerException if {@code operation} or {@code clazz} is {@code null}.
+     */
+    public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
         notNull(operation, "operation");
         Command alterTable = Command.create("alterTable")
                 .append("operation", new Document().append(operation.getOperationName(), operation));
@@ -265,10 +301,6 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             alterTable.append("options", options);
         }
         runCommand(alterTable, this.options);
-    }
-
-    public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
-        alter(operation, options);
         return new Table<>(database, tableName, this.options, clazz);
     }
 

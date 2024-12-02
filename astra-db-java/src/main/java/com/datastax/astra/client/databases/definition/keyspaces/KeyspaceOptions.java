@@ -1,4 +1,4 @@
-package com.datastax.astra.client.keyspaces;
+package com.datastax.astra.client.databases.definition.keyspaces;
 
 /*-
  * #%L
@@ -25,8 +25,8 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.datastax.astra.client.keyspaces.KeyspaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
-import static com.datastax.astra.client.keyspaces.KeyspaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
+import static com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
+import static com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
 
 /**
  * Options to create a Namespace.

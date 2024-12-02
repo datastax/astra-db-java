@@ -21,12 +21,12 @@ package com.datastax.astra.langchain4j.store.embedding;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;

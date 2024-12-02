@@ -13,7 +13,7 @@ import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
-import com.datastax.astra.client.keyspaces.KeyspaceOptions;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceOptions;
 
 import java.util.Optional;
 

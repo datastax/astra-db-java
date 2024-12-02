@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.paging;
+package com.datastax.astra.client.collections.commands.cursor;
 
 /*-
  * #%L
@@ -21,6 +21,7 @@ package com.datastax.astra.client.core.paging;
  */
 
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.paging.PageableIterable;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import lombok.extern.slf4j.Slf4j;
 

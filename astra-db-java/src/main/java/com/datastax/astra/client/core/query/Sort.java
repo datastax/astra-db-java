@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.query;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,5 @@
 /**
- * Domain model classes with {@code Requests}, {@code Results}, {@code Options} and {@code Iterables}.
+ * Core classes to interact both with Tables and Collections.
  */
 package com.datastax.astra.client.core;
 /*-

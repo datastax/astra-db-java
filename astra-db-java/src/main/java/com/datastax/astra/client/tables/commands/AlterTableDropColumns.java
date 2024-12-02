@@ -50,12 +50,6 @@ import java.util.Set;
 public final class AlterTableDropColumns implements AlterTableOperation {
 
     /**
-     * Flag indicating whether to include an "IF EXISTS" clause in the drop operation.
-     * If {@code true}, the operation will proceed only if the specified columns exist.
-     */
-    private Boolean ifExists = null;
-
-    /**
      * A set of column names to be dropped.
      * Ensures that column names are stored in insertion order with no duplicates.
      */
@@ -98,16 +92,5 @@ public final class AlterTableDropColumns implements AlterTableOperation {
     @Override
     public String getOperationName() {
         return "drop";
-    }
-
-    /**
-     * Enables the "IF EXISTS" clause for the drop operation.
-     * Ensures the operation only proceeds if the specified columns exist.
-     *
-     * @return this {@code AlterTableDropColumns} instance
-     */
-    public AlterTableDropColumns ifExists() {
-        this.ifExists = true;
-        return this;
     }
 }

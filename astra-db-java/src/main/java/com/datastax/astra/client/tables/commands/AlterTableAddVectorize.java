@@ -48,12 +48,6 @@ import java.util.Map;
 public class AlterTableAddVectorize implements AlterTableOperation {
 
     /**
-     * Flag indicating whether to include an "IF NOT EXISTS" clause in the operation.
-     * If {@code true}, the operation will not fail if the specified columns already exist.
-     */
-    private Boolean ifNotExists = null;
-
-    /**
      * A map of column names to their respective {@link VectorServiceOptions} configurations.
      * Represents the vectorized columns to be added to the table.
      */
@@ -96,17 +90,6 @@ public class AlterTableAddVectorize implements AlterTableOperation {
      */
     public AlterTableAddVectorize columns(Map<String, VectorServiceOptions> columns) {
         this.columns = columns;
-        return this;
-    }
-
-    /**
-     * Enables the "IF NOT EXISTS" clause for the add operation.
-     * Ensures the operation does not fail if the specified columns already exist.
-     *
-     * @return this {@code AlterTableAddVectorize} instance
-     */
-    public AlterTableAddVectorize ifNotExists() {
-        this.ifNotExists = true;
         return this;
     }
 }

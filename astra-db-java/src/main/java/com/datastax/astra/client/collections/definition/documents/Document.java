@@ -36,8 +36,8 @@ package com.datastax.astra.client.collections.definition.documents;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;

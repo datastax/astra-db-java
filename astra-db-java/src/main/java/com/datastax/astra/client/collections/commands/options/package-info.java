@@ -1,5 +1,7 @@
-package com.datastax.astra.client.core.results;
-
+/**
+ * Options and Inputs for Collections commands.
+ */
+package com.datastax.astra.client.collections.commands.options;
 /*-
  * #%L
  * Data API Java Client
@@ -19,25 +21,3 @@ package com.datastax.astra.client.core.results;
  * limitations under the License.
  * #L%
  */
-
-import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.util.Map;
-
-/**
- * Wrapper to get information about the findEmbeddingProviders.
- */
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
-public class FindEmbeddingProvidersResult {
-
-    /**
-     * List of embedding providers
-     */
-    Map<String, EmbeddingProvider> embeddingProviders;
-
-}

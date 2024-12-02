@@ -16,6 +16,7 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.commands.options.AlterTableOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
@@ -113,8 +114,6 @@ public class LocalTableITTest extends AbstractTableITTest {
         db.dropTableIndex(INDEX_ALL_RETURNS_PTEXT, DropTableIndexOptions.IF_EXISTS);
         db.dropTableIndex(INDEX_ALL_RETURNS_VECTOR, DropTableIndexOptions.IF_EXISTS);
 
-        System.out.println("ok");
-        System.out.println(new RowSerializer().marshall(db.getOptions()));
         db.dropTable(TABLE_SIMPLE, IF_EXISTS);
         db.dropTable(TABLE_COMPOSITE, IF_EXISTS);
         db.dropTable(TABLE_ALL_RETURNS, IF_EXISTS);
@@ -446,6 +445,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         t.alter(new AlterTableDropColumns("vv", "new_column"));
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
         assertThat(t.getDefinition().getColumns().containsKey("new_column")).isFalse();
+
     }
 
     @Test

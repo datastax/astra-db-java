@@ -21,7 +21,7 @@ package com.datastax.astra.client.tables.definition.rows;
  */
 
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;

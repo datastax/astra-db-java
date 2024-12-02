@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.types;
+package com.datastax.astra.client.collections.definition.documents.types;
 
 /*-
  * #%L
@@ -22,33 +22,32 @@ package com.datastax.astra.client.core.types;
 
 import com.fasterxml.uuid.Generators;
 
-import java.security.SecureRandom;
 import java.util.UUID;
 
 /**
  * Materializing the UUIDv6 as a specialization class to drive serialization and deserialization.
  */
-public class UUIDv7 {
+public class UUIDv6 {
 
     /**
-     * intenal uuid,.
+     * UUID.
      */
     private final UUID uuid;
 
     /**
      * Default constructor.
      */
-    public UUIDv7() {
-        this(Generators.timeBasedEpochRandomGenerator(new SecureRandom()).generate());
+    public UUIDv6() {
+        this(Generators.timeBasedReorderedGenerator().generate());
     }
 
     /**
      * Constructor.
      *
      * @param uuid
-     *      unique identifier
+     *      uuid
      */
-    public UUIDv7(UUID uuid) {
+    public UUIDv6(UUID uuid) {
         this.uuid = uuid;
     }
 
@@ -76,8 +75,8 @@ public class UUIDv7 {
      * @return
      *      an instance of UUIDv6
      */
-    public static UUIDv7 fromString(String strUUID) {
-        return new UUIDv7(UUID.fromString(strUUID));
+    public static UUIDv6 fromString(String strUUID) {
+        return new UUIDv6(UUID.fromString(strUUID));
     }
 
 }

@@ -37,9 +37,9 @@ package com.datastax.astra.internal.serdes.collections;
  */
 
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
-import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.client.core.types.UUIDv6;
-import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.serdes.DataAPISerializer;

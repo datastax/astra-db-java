@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.commands;
+package com.datastax.astra.client.core.options;
 
 /*-
  * #%L
@@ -22,9 +22,8 @@ package com.datastax.astra.client.core.commands;
 
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.http.HttpClientOptions;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;

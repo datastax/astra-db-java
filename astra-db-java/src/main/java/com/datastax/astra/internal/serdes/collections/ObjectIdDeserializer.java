@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.collections;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;

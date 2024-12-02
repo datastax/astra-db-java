@@ -20,7 +20,7 @@ package com.datastax.astra.client.tables.commands.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import lombok.Setter;
 import lombok.experimental.Accessors;

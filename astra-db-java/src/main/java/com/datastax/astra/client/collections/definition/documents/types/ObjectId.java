@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.types;
+package com.datastax.astra.client.collections.definition.documents.types;
 
 /*-
  * #%L

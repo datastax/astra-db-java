@@ -50,12 +50,6 @@ import java.util.Set;
 public class AlterTableDropVectorize implements AlterTableOperation {
 
     /**
-     * Flag indicating whether to include an "IF EXISTS" clause in the drop operation.
-     * If {@code true}, the operation will proceed only if the specified columns exist.
-     */
-    private Boolean ifExists = null;
-
-    /**
      * A set of column names to be dropped.
      * Ensures that column names are stored in insertion order and no duplicates are included.
      */
@@ -92,17 +86,6 @@ public class AlterTableDropVectorize implements AlterTableOperation {
      */
     public AlterTableDropVectorize columns(String... columns) {
         this.columns.addAll(Arrays.asList(columns));
-        return this;
-    }
-
-    /**
-     * Enables the "IF EXISTS" clause for the drop operation.
-     * Ensures the operation only proceeds if the specified columns exist.
-     *
-     * @return this {@code AlterTableDropVectorize} instance
-     */
-    public AlterTableDropVectorize ifExists() {
-        this.ifExists = true;
         return this;
     }
 

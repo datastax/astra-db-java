@@ -27,7 +27,6 @@ import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionSet;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.LinkedHashMap;
@@ -57,12 +56,6 @@ import java.util.LinkedHashMap;
  */
 @Setter @Getter
 public final class AlterTableAddColumns implements AlterTableOperation {
-
-    /**
-     * Indicates whether the "IF NOT EXISTS" clause should be used in the operation.
-     * Defaults to {@code null}, meaning the clause is not applied.
-     */
-    Boolean ifNotExists = null;
 
     /**
      * A map of column names to their definitions.
@@ -175,16 +168,6 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      */
     public AlterTableAddColumns addColumnMap(String name, ColumnTypes keyType, ColumnTypes valueType) {
         columns.put(name, new ColumnDefinitionMap(keyType, valueType));
-        return this;
-    }
-
-    /**
-     * Specifies that the "IF NOT EXISTS" clause should be applied to this operation.
-     *
-     * @return the current instance for chaining.
-     */
-    public AlterTableAddColumns ifNotExists() {
-        this.ifNotExists = true;
         return this;
     }
 }

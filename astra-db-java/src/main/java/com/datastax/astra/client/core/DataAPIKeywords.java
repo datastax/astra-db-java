@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.datastax.astra.client.core.types;
+package com.datastax.astra.client.core;
 
 /*-
  * #%L

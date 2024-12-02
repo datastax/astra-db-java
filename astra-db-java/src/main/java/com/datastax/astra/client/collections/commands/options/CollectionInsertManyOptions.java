@@ -21,7 +21,7 @@ package com.datastax.astra.client.collections.commands.options;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

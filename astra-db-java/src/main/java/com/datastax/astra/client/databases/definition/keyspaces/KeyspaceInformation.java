@@ -1,4 +1,4 @@
-package com.datastax.astra.client.keyspaces;
+package com.datastax.astra.client.databases.definition.keyspaces;
 
 /*-
  * #%L

@@ -22,7 +22,7 @@ package com.datastax.astra.internal.utils;
 
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;

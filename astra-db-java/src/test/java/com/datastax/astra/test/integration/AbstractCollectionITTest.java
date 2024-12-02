@@ -15,13 +15,13 @@ import com.datastax.astra.client.collections.commands.results.CollectionInsertOn
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.core.paging.CollectionCursor;
-import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
+import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionDistinctIterable;
 import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
-import com.datastax.astra.client.core.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import lombok.extern.slf4j.Slf4j;

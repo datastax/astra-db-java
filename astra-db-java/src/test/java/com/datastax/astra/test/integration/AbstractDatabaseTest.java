@@ -8,9 +8,9 @@ import com.datastax.astra.client.collections.commands.results.CollectionInsertMa
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.client.core.types.UUIDv6;
-import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.exceptions.DataAPIException;
@@ -417,7 +417,6 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
 
         assertThat(getDatabase().listTableNames(options)).isNotEmpty();
         List<TableDescriptor> tables = getDatabase().listTables();
-        assertThat().isNotEmpty();
         assertThat(getDatabase().listTables(options)).isNotEmpty();
 
     }

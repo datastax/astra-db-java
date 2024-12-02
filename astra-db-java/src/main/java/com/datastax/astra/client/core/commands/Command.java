@@ -25,7 +25,7 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.commands.Update;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
