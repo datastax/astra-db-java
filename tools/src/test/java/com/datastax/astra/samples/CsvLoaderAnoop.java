@@ -1,9 +1,9 @@
 package com.datastax.astra.samples;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.tool.loader.csv.CsvLoader;
 import com.datastax.astra.tool.loader.csv.CsvLoaderSettings;
@@ -75,7 +75,7 @@ public class CsvLoaderAnoop {
             //   endValue.add(list);
             // }
             // }
-            return DocumentSerializer.unMarshallBean(carrier1, List.class).subList(0,5);
+            return  new DocumentSerializer().unMarshallBean(carrier1, List.class).subList(0,5);
         }
     }
 

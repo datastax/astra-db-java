@@ -1,12 +1,12 @@
 package dev.langchain4j.store.embedding.astradb;
 
-import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
-import com.datastax.astra.client.core.Document;
-import com.datastax.astra.internal.command.LoggingCommandObserver;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.langchain4j.store.embedding.AstraDbEmbeddingStore;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
@@ -18,7 +18,6 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIT;
-
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -76,12 +75,13 @@ class AstraDbEmbeddingStoreIT extends EmbeddingStoreIT {
          */
         db = databaseAdmin.getDatabase();
         Assertions.assertThat(db).isNotNull();
-        db.registerListener("logger", new LoggingCommandObserver(AstraDbEmbeddingStoreIT.class));
 
         // Select Collection
-        Collection<Document> collection = db.createCollection(TEST_COLLECTION, 1536, COSINE);
+        CollectionDefinition cd = new CollectionDefinition()
+                .vectorDimension(1536)
+                .vectorSimilarity(COSINE);
+        Collection<Document> collection = db.createCollection(TEST_COLLECTION, cd);
         Assertions.assertThat(collection).isNotNull();
-        collection.registerListener("logger", new LoggingCommandObserver(AstraDbEmbeddingStoreIT.class));
         collection.deleteAll();
         log.info("[init] - Collection create name={}", TEST_COLLECTION);
 
@@ -113,7 +113,10 @@ class AstraDbEmbeddingStoreIT extends EmbeddingStoreIT {
 
     @Test
     void testAddEmbeddingAndFindRelevant() {
-        Collection<Document> smallCollection = db.createCollection("SMALL", 11, COSINE);
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
+                .vectorDimension(11)
+                .vectorSimilarity(COSINE);
+        Collection<Document> smallCollection = db.createCollection("SMALL", collectionDefinition);
         EmbeddingStore<TextSegment> smallStore = new AstraDbEmbeddingStore(smallCollection);
 
         Embedding embedding = Embedding.from(new float[]{9.9F, 4.5F, 3.5F, 1.3F, 1.7F, 5.7F, 6.4F, 5.5F, 8.2F, 9.3F, 1.5F});
