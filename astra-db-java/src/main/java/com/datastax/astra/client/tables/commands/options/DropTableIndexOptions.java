@@ -45,6 +45,9 @@ public class DropTableIndexOptions extends BaseOptions<DropTableIndexOptions> {
      */
     private String keyspace;
 
+    /**
+     * Default constructor
+     */
     public DropTableIndexOptions() {
         super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }

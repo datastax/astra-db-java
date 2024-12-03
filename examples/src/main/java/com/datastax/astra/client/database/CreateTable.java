@@ -35,7 +35,7 @@ public class CreateTable {
    .addPartitionBy("match_id")
    .addPartitionSort(ascending("round"));
 
-  /*
+
   // Minimal creation
   Table<Row> table1 =
     db.createTable("games", tableDefinition);
@@ -43,7 +43,6 @@ public class CreateTable {
   // Minimal Creation with a Bean
   Table<Game> table2 =
     db.createTable("game2", tableDefinition, Game.class);
-*/
 
   // One can add options to setup the creation with finer grained:
   CreateTableOptions createTableOptions = new CreateTableOptions()
