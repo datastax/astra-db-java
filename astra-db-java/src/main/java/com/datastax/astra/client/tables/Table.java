@@ -834,6 +834,13 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         deleteMany(new Filter());
     }
 
+    /**
+     * Delete the current table
+     */
+    public void drop() {
+        getDatabase().dropTable(tableName);
+    }
+
     // --------------------------------
     // --- estimatedDocumentCount  ----
     // --------------------------------

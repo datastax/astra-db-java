@@ -15,8 +15,8 @@ public class AlterTableDropVectorizes {
   Table<Row> myTable1 = db.getTable("games");
 
   // Add A Columns
-  AlterTableDropVectorize dropColumn = new AlterTableDropVectorize("m_vector");
-  myTable1.alter(dropColumn);
+  AlterTableDropVectorize dropVectorize = new AlterTableDropVectorize("m_vector");
+  myTable1.alter(dropVectorize);
 
  }
 
