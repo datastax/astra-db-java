@@ -952,6 +952,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public List<String> listTableNames(ListTablesOptions listTablesOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTablesOptions != null && Utils.hasLength(listTablesOptions.getKeyspace())) {
+            String otherKeyspace = listTablesOptions.getKeyspace();
+            listTablesOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTableNames(listTablesOptions);
+        }
         return runCommand(Command.create("listTables"), listTablesOptions)
                 .getStatusKeyAsStringStream("tables")
                 .toList();
@@ -988,6 +997,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public List<TableDescriptor> listTables(ListTablesOptions listTableOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTableOptions != null && Utils.hasLength(listTableOptions.getKeyspace())) {
+            String otherKeyspace = listTableOptions.getKeyspace();
+            listTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTables(listTableOptions);
+        }
         Command findTables = Command
                 .create("listTables")
                 .withOptions(new Document().append("explain", true));
@@ -1044,7 +1062,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     public <T> Table<T> getTable(String tableName, Class<T> rowClass, TableOptions tableOptions) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        return new Table<>(this, tableName, tableOptions, rowClass);
+        Database db2 = new Database(this.rootEndpoint, this.options.clone());
+        return new Table<>(db2, tableName, tableOptions, rowClass);
     }
 
     /**

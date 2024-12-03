@@ -23,10 +23,9 @@ package com.datastax.astra.client.tables;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
@@ -48,6 +47,7 @@ import com.datastax.astra.client.tables.commands.options.TableUpdateOneOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.commands.results.TableUpdateResult;
+import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
@@ -83,9 +83,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
-import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
@@ -166,6 +166,12 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         this.database  = db;
         this.rowClass  = rowClass;
         this.options.serializer(DEFAULT_TABLE_SERIALIZER);
+        if (tableOptions.getToken() == null) {
+            this.options.token(db.getOptions().getToken());
+        }
+        if (tableOptions.getDataAPIClientOptions() == null) {
+            this.options.dataAPIClientOptions(db.getOptions().getDataAPIClientOptions()).clone();
+        }
         if (tableOptions.getKeyspace() != null) {
             this.database.useKeyspace(tableOptions.getKeyspace());
         }

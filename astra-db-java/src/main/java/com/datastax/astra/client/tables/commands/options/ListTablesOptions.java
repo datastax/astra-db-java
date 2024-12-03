@@ -21,13 +21,33 @@ package com.datastax.astra.client.tables.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 
+@Setter
+@Accessors(fluent = true, chain = true)
 public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
+
+    /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+
 
     public ListTablesOptions() {
         super(null, TABLE_ADMIN, new RowSerializer(), null);
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 }

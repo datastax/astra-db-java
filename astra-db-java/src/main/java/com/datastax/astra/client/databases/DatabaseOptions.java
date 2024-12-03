@@ -103,6 +103,7 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
     public DatabaseOptions clone() {
         // Cloning options, token, and serializer
         DatabaseOptions cloned = (DatabaseOptions) super.clone();
+        cloned.token    = token;
         cloned.keyspace = keyspace;
         return cloned;
     }

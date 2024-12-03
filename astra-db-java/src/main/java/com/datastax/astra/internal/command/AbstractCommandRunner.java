@@ -31,6 +31,7 @@ import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.utils.AnsiUtils;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
 import com.evanlennick.retry4j.Status;
@@ -175,6 +176,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     @Override
     public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {
 
+        log.debug("Running command: " + AnsiUtils.green("{}"), command.getName());
         // Initializing options with the Collection/Table/Database level options
         DataAPIClientOptions options = this.options.getDataAPIClientOptions();
 
@@ -227,6 +229,9 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         String token = this.options.getToken();
         if (overridingOptions != null && overridingOptions.getToken() != null) {
             token = overridingOptions.getToken();
+        }
+        if (token == null) {
+            throw new IllegalArgumentException("No token provided for the command");
         }
 
         // =======================
