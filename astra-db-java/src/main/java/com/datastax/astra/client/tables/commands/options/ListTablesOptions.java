@@ -37,7 +37,6 @@ public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
      */
     String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
-
     public ListTablesOptions() {
         super(null, TABLE_ADMIN, new RowSerializer(), null);
     }

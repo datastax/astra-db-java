@@ -21,6 +21,7 @@ package com.datastax.astra.client.tables.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -33,6 +34,8 @@ public class DropTableOptions extends BaseOptions<DropTableOptions> {
 
     /** Improve syntax. */
     public static final DropTableOptions IF_EXISTS = new DropTableOptions().ifExists(true);
+
+    private String keyspace;
 
     /**
      * Condition to upsert the table.
@@ -53,6 +56,13 @@ public class DropTableOptions extends BaseOptions<DropTableOptions> {
         return ifExists;
     }
 
-
-
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    @JsonIgnore
+    public String getKeyspace() {
+        return keyspace;
+    }
 }

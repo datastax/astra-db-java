@@ -21,6 +21,7 @@ package com.datastax.astra.client.tables.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -29,7 +30,7 @@ import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 @Setter
 @Accessors(fluent = true, chain = true)
-public class DropTableIndexOptions extends BaseOptions<DropTableOptions> {
+public class DropTableIndexOptions extends BaseOptions<DropTableIndexOptions> {
 
     /** Improve syntax. */
     public static final DropTableIndexOptions IF_EXISTS = new DropTableIndexOptions().ifExists(true);
@@ -38,6 +39,11 @@ public class DropTableIndexOptions extends BaseOptions<DropTableOptions> {
      * Condition to upsert the table.
      */
     boolean ifExists = true;
+
+    /**
+     * Keyspace where to execute this command
+     */
+    private String keyspace;
 
     public DropTableIndexOptions() {
         super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
@@ -53,4 +59,13 @@ public class DropTableIndexOptions extends BaseOptions<DropTableOptions> {
         return ifExists;
     }
 
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    @JsonIgnore
+    public String getKeyspace() {
+        return keyspace;
+    }
 }

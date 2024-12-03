@@ -22,6 +22,7 @@ package com.datastax.astra.client.tables.commands.options;
 
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -36,6 +37,11 @@ public class CreateTableOptions extends BaseOptions<CreateTableOptions> {
 
     /** Improve syntax. */
     public static final CreateTableOptions IF_NOT_EXISTS = new CreateTableOptions().ifNotExists(true);
+
+    /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
     /**
      * Condition to upsert the table.
@@ -54,6 +60,15 @@ public class CreateTableOptions extends BaseOptions<CreateTableOptions> {
      */
     public boolean isIfNotExists() {
         return ifNotExists;
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }

@@ -35,6 +35,7 @@ public class CreateTable {
    .addPartitionBy("match_id")
    .addPartitionSort(ascending("round"));
 
+  /*
   // Minimal creation
   Table<Row> table1 =
     db.createTable("games", tableDefinition);
@@ -42,21 +43,15 @@ public class CreateTable {
   // Minimal Creation with a Bean
   Table<Game> table2 =
     db.createTable("game2", tableDefinition, Game.class);
+*/
 
   // One can add options to setup the creation with finer grained:
   CreateTableOptions createTableOptions = new CreateTableOptions()
+   .keyspace("ks2")
    .ifNotExists(true)
+   .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
    .timeout(ofSeconds(5));
   Table<Row> table3 =
     db.createTable("game3", tableDefinition, createTableOptions);
-
-  // One can can tuned the table object returned by the function
-  TableOptions tableOptions = new TableOptions()
-    .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
-    .timeout(ofSeconds(5));
-
-  // Change the Type of objects in use instead of default Row
-  Table<Row> table4 = db.createTable("game4", tableDefinition,Row.class,
-    createTableOptions, tableOptions);
  }
 }

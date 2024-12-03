@@ -401,11 +401,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         TableOptions tableOptions = new TableOptions()
                 .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
                 .timeout(ofSeconds(5));
-
-        // Change the Type of objects in use instead of default Row
-        Table<Row> table4 = getDatabase().createTable("game4", tableDefinition,Row.class, createTableOptions, tableOptions);
     }
-
 
     @Test
     @Order(15)

@@ -4,7 +4,7 @@ package com.datastax.astra.client.databases;
  * #%L
  * Data API Java Client
  * --
- * Copyright (C) 2024 DataStax
+ * Copyright (C) 2024 DataStaxcc
  * --
  * Licensed under the Apache License, Version 2.0
  * You may not use this file except in compliance with the License.
@@ -1165,9 +1165,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>             the type of the row objects that the table will hold
      * @param tableName       the name of the table to be created; must not be null or empty
      * @param tableDefinition the schema definition of the table; must not be null
-     * @param creatTableOptions additional options for creating the table; optional, can be null
+     * @param createTableOptions additional options for creating the table; optional, can be null
      * @param rowClass        the class representing the row type; must not be null
-     * @param tableOptions    runtime options for interacting with the table; must not be null
      * @return the created table object
      * @throws IllegalArgumentException if any mandatory argument is null or invalid
      *
@@ -1189,31 +1188,48 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * CreateTableOptions createTableOptions =
      *      new CreateTableOptions().timeout(Duration.ofMillis(1000));
      *
-     * // Optional to override spawn options
-     * TableOptions tableOptions =
-     *      new TableOptions().timeout(Duration.ofMillis(1000));
-     *
      * Table<Row> tableSimple2 = db.createTable("TABLE_SIMPLE", tableDefinition,
-     *  Row.class, createTableOptions,  tableOptions);
+     *  Row.class, createTableOptions);
      * }
      * </pre>
      */
     public <T> Table<T> createTable(String tableName,
                                     TableDefinition tableDefinition,
                                     Class<T> rowClass,
-                                    CreateTableOptions creatTableOptions,
-                                    TableOptions tableOptions) {
+                                    CreateTableOptions createTableOptions) {
         hasLength(tableName, "tableName");
         notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createTableOptions != null && Utils.hasLength(createTableOptions.getKeyspace())) {
+            String otherKeyspace = createTableOptions.getKeyspace();
+            createTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createTable(tableName, tableDefinition, rowClass, createTableOptions);
+        }
+
         Command createTable = Command
                 .create("createTable")
                 .append("name", tableName)
                 .append("definition", tableDefinition);
-        if (creatTableOptions != null) {
-            createTable.append("options", creatTableOptions);
+        if (createTableOptions != null) {
+            createTable.append("options", createTableOptions);
         }
-        runCommand(createTable, tableOptions);
+        runCommand(createTable, createTableOptions);
+
+        // Spawning a Table inheriting the current database options and the table options
+        TableOptions tableOptions = defaultTableOptions();
+        if (createTableOptions != null) {
+            if (createTableOptions.getDataAPIClientOptions() != null) {
+                tableOptions.dataAPIClientOptions(createTableOptions.getDataAPIClientOptions());
+            }
+            if (createTableOptions.getToken() != null) {
+                tableOptions.token(createTableOptions.getToken());
+            }
+        }
         return getTable(tableName, rowClass, tableOptions);
     }
 
@@ -1227,7 +1243,19 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition, rowClass, new CreateTableOptions(), defaultTableOptions());
+        return createTable(tableName, tableDefinition, rowClass, null);
+    }
+
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @param options         the option to initialize the class.
+     * @return the created table object
+     */
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions options) {
+        return createTable(tableName, tableDefinition, Row.class, options);
     }
 
     /**
@@ -1239,32 +1267,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public Table<Row> createTable(String tableName, TableDefinition tableDefinition) {
         return createTable(tableName, tableDefinition, Row.class);
-    }
-
-    /**
-     * Creates a table using the specified row class and runtime configurations.
-     *
-     * @param <T>             the type of the row objects that the table will hold
-     * @param tableName       the name of the table to be created; must not be null or empty
-     * @param rowClass        the class representing the row type; must not be null
-     * @param tableDefinition the schema definition of the table; must not be null
-     * @param createTableOptions additional options for creating the table; optional, can be null
-     * @return the created table object
-     */
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(tableName, tableDefinition, rowClass, createTableOptions, defaultTableOptions());
-    }
-
-    /**
-     * Creates a table using the specified row class and runtime configurations.
-     *
-     * @param tableName       the name of the table to be created; must not be null or empty
-     * @param createTableOptions additional options for creating the table; optional, can be null
-     * @param tableDefinition the schema definition of the table; must not be null
-     * @return the created table object
-     */
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions createTableOptions) {
-        return createTable(tableName, tableDefinition, Row.class, createTableOptions);
     }
 
     /**
@@ -1287,7 +1289,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(getTableName(rowClass), rowClass, createTableOptions, defaultTableOptions());
+        return createTable(getTableName(rowClass), rowClass, createTableOptions);
     }
 
     /**
@@ -1296,22 +1298,41 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>             the type of the row objects that the table will hold
      * @param rowClass        the class representing the row type; must not be null
      * @param tableName       the name of the table to be created; must not be null or empty
-     * @param tableOptions    runtime options for interacting with the table; must not be null
-     * @param createTableOptions additional options for creating the table; optional, can be null
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName,
         Class<T> rowClass,
-        CreateTableOptions createTableOptions,
-        TableOptions tableOptions) {
+        CreateTableOptions createTableOptions) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        // FIX ME INVESTIGATING TO CREATE A TABLE DEFINITION OBJECT
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createTableOptions != null && Utils.hasLength(createTableOptions.getKeyspace())) {
+            String otherKeyspace = createTableOptions.getKeyspace();
+            createTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createTable(tableName, rowClass, createTableOptions);
+        }
+
+        // Building from the command
         Command createTable = new Command("createTable", createTableCommand(tableName, rowClass));
         if (createTableOptions != null) {
             createTable.append("options", createTableOptions);
         }
         runCommand(createTable, createTableOptions);
+
+        // Getting ready for a table
+        TableOptions tableOptions = defaultTableOptions();
+        if (createTableOptions != null) {
+            if (createTableOptions.getDataAPIClientOptions() != null) {
+                tableOptions.dataAPIClientOptions(createTableOptions.getDataAPIClientOptions());
+            }
+            if (createTableOptions.getToken() != null) {
+                tableOptions.token(createTableOptions.getToken());
+            }
+        }
         return getTable(tableName, rowClass, tableOptions);
     }
 
@@ -1391,13 +1412,25 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public void dropTable(String tableName, DropTableOptions dropTableOptions) {
         hasLength(tableName, "tableName");
-        Command dropTableCmd = Command
-                .create("dropTable")
-                .append("name", tableName);
-        if (dropTableOptions != null) {
-            dropTableCmd.withOptions(dropTableOptions);
+
+        // We are on a different keyspace, drop the table on a different keyspace
+        if (dropTableOptions != null && Utils.hasLength(dropTableOptions.getKeyspace())) {
+            String otherKeyspace = dropTableOptions.getKeyspace();
+            dropTableOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .dropTable(tableName, dropTableOptions);
+        } else {
+            // Command on current keyspace
+            Command dropTableCmd = Command
+                    .create("dropTable")
+                    .append("name", tableName);
+            if (dropTableOptions != null) {
+                dropTableCmd.withOptions(dropTableOptions);
+            }
+            runCommand(dropTableCmd, dropTableOptions);
         }
-        runCommand(dropTableCmd, dropTableOptions);
     }
     // ------------------------------------------
     // ----   Drop Indexes                    ---
@@ -1422,13 +1455,26 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *      flag to drop index
      */
     public void dropTableIndex(String indexName, DropTableIndexOptions dropIndexOptions) {
-        Command dropIndexCommand = Command
-                .create("dropIndex")
-                .append("name", indexName);
-        if (dropIndexOptions != null) {
-            dropIndexCommand.withOptions(dropIndexOptions);
+        Assert.hasLength(indexName, "indexName");
+
+        // We are on a different keyspace, drop the table on a different keyspace
+        if (dropIndexOptions != null && Utils.hasLength(dropIndexOptions.getKeyspace())) {
+            String otherKeyspace = dropIndexOptions.getKeyspace();
+            dropIndexOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .dropTableIndex(indexName, dropIndexOptions);
+        } else {
+            // Command on current keyspace
+            Command dropIndexCommand = Command
+                    .create("dropIndex")
+                    .append("name", indexName);
+            if (dropIndexOptions != null) {
+                dropIndexCommand.withOptions(dropIndexOptions);
+            }
+            runCommand(dropIndexCommand, dropIndexOptions);
         }
-        runCommand(dropIndexCommand, dropIndexOptions);
     }
 
     // ------------------------------------------
