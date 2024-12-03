@@ -16,32 +16,31 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.commands.options.AlterTableOptions;
-import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.TableDuration;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
 import com.datastax.astra.client.tables.commands.AlterTableAddVectorize;
 import com.datastax.astra.client.tables.commands.AlterTableDropColumns;
 import com.datastax.astra.client.tables.commands.AlterTableDropVectorize;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
-import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.commands.results.TableUpdateResult;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDuration;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
-import com.datastax.astra.client.tables.commands.TableUpdateOperation;
-import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
@@ -151,9 +150,8 @@ public class LocalTableITTest extends AbstractTableITTest {
 
     @Test
     public void listIndex() {
-        for (TableIndexDefinition tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
-            System.out.println(tid.getColumn());
-            System.out.println(tid.getOptions());
+        for (TableIndexDescriptor tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
+            System.out.println(tid.getName());
         }
     }
 

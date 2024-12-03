@@ -20,26 +20,81 @@ package com.datastax.astra.client.tables.definition.indexes;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * Index Definitions.
+ * Represents a definition for table vector indices, allowing configuration of
+ * vector-specific options such as similarity metrics and source models.
+ * This class provides a fluent interface for building vector index definitions.
+ * <p>
+ * Example usage:
+ * </p>
+ * <pre>
+ * {@code
+ * TableVectorIndexDefinition vectorIndexDefinition = new TableVectorIndexDefinition()
+ *     .column("feature_vector")
+ *     .metric(SimilarityMetric.COSINE)
+ *     .sourceModel("model_name")
+ *     .options(new TableVectorIndexDefinitionOptions());
+ * }
+ * </pre>
  */
 @Getter
 @NoArgsConstructor
 public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
 
-    TableVectorIndexDefinitionOptions options;
+    /** Options for configuring the vector index. */
+    private TableVectorIndexDefinitionOptions options;
 
+    /**
+     * Sets the name of the column for the vector index.
+     *
+     * @param column the name of the column containing vector data.
+     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
+     */
     public TableVectorIndexDefinition column(String column) {
         this.column = column;
         return this;
     }
 
+    /**
+     * Configures the similarity metric to be used for the vector index.
+     *
+     * @param metric an instance of {@link SimilarityMetric} representing the similarity metric.
+     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
+     */
+    public TableVectorIndexDefinition metric(SimilarityMetric metric) {
+        if (options == null) {
+            this.options = new TableVectorIndexDefinitionOptions();
+        }
+        this.options.metric = metric.getValue();
+        return this;
+    }
+
+    /**
+     * Sets the source model for the vector index.
+     *
+     * @param sourceModel the name of the source model to be associated with the vector index.
+     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
+     */
+    public TableVectorIndexDefinition sourceModel(String sourceModel) {
+        if (options == null) {
+            this.options = new TableVectorIndexDefinitionOptions();
+        }
+        this.options.sourceModel = sourceModel;
+        return this;
+    }
+
+    /**
+     * Configures the options for the vector index.
+     *
+     * @param options an instance of {@link TableVectorIndexDefinitionOptions} containing vector index options.
+     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
+     */
     public TableVectorIndexDefinition options(TableVectorIndexDefinitionOptions options) {
         this.options = options;
         return this;
     }
-
 }

@@ -372,25 +372,25 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *
      * @param idxName
      *      name of the index
-     * @param idxDefinition
-     *      definition of the index
+     * @param columnName
+     *      name of the column
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition) {
-        createVectorIndex(idxName, idxDefinition, null, options);
+    public void createVectorIndex(String idxName, String columnName) {
+        Assert.hasLength(idxName, "indexName");
+        Assert.hasLength(columnName, "columnName");
+        createVectorIndex(idxName, new TableVectorIndexDefinition().column(columnName), null);
     }
 
     /**
      * Create a new index with the given description.
      *
      * @param idxName
-     *      index name
+     *      name of the index
      * @param idxDefinition
      *      definition of the index
-     * @param options
-     *      index options
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions options) {
-        createVectorIndex(idxName, idxDefinition, options, this.options);
+    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition) {
+        createVectorIndex(idxName, idxDefinition, null);
     }
 
     /**
@@ -402,10 +402,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      definition of the index
      * @param idxOptions
      *      index options
-     * @param cmd
-     *      override the default command options
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions idxOptions, BaseOptions<?> cmd) {
+    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions idxOptions) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -1077,7 +1075,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      list of table definitions
      */
-    public List<TableIndexDefinition> listIndexes() {
+    public List<TableIndexDescriptor> listIndexes() {
         return listIndexes(null);
     }
 
@@ -1087,14 +1085,12 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      list of table definitions
      */
-    public List<TableIndexDefinition> listIndexes(ListIndexesOptions listIndexesOptions) {
+    public List<TableIndexDescriptor> listIndexes(ListIndexesOptions listIndexesOptions) {
         Command findTables = Command
                 .create("listIndexes")
                 .withOptions(new Document().append("explain", true));
         return runCommand(findTables, listIndexesOptions)
-                .getStatusKeyAsList("indexes", TableIndexDescriptor.class)
-                .stream().map(TableIndexDescriptor::getDefinition)
-                .toList();
+                .getStatusKeyAsList("indexes", TableIndexDescriptor.class);
     }
 
     // --------------------------

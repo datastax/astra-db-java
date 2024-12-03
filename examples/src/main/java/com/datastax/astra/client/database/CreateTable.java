@@ -37,7 +37,7 @@ public class CreateTable {
 
   // Minimal creation
   Table<Row> table1 =
-    db.createTable("game1", tableDefinition);
+    db.createTable("games", tableDefinition);
 
   // Minimal Creation with a Bean
   Table<Game> table2 =

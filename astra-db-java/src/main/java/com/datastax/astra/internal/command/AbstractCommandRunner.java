@@ -266,9 +266,15 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
 
+            URI targetUri;
+            try {
+                targetUri = new URI(getApiEndpoint());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid Endpoints '" + getApiEndpoint() + "'", e);
+            }
             // Build the request
             HttpRequest.Builder builder = HttpRequest.newBuilder()
-                        .uri(new URI(getApiEndpoint()))
+                        .uri(targetUri)
                         .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
                         .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
                         .header(HEADER_USER_AGENT, httpClient.getUserAgentHeader())
@@ -338,8 +344,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                 }
             }
             return apiResponse;
-        } catch(URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);
         } finally {
             // Notify the observers
             CompletableFuture.runAsync(()-> notifyASync(l -> l.onCommand(executionInfo.build()), observers));
