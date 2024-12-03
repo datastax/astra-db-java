@@ -315,6 +315,31 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // --------------------------
 
     /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
+     */
+    public void createIndex(String idxName, String columnName) {
+        createIndex(idxName, new TableIndexDefinition().column(columnName), null);
+    }
+    /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
+     * @param idxOptions
+     *      index options
+     */
+    public void createIndex(String idxName, String columnName, CreateIndexOptions idxOptions) {
+       createIndex(idxName, new TableIndexDefinition().column(columnName), idxOptions);
+    }
+
+    /**
      * Create a new index with the given description.
      *
      * @param idxName
