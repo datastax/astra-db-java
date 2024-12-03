@@ -276,7 +276,6 @@ public class Row implements Serializable {
     }
 
     public Long getBigInt(final String key) {
-        System.out.println(get(key));
         return Long.parseLong(String.valueOf(get(key)));
     }
 
