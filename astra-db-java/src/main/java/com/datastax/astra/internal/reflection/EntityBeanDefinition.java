@@ -90,10 +90,11 @@ public class EntityBeanDefinition<T> {
 
         // Table Name
         EntityTable tableAnn = clazz.getAnnotation(EntityTable.class);
-        if (tableAnn == null) {
-            throw new IllegalArgumentException("Invalid class: It should be annotated with @Table(name=\"table_name\")");
+        if (tableAnn != null) {
+            this.name = tableAnn.value();
+        } else {
+            this.name = clazz.getSimpleName().toLowerCase();
         }
-        this.name = tableAnn.value();
 
         // Find properties
         List<BeanPropertyDefinition> properties = OBJECT_MAPPER
@@ -145,8 +146,6 @@ public class EntityBeanDefinition<T> {
                 }
                 field.setDimension(column.dimension());
                 field.setMetric(column.metric());
-            } else {
-                log.warn("Field {} is not annotated with @Column", field.getName());
             }
 
             PartitionBy partitionBy = annfield.getAnnotated().getAnnotation(PartitionBy.class);

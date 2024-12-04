@@ -139,92 +139,120 @@ public class Row implements Serializable {
         columnMap.put(key, value);
         return this;
     }
+
     public Row addText(final String key, final String value) {
         return add(key, value);
     }
+
     public Row addAscii(final String key, final String value) {
         return addText(key, value);
     }
+
     public Row addVectorize(final String key, final String value) {
         return add(key, value);
     }
 
-    // Integers
-
     public Row addVarInt(final String key, final BigInteger value) {
         return add(key, value);
     }
+
     public Row addBigInt(final String key, final Long value) {
         return add(key, value);
     }
+
     public Row addInt(final String key, final Integer value) {
         return add(key, value);
     }
+
     public Row addSmallInt(final String key, final Short value) {
         return add(key, value);
     }
+
     public Row addTinyInt(final String key, final Byte value) {
         return add(key, value);
     }
+
     public Row addBoolean(final String key, final Boolean value) {
         return add(key, value);
     }
+
     public Row addBlob(final String key, final byte[] value) {
         return add(key, value);
     }
+
     public Row addFloat(final String key, final Float value) {
         return add(key, value);
     }
+
     public Row addDecimal(String pDecimal, BigDecimal big) {
         return add(pDecimal, big);
     }
+
     public Row addDouble(final String key, final Double value) {
         return add(key, value);
     }
+
     public Row addDate(final String key, final Date value) {
         return add(key, value);
     }
+
     public Row addDate(final String key, final LocalDate localDate) {
         if (localDate == null) {
             return add(key, null);
         }
         return addDate(key, Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
+
     public Row addInet(final String key, final InetAddress value) {
         return add(key, value);
     }
+
     public Row addDuration(final String key, final Duration value) {
         return add(key, TableDuration.of(Period.ZERO, value));
     }
+
     public Row addDuration(final String key, final Period period, final Duration duration) {
         return add(key, TableDuration.of(period, duration));
     }
+
     public Row addDuration(final String key, final Period period) {
         return add(key, TableDuration.of(period, Duration.ZERO));
     }
+
     public Row addTableDuration(final String key, final TableDuration value) {
         return add(key, value);
     }
+
     public Row addUUID(final String key, final UUID value) {
         return add(key, value);
     }
+
     public Row addTimeStamp(String key, Instant instant) {
         return add(key, instant);
     }
+
     public Row addTime(String key, LocalTime ltime) {
         return add(key, ltime);
     }
+
     public Row addVector(String key, DataAPIVector vector) {
         return add(key, vector);
     }
+
     public Row addVector(String key, float[] vector) {
         return add(key, new DataAPIVector(vector));
     }
+
     public <T> Row addList(String key, List<T> list) {
         return add(key, list);
     }
+
     public <T> Row addSet(String key, Set<T> set) {
         return add(key, set);
+    }
+
+    public <K,V> Row addMap(String key, Map<K, V> myMap) {
+        return add(key, myMap);
     }
 
     /**

@@ -1008,26 +1008,17 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         if (input == null || input instanceof Row) {
             return (Row) input;
         }
-        EntityTable annTable = input.getClass().getAnnotation(EntityTable.class);
-        // Custom Serialization with annotations
-        if (annTable != null) {
-            if (Utils.hasLength(annTable.value()) && !annTable.value().equals(tableName)) {
-                throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + annTable.value() + "'");
+        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
+        Row row = new Row();
+        bean.getFields().forEach((name, field) -> {
+            try {
+                row.put(field.getColumnName() != null ? field.getColumnName() : name,
+                        field.getGetter().invoke(input));
+            } catch (IllegalAccessException | InvocationTargetException e) {
+                throw new RuntimeException(e);
             }
-            EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
-            Row row = new Row();
-            bean.getFields().forEach((name, field) -> {
-                try {
-                    row.put(field.getColumnName(), field.getGetter().invoke(input));
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            return row;
-        } else {
-            // Defaults mapping as a Row
-            return getSerializer().convertValue(input, Row.class);
-        }
+        });
+        return row;
     }
 
     // ------------------------------------------
