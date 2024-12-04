@@ -20,17 +20,82 @@ package com.datastax.astra.client.tables.definition.columns;
  * #L%
  */
 
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor
+/**
+ * Represents the API support configuration for a column definition.
+ * <p>
+ * This class defines the permissions and CQL (Cassandra Query Language) configuration
+ * related to a specific column in a database schema. It includes options for
+ * creating tables, inserting data, reading data, and the column's CQL definition.
+ * </p>
+ * <p>
+ * This class is annotated with {@code @Data} and {@code @NoArgsConstructor} from Lombok,
+ * which automatically generate getters, setters, and a no-argument constructor.
+ * </p>
+ *
+ * <p>Fields:</p>
+ * <ul>
+ *   <li>{@code createTable} - Specifies whether the column is included in table creation.</li>
+ *   <li>{@code insert} - Indicates if the column supports insert operations.</li>
+ *   <li>{@code read} - Indicates if the column supports read operations.</li>
+ *   <li>{@code cqlDefinition} - Defines the CQL expression associated with the column.</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * ColumnDefinitionApiSupport columnSupport = new ColumnDefinitionApiSupport();
+ * columnSupport.setCreateTable(true);
+ * columnSupport.setInsert(true);
+ * columnSupport.setRead(false);
+ * columnSupport.setCqlDefinition("text");
+ *
+ * System.out.println(columnSupport);
+ * }
+ * </pre>
+ */
+@Data
 public class ColumnDefinitionApiSupport {
 
+    /**
+     * Specifies whether the column is included in table creation.
+     */
     private boolean createTable;
 
+    /**
+     * Indicates if the column supports insert operations.
+     */
     private boolean insert;
 
+    /**
+     * Indicates if the column supports read operations.
+     */
     private boolean read;
 
+    /**
+     * Defines the CQL expression associated with the column.
+     */
     private String cqlDefinition;
+
+    /**
+     * Default constructor.
+     */
+    public ColumnDefinitionApiSupport() {
+    }
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This implementation uses {@link RowSerializer} to serialize the object
+     * into a marshalled string representation.
+     * </p>
+     */
+    @Override
+    public String toString() {
+        return new RowSerializer().marshall(this);
+    }
 }
+

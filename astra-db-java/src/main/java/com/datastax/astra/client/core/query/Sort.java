@@ -114,6 +114,34 @@ public class Sort {
     }
 
     /**
+     * Build a sort clause with a vector on a table
+     *
+     * @param fieldName
+     *      current field
+     * @param embeddings
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vector(String fieldName, float[] embeddings) {
+        return new Sort(fieldName, null, null, new DataAPIVector(embeddings));
+    }
+
+    /**
+     * Build a sort clause with a vector on a table
+     *
+     * @param fieldName
+     *      current field
+     * @param embeddings
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vector(String fieldName, DataAPIVector embeddings) {
+        return new Sort(fieldName, null, null, embeddings);
+    }
+
+    /**
      * Build a sort clause with vectorize.
      *
      * @param vectorize
@@ -123,6 +151,20 @@ public class Sort {
      */
     public static Sort vectorize(String vectorize) {
         return new Sort(DataAPIKeywords.VECTORIZE.getKeyword(), null, vectorize, null);
+    }
+
+    /**
+     * Build a sort clause with vectorize.
+     *
+     * @param fieldName
+     *      current field
+     * @param vectorize
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vectorize(String fieldName, String vectorize) {
+        return new Sort(fieldName, null, vectorize, null);
     }
 
 }

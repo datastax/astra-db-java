@@ -145,6 +145,9 @@ public class Row implements Serializable {
     public Row addAscii(final String key, final String value) {
         return addText(key, value);
     }
+    public Row addVectorize(final String key, final String value) {
+        return add(key, value);
+    }
 
     // Integers
 

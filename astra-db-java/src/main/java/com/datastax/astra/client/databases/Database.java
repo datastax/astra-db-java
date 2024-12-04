@@ -34,6 +34,7 @@ import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
 import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
 import com.datastax.astra.client.collections.commands.options.ListCollectionOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.exceptions.InvalidConfigurationException;
@@ -48,11 +49,14 @@ import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
+import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static com.datastax.astra.internal.reflection.EntityBeanDefinition.createTableCommand;
@@ -1224,7 +1228,23 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         TableOptions tableOptions = defaultTableOptions();
         if (createTableOptions != null) {
             if (createTableOptions.getDataAPIClientOptions() != null) {
+                DataAPIClientOptions options = createTableOptions.getDataAPIClientOptions();
+                // Merging db Headers
+                Map<String, String> dbHeaders = new HashMap<>();
+                dbHeaders.putAll(this.options.getDataAPIClientOptions().getDatabaseAdditionalHeaders());
+                dbHeaders.putAll(options.getDatabaseAdditionalHeaders());
+                options.databaseAdditionalHeaders(dbHeaders);
+                // Merging admin Headers
+                Map<String, String> adminHeaders = new HashMap<>();
+                adminHeaders.putAll(this.options.getDataAPIClientOptions().getAdminAdditionalHeaders());
+                adminHeaders.putAll(options.getAdminAdditionalHeaders());
+                options.adminAdditionalHeaders(adminHeaders);
                 tableOptions.dataAPIClientOptions(createTableOptions.getDataAPIClientOptions());
+                // Merging listeners
+                Map<String, CommandObserver> listeners = new HashMap<>();
+                listeners.putAll(this.options.getDataAPIClientOptions().getObservers());
+                listeners.putAll(options.getObservers());
+                options.observers(listeners);
             }
             if (createTableOptions.getToken() != null) {
                 tableOptions.token(createTableOptions.getToken());

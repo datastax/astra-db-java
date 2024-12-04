@@ -27,6 +27,7 @@ import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionMap;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionSet;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
 
@@ -36,8 +37,14 @@ import java.util.LinkedHashMap;
 @Data
 public class TableDefinition {
 
+    /**
+     * The columns of the table.
+     */
     private LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
 
+    /**
+     * The primary key of the table.
+     */
     private TablePrimaryKey primaryKey = new TablePrimaryKey();
 
     /**
@@ -260,6 +267,9 @@ public class TableDefinition {
         return this;
     }
 
-
-
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return new RowSerializer().marshall(this);
+    }
 }

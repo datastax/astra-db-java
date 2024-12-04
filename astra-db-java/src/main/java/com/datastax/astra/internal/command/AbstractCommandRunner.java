@@ -327,7 +327,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             if (apiResponse.getStatus() != null) {
                 apiResponse.getStatus().setSerializer(serializer);
             }
-
             executionInfo.withApiResponse(apiResponse);
             // Encapsulate Errors
             if (apiResponse.getErrors() != null) {
