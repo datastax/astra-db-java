@@ -13,7 +13,6 @@ import java.util.UUID;
 @Setter
 @Accessors(fluent = true, chain = true)
 @NoArgsConstructor
-
 public class Game {
 
     @Column(name ="match_id")

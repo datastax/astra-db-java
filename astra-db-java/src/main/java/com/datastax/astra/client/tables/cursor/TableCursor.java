@@ -25,6 +25,7 @@ import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
@@ -36,6 +37,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * Implementation of a cursor across the find items
@@ -43,7 +45,7 @@ import java.util.NoSuchElementException;
  * @param <T>
  *       type of the table
  */
-public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
+public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
 
     /**
      * Input table reference
@@ -84,6 +86,9 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
     @Getter
     private int consumedCount;
 
+    @Getter
+    private Class<R> rowType;
+
     /**
      * Cursor to iterate on the result of a query.
      *
@@ -94,9 +99,10 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
      * @param options
      *      options of the find operation
      */
-    public TableCursor(Table<T> table, Filter filter, TableFindOptions options) {
+    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, Class<R> rowType) {
         this.table = table;
         this.filter = filter;
+        this.rowType = rowType;
         this.tableFindOptions = options;
         this.state = CursorState.IDLE;
         this.buffer = new ArrayList<>();
@@ -109,18 +115,20 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
      * @param tableCursor
      *      previous cursor
      */
-    private TableCursor(TableCursor<T> tableCursor) {
+    private TableCursor(TableCursor<T, R> tableCursor) {
         this.state = CursorState.IDLE;
         this.table = tableCursor.table;
         this.tableFindOptions = tableCursor.tableFindOptions;
-        this.filter = tableCursor.filter;
-        this.buffer = new ArrayList<>();
-        this.consumedCount = 0;
+        this.filter           = tableCursor.filter;
+        this.buffer           = new ArrayList<>();
+        this.consumedCount    = 0;
+        this.currentPage      = tableCursor.currentPage;
+        this.rowType         = tableCursor.rowType;
     }
 
     /** {@inheritDoc} */
     @Override
-    public TableCursor<T> clone() {
+    public TableCursor<T, R> clone() {
         return new TableCursor<>(this);
     }
 
@@ -130,9 +138,9 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
      * @param newFilter
      *      a new filter
      */
-    public TableCursor<T> filter(Filter newFilter) {
+    public TableCursor<T, R> filter(Filter newFilter) {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.filter = newFilter;
         return newTableCursor;
     }
@@ -143,44 +151,44 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
      * @param newProjection
      *      a new projection
      */
-    public TableCursor<T> project(Projection... newProjection) {
+    public TableCursor<T, R> project(Projection... newProjection) {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.tableFindOptions.projection(newProjection);
         return newTableCursor;
     }
 
-    public TableCursor<T> sort(Sort... sort) {
+    public TableCursor<T, R> sort(Sort... sort) {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.tableFindOptions.sort(sort);
         return newTableCursor;
     }
 
-    public TableCursor<T> limit(int newLimit) {
+    public TableCursor<T, R> limit(int newLimit) {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.limit(newLimit);
         return newTableCursor;
     }
 
-    public TableCursor<T> skip(int newSkip) {
+    public TableCursor<T, R> skip(int newSkip) {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.skip(newSkip);
         return newTableCursor;
     }
 
-    public TableCursor<T> includeSimilarity() {
+    public TableCursor<T, R> includeSimilarity() {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.includeSimilarity();
         return newTableCursor;
     }
 
-    public TableCursor<T> includeSortVector() {
+    public TableCursor<T, R> includeSortVector() {
         checkIdleState();
-        TableCursor<T> newTableCursor = this.clone();
+        TableCursor<T, R> newTableCursor = this.clone();
         newTableCursor.includeSortVector();
         return newTableCursor;
     }
@@ -227,14 +235,14 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
 
     // Iterator implementation
     @Override
-    public Iterator<T> iterator() {
+    public Iterator<R> iterator() {
         return new CursorIterator();
     }
 
     /**
      * Iterator about options
      */
-    private class CursorIterator implements Iterator<T> {
+    private class CursorIterator implements Iterator<R> {
 
         @Override
         public boolean hasNext() {
@@ -253,13 +261,13 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
         }
 
         @Override
-        public T next() {
+        public R next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
             T rawDoc = buffer.remove(0);
             consumedCount++;
-            return (T) rawDoc;
+            return (R) rawDoc;
         }
     }
 
@@ -267,6 +275,7 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
     private void fetchNextBatch() {
         if (currentPage == null) {
             currentPage = table.findPage(filter, tableFindOptions);
+
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
             tableFindOptions.pageState(currentPage.getPageState().get());
@@ -280,12 +289,12 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
         return iterator().hasNext();
     }
 
-    public T next() {
+    public R next() {
         return iterator().next();
     }
 
-    public List<T> toList() {
-        List<T> result = new ArrayList<>();
+    public List<R> toList() {
+        List<R> result = new ArrayList<>();
         try {
             forEach(result::add);
         } finally {
@@ -312,6 +321,19 @@ public class TableCursor<T> implements Iterable<T>, Closeable, Cloneable {
      */
     public String getKeyspace() {
         return table.getKeyspaceName();
+    }
+
+    /**
+     * Access to the Sort Vector.
+     *
+     * @return
+     *      sort vector
+     */
+    public Optional<DataAPIVector> getSortVector() {
+        if (currentPage == null) {
+            return Optional.empty();
+        }
+        return currentPage.getSortVector().map(DataAPIVector::new);
     }
 
 }

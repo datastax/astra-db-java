@@ -60,25 +60,17 @@ import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.reflection.EntityBeanDefinition;
-import com.datastax.astra.internal.reflection.EntityFieldDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.fasterxml.jackson.databind.JavaType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -427,7 +419,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // --------------------------
 
     public final TableInsertOneResult insertOne(T row) {
-        return insertOneDelegate(mapAsRow(row), null);
+        return insertOneDelegate(RowMapper.mapAsRow(row), null);
     }
 
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
@@ -569,66 +561,28 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return findOne(filter, null);
     }
 
-    public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
+    public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
             findOne.withSort(findOneOptions.getSortArray())
-                   .withProjection(findOneOptions.getProjectionArray())
-                   .withOptions(new Document()
-                     .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                     // not exposed in FindOne
-                     //.appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                    .withProjection(findOneOptions.getProjectionArray())
+                    .withOptions(new Document()
+                                    .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                            // not exposed in FindOne
+                            //.appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                     );
         }
 
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
+
         return Optional
                 .ofNullable(data.getDocument()
-                .map(Row.class))
-                .map(this::mapFromRow);
+                        .map(Row.class))
+                .map(row -> RowMapper.mapFromRow(row, getSerializer(), newRowClass));
     }
 
-    @SuppressWarnings("unchecked")
-    public T mapFromRow(Row row) {
-        try {
-            Class<T> rowClass = getRowClass();
-            if (rowClass == Row.class) {
-                return (T) row;
-            }
-            EntityBeanDefinition<T> beanDef = new EntityBeanDefinition<>(rowClass);
-            T input = rowClass.getDeclaredConstructor().newInstance();
-
-            for (EntityFieldDefinition fieldDef : beanDef.getFields().values()) {
-                String columnName = fieldDef.getColumnName() != null ?
-                        fieldDef.getColumnName() :
-                        fieldDef.getName();
-                Object columnValue = row.columnMap.get(columnName);
-                if (columnValue == null) {
-                    continue; // Handle nulls as needed
-                }
-
-                // Use the JavaType directly
-                JavaType javaType = fieldDef.getJavaType();
-
-                // Convert the column value to the field's type
-                Object value = getSerializer()
-                        .getMapper()
-                        .convertValue(columnValue, javaType);
-
-                // Set the value to the bean
-                if (fieldDef.getSetter() != null) {
-                    fieldDef.getSetter().invoke(input, value);
-                } else {
-                    Field field = rowClass.getDeclaredField(fieldDef.getName());
-                    field.setAccessible(true);
-                    field.set(input, value);
-                }
-            }
-
-            return input;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to map row to bean", e);
-        }
+    public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
+        return findOne(filter, findOneOptions, getRowClass());
     }
 
     public Optional<T> findOne(TableFindOneOptions findOneOptions) {
@@ -657,8 +611,46 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public TableCursor<T> find(Filter filter, TableFindOptions options) {
-        return new TableCursor<>(this, filter, options);
+    public TableCursor<T, T> find(Filter filter, TableFindOptions options) {
+        return new TableCursor<>(this, filter, options, getRowClass());
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public <R> TableCursor<T, R> find(Filter filter, TableFindOptions options, Class<R> newRowType) {
+        return new TableCursor<>(this, filter, options, newRowType);
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param filter
+     *      the query filter
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public TableCursor<T, T> find(Filter filter) {
+        return new TableCursor<>(this, filter, null, getRowClass());
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param options
+     *      options of find one
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public TableCursor<T, T> find(TableFindOptions options) {
+        return new TableCursor<>(this, null, options, getRowClass());
     }
 
     /**
@@ -670,8 +662,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *
      * @return A {@link TableCursor} for iterating over all rows in the table.
      */
-    public TableCursor<T> findAll() {
-        return find(null, new TableFindOptions());
+    public TableCursor<T, T> findAll() {
+        return find(null, null);
     }
 
     /**
@@ -699,15 +691,18 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     public Page<T> findPage(Filter filter, TableFindOptions options) {
         Command findCommand = Command
                 .create("find")
-                .withFilter(filter)
-                .withSort(options.getSortArray())
-                .withProjection(options.getProjectionArray())
-                .withOptions(new Document()
-                        .appendIfNotNull("skip", options.skip())
-                        .appendIfNotNull("limit", options.limit())
-                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                .withFilter(filter);
+        if (options != null) {
+            findCommand
+                    .withSort(options.getSortArray())
+                    .withProjection(options.getProjectionArray())
+                    .withOptions(new Document()
+                            .appendIfNotNull("skip", options.skip())
+                            .appendIfNotNull("limit", options.limit())
+                            .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+        }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
@@ -1040,35 +1035,6 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     public int countRows(Filter filter, int upperBound)
             throws TooManyRowsToCountException {
         return countRows(filter, upperBound, new CountRowsOptions());
-    }
-
-    // --------------------------
-    // ---   Utilities       ----
-    // --------------------------
-
-    /**
-     * Map any object as a Row
-     *
-     * @param input
-     *      input object
-     * @return
-     *      a row
-     */
-    public Row mapAsRow(T input) {
-        if (input == null || input instanceof Row) {
-            return (Row) input;
-        }
-        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
-        Row row = new Row();
-        bean.getFields().forEach((name, field) -> {
-            try {
-                row.put(field.getColumnName() != null ? field.getColumnName() : name,
-                        field.getGetter().invoke(input));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        return row;
     }
 
     // ------------------------------------------
