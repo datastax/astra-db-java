@@ -55,5 +55,10 @@ public class FindMany {
    .projection(include("winner"))
    .sort(Sort.vector("m_vector", new float[] {0.2f, 0.3f, 0.4f}));
     List<Row> result = table.find(filter3, options3).toList();
+
+
+
+
+
  }
 }
