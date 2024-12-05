@@ -27,6 +27,7 @@ import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.tables.commands.AlterTableOperation;
@@ -730,17 +731,32 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   distinct       ----
     // -------------------------
 
-    /*
-
-    Cursor could take a boolean in the constructor rto mark the distinct
-
-    public <R> TableCursor<T, R> distinct(String fieldName, TableFindOptions options, Class<R> resultClass) {
-        throw new UnsupportedOperationException("distinct is not implemented yet");
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldName
+     *      name of the field
+     * @param filter
+     *      filter to apply
+     * @param resultClass
+     *      class of the result
+     * @return
+     *     list of distinct values
+     * @param <R>
+     *     type of the result
+     */
+    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+        Assert.hasLength(fieldName, "fieldName");
+        Assert.notNull(resultClass, "resultClass");
+        // Building a convenient find options
+        TableFindOptions options =  new TableFindOptions()
+                .projection(Projection.include(fieldName));
+        // Exhausting the list of distinct values
+        return find(filter, options, Row.class).toList().stream()
+                .map(row -> row.get(fieldName, resultClass))
+                .distinct()
+                .toList();
     }
-
-    public TableCursor<T, T> distinct(String fieldName, TableFindOptions options) {
-        return distinct(fieldName, null, getRowClass());
-    }*/
 
     // -------------------------
     // ---   updateOne      ----
