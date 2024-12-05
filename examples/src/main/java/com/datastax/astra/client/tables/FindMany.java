@@ -29,7 +29,7 @@ public class FindMany {
 
    TableFindOptions options = new TableFindOptions()
      // .projection(include("match_id", "winner", "field3"))
-           .limit(3)
+       .limit(2)
      //.sort(Sort.vector("m_vector", new DataAPIVector(new float[] {0.4f, -0.6f, 0.2f})))
      .includeSortVector(true)
      .includeSimilarity(true);
@@ -38,6 +38,12 @@ public class FindMany {
     row.forEach(r -> {
       System.out.println("Row: " + r);
     });
+
+     TableCursor<Row, Game> gameCursor = table.find(filter, options, Game.class);
+     gameCursor.forEach(g -> {
+         System.out.println("Game: " + g.getWinner());
+     });
+
 
    TableCursor<Row, Row> row2 = table.find(eq("match_id", "tournamentA"));
    row2.getSortVector().ifPresent(v -> {
@@ -48,6 +54,6 @@ public class FindMany {
    TableFindOptions options3 = new TableFindOptions()
    .projection(include("winner"))
    .sort(Sort.vector("m_vector", new float[] {0.2f, 0.3f, 0.4f}));
-   List<Row> result = table.find(filter3, options3).toList();
+    List<Row> result = table.find(filter3, options3).toList();
  }
 }

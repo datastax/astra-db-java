@@ -557,9 +557,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   findOne         ----
     // --------------------------
 
-    public Optional<T> findOne(Filter filter) {
-        return findOne(filter, null);
-    }
+
 
     public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
         Command findOne = Command.create("findOne").withFilter(filter);
@@ -579,6 +577,14 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                 .ofNullable(data.getDocument()
                         .map(Row.class))
                 .map(row -> RowMapper.mapFromRow(row, getSerializer(), newRowClass));
+    }
+
+    public <R> Optional<R> findOne(Filter filter, Class<R> newRowClass) {
+        return findOne(filter, null, newRowClass);
+    }
+
+    public Optional<T> findOne(Filter filter) {
+        return findOne(filter, null, getRowClass());
     }
 
     public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {

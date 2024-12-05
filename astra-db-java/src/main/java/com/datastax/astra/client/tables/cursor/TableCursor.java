@@ -29,6 +29,8 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
 import java.io.Closeable;
@@ -267,8 +269,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             }
             T rawDoc = buffer.remove(0);
             consumedCount++;
-            return (R) rawDoc;
+            // Converted as Row Fist (pivot)
+            Row row = RowMapper.mapAsRow(rawDoc);
+            // From Pivot to new class
+            return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
         }
+
     }
 
     // Fetch next batch of documents
