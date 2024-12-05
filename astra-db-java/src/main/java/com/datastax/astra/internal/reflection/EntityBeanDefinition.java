@@ -107,6 +107,8 @@ public class EntityBeanDefinition<T> {
             EntityFieldDefinition field = new EntityFieldDefinition();
             field.setName(property.getName());
             field.setType(property.getPrimaryType().getRawClass());
+            field.setJavaType(property.getPrimaryType());
+
             if (Map.class.isAssignableFrom(field.getType())) {
                 JavaType keyType = property.getPrimaryType().getBindings().getBoundType(0);
                 JavaType valueType = property.getPrimaryType().getBindings().getBoundType(1);

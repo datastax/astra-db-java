@@ -62,6 +62,7 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -99,7 +100,6 @@ public class RowSerializer implements DataAPISerializer {
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
-                    .registerModule(new JavaTimeModule())
                     .registerModule(new Jdk8Module())
                     .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());

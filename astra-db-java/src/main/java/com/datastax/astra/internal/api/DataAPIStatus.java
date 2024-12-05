@@ -20,6 +20,7 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -44,19 +45,33 @@ public class DataAPIStatus {
     public transient Map<String, Object> payload = new HashMap<>();
 
     /**
-     * PrimaryKey Schema returned
-     */
-    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
-
-    /**
      * Returned when insertMany with flag
      */
     private List<DataAPIDocumentResponse> documentResponses;
 
     /**
+     * Sort Vector returned if flag include sortVector is set to true
+     */
+    private DataAPIVector sortVector;
+
+    /**
      * Warnings returned
      */
     private List<DataAPIErrorDescriptor> warnings;
+
+    // ----------------------
+    // Tables Specifics
+    // ----------------------
+
+    /**
+     * PrimaryKey Schema returned
+     */
+    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
+
+    /**
+     * PrimaryKey Schema returned
+     */
+    private LinkedHashMap<String, ColumnDefinition> projectionSchema;
 
     /**
      * Inserted ids.

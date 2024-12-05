@@ -54,7 +54,7 @@ public class TableFindOneOptions extends BaseOptions<TableFindOneOptions> {
     /**
      * Flag to include sortVector in the result when operating a semantic search.
      */
-    Boolean includeSortVector;
+    //Boolean includeSortVector;
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

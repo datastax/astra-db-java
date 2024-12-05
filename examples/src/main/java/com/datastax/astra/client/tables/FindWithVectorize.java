@@ -2,12 +2,14 @@ package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
@@ -62,14 +64,22 @@ public class FindWithVectorize {
                 .sort(Sort.vectorize("m_vector", "Text To Serialize"));
 
         // Sort with DatAPIVector
-        DataAPIVector vector = new DataAPIVector(new float[] {0.1f, 0.2f, 0.3f});
-        new TableFindOptions().sort(Sort.vector("m_vector", vector));
+        DataAPIVector vector2 = new DataAPIVector(new float[] {0.1f, 0.2f, 0.3f});
+        new TableFindOptions().sort(Sort.vector("m_vector", vector2));
         // Sort with float[]
         new TableFindOptions().sort(Sort.vector("m_vector", new float[] {0.1f, 0.2f, 0.3f}));
         // Sort with Vectorize
         new TableFindOptions().sort(Sort.vectorize("m_vector", "Text To Serialize"));
 
 
+        //my_table.find_one({}, sort={"m_vector": DataAPIVector([0.2, 0.3, 0.4])})
+        DataAPIVector vector = new DataAPIVector(new float[] {0.2f, 0.3f, 0.4f});
+        tableMiniGame.findOne( new TableFindOneOptions().sort(Sort.vector("m_vector", vector)));
+
+        tableMiniGame.findOne(Filters.eq("winner", "Caio Gozer"));
+
+
+        new Filter().where("winner").isEqualsTo("Caio Gozer");
         System.out.println(tableMiniGame.find(new Filter(), options).toList());
 
 

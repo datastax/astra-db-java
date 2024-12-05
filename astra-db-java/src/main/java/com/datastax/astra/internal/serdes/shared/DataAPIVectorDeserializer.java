@@ -37,7 +37,22 @@ public class DataAPIVectorDeserializer extends StdScalarDeserializer<DataAPIVect
     @Override
     public DataAPIVector deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             final JsonToken t = p.currentToken();
-            if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
+
+            // Expecting {"$binary":"PszMzb8ZmZo+TMzN"}
+            if (t == JsonToken.START_OBJECT) {
+                String fieldName = p.nextFieldName();
+                if ("$binary".equals(fieldName)) {
+                    p.nextToken(); // Move to the value of $binary
+                    byte[] base64Value = p.getBinaryValue();
+                    p.nextToken(); // Move past the value
+                    p.nextToken(); // Move past END_OBJECT
+                    return new DataAPIVector(unpack(ctxt, base64Value));
+                }
+            // Understands [0.4, -0.6, 0.2]
+            } else if (t == JsonToken.START_ARRAY) {
+                float[] floats = ctxt.readValue(p, float[].class);
+                return new DataAPIVector(floats);
+            } else if (t == JsonToken.VALUE_EMBEDDED_OBJECT) {
                 Object emb = p.getEmbeddedObject();
                 if (emb instanceof byte[]) {
                     return new DataAPIVector(unpack(ctxt, (byte[]) emb));
@@ -47,6 +62,7 @@ public class DataAPIVectorDeserializer extends StdScalarDeserializer<DataAPIVect
             } else if (t == JsonToken.VALUE_STRING) {
                 return new DataAPIVector(unpack(ctxt, p.getBinaryValue()));
             }
+
             return new DataAPIVector((float[]) ctxt.handleUnexpectedToken(_valueClass, p));
     }
 

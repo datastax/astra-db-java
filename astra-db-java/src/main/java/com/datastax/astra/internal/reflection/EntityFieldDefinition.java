@@ -23,9 +23,11 @@ package com.datastax.astra.internal.reflection;
 import com.datastax.astra.client.core.query.SortOrder;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.fasterxml.jackson.databind.JavaType;
 import lombok.Data;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 @Data
 public class EntityFieldDefinition {
@@ -37,6 +39,7 @@ public class EntityFieldDefinition {
     private Method   setter;
     private Class<?> genericValueType;
     private Class<?> genericKeyType;
+    private JavaType javaType;
 
     // --- Table Hints --
 

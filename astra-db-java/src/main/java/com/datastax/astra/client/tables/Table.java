@@ -55,25 +55,30 @@ import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
-import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.reflection.EntityBeanDefinition;
+import com.datastax.astra.internal.reflection.EntityFieldDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.dtsx.astra.sdk.utils.Utils;
+import com.fasterxml.jackson.databind.JavaType;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -568,17 +573,62 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
             findOne.withSort(findOneOptions.getSortArray())
-                    .withProjection(findOneOptions.getProjectionArray())
-                    .withOptions(new Document()
-                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                   .withProjection(findOneOptions.getProjectionArray())
+                   .withOptions(new Document()
+                     .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                     // not exposed in FindOne
+                     //.appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                     );
         }
+
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
-        if (data.getDocument() == null) {
-            return Optional.empty();
+        return Optional
+                .ofNullable(data.getDocument()
+                .map(Row.class))
+                .map(this::mapFromRow);
+    }
+
+    @SuppressWarnings("unchecked")
+    public T mapFromRow(Row row) {
+        try {
+            Class<T> rowClass = getRowClass();
+            if (rowClass == Row.class) {
+                return (T) row;
+            }
+            EntityBeanDefinition<T> beanDef = new EntityBeanDefinition<>(rowClass);
+            T input = rowClass.getDeclaredConstructor().newInstance();
+
+            for (EntityFieldDefinition fieldDef : beanDef.getFields().values()) {
+                String columnName = fieldDef.getColumnName() != null ?
+                        fieldDef.getColumnName() :
+                        fieldDef.getName();
+                Object columnValue = row.columnMap.get(columnName);
+                if (columnValue == null) {
+                    continue; // Handle nulls as needed
+                }
+
+                // Use the JavaType directly
+                JavaType javaType = fieldDef.getJavaType();
+
+                // Convert the column value to the field's type
+                Object value = getSerializer()
+                        .getMapper()
+                        .convertValue(columnValue, javaType);
+
+                // Set the value to the bean
+                if (fieldDef.getSetter() != null) {
+                    fieldDef.getSetter().invoke(input, value);
+                } else {
+                    Field field = rowClass.getDeclaredField(fieldDef.getName());
+                    field.setAccessible(true);
+                    field.set(input, value);
+                }
+            }
+
+            return input;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to map row to bean", e);
         }
-        return Optional.ofNullable(data.getDocument().map(getRowClass()));
     }
 
     public Optional<T> findOne(TableFindOneOptions findOneOptions) {

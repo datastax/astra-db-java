@@ -26,6 +26,7 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
+import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.NonNull;
@@ -46,6 +47,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -267,6 +269,7 @@ public class Row implements Serializable {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
+        Assert.hasLength(key, "key");
         return clazz.cast(SERIALIZER.convertValue(columnMap.get(key), clazz));
     }
 
@@ -308,6 +311,10 @@ public class Row implements Serializable {
 
     public Long getBigInt(final String key) {
         return Long.parseLong(String.valueOf(get(key)));
+    }
+
+    public DataAPIVector getVector(final String key) {
+        return get(key, DataAPIVector.class);
     }
 
     /**
