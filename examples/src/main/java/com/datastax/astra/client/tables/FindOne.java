@@ -14,6 +14,7 @@ import java.util.Optional;
 import static com.datastax.astra.client.core.query.Filters.and;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.gt;
+import static com.datastax.astra.client.core.query.Projection.include;
 
 public class FindOne {
  public static void main(String[] args) {
@@ -28,7 +29,7 @@ public class FindOne {
      eq("winner", "Victor"));
 
    TableFindOneOptions options = new TableFindOneOptions()
-     //.projection(include("match_id", "winner", "field3"))
+     // .projection(include("match_id", "winner", "field3"))
      .sort(Sort.vector("m_vector", new DataAPIVector(new float[] {0.4f, -0.6f, 0.2f})))
      .includeSimilarity(true);
 
@@ -42,7 +43,7 @@ public class FindOne {
    Table<Game> tableGame = db.getTable("games", Game.class);
    Optional<Game> row2 = tableGame.findOne(filter, options);
      row2.ifPresent(game -> {
-         System.out.println("game: " + game.getVector().dimension());
+         System.out.println("game: " + game.getVector());
          System.out.println(game.getFighters());
          System.out.println(game.getMatchId());
    });

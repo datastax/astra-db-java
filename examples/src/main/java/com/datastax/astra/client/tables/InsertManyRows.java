@@ -28,18 +28,26 @@ public class InsertManyRows {
 
    List<Row> myRows = new ArrayList<>();
    myRows.add(new Row().addText("match_id", "fight4")
-           .addInt("round", 1)
-           .addText("winner", "Victor")
-           .addInt("score", 18)
-           .addTimeStamp("when", Instant.now())
-           .addSet("fighters", Set.of(
-                   UUID.fromString("0193539a-2770-8c09-a32a-111111111111"),
-                   UUID.fromString("019353e3-00b4-83f9-a127-222222222222")))
-           .addVector("m_vector", new DataAPIVector(new float[]{0.4f, -0.6f, 0.2f})));
-      myRows.add(new Row().addText("match_id", "fight5").addInt("round", 1).addText("winner", "Adam"));
-      myRows.add(new Row().addText("match_id", "fight5").addInt("round", 2).addText("winner", "Betta"));
-      myRows.add(new Row().addText("match_id", "fight5").addInt("round", 3).addText("winner", "Caio"));
-      myRows.add(new Row().addText("match_id", "challenge6").addInt("round", 1).addText("winner", "Donna")
+    .addInt("round", 1)
+    .addText("winner", "Victor")
+    .addInt("score", 18)
+    .addTimeStamp("when", Instant.now())
+    .addSet("fighters", Set.of(
+     UUID.fromString("0193539a-2770-8c09-a32a-111111111111"),
+     UUID.fromString("019353e3-00b4-83f9-a127-222222222222")))
+    .addVector("m_vector",
+        new DataAPIVector(new float[]{0.4f, -0.6f, 0.2f})));
+
+  myRows.add(new Row()
+   .addText("match_id", "fight5")
+   .addInt("round", 1)
+   .addText("winner", "Adam"));
+  myRows.add(new Row()
+   .addText("match_id", "fight5")
+   .addInt("round", 2)
+   .addText("winner", "Betta"));
+  myRows.add(new Row().addText("match_id", "fight5").addInt("round", 3).addText("winner", "Caio"));
+  myRows.add(new Row().addText("match_id", "challenge6").addInt("round", 1).addText("winner", "Donna")
               .addVector("m_vector", new DataAPIVector(new float[]{0.9f, -0.1f, -0.3f})));
       myRows.add(new Row().addText("match_id", "challenge6").addInt("round", 2).addText("winner", "Erick"));
       myRows.add(new Row().addText("match_id", "challenge6").addInt("round", 3).addText("winner", "Fiona"));
@@ -61,21 +69,5 @@ public class InsertManyRows {
        new Row().addText("match_id", "fight5").addInt("round", 2).addText("winner", "Betta Vigo"),
        new Row().addText("match_id", "fight5").addInt("round", 3).addText("winner", "Caio Gozer")),
    new TableInsertManyOptions().ordered(true));
-
   }
 }
-
-/*
-Perform an ordered insertion (which would stop on the first failure):
-
-        my_table.insert_many(
-    [
-{"match_id": "fight5", "round": 1, "winner": "Adam0"},
-        {"match_id": "fight5", "round": 2, "winner": "Betta0"},
-        {"match_id": "fight5", "round": 3, "winner": "Caio0"},
-        {"match_id": "fight5", "round": 1, "winner": "Adam Zuul"},
-        {"match_id": "fight5", "round": 2, "winner": "Betta Vigo"},
-        {"match_id": "fight5", "round": 3, "winner": "Caio Gozer"},
-        ],
-ordered=True,
-        )*/
