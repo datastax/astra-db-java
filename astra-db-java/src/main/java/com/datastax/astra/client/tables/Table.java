@@ -732,7 +732,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
 
     /*
 
-    Cursor could take a boolean in the constructor to mark the distinct
+    Cursor could take a boolean in the constructor rto mark the distinct
 
     public <R> TableCursor<T, R> distinct(String fieldName, TableFindOptions options, Class<R> resultClass) {
         throw new UnsupportedOperationException("distinct is not implemented yet");
