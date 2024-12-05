@@ -671,7 +671,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(table.findOne(johnFilter)).isPresent();
 
         // Update the document
-        TableUpdateResult birthday = table.updateOne(johnFilter, TableUpdateOperation.create()
+        TableUpdateResult birthday = table.updateOne(johnFilter, new TableUpdateOperation()
                 .set("age", 43));
                 //.updateMul(Map.of("price", 1.1d)));
         Assertions.assertThat(birthday.getMatchedCount()).isEqualTo(1);

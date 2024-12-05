@@ -66,6 +66,7 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.NotImplementedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -557,8 +558,6 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   findOne         ----
     // --------------------------
 
-
-
     public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
@@ -731,41 +730,18 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   distinct       ----
     // -------------------------
 
-    /**
-     * Gets the distinct values of the specified field name.
-     * The iteration is performed at CLIENT-SIDE and will exhaust all the table elements.
-     *
-     * @param fieldName
-     *      the field name
-     * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
-     * @return
-     *      an iterable of distinct values
+    /*
 
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
-    return distinct(fieldName, null, resultClass);
+    Cursor could take a boolean in the constructor to mark the distinct
+
+    public <R> TableCursor<T, R> distinct(String fieldName, TableFindOptions options, Class<R> resultClass) {
+        throw new UnsupportedOperationException("distinct is not implemented yet");
     }
 
-    /**
-     * Gets the distinct values of the specified field name.
-     *
-     * @param fieldName
-     *      the field name
-     * @param filter
-     *      the query filter
-     * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
-     * @return
-     *      an iterable of distinct values
+    public TableCursor<T, T> distinct(String fieldName, TableFindOptions options) {
+        return distinct(fieldName, null, getRowClass());
+    }*/
 
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-    return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
-    }
-     */
     // -------------------------
     // ---   updateOne      ----
     // -------------------------
@@ -777,11 +753,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      a row describing the query filter, which may not be null.
      * @param update
      *      a row describing the update, which may not be null. The update to apply must include at least one update operator.
-     * @return
-     *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdateOperation update) {
-        return updateOne(filter, update, new TableUpdateOneOptions());
+    public void updateOne(Filter filter, TableUpdateOperation update) {
+        updateOne(filter, update, new TableUpdateOneOptions());
     }
 
     /**
@@ -793,46 +767,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
      * @param updateOptions
      *      the options to apply to the update operation
-     * @return
-     *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdateOperation update, TableUpdateOneOptions updateOptions) {
+    public void updateOne(Filter filter, TableUpdateOperation update, TableUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
                 .create("updateOne")
                 .withFilter(filter)
-                .withUpdate(update)
-                .withSort(updateOptions.getSortArray())
-                .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
-                );
-        return getUpdateResult(runCommand(cmd, updateOptions));
-    }
-
-    /**
-     * Update all documents in the collection according to the specified arguments.
-     *
-     * @param apiResponse
-     *       response for the API
-     * @return
-     *      the result of the update many operation
-     */
-    private static TableUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
-        TableUpdateResult result = new TableUpdateResult();
-        DataAPIStatus status = apiResponse.getStatus();
-        if (status != null) {
-            if (status.containsKey(RESULT_MATCHED_COUNT)) {
-                result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
-            }
-            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
-                result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
-            }
-            if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
-            }
-        }
-        return result;
+                .withUpdate(update);
+         runCommand(cmd, updateOptions);
     }
 
     // -------------------------

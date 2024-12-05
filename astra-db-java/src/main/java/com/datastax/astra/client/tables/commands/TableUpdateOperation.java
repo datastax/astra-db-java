@@ -61,25 +61,23 @@ public class TableUpdateOperation extends Row {
     }
 
     /**
-     * Allow to creat a new instance.
-     *
-     * @return
-     *      a new instance
-     */
-    public static TableUpdateOperation create() {
-        return new TableUpdateOperation();
-    }
-
-    /**
      * Builder pattern
      *
-     * @param fieldName
-     *      field name
+     * @param fields
+     *      fields name
      * @return
      *      reference to self
      */
-    public TableUpdateOperation unset(String fieldName) {
-        return update("$unset", fieldName, "");
+    public TableUpdateOperation unset(String... fields) {
+        if (fields != null) {
+            for (String field : fields) {
+                update("$unset", field, "");
+            }
+        }
+        return this;
+    }
+    public TableUpdateOperation unset(String field, Object value) {
+        return update("$unset", field, value);
     }
 
     /**

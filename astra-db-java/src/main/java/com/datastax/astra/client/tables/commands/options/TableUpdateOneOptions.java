@@ -32,39 +32,12 @@ import lombok.experimental.Accessors;
 
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TableUpdateOneOptions extends BaseOptions<TableUpdateOneOptions> {
 
     /**
-     * if upsert is selected
+     * Default constructor.
      */
-    private Boolean upsert;
-
-    /**
-     * Order by.
-     */
-    private Sort[] sort;
-
-    /**
-     * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
-     * @param s
-     *      sort options
-     * @return
-     *     current command
-     */
-    public TableUpdateOneOptions sort(Sort... s) {
-        this.sort = s;
-        return this;
-    }
-
-    /**
-     * Get the sort options.
-     *
-     * @return
-     *      sort options
-     */
-    public Sort[] getSortArray() {
-        return sort;
+    public TableUpdateOneOptions() {
     }
 }
