@@ -40,6 +40,7 @@ import com.datastax.astra.client.tables.commands.options.EstimatedCountRowsOptio
 import com.datastax.astra.client.tables.commands.options.ListIndexesOptions;
 import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
 import com.datastax.astra.client.tables.commands.options.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
@@ -731,6 +732,10 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   distinct       ----
     // -------------------------
 
+    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+        return distinct(fieldName, filter, resultClass, null);
+    }
+
     /**
      * Return a list of distinct values for the given field name.
      *
@@ -745,14 +750,18 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param <R>
      *     type of the result
      */
-    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
         Assert.hasLength(fieldName, "fieldName");
         Assert.notNull(resultClass, "resultClass");
         // Building a convenient find options
-        TableFindOptions options =  new TableFindOptions()
+        TableFindOptions findOptions =  new TableFindOptions()
                 .projection(Projection.include(fieldName));
+        // Overriding options
+        if (options != null && options.getDataAPIClientOptions() != null) {
+            findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
+        }
         // Exhausting the list of distinct values
-        return find(filter, options, Row.class).toList().stream()
+        return find(filter, findOptions, Row.class).toList().stream()
                 .map(row -> row.get(fieldName, resultClass))
                 .distinct()
                 .toList();

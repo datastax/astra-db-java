@@ -325,6 +325,11 @@ public class DataAPIClient {
         return new Database(apiEndpoint, dbOptions);
     }
 
+    public Database getDatabase(String apiEndpoint, String keyspace) {
+        DatabaseOptions dbOptions = new DatabaseOptions(token, options).keyspace(keyspace);
+        return new Database(apiEndpoint, dbOptions);
+    }
+
     /**
      * Retrieves a database client configured to connect to the Data API using the specified API endpoint.
      * <p>

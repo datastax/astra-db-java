@@ -1,4 +1,4 @@
-package com.datastax.astra.client.collections.commands.options;
+package com.datastax.astra.client.tables.commands.options;
 
 /*-
  * #%L
@@ -21,31 +21,16 @@ package com.datastax.astra.client.collections.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
-
-@Setter
+/**
+ * Options to delete many documents.
+ */
+@Getter @Setter
+@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CreateCollectionOptions extends BaseOptions<CreateCollectionOptions> {
-
-    /**
-     * The keyspace to use for the database.
-     */
-    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
-
-    public CreateCollectionOptions() {
-        super(null, COLLECTION_ADMIN, null);
-    }
-
-    /**
-     * Gets keyspace
-     *
-     * @return value of keyspace
-     */
-    public String getKeyspace() {
-        return keyspace;
-    }
+public class TableDistinctOptions extends BaseOptions<TableDistinctOptions> {
 }

@@ -75,7 +75,7 @@ public class HttpClientOptions implements Cloneable {
     // --------------------------------------------
 
     /** Default retry count. */
-    public static final int DEFAULT_RETRY_COUNT = 3;
+    public static final int DEFAULT_RETRY_COUNT = 1;
 
     /** Default retry delay. */
     public static final int DEFAULT_RETRY_DELAY_MILLIS = 100;
