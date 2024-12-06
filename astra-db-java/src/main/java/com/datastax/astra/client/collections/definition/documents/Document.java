@@ -265,8 +265,10 @@ public class Document implements Serializable {
      *      vector list
      */
     @JsonIgnore
-    public Optional<float[]>  getVector() {
-        return Optional.ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class));
+    public Optional<DataAPIVector>  getVector() {
+        return Optional
+                .ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class))
+                .map(DataAPIVector::new);
     }
 
     /**
@@ -278,7 +280,19 @@ public class Document implements Serializable {
      *      self reference
      */
     public Document vector(float[] vector) {
-        return append(DataAPIKeywords.VECTOR.getKeyword(), new DataAPIVector(vector));
+        return append(DataAPIKeywords.VECTOR.getKeyword(), vector);
+    }
+
+    /**
+     * Set the vector value.
+     *
+     * @param vector
+     *      vector value
+     * @return
+     *      self reference
+     */
+    public Document vector(DataAPIVector vector) {
+        return append(DataAPIKeywords.VECTOR.getKeyword(), vector);
     }
 
     /**

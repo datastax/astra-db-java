@@ -375,7 +375,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
         String embeddingId  = doc.getId(String.class);
         Embedding embedding = null;
         if (doc.getVector().isPresent()) {
-            embedding = Embedding.from(doc.getVector().get());
+            embedding = Embedding.from(doc.getVector().get().getEmbeddings());
         }
         TextSegment embedded = null;
         Object body = doc.get(KEY_ATTRIBUTES_BLOB);
