@@ -21,12 +21,22 @@ package com.datastax.astra.client.collections.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.collections.Collection.DEFAULT_COLLECTION_SERIALIZER;
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
+/**
+ * Options for the dropCollection operation.
+ */
+@Setter
+@Accessors(fluent = true, chain = true)
 public class DropCollectionOptions extends BaseOptions<DropCollectionOptions> {
 
+    /**
+     * Default constructor.
+     */
     public DropCollectionOptions() {
         super(null, COLLECTION_ADMIN, DEFAULT_COLLECTION_SERIALIZER, null);
     }

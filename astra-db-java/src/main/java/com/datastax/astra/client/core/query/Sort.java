@@ -50,6 +50,10 @@ public class Sort {
      *      field name
      * @param order
      *      field ordering instruction
+     * @param vectorize
+     *     vectorize instruction
+     * @param vector
+     *     vector instruction
      */
     public Sort(String field, SortOrder order, String vectorize, DataAPIVector vector) {
         this.field = field;

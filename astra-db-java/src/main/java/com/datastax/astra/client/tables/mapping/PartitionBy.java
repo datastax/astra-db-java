@@ -25,8 +25,32 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Specifies a partition key for fields or methods. This annotation is used to define the partitioning
+ * value that groups or categorizes data elements.
+ * <p>
+ * Apply this annotation to fields or methods in classes where partitioning logic is required.
+ * The {@code value()} method defines the partition key as an integer.
+ * </p>
+ *
+ * <p><b>Retention:</b> {@code RUNTIME}</p>
+ * This annotation is retained at runtime to allow runtime reflection.
+ *
+ * <p><b>Target:</b> {@code FIELD}, {@code METHOD}</p>
+ * This annotation can be applied to fields or methods.
+ */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PartitionBy {
+    /**
+     * The partition key value for the annotated field or method.
+     *
+     * @return an integer representing the partition key
+     */
     int value();
 }

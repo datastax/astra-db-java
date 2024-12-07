@@ -32,7 +32,6 @@ import lombok.experimental.Accessors;
  * List Options for a FindOne command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionFindOneOptions extends BaseOptions<CollectionFindOneOptions> {
 
@@ -55,6 +54,12 @@ public class CollectionFindOneOptions extends BaseOptions<CollectionFindOneOptio
      * Flag to include sortVector in the result when operating a semantic search.
      */
     Boolean includeSortVector;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionFindOneOptions() {
+    }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

@@ -30,13 +30,18 @@ import lombok.Setter;
  */
 @Getter @Setter
 @AllArgsConstructor
-@NoArgsConstructor
 public class CollectionInsertOneResult {
 
     /**
      * Object return but the insert one command.
      */
     Object insertedId;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionInsertOneResult() {
+    }
 
 
 }

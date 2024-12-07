@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  * Options for InsertMany
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TableInsertManyOptions extends BaseOptions<TableInsertManyOptions> {
 
@@ -59,5 +58,10 @@ public class TableInsertManyOptions extends BaseOptions<TableInsertManyOptions> 
      * If the flag is set to true the command is failing on first error
      */
     int chunkSize = DataAPIClientOptions.MAX_CHUNK_SIZE;
+
+    /**
+     * Default constructor.
+     */
+    public TableInsertManyOptions() {}
 
 }

@@ -33,7 +33,6 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
 public class FindOneAndReplaceResult<T> {
 
@@ -51,4 +50,10 @@ public class FindOneAndReplaceResult<T> {
      * Number of modified documents
      */
     Integer modifiedCount;
+
+    /**
+     * Default constructor.
+     */
+    public FindOneAndReplaceResult() {
+    }
 }

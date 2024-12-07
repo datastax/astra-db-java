@@ -36,7 +36,6 @@ import java.util.Map;
  * Set of options to define and initialize a collection.
  */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionDefinition {
 
@@ -54,6 +53,11 @@ public class CollectionDefinition {
      * Indexing options
      */
     private IndexingOptions indexing;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionDefinition() {}
 
     /**
      * Subclass representing the indexing options.
@@ -96,7 +100,6 @@ public class CollectionDefinition {
      * Subclass representing the indexing options.
      */
     @Setter
-    @NoArgsConstructor
     public static class IndexingOptions {
 
         /**
@@ -108,6 +111,11 @@ public class CollectionDefinition {
          * If not empty will index just those properties.
          */
         List<String> allow;
+
+        /**
+         * Default constructor.
+         */
+        public IndexingOptions() {}
 
         /**
          * Gets deny

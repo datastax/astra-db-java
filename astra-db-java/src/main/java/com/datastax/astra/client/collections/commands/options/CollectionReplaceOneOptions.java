@@ -30,10 +30,15 @@ import lombok.experimental.Accessors;
  * Options for the replaceOne operation.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOneOptions> {
 
     /** If upsert is selected. */
     Boolean upsert;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionReplaceOneOptions() {
+    }
 }

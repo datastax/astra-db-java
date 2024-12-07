@@ -25,8 +25,14 @@ import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
+/**
+ * Options for the listCollection operation.
+ */
 public class ListCollectionOptions extends BaseOptions<ListCollectionOptions> {
 
+    /**
+     * Default constructor.
+     */
     public ListCollectionOptions() {
         super(null, COLLECTION_ADMIN, new DocumentSerializer(), null);
     }

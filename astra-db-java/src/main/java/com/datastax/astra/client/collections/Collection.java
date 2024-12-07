@@ -174,6 +174,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *                       database. This name is used to route operations to the correct
      *                       collection and should adhere to the database's naming conventions.
      * @param collectionOptions the options to apply to the command operation. If left blank the default collection
+     * @param documentClass The {@code Class} object representing the schema of documents stored
      *
      * <p>Example usage:</p>
      * <pre>
@@ -978,6 +979,15 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return find(null, new CollectionFindOptions());
     }
 
+    /**
+     * Retrieves all documents in the collection.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all documents in the collection,
+     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
+     * </p>
+     *
+     * @return A {@link CollectionCursor} for iterating over all documents in the collection.
+     */
     public CollectionCursor<T> findAllWithCursor() {
         return new CollectionCursor<T>(this, null, new CollectionFindOptions());
     }

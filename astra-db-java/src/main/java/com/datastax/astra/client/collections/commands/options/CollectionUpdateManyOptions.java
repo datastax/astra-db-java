@@ -30,7 +30,6 @@ import lombok.experimental.Accessors;
  * Options for the updateOne operation
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionUpdateManyOptions extends BaseOptions<CollectionUpdateManyOptions> {
 
@@ -38,4 +37,11 @@ public class CollectionUpdateManyOptions extends BaseOptions<CollectionUpdateMan
      * if upsert is selected
      */
     private Boolean upsert;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionUpdateManyOptions() {
+    }
 }
+

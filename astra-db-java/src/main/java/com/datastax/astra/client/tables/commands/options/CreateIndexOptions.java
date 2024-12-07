@@ -42,6 +42,9 @@ public class CreateIndexOptions extends BaseOptions<CreateIndexOptions> {
      */
     boolean ifNotExists = true;
 
+    /**
+     * Default constructor
+     */
     public CreateIndexOptions() {
         super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }

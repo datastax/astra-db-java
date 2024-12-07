@@ -71,18 +71,32 @@ public class Row implements Serializable {
         columnMap = new LinkedHashMap<>();
     }
 
+    /**
+     * Access internal property map.
+     *
+     * @return
+     *     internal map
+     */
     @JsonAnyGetter
     public Map<String, Object> getColumnMap() {
         return columnMap;
     }
 
+    /**
+     * Set a property in the row.
+     *
+     * @param key
+     *      key
+     * @param value
+     *      value
+     */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
         columnMap.put(key, value);
     }
 
     /**
-     * Create a document with no attributes.
+     * Create a row with no attributes.
      *
      * @return
      *      instance of document
@@ -92,7 +106,7 @@ public class Row implements Serializable {
     }
 
     /**
-     * Marshall as a document if needed.
+     * Marshall as a row if needed.
      *
      * @param clazz
      *      target class
@@ -142,118 +156,496 @@ public class Row implements Serializable {
         return this;
     }
 
+    /**
+     * Adds a text value to the row.
+     *
+     * @param key   the key for the text value
+     * @param value the text value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addText("name", "example");
+     * }
+     * </pre>
+     */
     public Row addText(final String key, final String value) {
         return add(key, value);
     }
 
+    /**
+     * Adds an ASCII-encoded text value to the row.
+     *
+     * @param key   the key for the ASCII value
+     * @param value the ASCII value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addAscii("key", "ASCII value");
+     * }
+     * </pre>
+     */
     public Row addAscii(final String key, final String value) {
         return addText(key, value);
     }
 
+// Repeat the following template for each method, adapting parameters and descriptions accordingly
+
+    /**
+     * Adds a vectorized value to the row.
+     *
+     * @param key   the key for the vectorized value
+     * @param value the vectorized value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addVectorize("vectorKey", "vectorizedData");
+     * }
+     * </pre>
+     */
     public Row addVectorize(final String key, final String value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a variable-length integer (VarInt) value to the row.
+     *
+     * @param key   the key for the VarInt value
+     * @param value the VarInt value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addVarInt("key", new BigInteger("123456789"));
+     * }
+     * </pre>
+     */
     public Row addVarInt(final String key, final BigInteger value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a BigInt value to the row.
+     *
+     * @param key   the key for the BigInt value
+     * @param value the BigInt value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addBigInt("key", 123456789L);
+     * }
+     * </pre>
+     */
     public Row addBigInt(final String key, final Long value) {
         return add(key, value);
     }
 
+    /**
+     * Adds an Integer value to the row.
+     *
+     * @param key   the key for the Integer value
+     * @param value the Integer value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addInt("key", 42);
+     * }
+     * </pre>
+     */
     public Row addInt(final String key, final Integer value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a SmallInt value to the row.
+     *
+     * @param key   the key for the SmallInt value
+     * @param value the SmallInt value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addSmallInt("key", (short) 32000);
+     * }
+     * </pre>
+     */
     public Row addSmallInt(final String key, final Short value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a TinyInt value to the row.
+     *
+     * @param key   the key for the TinyInt value
+     * @param value the TinyInt value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addTinyInt("key", (byte) 127);
+     * }
+     * </pre>
+     */
     public Row addTinyInt(final String key, final Byte value) {
         return add(key, value);
     }
-
+    /**
+     * Adds a Boolean value to the row.
+     *
+     * @param key   the key for the Boolean value
+     * @param value the Boolean value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addBoolean("key", true);
+     * }
+     * </pre>
+     */
     public Row addBoolean(final String key, final Boolean value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a Blob (byte array) to the row.
+     *
+     * @param key   the key for the Blob value
+     * @param value the byte array to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * byte[] data = {1, 2, 3};
+     * row.addBlob("key", data);
+     * }
+     * </pre>
+     */
     public Row addBlob(final String key, final byte[] value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a Float value to the row.
+     *
+     * @param key   the key for the Float value
+     * @param value the Float value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addFloat("key", 3.14f);
+     * }
+     * </pre>
+     */
     public Row addFloat(final String key, final Float value) {
         return add(key, value);
     }
 
-    public Row addDecimal(String pDecimal, BigDecimal big) {
-        return add(pDecimal, big);
+    /**
+     * Adds a Decimal (BigDecimal) value to the row.
+     *
+     * @param key   the key for the Decimal value
+     * @param value the BigDecimal value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDecimal("key", new BigDecimal("12345.6789"));
+     * }
+     * </pre>
+     */
+    public Row addDecimal(String key, BigDecimal value) {
+        return add(key, value);
     }
 
+    /**
+     * Adds a Double value to the row.
+     *
+     * @param key   the key for the Double value
+     * @param value the Double value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDouble("key", 3.14159);
+     * }
+     * </pre>
+     */
     public Row addDouble(final String key, final Double value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a Date value to the row.
+     *
+     * @param key   the key for the Date value
+     * @param value the Date value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDate("key", new Date());
+     * }
+     * </pre>
+     */
     public Row addDate(final String key, final Date value) {
         return add(key, value);
     }
 
-    public Row addDate(final String key, final LocalDate localDate) {
+
+    /**
+     * Adds a LocalDate value to the row, converting it to a Date.
+     *
+     * @param key       the key for the LocalDate value
+     * @param localDate the LocalDate value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDate("key", LocalDate.now());
+     * }
+     * </pre>
+     */
+    public Row addLocalDate(final String key, final LocalDate localDate) {
         if (localDate == null) {
             return add(key, null);
         }
         return addDate(key, Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
 
+    /**
+     * Adds an InetAddress value to the row.
+     *
+     * @param key   the key for the InetAddress value
+     * @param value the InetAddress value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addInet("key", InetAddress.getByName("127.0.0.1"));
+     * }
+     * </pre>
+     */
     public Row addInet(final String key, final InetAddress value) {
         return add(key, value);
     }
 
-    public Row addDuration(final String key, final Duration value) {
-        return add(key, TableDuration.of(Period.ZERO, value));
+    /**
+     * Adds a Duration value to the row.
+     *
+     * @param key      the key for the Duration value
+     * @param duration the Duration value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDuration("key", Duration.ofMinutes(10));
+     * }
+     * </pre>
+     */
+    public Row addDuration(final String key, final Duration duration) {
+        return add(key, TableDuration.of(Period.ZERO, duration));
     }
 
+    /**
+     * Adds a Duration value to the row.
+     *
+     * @param key    the key for the Duration value
+     * @param period the Period value to add
+     * @param duration the Duration value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDuration("key", Period.ofDays(1), Duration.ofMinutes(10));
+     * }
+     * </pre>
+     */
     public Row addDuration(final String key, final Period period, final Duration duration) {
         return add(key, TableDuration.of(period, duration));
     }
 
+    /**
+     * Adds a duration value composed of only a Period to the row.
+     *
+     * @param key    the key for the duration value
+     * @param period the period component of the duration
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addDuration("key", Period.ofWeeks(2));
+     * }
+     * </pre>
+     */
     public Row addDuration(final String key, final Period period) {
         return add(key, TableDuration.of(period, Duration.ZERO));
     }
 
+    /**
+     * Adds a TableDuration value to the row.
+     *
+     * @param key   the key for the TableDuration value
+     * @param value the TableDuration value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addTableDuration("key", new TableDuration(Period.ofMonths(1), Duration.ofMinutes(30)));
+     * }
+     * </pre>
+     */
     public Row addTableDuration(final String key, final TableDuration value) {
         return add(key, value);
     }
 
+
+    /**
+     * Adds a UUID value to the row.
+     *
+     * @param key   the key for the UUID value
+     * @param value the UUID value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addUUID("key", UUID.randomUUID());
+     * }
+     * </pre>
+     */
     public Row addUUID(final String key, final UUID value) {
         return add(key, value);
     }
 
+    /**
+     * Adds a timestamp (Instant) value to the row.
+     *
+     * @param key    the key for the timestamp
+     * @param instant the Instant value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addTimeStamp("key", Instant.now());
+     * }
+     * </pre>
+     */
     public Row addTimeStamp(String key, Instant instant) {
         return add(key, instant);
     }
 
+    /**
+     * Adds a LocalTime value to the row.
+     *
+     * @param key   the key for the time value
+     * @param ltime the LocalTime value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addTime("key", LocalTime.now());
+     * }
+     * </pre>
+     */
     public Row addTime(String key, LocalTime ltime) {
         return add(key, ltime);
     }
 
+    /**
+     * Adds a DataAPIVector value to the row.
+     *
+     * @param key    the key for the vector
+     * @param vector the DataAPIVector to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DataAPIVector vector = new DataAPIVector(new float[]{1.0f, 2.0f, 3.0f});
+     * row.addVector("key", vector);
+     * }
+     * </pre>
+     */
     public Row addVector(String key, DataAPIVector vector) {
         return add(key, vector);
     }
 
+    /**
+     * Adds a vector (float array) to the row, wrapping it in a DataAPIVector.
+     *
+     * @param key    the key for the vector
+     * @param vector the float array to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.addVector("key", new float[]{1.0f, 2.0f, 3.0f});
+     * }
+     * </pre>
+     */
     public Row addVector(String key, float[] vector) {
         return add(key, new DataAPIVector(vector));
     }
 
+    /**
+     * Adds a list to the row.
+     *
+     * @param key  the key for the list
+     * @param list the list to add
+     * @param <T>  the type of elements in the list
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<String> names = List.of("Alice", "Bob");
+     * row.addList("key", names);
+     * }
+     * </pre>
+     */
     public <T> Row addList(String key, List<T> list) {
         return add(key, list);
     }
 
+    /**
+     * Adds a set to the row.
+     *
+     * @param key the key for the set
+     * @param set the set to add
+     * @param <T> the type of elements in the set
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Set<Integer> numbers = Set.of(1, 2, 3);
+     * row.addSet("key", numbers);
+     * }
+     * </pre>
+     */
     public <T> Row addSet(String key, Set<T> set) {
         return add(key, set);
     }
 
-    public <K,V> Row addMap(String key, Map<K, V> myMap) {
+
+    /**
+     * Adds a map to the row.
+     *
+     * @param key   the key for the map
+     * @param myMap the map to add
+     * @param <K>   the type of keys in the map
+     * @param <V>   the type of values in the map
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Map<String, Integer> exampleMap = Map.of("one", 1, "two", 2);
+     * row.addMap("key", exampleMap);
+     * }
+     * </pre>
+     */
+    public <K, V> Row addMap(String key, Map<K, V> myMap) {
         return add(key, myMap);
     }
 

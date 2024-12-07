@@ -322,6 +322,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     public void createIndex(String idxName, String columnName) {
         createIndex(idxName, new TableIndexDefinition().column(columnName), null);
     }
+
     /**
      * Create a simple index on the given column with no special options
      *
@@ -418,10 +419,23 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   insertOne       ----
     // --------------------------
 
+    /**
+     * Inserts a single row into the table.
+     *
+     * @param row the row to be inserted; must not be {@code null}.
+     * @return a {@link TableInsertOneResult} object representing the result of the insertion operation.
+     */
     public final TableInsertOneResult insertOne(T row) {
         return insertOneDelegate(RowMapper.mapAsRow(row), null);
     }
 
+    /**
+     * Inserts a single row into the table with the specified options.
+     *
+     * @param row the row to be inserted; must not be {@code null}.
+     * @param insertOneOptions the options for the insertion operation; may be {@code null}.
+     * @return a {@link TableInsertOneResult} object representing the result of the insertion operation.
+     */
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
         notNull(row, "row");
         Command insertOne = Command
@@ -431,14 +445,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return new TableInsertOneResult(result.getInsertedIds().get(0), result.getPrimaryKeySchema());
     }
 
-    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row) {
-        return CompletableFuture.supplyAsync(() -> insertOne(row));
-    }
-
-    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row, TableInsertOneOptions options) {
-        return CompletableFuture.supplyAsync(() -> insertOne(row, options));
-    }
-
+    /**
+     * Inserts a single row into the table asynchronously.
+     * @param row
+     *      row to be inserted
+     * @param insertOneOptions
+     *     options for the insertion operation
+     * @return
+     *    an  object representing the result of the insertion operation.
+     */
     private TableInsertOneResult insertOneDelegate(Row row, TableInsertOneOptions insertOneOptions) {
         notNull(row, "row");
         Command insertOne = Command
@@ -452,10 +467,23 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   insertMany      ----
     // --------------------------
 
+    /**
+     * Inserts multiple rows into the table.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     public TableInsertManyResult insertMany(List<? extends T> rows) {
         return insertMany(rows, new TableInsertManyOptions());
     }
 
+    /**
+     * Inserts multiple rows into the table with the specified options.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @param insertManyOptions the options for the insertion operation; must not be {@code null}.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions insertManyOptions) {
         Assert.isTrue(rows != null && !rows.isEmpty(), "rows list cannot be null or empty");
         Assert.notNull(insertManyOptions, "insertMany options cannot be null");
@@ -512,19 +540,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return finalResult;
     }
 
+    /**
+     * Inserts multiple rows into the table.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     @SafeVarargs
     public final TableInsertManyResult insertMany(T... rows) {
         return insertMany(Arrays.asList(rows), new TableInsertManyOptions());
-    }
-
-    public CompletableFuture<TableInsertManyResult > insertManyAsync(List<? extends T> rows) {
-        return CompletableFuture.supplyAsync(() -> insertMany(rows));
-    }
-
-    public TableInsertManyOptions insertManyOptions() {
-        TableInsertManyOptions options = new TableInsertManyOptions();
-        options.dataAPIClientOptions(this.options.getDataAPIClientOptions().clone());
-        return options;
     }
 
     /**
@@ -557,6 +581,12 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   findOne         ----
     // --------------------------
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter the filter criteria used to select the row; may be {@code null}.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
     public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
@@ -577,28 +607,55 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                 .map(row -> RowMapper.mapFromRow(row, getSerializer(), newRowClass));
     }
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @param newRowClass
+     *      the class representing the row type for the result; must not be {@code null}.
+     * @param <R>
+     *     the type of the row in the result.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
     public <R> Optional<R> findOne(Filter filter, Class<R> newRowClass) {
         return findOne(filter, null, newRowClass);
     }
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
     public Optional<T> findOne(Filter filter) {
         return findOne(filter, null, getRowClass());
     }
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @param findOneOptions
+     *      options for the find one operation
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
     public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
         return findOne(filter, findOneOptions, getRowClass());
     }
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param findOneOptions
+     *      options for the find one operation
+     *  @return an {@link Optional} containing the row or an empty {@link Optional} if no match is found.
+     *
+     */
     public Optional<T> findOne(TableFindOneOptions findOneOptions) {
         return findOne(null, findOneOptions);
-    }
-
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter) {
-        return CompletableFuture.supplyAsync(() -> findOne(filter));
-    }
-
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter, TableFindOneOptions findOneOptions) {
-        return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
     // -------------------------
@@ -626,6 +683,10 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      the query filter
      * @param options
      *      options of find one
+     * @param newRowType
+     *      the class representing the row type for the result; must not be {@code null}.
+     * @param <R>
+     *      the type of the row in the result.
      * @return
      *      the Cursor to iterate over the results
      */
@@ -729,6 +790,18 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   distinct       ----
     // -------------------------
 
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldName
+     *      name of the field
+     * @param filter
+     *      filter to apply
+     * @param resultClass
+     *      class of the result
+     * @param <R>
+     *     type of the result
+     */
     public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
         return distinct(fieldName, filter, resultClass, null);
     }

@@ -27,7 +27,13 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
 
+/**
+ * A custom serializer for {@link CollectionDefaultIdTypes} values, extending {@link StdSerializer}.
+ * This serializer handles special cases of collection default id types, converting them
+ * to their textual representations in JSON.
+ */
 public class CollectionDefaultIdTypeSerializer extends StdSerializer<CollectionDefaultIdTypes> {
+
     /**
      * Default constructor.
      */

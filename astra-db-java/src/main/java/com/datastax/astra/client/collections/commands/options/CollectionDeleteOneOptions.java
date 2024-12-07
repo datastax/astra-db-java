@@ -27,11 +27,16 @@ import lombok.NoArgsConstructor;
 /**
  * Options to delete One document.
  */
-@NoArgsConstructor
 public class CollectionDeleteOneOptions extends BaseOptions<CollectionDeleteOneOptions> {
 
     /** Sort List. */
     Sort[] sort;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionDeleteOneOptions() {
+    }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

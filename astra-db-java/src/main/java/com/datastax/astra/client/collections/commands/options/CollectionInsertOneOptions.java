@@ -30,7 +30,12 @@ import lombok.experimental.Accessors;
  * Options for InsertOne
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionInsertOneOptions extends BaseOptions<CollectionInsertOneOptions> {
+
+    /**
+     * Default constructor.
+     */
+    public CollectionInsertOneOptions() {
+    }
 }

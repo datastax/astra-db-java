@@ -30,6 +30,12 @@ import lombok.experimental.Accessors;
  * List Options for a FindOne command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class EstimatedCountDocumentsOptions extends BaseOptions<EstimatedCountDocumentsOptions> {}
+public class EstimatedCountDocumentsOptions extends BaseOptions<EstimatedCountDocumentsOptions> {
+
+        /**
+        * Default constructor.
+        */
+        public EstimatedCountDocumentsOptions() {
+        }
+}

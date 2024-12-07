@@ -42,6 +42,9 @@ public class DropTableOptions extends BaseOptions<DropTableOptions> {
      */
     boolean ifExists = true;
 
+    /**
+     * Default constructor
+     */
     public DropTableOptions() {
         super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }

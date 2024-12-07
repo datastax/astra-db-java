@@ -44,6 +44,9 @@ public class CreateVectorIndexOptions extends BaseOptions<CreateVectorIndexOptio
      */
     boolean ifNotExists = true;
 
+    /**
+     * Default constructor
+     */
     public CreateVectorIndexOptions() {
         super(null, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }

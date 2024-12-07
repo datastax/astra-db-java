@@ -33,44 +33,107 @@ import java.util.List;
 import static java.time.temporal.ChronoUnit.NANOS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
+/**
+ * Represents a combination of a {@link java.time.Period} and a {@link java.time.Duration}.
+ * This class is immutable and implements {@link java.time.temporal.TemporalAmount} to
+ * support arithmetic operations and integration with temporal objects.
+ * <p>
+ * The {@code TableDuration} class provides methods to manipulate and retrieve
+ * combined period and duration values, as well as utility methods for
+ * serialization and formatting.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * TableDuration td1 = TableDuration.of(Period.ofDays(2), Duration.ofHours(5));
+ * TableDuration td2 = TableDuration.of(Period.ofMonths(1), Duration.ofMinutes(30));
+ *
+ * TableDuration combined = td1.plus(td2);
+ * System.out.println(combined.toISO8601()); // Prints ISO8601 representation
+ * }</pre>
+ */
 @Getter
 public class TableDuration implements TemporalAmount {
 
+    /**
+     * The {@link java.time.Period} component of this duration. Non-null, defaults to {@link Period#ZERO}.
+     */
     private final Period period;
 
+    /**
+     * The {@link java.time.Duration} component of this duration. Non-null, defaults to {@link Duration#ZERO}.
+     */
     private final Duration duration;
 
+    /**
+     * Constructs a {@code TableDuration} from the specified period and duration.
+     * Null values are treated as zero.
+     *
+     * @param period   the period component, or null for zero period
+     * @param duration the duration component, or null for zero duration
+     */
     public TableDuration(Period period, Duration duration) {
         this.period   = period == null ? Period.ZERO : period;
         this.duration = duration == null ? Duration.ZERO : duration;
     }
 
+    /**
+     * Factory method to create a new {@code TableDuration} instance.
+     *
+     * @param period   the period component
+     * @param duration the duration component
+     * @return a new instance of {@code TableDuration}
+     */
     public static TableDuration of(Period period, Duration duration) {
         return new TableDuration(period, duration);
     }
 
+    /**
+     * Adds the specified {@code TableDuration} to this instance.
+     *
+     * @param other the other {@code TableDuration} to add
+     * @return a new {@code TableDuration} instance representing the result
+     */
     public TableDuration plus(TableDuration other) {
         Period newPeriod = this.period.plus(other.period);
         Duration newDuration = this.duration.plus(other.duration);
         return new TableDuration(newPeriod, newDuration);
     }
 
+    /**
+     * Subtracts the specified {@code TableDuration} from this instance.
+     *
+     * @param other the other {@code TableDuration} to subtract
+     * @return a new {@code TableDuration} instance representing the result
+     */
     public TableDuration minus(TableDuration other) {
         Period newPeriod = this.period.minus(other.period);
         Duration newDuration = this.duration.minus(other.duration);
         return new TableDuration(newPeriod, newDuration);
     }
 
+    /**
+     * Multiplies this duration by the specified scalar value.
+     *
+     * @param scalar the scalar to multiply by
+     * @return a new {@code TableDuration} instance representing the result
+     */
     public TableDuration multipliedBy(int scalar) {
         Period newPeriod = this.period.multipliedBy(scalar);
         Duration newDuration = this.duration.multipliedBy(scalar);
         return new TableDuration(newPeriod, newDuration);
     }
 
+    /**
+     * Negates this duration.
+     *
+     * @return a new {@code TableDuration} instance with the negated values
+     */
     public TableDuration negated() {
         return multipliedBy(-1);
     }
 
+    /** {@inheritDoc} */
     @Override
     public long get(TemporalUnit unit) {
         if (unit == ChronoUnit.YEARS) {
@@ -88,11 +151,13 @@ public class TableDuration implements TemporalAmount {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public java.util.List<java.time.temporal.TemporalUnit> getUnits() {
         return List.of(ChronoUnit.YEARS, ChronoUnit.MONTHS, ChronoUnit.DAYS, SECONDS, NANOS);
     }
 
+    /** {@inheritDoc} */
     @Override
     public java.time.temporal.Temporal addTo(java.time.temporal.Temporal temporal) {
         temporal = temporal.plus(period);
@@ -100,6 +165,7 @@ public class TableDuration implements TemporalAmount {
         return temporal;
     }
 
+    /** {@inheritDoc} */
     @Override
     public java.time.temporal.Temporal subtractFrom(java.time.temporal.Temporal temporal) {
         temporal = temporal.minus(period);
@@ -108,7 +174,10 @@ public class TableDuration implements TemporalAmount {
     }
 
     /**
-     * Convert TableDuration to ISO8601 string format.
+     * Converts this {@code TableDuration} to an ISO8601 string representation.
+     * The format follows the standard for combining periods and durations.
+     *
+     * @return an ISO8601 string representing this duration
      */
     public String toISO8601() {
         StringBuilder result = new StringBuilder("P");
@@ -132,6 +201,14 @@ public class TableDuration implements TemporalAmount {
         return result.toString();
     }
 
+
+    /**
+     * Returns a compact string representation of this duration.
+     * Negative values are prefixed with a "-" and units are suffixed with appropriate abbreviations.
+     * <p>Example: {@code -1y2mo3d4h5m6s} represents negative 1 year, 2 months, etc.</p>
+     *
+     * @return a compact string representation of this duration
+     */
     public String toCompactString() {
         StringBuilder sb = new StringBuilder();
         boolean negative = getPeriod().isNegative() || getDuration().isNegative();

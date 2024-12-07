@@ -25,8 +25,14 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
 
 import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 
+/**
+ * Options to list indexes.
+ */
 public class ListIndexesOptions extends BaseOptions<ListIndexesOptions> {
 
+    /**
+     * Default constructor.
+     */
     public ListIndexesOptions() {
         super(null, TABLE_ADMIN, new RowSerializer(), null);
     }

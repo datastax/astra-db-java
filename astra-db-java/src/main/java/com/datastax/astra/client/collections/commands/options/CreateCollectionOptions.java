@@ -27,6 +27,9 @@ import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
+/**
+ * Options for the createCollection operation.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class CreateCollectionOptions extends BaseOptions<CreateCollectionOptions> {
@@ -36,6 +39,9 @@ public class CreateCollectionOptions extends BaseOptions<CreateCollectionOptions
      */
     String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
+    /**
+     * Default constructor.
+     */
     public CreateCollectionOptions() {
         super(null, COLLECTION_ADMIN, null);
     }

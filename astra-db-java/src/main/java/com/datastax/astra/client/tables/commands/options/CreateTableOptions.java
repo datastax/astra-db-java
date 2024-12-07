@@ -48,6 +48,9 @@ public class CreateTableOptions extends BaseOptions<CreateTableOptions> {
      */
     boolean ifNotExists = true;
 
+    /**
+     * Default constructor
+     */
     public CreateTableOptions() {
         super(null, CommandType.TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, null);
     }

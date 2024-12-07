@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  * Options for InsertMany
  */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionInsertManyOptions extends BaseOptions<CollectionInsertManyOptions> {
 
@@ -59,6 +58,12 @@ public class CollectionInsertManyOptions extends BaseOptions<CollectionInsertMan
      * If the flag is set to true the command is failing on first error
      */
     int chunkSize = DataAPIClientOptions.MAX_CHUNK_SIZE;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionInsertManyOptions() {
+    }
 
     /**
      * Gets ordered

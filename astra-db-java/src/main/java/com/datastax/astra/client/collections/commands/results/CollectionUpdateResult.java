@@ -28,7 +28,6 @@ import lombok.Setter;
  * Return update result.
  */
 @Getter @Setter
-@NoArgsConstructor
 public class CollectionUpdateResult {
 
     /**
@@ -45,5 +44,11 @@ public class CollectionUpdateResult {
      * Populated if upserted
      */
     Object upsertedId;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionUpdateResult() {
+    }
 
 }

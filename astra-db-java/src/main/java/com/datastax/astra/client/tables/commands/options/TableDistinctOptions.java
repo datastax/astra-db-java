@@ -30,7 +30,12 @@ import lombok.experimental.Accessors;
  * Options to delete many documents.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TableDistinctOptions extends BaseOptions<TableDistinctOptions> {
+
+    /**
+     * Default constructor.
+     */
+    public TableDistinctOptions() {
+    }
 }

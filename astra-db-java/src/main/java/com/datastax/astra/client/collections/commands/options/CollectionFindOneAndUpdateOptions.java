@@ -34,7 +34,6 @@ import lombok.experimental.Accessors;
  * List options for a findOneAndUpdate command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionFindOneAndUpdateOptions extends BaseOptions<CollectionFindOneAndUpdateOptions> {
 
@@ -57,6 +56,12 @@ public class CollectionFindOneAndUpdateOptions extends BaseOptions<CollectionFin
      * Return document flag.
      */
     private String returnDocument;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionFindOneAndUpdateOptions() {
+    }
 
     /**
      * Adding this on top of projection(Projection[] p) to allow for a more fluent API.

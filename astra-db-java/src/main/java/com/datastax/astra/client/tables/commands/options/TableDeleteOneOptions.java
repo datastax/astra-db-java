@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  * Options to delete One document.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TableDeleteOneOptions extends BaseOptions<TableDeleteOneOptions> {
 
@@ -39,6 +38,11 @@ public class TableDeleteOneOptions extends BaseOptions<TableDeleteOneOptions> {
      * Order by.
      */
     Sort[] sort;
+
+    /**
+     * Default constructor.
+     */
+    public TableDeleteOneOptions() {}
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

@@ -49,17 +49,28 @@ public class TableDescriptor {
 
     /**
      * Default constructor.
+     * @param name the name of the table
      */
     public TableDescriptor(String name) {
         // left blank, serialization with jackson
         this.name = name;
     }
 
+    /**
+     * Set the name of the table.
+     * @param name the name of the table
+     * @return the descriptor
+     */
     public TableDescriptor name(String name) {
         this.name = name;
         return this;
     }
 
+    /**
+     * Set the definition of the table.
+     * @param def the definition of the table
+     * @return the descriptor
+     */
     public TableDescriptor definition(TableDefinition def) {
         this.definition = def;
         return this;

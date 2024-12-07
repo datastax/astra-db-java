@@ -28,7 +28,6 @@ import lombok.NoArgsConstructor;
 /**
  * Options to find one and delete.
  */
-@NoArgsConstructor
 public class CollectionFindOneAndDeleteOptions extends BaseOptions<CollectionFindOneAndDeleteOptions> {
 
     /** Order by. */
@@ -36,6 +35,12 @@ public class CollectionFindOneAndDeleteOptions extends BaseOptions<CollectionFin
 
     /** Select.*/
     Projection[] projection;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionFindOneAndDeleteOptions() {
+    }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

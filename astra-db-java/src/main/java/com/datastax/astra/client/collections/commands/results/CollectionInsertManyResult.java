@@ -35,13 +35,19 @@ import java.util.List;
  */
 @Getter @Setter
 @AllArgsConstructor
-@NoArgsConstructor
 public class CollectionInsertManyResult {
 
     /** Inserted Ids. */
-    List<Object> insertedIds =  new ArrayList<>();
+    List<Object> insertedIds;
 
     /** Document Response with flag is there. */
-    List<DataAPIDocumentResponse> documentResponses = new ArrayList<>();
+    List<DataAPIDocumentResponse> documentResponses;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionInsertManyResult() {
+    }
+
 
 }

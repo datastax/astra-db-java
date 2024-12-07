@@ -24,8 +24,10 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+/**
+ * Descriptor for a table vector index.
+ */
+@Getter @Setter
 public class TableVectorIndexDescriptor {
 
     /**

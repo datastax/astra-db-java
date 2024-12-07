@@ -32,7 +32,6 @@ import lombok.experimental.Accessors;
  * List Options for a FindOne command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionFindOptions extends BaseOptions<CollectionFindOptions> {
 
@@ -70,6 +69,12 @@ public class CollectionFindOptions extends BaseOptions<CollectionFindOptions> {
      * Page state.
      */
     private String pageState;
+
+    /**
+     * Default constructor.
+     */
+    public CollectionFindOptions() {
+    }
 
     /**
      * Get the sort options.

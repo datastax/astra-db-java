@@ -30,6 +30,12 @@ import lombok.experimental.Accessors;
  * List Options for a FindOne command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
-public class CountRowsOptions extends BaseOptions<CountRowsOptions> {}
+public class CountRowsOptions extends BaseOptions<CountRowsOptions> {
+
+            /**
+            * Default constructor.
+            */
+            public CountRowsOptions() {
+            }
+}

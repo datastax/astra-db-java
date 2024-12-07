@@ -25,7 +25,6 @@ import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -33,7 +32,6 @@ import lombok.experimental.Accessors;
  * Options used in the `findAndReplace` command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFindOneAndReplaceOptions> {
 
@@ -56,6 +54,12 @@ public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFi
      * Tell to return the document before or after the update.
      */
     private String returnDocument = ReturnDocument.AFTER.getKey();
+
+    /**
+     * Default constructor.
+     */
+    public CollectionFindOneAndReplaceOptions() {
+    }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

@@ -28,16 +28,30 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-@Data @AllArgsConstructor
+/**
+ * Represents the result of a single row insertion into a table, containing the
+ * inserted primary key values and the schema of the primary key.
+ * <p>
+ * This class provides utility methods to retrieve the inserted ID as a structured row.
+ * </p>
+ */
+@Data
+@AllArgsConstructor
 public class TableInsertOneResult {
 
+    /**
+     * The list of inserted primary key values. The order corresponds to the primary key schema.
+     */
     private ArrayList<Object> insertedId;
 
+    /**
+     * The schema of the primary key as a map, where keys are column names and values are
+     * {@link ColumnDefinition} objects describing the column details.
+     */
     private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
 
     /**
-     * No-argument constructor that initializes {@code insertedIds} to an empty {@link ArrayList}
-     *
+     * No-argument constructor that initializes {@code insertedId} to an empty {@link ArrayList}
      * and {@code primaryKeySchema} to an empty {@link LinkedHashMap}.
      */
     public TableInsertOneResult() {
@@ -45,6 +59,14 @@ public class TableInsertOneResult {
         this.primaryKeySchema = new LinkedHashMap<>();
     }
 
+    /**
+     * Converts the inserted ID values into a structured {@link Row}.
+     * The column names from the primary key schema are used as keys in the resulting row,
+     * and the corresponding values from the {@code insertedId} list are used as values.
+     *
+     * @return a {@link Row} representation of the inserted ID values
+     * @throws IndexOutOfBoundsException if the size of {@code insertedId} does not match the number of columns in {@code primaryKeySchema}
+     */
     public Row getInsertedIdAsRow() {
         Row row = new Row();
         for (int i = 0; i < insertedId.size(); i++) {
@@ -52,6 +74,4 @@ public class TableInsertOneResult {
         }
         return row;
     }
-
-
 }

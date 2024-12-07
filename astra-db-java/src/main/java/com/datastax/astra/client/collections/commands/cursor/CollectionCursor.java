@@ -150,7 +150,9 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         CollectionCursor<T> newTableCursor = this.clone();
         newTableCursor.findOptions.projection(newProjection);
         return newTableCursor;
-    }/**
+    }
+
+    /**
      * Applies a sorting order to the cursor.
      * Creates a new instance of the cursor with the specified sort options applied.
      *
@@ -243,6 +245,8 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
     /**
      * Consume the buffer and return the results.
      *
+     * @param n
+     *      consume n elements from the buffer
      * @return
      *      list of results
      */
