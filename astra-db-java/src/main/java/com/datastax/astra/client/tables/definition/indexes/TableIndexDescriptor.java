@@ -24,46 +24,69 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Represents a descriptor for a table index, including the table's name and associated index options.
+ * This class is designed for use in scenarios such as serialization/deserialization with libraries
+ * like Jackson and for method chaining in fluent-style APIs.
+ */
 @Getter
 @Setter
 public class TableIndexDescriptor {
 
     /**
-     * Name of the table.
+     * The name of the table.
      */
     private String name;
 
     /**
-     * Options for the table.
+     * The options defining the table's index characteristics.
      */
     private TableIndexDefinition definition;
 
     /**
-     * Default constructor.
+     * Default constructor for serialization/deserialization purposes.
      */
     public TableIndexDescriptor() {
-        // left blank, serialization with jackson
+        // Constructor intentionally left blank for serialization with Jackson.
     }
 
     /**
-     * Default constructor.
+     * Constructs a {@code TableIndexDescriptor} with the specified table name.
+     *
+     * @param name the name of the table.
      */
     public TableIndexDescriptor(String name) {
-        // left blank, serialization with jackson
+        // Constructor intentionally left blank for serialization with Jackson.
         this.name = name;
     }
 
+    /**
+     * Sets the name of the table.
+     *
+     * @param name the name of the table.
+     * @return the current instance for method chaining.
+     */
     public TableIndexDescriptor name(String name) {
         this.name = name;
         return this;
     }
 
+    /**
+     * Sets the index definition for the table.
+     *
+     * @param def the {@link TableIndexDefinition} defining the index options for the table.
+     * @return the current instance for method chaining.
+     */
     public TableIndexDescriptor definition(TableIndexDefinition def) {
         this.definition = def;
         return this;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Converts the object to a string using the {@link RowSerializer}.
+     *
+     * @return a string representation of this {@code TableIndexDescriptor}.
+     */
     @Override
     public String toString() {
         return new RowSerializer().marshall(this);

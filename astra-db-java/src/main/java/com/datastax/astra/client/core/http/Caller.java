@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  */
 @Setter
 @Accessors(fluent = true, chain = true)
-@NoArgsConstructor
 @AllArgsConstructor
 public class Caller {
 
@@ -40,6 +39,12 @@ public class Caller {
 
     /** caller version. */
     String version;
+
+    /**
+     * Default constructor.
+     */
+    public Caller() {
+    }
 
     /**
      * Gets name

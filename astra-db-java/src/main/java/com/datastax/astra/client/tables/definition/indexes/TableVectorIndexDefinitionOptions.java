@@ -25,23 +25,50 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Options for the Index definitions
- * Using booleans as those flag could be null.
+ * Options for defining vector-based index configurations for tables.
+ * This class provides configuration settings for a vector index, such as the similarity metric
+ * and the source model. The use of {@code String} allows flexibility in specifying custom metrics or models.
  */
-@Data @NoArgsConstructor
+@Data
 public class TableVectorIndexDefinitionOptions {
 
+    /**
+     * The similarity metric used for the vector index.
+     * Example metrics might include cosine similarity, Euclidean distance, etc.
+     */
     String metric;
 
+    /**
+     * The source model used for vector computations or embedding generation.
+     */
     String sourceModel;
 
+    /**
+     * Default constructor.
+     */
+    public TableVectorIndexDefinitionOptions() {
+    }
+
+    /**
+     * Sets the similarity metric for the vector index.
+     *
+     * @param metric the {@link SimilarityMetric} to be used for the index.
+     * @return the current instance for method chaining.
+     */
     public TableVectorIndexDefinitionOptions metric(SimilarityMetric metric) {
         this.metric = metric.getValue();
         return this;
     }
 
+    /**
+     * Sets the source model for the vector index.
+     *
+     * @param sourceModel the name or identifier of the model used for vector computations.
+     * @return the current instance for method chaining.
+     */
     public TableVectorIndexDefinitionOptions sourceModel(String sourceModel) {
         this.sourceModel = sourceModel;
         return this;
     }
 }
+

@@ -45,7 +45,9 @@ import java.util.Optional;
  * Implementation of a cursor across the find items
  *
  * @param <T>
- *       type of the table
+ *       working bean of parent table
+ * @param <R>
+ *       working bean returned for the find
  */
 public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
 
@@ -88,6 +90,9 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     @Getter
     private int consumedCount;
 
+    /**
+     * Type of the row to return
+     */
     @Getter
     private Class<R> rowType;
 
@@ -100,6 +105,8 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *      current filter
      * @param options
      *      options of the find operation
+     * @param rowType
+     *      row type returned with the cursor
      */
     public TableCursor(Table<T> table, Filter filter, TableFindOptions options, Class<R> rowType) {
         this.table = table;
@@ -148,10 +155,10 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     }
 
     /**
-     * Immutable methods that return a new Cursor instance.
+     * Creates a new {@link TableCursor} with an updated projection.
      *
-     * @param newProjection
-     *      a new projection
+     * @param newProjection the new projection to apply
+     * @return a new {@link TableCursor} instance with the specified projection
      */
     public TableCursor<T, R> project(Projection... newProjection) {
         checkIdleState();
@@ -160,6 +167,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Creates a new {@link TableCursor} with a specified sort order.
+     *
+     * @param sort the sort criteria to apply
+     * @return a new {@link TableCursor} instance with the specified sort order
+     */
     public TableCursor<T, R> sort(Sort... sort) {
         checkIdleState();
         TableCursor<T, R> newTableCursor = this.clone();
@@ -167,6 +180,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Creates a new {@link TableCursor} with a specified limit on the number of results.
+     *
+     * @param newLimit the maximum number of results to retrieve
+     * @return a new {@link TableCursor} instance with the specified limit
+     */
     public TableCursor<T, R> limit(int newLimit) {
         checkIdleState();
         TableCursor<T, R> newTableCursor = this.clone();
@@ -174,6 +193,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Creates a new {@link TableCursor} that skips a specified number of results.
+     *
+     * @param newSkip the number of results to skip
+     * @return a new {@link TableCursor} instance with the specified skip value
+     */
     public TableCursor<T, R> skip(int newSkip) {
         checkIdleState();
         TableCursor<T, R> newTableCursor = this.clone();
@@ -181,6 +206,11 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Creates a new {@link TableCursor} that includes similarity scores in the results.
+     *
+     * @return a new {@link TableCursor} instance with similarity scores included
+     */
     public TableCursor<T, R> includeSimilarity() {
         checkIdleState();
         TableCursor<T, R> newTableCursor = this.clone();
@@ -188,6 +218,11 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         return newTableCursor;
     }
 
+    /**
+     * Creates a new {@link TableCursor} that includes sort vector metadata in the results.
+     *
+     * @return a new {@link TableCursor} instance with sort vector metadata included
+     */
     public TableCursor<T, R> includeSortVector() {
         checkIdleState();
         TableCursor<T, R> newTableCursor = this.clone();
@@ -212,7 +247,14 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         this.consumedCount = 0;
     }
 
-    // Buffer consumption
+    /**
+     * Consume the buffer and return the list of items.
+     *
+     * @param n
+     *      number of items to consume
+     * @return
+     *      list of items
+     */
     public List<T> consumeBuffer(int n) {
         if (state == CursorState.CLOSED || state == CursorState.IDLE) {
             return Collections.emptyList();
@@ -235,17 +277,29 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         }
     }
 
-    // Iterator implementation
+    /**
+     * Iterate over the cursor.
+     *
+     * @return
+     *     iterator over the results
+     */
     @Override
     public Iterator<R> iterator() {
         return new CursorIterator();
     }
 
     /**
-     * Iterator about options
+     * A private iterator implementation for iterating over the results of a {@link TableCursor}.
+     * Handles lazy loading of data in batches to optimize memory usage and performance.
      */
     private class CursorIterator implements Iterator<R> {
 
+        /**
+         * Checks if there are more elements to iterate over.
+         * If the buffer is empty, it fetches the next batch of documents.
+         *
+         * @return {@code true} if there are more elements, {@code false} otherwise
+         */
         @Override
         public boolean hasNext() {
             if (state == CursorState.CLOSED) {
@@ -262,6 +316,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             return !buffer.isEmpty();
         }
 
+        /**
+         * Retrieves the next element in the iteration.
+         *
+         * @return the next element of type {@code R}
+         * @throws NoSuchElementException if no more elements are available
+         */
         @Override
         public R next() {
             if (!hasNext()) {
@@ -274,10 +334,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             // From Pivot to new class
             return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
         }
-
     }
 
-    // Fetch next batch of documents
+    /**
+     * Fetches the next batch of documents into the buffer.
+     * This method handles paging, using the page state from the previous batch to fetch the next one.
+     */
     private void fetchNextBatch() {
         if (currentPage == null) {
             currentPage = table.findPage(filter, tableFindOptions);
@@ -290,15 +352,31 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         }
     }
 
-    // Additional methods
+    /**
+     * Checks if there are more elements in the cursor.
+     *
+     * @return {@code true} if there are more elements, {@code false} otherwise
+     */
     public boolean hasNext() {
         return iterator().hasNext();
     }
 
+    /**
+     * Retrieves the next element from the cursor.
+     *
+     * @return the next element of type {@code R}
+     * @throws NoSuchElementException if no more elements are available
+     */
     public R next() {
         return iterator().next();
     }
 
+    /**
+     * Collects all remaining elements in the cursor into a list.
+     * Automatically closes the cursor after all elements are consumed.
+     *
+     * @return a {@link List} containing all remaining elements
+     */
     public List<R> toList() {
         List<R> result = new ArrayList<>();
         try {

@@ -92,8 +92,8 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Initialization with an authentication token and target environment, Use this constructor for testing purpose.
-
+     * Initialization with an authentication token and target environment,
+     * Use this constructor for testing purpose.
      * @param options
      *      options for client
      */

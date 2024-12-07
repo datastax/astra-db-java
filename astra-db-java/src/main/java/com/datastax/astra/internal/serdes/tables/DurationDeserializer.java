@@ -22,7 +22,6 @@ package com.datastax.astra.internal.serdes.tables;
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
@@ -30,14 +29,56 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+/**
+ * A custom deserializer for {@link Duration} objects, extending {@link JsonDeserializer}.
+ * This deserializer supports multiple formats for parsing duration strings.
+ *
+ * <p>Two parsing modes are supported based on configuration:</p>
+ * <ul>
+ *   <li>ISO-8601 format: Parses strings like {@code "PT1H30M"} if ISO-8601 encoding is enabled.</li>
+ *   <li>Custom format: Parses human-readable durations, such as {@code "1h30m"},
+ *       with support for a variety of time units, including hours, minutes, seconds, milliseconds, microseconds, and nanoseconds.</li>
+ * </ul>
+ *
+ * <p>The following units are supported in the custom format:</p>
+ * <ul>
+ *   <li>{@code h}: Hours</li>
+ *   <li>{@code m}: Minutes</li>
+ *   <li>{@code s}: Seconds</li>
+ *   <li>{@code ms}: Milliseconds</li>
+ *   <li>{@code us} or {@code µs}: Microseconds</li>
+ *   <li>{@code ns}: Nanoseconds</li>
+ * </ul>
+ *
+ * <p>Negative durations are supported by prefixing the string with a {@code -} sign (e.g., {@code "-1h30m"}).</p>
+ */
 public class DurationDeserializer extends JsonDeserializer<Duration> {
 
+    /**
+     * Regular expression pattern for parsing custom duration strings.
+     */
     private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+)([a-zA-Zµ]+)");
+
+    /**
+     * Regular expression pattern for detecting negative durations.
+     */
     private static final Pattern NEGATIVE_PATTERN = Pattern.compile("^-(.*)");
 
+    /**
+     * Deserializes a JSON string into a {@link Duration} object.
+     * <p>
+     * Supports parsing either ISO-8601 duration strings or custom human-readable formats
+     * based on the configuration provided by {@link DataAPIClientOptions}.
+     * </p>
+     *
+     * @param p     the {@link JsonParser} providing access to the JSON content.
+     * @param ctxt  the {@link DeserializationContext} for contextual information.
+     * @return the deserialized {@link Duration} object, or {@code null} if the input string is empty.
+     * @throws IOException if the input string is invalid or contains an unsupported time unit.
+     */
     @Override
-    public Duration deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Duration deserialize(JsonParser p, DeserializationContext ctxt)
+    throws IOException {
         String text = p.getText().trim();
         if (text.isEmpty()) {
             return null;
@@ -109,3 +150,4 @@ public class DurationDeserializer extends JsonDeserializer<Duration> {
         return duration;
     }
 }
+

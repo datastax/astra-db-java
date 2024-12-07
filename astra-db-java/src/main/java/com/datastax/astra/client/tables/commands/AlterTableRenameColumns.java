@@ -20,8 +20,27 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
-public class AlterTableRenameColumns implements AlterTableOperation{
+/**
+ * Represents an operation to rename columns in a database table.
+ * This class implements the {@link AlterTableOperation} interface,
+ * providing the functionality to return the operation name as "rename".
+ *
+ * <p>This operation is typically used to rename one or more columns in a table
+ * during schema alterations.</p>
+ */
+public class AlterTableRenameColumns implements AlterTableOperation {
 
+    /**
+     * Default constructor.
+     */
+    public AlterTableRenameColumns() {
+    }
+
+    /**
+     * Returns the name of the operation, which is "rename".
+     *
+     * @return a {@link String} representing the name of this operation.
+     */
     @Override
     public String getOperationName() {
         return "rename";

@@ -42,19 +42,36 @@ import lombok.NoArgsConstructor;
  * </pre>
  */
 @Getter
-@NoArgsConstructor
 public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
 
+    /** Initial source model. */
     public static final String SOURCE_MODEL_ADA002 = "ada002";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_BERT = "bert";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_COHERE_V3 = "cohere-v3";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_GECKO = "gecko";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_NV_QA_4 = "nv-qa-4";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_OPENAI_V3_LARGE = "openai-v3-large";
+
+    /** Initial source model. */
     public static final String SOURCE_MODEL_OPENAI_V3_SMALL = "openai-v3-small";
 
     /** Options for configuring the vector index. */
     private TableVectorIndexDefinitionOptions options;
+
+    /**
+     * Constructs a new {@code TableVectorIndexDefinition} instance.
+     */
+    public TableVectorIndexDefinition() {}
 
     /**
      * Sets the name of the column for the vector index.

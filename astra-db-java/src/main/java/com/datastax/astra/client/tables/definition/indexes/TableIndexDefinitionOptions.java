@@ -22,33 +22,72 @@ package com.datastax.astra.client.tables.definition.indexes;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 /**
- * Options for the Index definitions
- * Using booleans as those flag could be null.
+ * Represents the options for table index definitions, allowing configuration of index characteristics.
+ * This class uses {@link Boolean} to allow flags to be null, providing a tri-state logic
+ * (true, false, or unspecified).
+ *
+ * <p>The available options are:</p>
+ * <ul>
+ *     <li><b>ascii:</b> Indicates whether the index should consider ASCII encoding.</li>
+ *     <li><b>normalize:</b> Specifies if the index should normalize data.</li>
+ *     <li><b>caseSensitive:</b> Determines if the index should be case-sensitive.</li>
+ * </ul>
  */
-@Data @NoArgsConstructor
+@Data
 public class TableIndexDefinitionOptions {
 
+    /**
+     * Indicates whether the index should consider ASCII encoding.
+     */
     Boolean ascii;
 
+    /**
+     * Specifies if the index should normalize data.
+     */
     Boolean normalize;
 
+    /**
+     * Determines if the index should be case-sensitive.
+     */
     Boolean caseSensitive;
 
+    /**
+     * Default constructor.
+     */
+    public TableIndexDefinitionOptions() {
+    }
+
+    /**
+     * Sets the ASCII flag for the index.
+     *
+     * @param ascii {@code true} to enable ASCII encoding, {@code false} to disable it.
+     * @return the current instance for method chaining.
+     */
     public TableIndexDefinitionOptions ascii(boolean ascii) {
         this.ascii = ascii;
         return this;
     }
 
+    /**
+     * Sets the normalization flag for the index.
+     *
+     * @param normalize {@code true} to enable normalization, {@code false} to disable it.
+     * @return the current instance for method chaining.
+     */
     public TableIndexDefinitionOptions normalize(boolean normalize) {
         this.normalize = normalize;
         return this;
     }
 
+    /**
+     * Sets the case sensitivity flag for the index.
+     *
+     * @param caseSensitive {@code true} to enable case sensitivity, {@code false} to disable it.
+     * @return the current instance for method chaining.
+     */
     public TableIndexDefinitionOptions caseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
         return this;
     }
-
 }

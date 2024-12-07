@@ -15,7 +15,8 @@ public class Quickstart {
   public static void main(String[] args) {
     // Loading Arguments
     String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
-    String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
+    //String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
+    String astraApiEndpoint = "https://e6d17fde-3555-42af-941f-16ce090d49f8-us-east1.apps.astra.datastax.com";
 
     // Initialize the client.
     DataAPIClient client = new DataAPIClient(astraToken);

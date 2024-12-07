@@ -30,7 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Utility class to convert beans to rows and vice versa.
+ * Pivot class to interact with Table is a Row. User can wirj POJO that will be converted to Row.
  */
 public class RowMapper {
 
@@ -65,6 +65,19 @@ public class RowMapper {
         return row;
     }
 
+    /**
+     * Mapping a row to a bean. If the bean is annotated with @Entity, the column names will be used.
+     * @param row
+     *      row to map
+     * @param serializer
+     *      serializer
+     * @param inputRowClass
+     *     input class
+     * @return
+     *     the bean
+     * @param <T>
+     *     type of the bean
+     */
     @SuppressWarnings("unchecked")
     public static <T> T mapFromRow(Row row, DataAPISerializer serializer, Class<T> inputRowClass) {
         try {

@@ -23,14 +23,40 @@ package com.datastax.astra.client.tables.definition.indexes;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor
+/**
+ * Represents the API support for table index definitions, providing flags for
+ * various operations such as table creation, insertion, and reading, along with
+ * a CQL (Cassandra Query Language) definition.
+ * <p>
+ * This class is a data structure used to store and transfer settings related to
+ * table index configurations.
+ * </p>
+ */
+@Data
 public class TableIndexDefinitionApiSupport {
 
+    /**
+     * Flag indicating whether table creation is supported.
+     */
     private boolean createTable;
 
+    /**
+     * Flag indicating whether insertion is supported.
+     */
     private boolean insert;
 
+    /**
+     * Flag indicating whether reading is supported.
+     */
     private boolean read;
 
+    /**
+     * A string containing the CQL (Cassandra Query Language) definition for the table index.
+     */
     private String cqlDefinition;
+
+    /**
+     * Default constructor.
+     */
+    public TableIndexDefinitionApiSupport() {}
 }

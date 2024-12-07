@@ -174,6 +174,9 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition vectorDimension(int size) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
         getVector().dimension(size);
         return this;
     }
@@ -185,6 +188,9 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition vectorSimilarity(@NonNull SimilarityMetric metric) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
         getVector().metric(metric.getValue());
         return this;
     }
@@ -264,6 +270,9 @@ public class CollectionDefinition {
             //embeddingService.setAuthentication(Map.of("providerKey", keyName + ".providerKey"));
             embeddingService.authentication(Map.of("providerKey", sharedSecretKey));
             // <--- Since 1.3.1 the suffix is not needed anymore
+        }
+        if (getVector() == null) {
+            vector = new VectorOptions();
         }
         getVector().service(embeddingService);
         return this;

@@ -32,7 +32,6 @@ import lombok.experimental.Accessors;
  * List Options for a FindOne command.
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TableFindOptions extends BaseOptions<TableFindOptions> {
 
@@ -70,6 +69,11 @@ public class TableFindOptions extends BaseOptions<TableFindOptions> {
      * Page state.
      */
     String pageState;
+
+    /**
+     * Default constructor.
+     */
+    public TableFindOptions() {}
 
     /**
      * Add a skip clause in the find block

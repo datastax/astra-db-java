@@ -23,13 +23,30 @@ package com.datastax.astra.client.tables.definition.indexes;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+/**
+ * Represents the base class for table index definitions, encapsulating common properties
+ * and behaviors for index definitions, including the column being indexed and API support
+ * for index-related operations.
+ * <p>
+ * Subclasses should extend this abstract class to implement specific types of index definitions.
+ * </p>
+ */
 @Getter
-@NoArgsConstructor
 public abstract class TableBaseIndexDefinition {
 
+    /**
+     * The name of the column that the index is associated with.
+     */
     protected String column;
 
+    /**
+     * The API support configuration for the table index.
+     */
     protected TableIndexDefinitionApiSupport apiSupport;
 
+    /**
+     * Default constructor.
+     */
+    public TableBaseIndexDefinition() {}
 }
+

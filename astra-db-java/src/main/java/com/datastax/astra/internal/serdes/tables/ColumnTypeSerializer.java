@@ -32,6 +32,7 @@ import java.io.IOException;
  * objectId|uuid|uuidv6|uuidv7
  */
 public class ColumnTypeSerializer extends StdSerializer<ColumnTypes> {
+
     /**
      * Default constructor.
      */

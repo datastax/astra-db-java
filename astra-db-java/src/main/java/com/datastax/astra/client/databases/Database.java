@@ -759,6 +759,24 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         if (createCollectionOptions != null) {
             if (createCollectionOptions.getDataAPIClientOptions() != null) {
                 collectionOptions.dataAPIClientOptions(createCollectionOptions.getDataAPIClientOptions());
+                DataAPIClientOptions options = createCollectionOptions.getDataAPIClientOptions();
+                // Merging db Headers
+                Map<String, String> dbHeaders = new HashMap<>();
+                dbHeaders.putAll(this.options.getDataAPIClientOptions().getDatabaseAdditionalHeaders());
+                dbHeaders.putAll(options.getDatabaseAdditionalHeaders());
+                options.databaseAdditionalHeaders(dbHeaders);
+                // Merging admin Headers
+                Map<String, String> adminHeaders = new HashMap<>();
+                adminHeaders.putAll(this.options.getDataAPIClientOptions().getAdminAdditionalHeaders());
+                adminHeaders.putAll(options.getAdminAdditionalHeaders());
+                options.adminAdditionalHeaders(adminHeaders);
+                collectionOptions.dataAPIClientOptions(createCollectionOptions.getDataAPIClientOptions());
+                // Merging listeners
+                Map<String, CommandObserver> listeners = new HashMap<>();
+                listeners.putAll(this.options.getDataAPIClientOptions().getObservers());
+                listeners.putAll(options.getObservers());
+                options.observers(listeners);
+
             }
             if (createCollectionOptions.getToken() != null) {
                 collectionOptions.token(createCollectionOptions.getToken());

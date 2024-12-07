@@ -62,14 +62,11 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 /**
  * Custom implementation of serialization : faster + no jackson dependency
- * 
- * @author Cedrick Lunven (@clunven)
  */
 @SuppressWarnings("deprecation")
 public class RowSerializer implements DataAPISerializer {
@@ -83,6 +80,12 @@ public class RowSerializer implements DataAPISerializer {
     public RowSerializer() {
     }
 
+    /**
+     * Definition of the Jackson object mapper to work with Tables.
+     *
+     * @return
+     *      object mapper
+     */
     @Override
     public ObjectMapper getMapper() {
         if (objectMapper == null) {
