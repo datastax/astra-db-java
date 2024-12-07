@@ -19,9 +19,48 @@ package com.datastax.astra.client.core.paging;
  * limitations under the License.
  * #L%
  */
-
+/**
+ * Represents the possible states of a database cursor.
+ * <p>
+ * A cursor can be in one of the following states:
+ * </p>
+ * <ul>
+ *   <li>{@link #IDLE} - The cursor is created but not yet started.</li>
+ *   <li>{@link #STARTED} - The cursor has been started and is active.</li>
+ *   <li>{@link #CLOSED} - The cursor has been closed and is no longer usable.</li>
+ * </ul>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * CursorState state = CursorState.IDLE;
+ *
+ * switch (state) {
+ *     case IDLE:
+ *         System.out.println("The cursor is idle.");
+ *         break;
+ *     case STARTED:
+ *         System.out.println("The cursor is active.");
+ *         break;
+ *     case CLOSED:
+ *         System.out.println("The cursor is closed.");
+ *         break;
+ * }
+ * }</pre>
+ */
 public enum CursorState {
+
+    /**
+     * Indicates that the cursor is created but not yet started.
+     */
     IDLE,
+
+    /**
+     * Indicates that the cursor has been started and is active.
+     */
     STARTED,
+
+    /**
+     * Indicates that the cursor has been closed and is no longer usable.
+     */
     CLOSED
 }

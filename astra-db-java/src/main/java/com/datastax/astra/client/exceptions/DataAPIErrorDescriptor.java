@@ -54,10 +54,19 @@ public class DataAPIErrorDescriptor extends RuntimeException {
      */
     String exceptionClass;
 
+    /**
+     * The name of the family of the error.
+     */
     String family;
 
+    /**
+     * The name of the error.
+     */
     String scope;
 
+    /**
+     * The title of the error.
+     */
     String title;
 
     /**
@@ -95,6 +104,7 @@ public class DataAPIErrorDescriptor extends RuntimeException {
         return sb.toString().trim();
     }
 
+    /** {@inheritDoc} */
     @Override
     @JsonIgnore
     public String getLocalizedMessage() {

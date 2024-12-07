@@ -83,11 +83,25 @@ public class Document implements Serializable {
         documentMap = new LinkedHashMap<>();
     }
 
+    /**
+     * Getter for the document map.
+     *
+     * @return
+     *    document map
+     */
     @JsonAnyGetter
     public Map<String, Object> getDocumentMap() {
         return documentMap;
     }
 
+    /**
+     * Setter for a property in the document map
+     *
+     * @param key
+     *    property name
+     * @param value
+     *    property value
+     */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
         documentMap.put(key, value);

@@ -98,16 +98,38 @@ public class DataAPIStatus {
         return insertedIds.stream().map(id -> serializer.convertValue(id, clazz)).toList();
     }
 
+
+    /**
+     * Getter for the payload.
+     * @return
+     *      the payload
+     */
     @JsonAnyGetter
     public Map<String, Object> getPayload() {
         return payload;
     }
 
+    /**
+     * Add a property to the payload.
+     *
+     * @param key
+     *    property name
+     * @param value
+     *    property value
+     */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
         payload.put(key, value);
     }
 
+    /**
+     * Check if the payload contains a key.
+     *
+     * @param key
+     *    the key
+     * @return
+     *    true if the key is present
+     */
     public boolean containsKey(final Object key) {
         return payload.containsKey(key);
     }
@@ -149,6 +171,14 @@ public class DataAPIStatus {
         return clazz.cast(serializer.convertValue(payload.get(key), clazz));
     }
 
+    /**
+     * Gets the value of the given key.  This is useful to avoid having casts in client code, though the effect is the same.  So to get
+     * the value of a key that is of type String, you would write {@code String name = doc.get("name")} instead of {@code String name =
+     * (String) doc.get("x") }.
+     *
+     * @param key the key
+     * @return the value of the given key, or null if the instance does not contain this key.
+     */
     public Object get(final Object key) {
         return payload.get(key);
     }

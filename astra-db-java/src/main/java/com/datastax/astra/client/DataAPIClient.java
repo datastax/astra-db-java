@@ -242,8 +242,10 @@ public class DataAPIClient {
      * }
      * </pre>
      *
+     * @param adminOptions
+     *      The options to configure the administration client, including the authentication token.
      * @return An instance of {@link AstraDBAdmin} configured with the appropriate authentication token and options,
-     *         ready for administrative operations.
+     *      ready for administrative operations.
      */
     public AstraDBAdmin getAdmin(AdminOptions adminOptions) {
         if (!options.isAstra()) {
@@ -319,12 +321,25 @@ public class DataAPIClient {
      * @return A {@link Database} client tailored for interaction with the Data API, configured according to the
      *         provided parameters.
      *
+     * @param apiEndpoint The URL of the Data API endpoint to connect to.
+     * @param dbOptions The options to configure the database client.
      * @throws IllegalArgumentException If the provided parameters are invalid or insufficient for resolving the endpoint.
      */
     public Database getDatabase(String apiEndpoint, DatabaseOptions dbOptions) {
         return new Database(apiEndpoint, dbOptions);
     }
 
+    /**
+     * Retrieves a database client configured to connect to the Data API using the specified API endpoint and keyspace.
+     * <p>
+     * Uses default {@link DatabaseOptions} for configuration.
+     * </p>
+     *
+     * @param apiEndpoint The URL of the Data API endpoint to connect to.
+     * @param keyspace The name of the keyspace to use for database operations.
+     * @return A {@link Database} client configured with default options for the specified endpoint and keyspace.
+     * @see #getDatabase(String, DatabaseOptions)
+     */
     public Database getDatabase(String apiEndpoint, String keyspace) {
         DatabaseOptions dbOptions = new DatabaseOptions(token, options).keyspace(keyspace);
         return new Database(apiEndpoint, dbOptions);

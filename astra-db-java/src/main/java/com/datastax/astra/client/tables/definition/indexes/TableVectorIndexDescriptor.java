@@ -49,17 +49,28 @@ public class TableVectorIndexDescriptor {
 
     /**
      * Default constructor.
+     * @param name the name of the table
      */
     public TableVectorIndexDescriptor(String name) {
         // left blank, serialization with jackson
         this.name = name;
     }
 
+    /**
+     * Set the name of the table.
+     * @param name the name of the table
+     * @return this
+     */
     public TableVectorIndexDescriptor name(String name) {
         this.name = name;
         return this;
     }
 
+    /**
+     * Set the definition of the table.
+     * @param def the definition of the table
+     * @return this
+     */
     public TableVectorIndexDescriptor definition(TableVectorIndexDefinition def) {
         this.definition = def;
         return this;

@@ -45,6 +45,12 @@ public class TableIndexDefinition extends TableBaseIndexDefinition {
     private TableIndexDefinitionOptions options;
 
     /**
+     * Default constructor.
+     */
+    public TableIndexDefinition() {
+    }
+
+    /**
      * Sets the name of the column for the index.
      *
      * @param column the name of the column to be indexed.

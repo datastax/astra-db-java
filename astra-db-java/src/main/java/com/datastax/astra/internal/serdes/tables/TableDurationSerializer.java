@@ -28,8 +28,17 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 
 import java.io.IOException;
 
+/**
+ * Serializer for TableDuration.
+ */
 public class TableDurationSerializer extends JsonSerializer<TableDuration> {
 
+    /**
+     * Default constructor.
+     */
+    public TableDurationSerializer() {}
+
+    /** {@inheritDoc} */
     @Override
     public void serialize(TableDuration value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
 

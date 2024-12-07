@@ -38,16 +38,20 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor
 public class TableInsertManyResult {
 
     /** Inserted Ids. */
-    ArrayList<ArrayList<Object>> insertedIds =  new ArrayList<>();
+    ArrayList<ArrayList<Object>> insertedIds;
 
     /** Schema on the response. */
-    LinkedHashMap<String, ColumnDefinition> primaryKeySchema = new LinkedHashMap<>();
+    LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
 
     /** Document Response with flag is there. */
-    List<DataAPIDocumentResponse> documentResponses = new ArrayList<>();
+    List<DataAPIDocumentResponse> documentResponses;
+
+    /**
+     * Default constructor.
+     */
+    public TableInsertManyResult() {}
 
 }

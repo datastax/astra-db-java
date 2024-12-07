@@ -28,12 +28,19 @@ import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 
 import java.io.IOException;
 
+/**
+ * Deserializer for DataAPIVector.
+ */
 public class DataAPIVectorDeserializer extends StdScalarDeserializer<DataAPIVector>  {
 
+    /**
+     * Default constructor.
+     */
     public DataAPIVectorDeserializer() {
         super(DataAPIVector.class);
     }
 
+    /** {@inheritDoc} */
     @Override
     public DataAPIVector deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
             final JsonToken t = p.currentToken();
@@ -66,6 +73,14 @@ public class DataAPIVectorDeserializer extends StdScalarDeserializer<DataAPIVect
             return new DataAPIVector((float[]) ctxt.handleUnexpectedToken(_valueClass, p));
     }
 
+    /**
+     * Unpacks a byte array into an array of floats.
+     *
+     * @param ctxt the {@link DeserializationContext} in which the deserializer is operating
+     * @param bytes the byte array to unpack
+     * @return an array of floats
+     * @throws IOException if the byte array is not a multiple of 4 bytes
+     */
     private final float[] unpack(DeserializationContext ctxt, byte[] bytes)
     throws IOException {
         final int bytesLen = bytes.length;

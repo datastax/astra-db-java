@@ -60,6 +60,11 @@ public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
             "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d+)S)?)?"
     );
 
+    /**
+     * Default constructor.
+     */
+    public TableDurationDeserializer() {
+    }
 
     /**
      * Deserializes a JSON string into a {@link TableDuration} object.

@@ -83,6 +83,8 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
     /**
      * Constructor with options and not token override.
      *
+     * @param token
+     *      authentication token
      * @param options
      *      data API client options
      */
@@ -99,6 +101,7 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
         return keyspace;
     }
 
+    /** {@inheritDoc} */
     @Override
     public DatabaseOptions clone() {
         // Cloning options, token, and serializer

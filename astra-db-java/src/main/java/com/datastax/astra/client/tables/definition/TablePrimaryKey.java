@@ -28,12 +28,26 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-@Data @NoArgsConstructor
+/**
+ * The primary key definition for a table.
+ */
+@Data
 public class TablePrimaryKey {
 
+    /**
+     * The primary key columns.
+     */
     @JsonProperty("partitionBy")
     private List<String> partitionBy = new ArrayList<>();
 
+    /**
+     * The clustering columns.
+     */
     @JsonProperty("partitionSort")
     private LinkedHashMap<String, Integer> partitionSort;
+
+    /**
+     * Default constructor.
+     */
+    public TablePrimaryKey() {}
 }

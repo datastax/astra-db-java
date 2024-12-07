@@ -27,21 +27,55 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.Map;
 
-@Getter @Setter
+/**
+ * Configuration options for the Vector Service.
+ * <p>
+ * This class provides customizable options such as LLM provider, model name,
+ * authentication credentials, and free-form parameters to configure a vector service.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>{@code
+ * VectorServiceOptions options = new VectorServiceOptions()
+ *     .provider("OpenAI")
+ *     .modelName("gpt-4")
+ *     .addAuthentication("apiKey", "your-key")
+ *     .parameters(Map.of("temperature", 0.7));
+ * }</pre>
+ */
+@Getter
+@Setter
 public class VectorServiceOptions {
 
-    /** LLM provider. */
+    /**
+     * The name of the LLM provider.
+     * Example: "OpenAI" or "Anthropic".
+     */
     private String provider;
 
-    /** LLM Model name. */
+    /**
+     * The name of the LLM model to use.
+     * Example: "gpt-4" or "claude-v1".
+     */
     private String modelName;
 
-    /** Authentication information like keys and secrets. */
+    /**
+     * A map containing authentication information, such as API keys or secrets.
+     */
     private Map<String, Object> authentication;
 
-    /** Free form parameters. */
+    /**
+     * Free-form parameters for configuring the service, such as hyperparameters.
+     */
     private Map<String, Object> parameters;
 
+    /**
+     * Adds a single authentication key-value pair to the {@code authentication} map.
+     *
+     * @param key   the key for the authentication entry
+     * @param value the value for the authentication entry
+     * @return the current {@code VectorServiceOptions} instance for method chaining
+     */
     public VectorServiceOptions addAuthentication(String key, Object value) {
         if (authentication == null) {
             authentication = new HashMap<>();
@@ -50,65 +84,117 @@ public class VectorServiceOptions {
         return this;
     }
 
+    /**
+     * Sets the authentication map.
+     *
+     * @param auth the map containing authentication details
+     * @return the current {@code VectorServiceOptions} instance for method chaining
+     */
     public VectorServiceOptions authentication(Map<String, Object> auth) {
         this.authentication = auth;
         return this;
     }
 
+    /**
+     * Sets the LLM model name.
+     *
+     * @param modelName the name of the model
+     * @return the current {@code VectorServiceOptions} instance for method chaining
+     */
     public VectorServiceOptions modelName(String modelName) {
         this.modelName = modelName;
         return this;
     }
 
+    /**
+     * Sets the LLM provider.
+     *
+     * @param provider the name of the provider
+     * @return the current {@code VectorServiceOptions} instance for method chaining
+     */
     public VectorServiceOptions provider(String provider) {
         this.provider = provider;
         return this;
     }
 
+    /**
+     * Sets the parameters map.
+     *
+     * @param parameters a map of free-form parameters
+     * @return the current {@code VectorServiceOptions} instance for method chaining
+     */
     public VectorServiceOptions parameters(Map<String, Object> parameters) {
         this.parameters = parameters;
         return this;
     }
 
     /**
-     * Subclass representing a parameters for LLM Services
+     * Represents a parameter definition for LLM services.
+     * <p>
+     * Each parameter can have a type, a required flag, a default value, and a description.
+     * </p>
      */
-    @Getter @Setter
+    @Getter
+    @Setter
     public static class Parameters {
 
-        /** Type for the parameters. */
+        /** The type of the parameter, such as "string", "integer", etc. */
         private String type;
 
-        /** declare if mandatory or not. */
+        /** Indicates whether the parameter is mandatory. */
         private boolean required;
 
-        /** the default value for the parameter. */
+        /** The default value of the parameter, if any. */
         @JsonProperty("default")
         private Object defaultValue;
 
-        /** description of the parameter. */
+        /** A description of the parameter's purpose. */
         private String help;
 
-        /** Default constructor. */
+        /** Default constructor for serialization purposes. */
         public Parameters() {
-            // left blank, serialization with jackson
+            // Default constructor for Jackson or other serializers
         }
 
+        /**
+         * Sets the default value for this parameter.
+         *
+         * @param defaultValue the default value
+         * @return the current {@code Parameters} instance for method chaining
+         */
         public Parameters defaultValue(Object defaultValue) {
             this.defaultValue = defaultValue;
             return this;
         }
 
+        /**
+         * Sets the type of this parameter.
+         *
+         * @param type the type of the parameter
+         * @return the current {@code Parameters} instance for method chaining
+         */
         public Parameters type(String type) {
             this.type = type;
             return this;
         }
 
+        /**
+         * Sets the description for this parameter.
+         *
+         * @param help a brief description of the parameter
+         * @return the current {@code Parameters} instance for method chaining
+         */
         public Parameters help(String help) {
             this.help = help;
             return this;
         }
 
+        /**
+         * Sets whether this parameter is required.
+         *
+         * @param required {@code true} if the parameter is mandatory, {@code false} otherwise
+         * @return the current {@code Parameters} instance for method chaining
+         */
         public Parameters required(boolean required) {
             this.required = required;
             return this;

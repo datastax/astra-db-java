@@ -94,6 +94,35 @@ public class DataAPIClients {
                 UsernamePasswordTokenProvider.DEFAULT_CREDENTIALS);
     }
 
+    /**
+     * Creates and configures a {@link DataAPIClient} for interaction with a local instance of DataAPI,
+     * a data gateway that facilitates working with Apache Cassandra®. This method is tailored for
+     * development and testing workflows, enabling simplified and efficient access to local database
+     * resources without the need for extensive configuration.
+     *
+     * <p>The returned {@link DataAPIClient} is preconfigured with:
+     * <ul>
+     *   <li>An authentication token from {@link UsernamePasswordTokenProvider}.</li>
+     *   <li>A destination set to {@code DataAPIDestination.CASSANDRA}.</li>
+     *   <li>Feature flags for tables enabled.</li>
+     *   <li>Request logging enabled.</li>
+     * </ul>
+     *
+     * @param username The username for authenticating with the Data API. This username should have the necessary
+     *                 permissions to access the local Data API instance.
+     * @param password The password for authenticating with the Data API. This password should be kept secure and
+     *                 protected from unauthorized access.
+     * @return A fully configured {@link DataAPIClient} ready for interacting with the local DataAPI instance.
+     *         This client provides a streamlined interface for executing data operations, abstracting away
+     *         the complexity of direct database interactions.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DataAPIClient client = DataAPIClients.local("username", "password");
+     * }
+     * </pre>
+     */
     public static DataAPIClient clientCassandra(String username, String password) {
         return new DataAPIClient(
                 new UsernamePasswordTokenProvider(username, password).getToken(),
@@ -103,12 +132,68 @@ public class DataAPIClients {
                         .logRequests());
     }
 
+    /**
+     * Creates and configures a {@link DataAPIClient} specifically designed for interaction with a local instance
+     * of the Data API and Cassandra. This method simplifies the setup process by combining the creation of a {@link DataAPIClient}
+     * with the integration of a {@link Database} abstraction. It is tailored for local development and testing,
+     * enabling seamless interaction with Apache Cassandra® through Stargate with minimal configuration.
+     *
+     * <p>Upon creation, this method ensures that a default keyspace is available in the local Stargate instance
+     * by automatically invoking {@link com.datastax.astra.client.admin.DatabaseAdmin#createKeyspace(String)}. This guarantees that developers
+     * have a ready-to-use environment for executing database operations during their development or testing workflows.
+     *
+     * <p>The returned {@link Database} client is preconfigured with:
+     * <ul>
+     *   <li>A connection to the default local Stargate endpoint.</li>
+     *   <li>An automatically created keyspace, identified by {@code DEFAULT_KEYSPACE}.</li>
+     * </ul>
+     * This setup allows developers to focus on application logic rather than database configuration or connectivity.
+     *
+     * @return A {@link Database} client configured for use with a local Stargate instance, including a default
+     *         keyspace for immediate interaction. This client abstracts database connectivity and administrative tasks,
+     *         streamlining development workflows.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Database db = localDbWithDefaultKeyspace();
+     * }
+     * </pre>
+     */
     public static DataAPIClient clientHCD() {
         return clientHCD(
                 UsernamePasswordTokenProvider.DEFAULT_USERNAME,
                 UsernamePasswordTokenProvider.DEFAULT_CREDENTIALS);
     }
 
+    /**
+     * Creates and configures a {@link DataAPIClient} specifically designed for interaction with a local instance
+     * of the Data API and Cassandra. This method simplifies the setup process by combining the creation of a {@link DataAPIClient}
+     * with the integration of a {@link Database} abstraction. It is tailored for local development and testing,
+     * enabling seamless interaction with Apache Cassandra® through Stargate with minimal configuration.
+     *
+     * <p>Upon creation, this method ensures that a default keyspace is available in the local Stargate instance
+     * by automatically invoking {@link com.datastax.astra.client.admin.DatabaseAdmin#createKeyspace(String)}. This guarantees that developers
+     * have a ready-to-use environment for executing database operations during their development or testing workflows.
+     *
+     * <p>The returned {@link Database} client is preconfigured with:
+     * <ul>
+     *   <li>A connection to the default local Stargate endpoint.</li>
+     *   <li>An automatically created keyspace, identified by {@code DEFAULT_KEYSPACE}.</li>
+     * </ul>
+     * This setup allows developers to focus on application logic rather than database configuration or connectivity.
+     *
+     * @return A {@link Database} client configured for use with a local Stargate instance, including a default
+     *         keyspace for immediate interaction. This client abstracts database connectivity and administrative tasks,
+     *         streamlining development workflows.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Database db = localDbWithDefaultKeyspace();
+     * }
+     * </pre>
+     */
     public static DataAPIClient clientHCD(String username, String password) {
         return new DataAPIClient(
                 new UsernamePasswordTokenProvider(username, password).getToken(),
@@ -203,8 +288,6 @@ public class DataAPIClients {
                 .destination(DataAPIDestination.ASTRA)
                 .logRequests());
     }
-
-
 
     /**
      * Creates a {@link DataAPIClient} specifically configured for interacting with Astra in a test environment.

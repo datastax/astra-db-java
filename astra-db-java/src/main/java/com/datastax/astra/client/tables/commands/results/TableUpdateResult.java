@@ -28,7 +28,6 @@ import lombok.Setter;
  * Return update result.
  */
 @Getter @Setter
-@NoArgsConstructor
 public class TableUpdateResult {
 
     /**
@@ -45,5 +44,10 @@ public class TableUpdateResult {
      * Populated if upserted
      */
     Object upsertedId;
+
+    /**
+     * Default constructor.
+     */
+    public TableUpdateResult() {}
 
 }

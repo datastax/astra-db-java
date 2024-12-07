@@ -614,8 +614,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      *
      * @param collectionName The name of the collection to retrieve.
+     * @param documentClass The class type of the documents stored in the collection.
      * @return A {@link Collection} object representing the specified collection, configured with the provided options.
-     * @throws IllegalArgumentException if the collection name is {@code null} or empty.
      */
     public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {
         return getCollection(collectionName, documentClass, defaultCollectionOptions());
@@ -687,6 +687,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param collectionName The name of the collection to retrieve.
      * @param options The {@link CollectionOptions} for customizing the collection behavior.
      * @param documentClass The class type of the documents in the collection.
+     * @param <T> The type of the documents stored in the collection.
      * @return A {@link Collection} object representing the specified collection.
      * @throws IllegalArgumentException if {@code collectionName}, {@code options}, or {@code documentClass} is {@code null}.
      */
@@ -1326,6 +1327,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>             the type of the row objects that the table will hold
      * @param rowClass        the class representing the row type; must not be null
      * @param tableName       the name of the table to be created; must not be null or empty
+     * @param createTableOptions additional options for creating the table; optional, can be null
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName,

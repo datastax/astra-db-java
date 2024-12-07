@@ -26,11 +26,16 @@ package com.datastax.astra.internal.utils;
 public class Utils {
 
     /**
-     * Hide contructors for utilities
+     * Hide constructor for utilities
      */
     private Utils() {
     }
 
+    /**
+     * Check if a string has length
+     * @param str the string to check
+     * @return true if not null and not empty
+     */
     public static boolean hasLength(String str) {
         return (null != str && !"".equals(str));
     }

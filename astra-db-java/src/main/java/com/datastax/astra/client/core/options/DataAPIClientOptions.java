@@ -356,10 +356,20 @@ public class DataAPIClientOptions implements Cloneable {
         return this;
     }
 
+    /**
+     * Enable the feature flag tables.
+     *
+     * @return self reference
+     */
     public DataAPIClientOptions enableFeatureFlagTables() {
         return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
     }
 
+    /**
+     * Disable the feature flag tables.
+     *
+     * @return self reference
+     */
     public DataAPIClientOptions disableFeatureFlagTables() {
         return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, null);
     }
@@ -368,6 +378,9 @@ public class DataAPIClientOptions implements Cloneable {
     // ---------- JAVA DEFAULTS   -----------------
     // --------------------------------------------
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return new DatabaseSerializer().marshall(this);
@@ -380,6 +393,11 @@ public class DataAPIClientOptions implements Cloneable {
         // defaulting values
     }
 
+    /**
+     * Copy constructor.
+     *
+     * @param options options to copy
+     */
     public DataAPIClientOptions(DataAPIClientOptions options) {
         Assert.notNull(options, "Options");
         this.apiVersion                 = options.apiVersion;
@@ -401,6 +419,9 @@ public class DataAPIClientOptions implements Cloneable {
                 options.serdesOptions.clone() : null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataAPIClientOptions clone() {
         return new DataAPIClientOptions(this);

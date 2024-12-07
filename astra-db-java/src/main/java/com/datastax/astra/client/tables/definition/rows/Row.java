@@ -884,26 +884,58 @@ public class Row implements Serializable {
         return SERIALIZER.marshall(columnMap);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Gets the value of the given key.  This is useful to avoid having casts in client code, though the effect is the same.  So to get
+     * the value of a key that is of type String, you would write {@code String name = doc.get("name")} instead of {@code String name =
+     * (String) doc.get("x") }.
+     *
+     * @param key the key
+     * @return the value of the given key, or null if the instance does not contain this key.
+     */
     public boolean containsKey(final Object key) {
         return columnMap.containsKey(key);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Access element from the map
+     * @param key
+     *      current configuration key
+     * @return
+     *      configuration value
+     */
     public Object get(final Object key) {
         return columnMap.get(key);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Add a key/value pair to the document.
+     *
+     * @param key
+     *      key
+     * @param value
+     *      value
+     * @return
+     *      current map
+     */
     public Object put(final String key, final Object value) {
         return columnMap.put(key, value);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Add all information from the map.
+     *
+     * @param map
+     *    map to add
+     */
     public void putAll(final Map<? extends String, ?> map) {
         columnMap.putAll(map);
     }
 
+    /**
+     * Add all information from the input row.
+     * @param row
+     *      row to add
+     */
     public void putAll(Row row) {
         if (row !=null) {
             columnMap.putAll(row.getColumnMap());
