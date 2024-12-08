@@ -36,6 +36,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Status of the Data API.
+ */
 @Getter @Setter
 public class DataAPIStatus {
 
@@ -83,6 +86,12 @@ public class DataAPIStatus {
      */
     @JsonIgnore
     private DataAPISerializer serializer;
+
+    /**
+     * Default constructor.
+     */
+    public DataAPIStatus() {
+    }
 
     /**
      * Access the insertedIds mapping.

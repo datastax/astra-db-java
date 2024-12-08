@@ -34,6 +34,7 @@ public @interface EntityTable {
 
     /**
      * Table Name, if not provided the class name will be used
+     * @return the table name
      */
     String value() default "";
 }

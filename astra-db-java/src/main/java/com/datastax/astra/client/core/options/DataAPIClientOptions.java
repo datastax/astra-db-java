@@ -278,6 +278,7 @@ public class DataAPIClientOptions implements Cloneable {
     /**
      * Register an observer with its className.
      *
+     * @param name     observer name
      * @param observer command observer
      * @return instance of the command options
      */

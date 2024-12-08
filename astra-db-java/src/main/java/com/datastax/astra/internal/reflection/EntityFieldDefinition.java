@@ -27,8 +27,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import lombok.Data;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 
+/**
+ * Definition of a field in an entity.
+ */
 @Data
 public class EntityFieldDefinition {
 
@@ -55,4 +57,9 @@ public class EntityFieldDefinition {
     // @PartitionSort
     private Integer     partitionSortPosition;
     private SortOrder   partitionSortOrder;
+
+    /**
+     * Default constructor.
+     */
+    public EntityFieldDefinition() {}
 }

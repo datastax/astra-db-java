@@ -28,6 +28,9 @@ import lombok.experimental.Accessors;
 import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
+/**
+ * Options for dropping a table.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class DropTableOptions extends BaseOptions<DropTableOptions> {

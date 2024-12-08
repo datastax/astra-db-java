@@ -183,6 +183,8 @@ public class DataAPIClients {
      * </ul>
      * This setup allows developers to focus on application logic rather than database configuration or connectivity.
      *
+     * @param username The username for authenticating with the Data API. This username should have the necessary
+     * @param password The password for authenticating with the Data API. This password should be kept secure and
      * @return A {@link Database} client configured for use with a local Stargate instance, including a default
      *         keyspace for immediate interaction. This client abstracts database connectivity and administrative tasks,
      *         streamlining development workflows.

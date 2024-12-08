@@ -615,6 +615,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *
      * @param collectionName The name of the collection to retrieve.
      * @param documentClass The class type of the documents stored in the collection.
+     * @param <T> The type of the documents stored in the collection.
      * @return A {@link Collection} object representing the specified collection, configured with the provided options.
      */
     public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {

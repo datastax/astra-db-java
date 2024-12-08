@@ -65,6 +65,11 @@ public class DurationDeserializer extends JsonDeserializer<Duration> {
     private static final Pattern NEGATIVE_PATTERN = Pattern.compile("^-(.*)");
 
     /**
+     * Default constructor.
+     */
+    public DurationDeserializer() {}
+
+    /**
      * Deserializes a JSON string into a {@link Duration} object.
      * <p>
      * Supports parsing either ISO-8601 duration strings or custom human-readable formats

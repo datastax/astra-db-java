@@ -206,6 +206,16 @@ public class EntityBeanDefinition<T> {
         return cc;
     }
 
+    /**
+     * Create a table command based on the annotated fields.
+     *
+     * @param tableName
+     *      the table name
+     * @param clazz
+     *      the class
+     * @return
+     *      a document representing the table command
+     */
     public static Document createTableCommand(String tableName, Class<?> clazz) {
         EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
         if (Utils.hasLength(bean.getName()) && !bean.getName().equals(tableName)) {

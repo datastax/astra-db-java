@@ -28,14 +28,44 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.util.List;
 
-@Getter @Setter
+/**
+ * Represents the response of a Data API operation involving documents.
+ * <p>
+ * This class provides a structured representation of a document response,
+ * including its unique identifier(s) and status. The class is serializable
+ * and integrates with JSON serialization frameworks like Jackson.
+ * </p>
+ */
+@Getter
+@Setter
 public class DataAPIDocumentResponse implements Serializable {
 
+    /**
+     * A list of objects representing the unique identifier(s) of the document.
+     * <p>
+     * This field is annotated with {@link JsonProperty} to map it to the {@code "_id"}
+     * key in JSON.
+     * </p>
+     */
     @JsonProperty("_id")
     private List<Object> id;
 
+    /**
+     * The status of the document operation, such as "SUCCESS" or "FAILED".
+     */
     private String status;
 
+    /**
+     * Default constructor for serialization frameworks.
+     */
+    public DataAPIDocumentResponse() {}
+
+    /**
+     * Converts the {@code DataAPIDocumentResponse} object into a string representation.
+     * This implementation uses {@link RowSerializer#marshall(Object)} for serialization.
+     *
+     * @return a string representation of this object
+     */
     @Override
     public String toString() {
         return new RowSerializer().marshall(this);

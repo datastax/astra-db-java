@@ -65,6 +65,9 @@ public class ColumnTypeMapper {
      */
     private static final Map<Class<?>, ColumnTypes> typeMapping = new HashMap<>();
 
+    /**
+     * Static initializer block that populates the type mapping.
+     */
     static {
         // Primitive and wrapper types
         typeMapping.put(Integer.class, ColumnTypes.INT);
@@ -103,6 +106,11 @@ public class ColumnTypeMapper {
         // Unsupported or undefined types
         typeMapping.put(Object.class, ColumnTypes.UNSUPPORTED);
     }
+
+    /**
+     * Private constructor to prevent instantiation.
+     */
+    private ColumnTypeMapper() {}
 
     /**
      * Retrieves the Cassandra column type corresponding to the given Java class.
