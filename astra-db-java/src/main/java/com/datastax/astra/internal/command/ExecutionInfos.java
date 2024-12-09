@@ -269,6 +269,8 @@ public class ExecutionInfos implements Serializable {
 
         /**
          * Execute the command and populate the response.
+         * @return
+         *     the response
          */
         public long getExecutionTime() {
             return executionTime;

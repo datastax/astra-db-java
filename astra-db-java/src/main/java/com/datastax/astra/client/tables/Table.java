@@ -604,10 +604,17 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
 
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
 
-        return Optional
-                .ofNullable(data.getDocument()
-                        .map(Row.class))
-                .map(row -> RowMapper.mapFromRow(row, getSerializer(), newRowClass));
+        // No data found
+        if (data == null || data.getDocument() == null) {
+            return Optional.empty();
+        }
+        
+        // Document -> Row
+        Row row = new Row();
+        row.getColumnMap().putAll(data.getDocument().getDocumentMap());
+
+        // Row -> Optional<T>
+        return Optional.ofNullable(RowMapper.mapFromRow(row, getSerializer(), newRowClass));
     }
 
     /**
