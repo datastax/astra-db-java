@@ -4,7 +4,7 @@
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
     <name>Data API Client</name>
-    <version>2.0.1-PREVIEW-SNAPSHOT</version>
+    <version>2.0.0-PREVIEW1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>https://github.com/datastax/astra-db-java</url>
     <inceptionYear>2024</inceptionYear>
@@ -13,11 +13,9 @@
     <modules>
         <module>astra-db-java</module>
         <module>langchain4j-astradb</module>
-        <!--
         <module>cassio-cql</module>
         <module>tools</module>
         <module>examples</module>
-        -->
     </modules>
 
     <properties>

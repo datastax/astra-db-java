@@ -608,7 +608,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         if (data == null || data.getDocument() == null) {
             return Optional.empty();
         }
-        
+
         // Document -> Row
         Row row = new Row();
         row.getColumnMap().putAll(data.getDocument().getDocumentMap());
