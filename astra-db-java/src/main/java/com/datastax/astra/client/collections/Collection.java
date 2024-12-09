@@ -585,7 +585,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         try {
             for (Future<CollectionInsertManyResult> future : futures) {
                 CollectionInsertManyResult res = future.get();
-                System.out.println("res = " + res.getInsertedIds());
                 finalResult.getInsertedIds().addAll(res.getInsertedIds());
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }

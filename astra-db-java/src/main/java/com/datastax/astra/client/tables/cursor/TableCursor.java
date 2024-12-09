@@ -325,17 +325,21 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
          * @throws NoSuchElementException if no more elements are available
          */
         @Override
+        @SuppressWarnings("unchecked")
         public R next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
+
             T rawDoc = buffer.remove(0);
             consumedCount++;
-            // Converted as Row Fist (pivot)
-            Row row = RowMapper.mapAsRow(rawDoc);
 
-            // From Pivot to new class
-            return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
+            if (!rowType.isInstance(rawDoc)) {
+                Row row = RowMapper.mapAsRow(rawDoc);
+                return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
+            } else {
+                return (R) rawDoc;
+            }
         }
     }
 

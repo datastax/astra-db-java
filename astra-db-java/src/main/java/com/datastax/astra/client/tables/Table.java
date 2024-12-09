@@ -784,10 +784,14 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
 
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
-                apiResponse.getData().getDocuments()
-                        .stream()
-                        .map(d -> d.map(getRowClass()))
-                        .collect(Collectors.toList()), sortVector);
+                apiResponse.getData().getDocuments().stream()
+                .map(doc -> {
+                    Row targetRow =  new Row();
+                    targetRow.getColumnMap().putAll(doc.getDocumentMap());
+                    return targetRow;
+                })
+                .map(d -> RowMapper.mapFromRow(d, getSerializer(), getRowClass()))
+                .collect(Collectors.toList()), sortVector);
     }
 
     // -------------------------
