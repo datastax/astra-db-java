@@ -45,6 +45,8 @@ public class RowMapper {
      *
      * @param input
      *      input object
+     * @param <T>
+     *      type of the object
      * @return
      *      a row
      */

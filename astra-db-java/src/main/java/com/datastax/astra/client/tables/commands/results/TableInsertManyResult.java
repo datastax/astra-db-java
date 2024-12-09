@@ -52,6 +52,10 @@ public class TableInsertManyResult {
     /**
      * Default constructor.
      */
-    public TableInsertManyResult() {}
+    public TableInsertManyResult() {
+        this.insertedIds       = new ArrayList<>();
+        this.documentResponses = new ArrayList<>();
+        this.primaryKeySchema  = new LinkedHashMap<>();
+    }
 
 }

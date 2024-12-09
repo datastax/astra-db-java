@@ -47,6 +47,8 @@ public class CollectionInsertManyResult {
      * Default constructor.
      */
     public CollectionInsertManyResult() {
+        this.insertedIds = new ArrayList<>();
+        this.documentResponses = new ArrayList<>();
     }
 
 

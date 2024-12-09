@@ -382,7 +382,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                 .addTimeStamp("p_timestamp", Instant.now())
                 .addTime("p_time", localTime)
                 .addUUID("p_uuid", java.util.UUID.fromString("9c5b94b1-35ad-49bb-b118-8e8fc24abf80"))
-                .addDate("p_date", LocalDate.of(2015,5,3))
+                .addLocalDate("p_date", LocalDate.of(2015,5,3))
                 .addDecimal("p_decimal", new BigDecimal("123.45"))
                 .addVector("p_vector", new DataAPIVector(new float[] {.1f, 0.2f, 0.3f}))
                 .addList("p_list_int", List.of(4, 17, 34))
@@ -645,9 +645,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         rowsItaly.add(new Row().addText("country", "italy").addText("city", "salerno").addInt("population", 133970));
         rowsItaly.add(new Row().addText("country", "italy").addText("city", "ferrara").addInt("population", 132009));
         tableCities.insertMany(rowsItaly);
-
         System.out.println(tableCities.findAll().toList().size());
-
         tableCities
                 .find(Filters.eq("country", "france"), new TableFindOptions())
                 .forEach(row -> System.out.println(row.get("city")));

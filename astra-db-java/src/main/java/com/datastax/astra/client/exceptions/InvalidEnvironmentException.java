@@ -29,6 +29,13 @@ import static com.datastax.astra.client.exceptions.ClientErrorCodes.ENV_RESTRICT
  */
 public class InvalidEnvironmentException extends DataAPIException {
 
+    /**
+     * Constructor with code and message
+     * @param code
+     *      error code
+     * @param message
+     *      error message
+     */
     public InvalidEnvironmentException(ClientErrorCodes code, String message) {
         super(code, message);
     }

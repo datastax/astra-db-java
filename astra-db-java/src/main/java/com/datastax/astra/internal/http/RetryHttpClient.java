@@ -143,6 +143,8 @@ public class RetryHttpClient {
      *      the response as an ApiResponseHttp
      */
     public ApiResponseHttp parseHttpResponse(HttpResponse<String> response) {
+        if (response == null) return null;
+
         ApiResponseHttp res = new ApiResponseHttp(response.body(), response.statusCode(),
                     response.headers().map().entrySet()
                             .stream()

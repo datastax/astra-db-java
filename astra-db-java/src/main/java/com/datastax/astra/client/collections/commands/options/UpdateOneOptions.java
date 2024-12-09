@@ -29,10 +29,8 @@ import lombok.experimental.Accessors;
 
 /**
  * Options for the updateOne operation
-
  */
 @Getter @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class UpdateOneOptions extends BaseOptions<UpdateOneOptions> {
 
@@ -45,6 +43,11 @@ public class UpdateOneOptions extends BaseOptions<UpdateOneOptions> {
      * Order by.
      */
     private Sort[] sort;
+
+    /**
+     * Default constructor.
+     */
+    public UpdateOneOptions() {}
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.

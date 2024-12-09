@@ -28,6 +28,9 @@ import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.core.commands.CommandType.TABLE_ADMIN;
 
+/**
+ * Options for listing tables.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
@@ -37,6 +40,9 @@ public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
      */
     String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
+    /**
+     * Default constructor
+     */
     public ListTablesOptions() {
         super(null, TABLE_ADMIN, new RowSerializer(), null);
     }

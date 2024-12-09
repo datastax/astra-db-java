@@ -43,8 +43,7 @@ import java.util.Map;
  *     .parameters(Map.of("temperature", 0.7));
  * }</pre>
  */
-@Getter
-@Setter
+@Getter @Setter
 public class VectorServiceOptions {
 
     /**
@@ -68,6 +67,11 @@ public class VectorServiceOptions {
      * Free-form parameters for configuring the service, such as hyperparameters.
      */
     private Map<String, Object> parameters;
+
+    /**
+     * Default constructor for serialization purposes.
+     */
+    public VectorServiceOptions() {}
 
     /**
      * Adds a single authentication key-value pair to the {@code authentication} map.

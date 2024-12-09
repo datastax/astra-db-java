@@ -172,6 +172,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
 
     /**
      * Add multiple embeddings as a single action.
+     *
      * @param textSegmentList
      *      list of text segment
      *

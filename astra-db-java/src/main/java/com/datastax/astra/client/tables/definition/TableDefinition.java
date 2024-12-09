@@ -34,6 +34,9 @@ import lombok.Data;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
+/**
+ * Definition of a table.
+ */
 @Data
 public class TableDefinition {
 

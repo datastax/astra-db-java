@@ -31,7 +31,6 @@ import java.util.Map;
  * Wrapper to get information about the findEmbeddingProviders.
  */
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
 public class FindEmbeddingProvidersResult {
 
@@ -39,5 +38,10 @@ public class FindEmbeddingProvidersResult {
      * List of embedding providers
      */
     Map<String, EmbeddingProvider> embeddingProviders;
+
+    /**
+     * Default constructor.
+     */
+    public FindEmbeddingProvidersResult() {}
 
 }

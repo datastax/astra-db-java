@@ -23,6 +23,10 @@ import lombok.experimental.Accessors;
  * limitations under the License.
  * #L%
  */
+
+/**
+ * Options for serialization and deserialization.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class SerdesOptions implements Cloneable {

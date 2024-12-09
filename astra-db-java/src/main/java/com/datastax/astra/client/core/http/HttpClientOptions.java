@@ -90,6 +90,16 @@ public class HttpClientOptions implements Cloneable {
      */
     Duration retryDelay = Duration.ofMillis(DEFAULT_RETRY_DELAY_MILLIS);
 
+    /**
+     * Set the number of retries and the delay between each retry.
+     *
+     * @param i
+     *      number of retries
+     * @param duration
+     *      delay between each retry
+     * @return
+     *      this
+     */
     public HttpClientOptions httpRetries(int i, Duration duration) {
         this.retryCount = i;
         this.retryDelay = duration;
@@ -171,6 +181,7 @@ public class HttpClientOptions implements Cloneable {
         callers.add(DEFAULT_CALLER);
     }
 
+    /** {@inheritDoc} */
     @Override
     public HttpClientOptions clone() {
         try {

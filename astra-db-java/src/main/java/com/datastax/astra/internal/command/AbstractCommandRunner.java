@@ -20,13 +20,14 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.exceptions.DataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPITimeoutException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.http.RetryHttpClient;
@@ -281,8 +282,10 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                         .header(HEADER_REQUESTED_WITH, httpClient.getUserAgentHeader())
                         .header(HEADER_TOKEN, token)
                         .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand))
-                        .timeout(Duration.ofSeconds(requestTimeout / 1000));
+                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand));
+            if (requestTimeout > 0) {
+                builder.timeout(Duration.ofMillis(requestTimeout));
+            }
 
             // =======================
             // ===   HEADERS       ===
@@ -316,13 +319,17 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withSerializer(serializer);
             executionInfo.withRequestHeaders(request.headers().map());
             executionInfo.withRequestUrl(getApiEndpoint());
-
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
 
-            DataAPIResponse apiResponse = serializer
-                    .unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
+            if (httpRes == null) {
+                throw new DataAPITimeoutException("Timeout while executing command '" +
+                        command.getName() + "' timeout: " + requestTimeout +
+                        " but was " + executionInfo.getExecutionTime());
+            }
+
+            DataAPIResponse apiResponse = serializer.unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
             apiResponse.setSerializer(serializer);
             if (apiResponse.getStatus() != null) {
                 apiResponse.getStatus().setSerializer(serializer);

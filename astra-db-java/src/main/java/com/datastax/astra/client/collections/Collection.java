@@ -70,6 +70,7 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -584,6 +585,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         try {
             for (Future<CollectionInsertManyResult> future : futures) {
                 CollectionInsertManyResult res = future.get();
+                System.out.println("res = " + res.getInsertedIds());
                 finalResult.getInsertedIds().addAll(res.getInsertedIds());
                 finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
             }
@@ -1343,7 +1345,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Command deleteMany = Command
                     .create("deleteMany")
                     .withFilter(filter);
-
             DataAPIResponse apiResponse = runCommand(deleteMany, options);
             DataAPIStatus status = apiResponse.getStatus();
             if (status != null) {
@@ -1365,7 +1366,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      the result of the remove many operation
      */
     public CollectionDeleteResult deleteMany(Filter filter) {
-        return deleteMany(filter, new CollectionDeleteManyOptions());
+        return deleteMany(filter, new CollectionDeleteManyOptions()
+                .timeout(Duration.ofSeconds(30)));
     }
 
     /**

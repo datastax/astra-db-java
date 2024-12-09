@@ -5,7 +5,9 @@ import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.langchain4j.store.memory.AstraDbChatMemory;
 import com.datastax.astra.langchain4j.store.memory.AstraDbChatMemoryStore;
+import com.datastax.astra.langchain4j.store.memory.tables.AstraDbTableChatMemory;
 import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -68,7 +70,8 @@ class AstraDbChatMemoryIT {
 
     @Test
     public void testInsertChat() throws InterruptedException {
-            // When
+
+         // When
             String chatSessionId = "chat-" + UUID.randomUUID();
 
             ChatMemory chatMemory = MessageWindowChatMemory.builder()
@@ -79,19 +82,89 @@ class AstraDbChatMemoryIT {
 
             // When
             chatMemory.add(systemMessage("Your are an helpful assistant and provide advice to java developers"));
+            Thread.sleep(1000);
             chatMemory.add(userMessage("I will ask you a few question about ff4j."));
+            Thread.sleep(1000);
             chatMemory.add(aiMessage("Sure, go ahead!"));
+            Thread.sleep(1000);
             chatMemory.add(userMessage("Can i use it with javascript "));
+            Thread.sleep(1000);
             chatMemory.add(aiMessage("Yes, you can use JavaScript with FF4j " +
                     "(Feature Flipping for Java) through its REST API. " +
                     "FF4j provides " +
                     "a RESTful service that you can interact with from JavaScript."));
+            Thread.sleep(1000);
             chatMemory.add(aiMessage(ToolExecutionRequest.builder()
                 .id("ff4j")
                 .arguments("--Ddebug-true")
                 .name("langchain").build()));
 
+            // SHOW THE CHAT
             assertThat(chatMemory.messages()).size().isEqualTo(6);
+            chatMemory.messages().forEach(msg -> {
+                System.out.println(msg.type() + " - " + msg.text());
+            });
+
+    }
+
+    @Test
+    public void testCollectionChatMemory() throws InterruptedException {
+        String chatId = UUID.randomUUID().toString();
+        AstraDbChatMemory chatMemory = new AstraDbChatMemory(db, "langchain4j_chat_memory", chatId);
+        // When
+        chatMemory.add(systemMessage("Your are an helpful assistant and provide advice to java developers"));
+        Thread.sleep(1000);
+        chatMemory.add(userMessage("I will ask you a few question about ff4j."));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage("Sure, go ahead!"));
+        Thread.sleep(1000);
+        chatMemory.add(userMessage("Can i use it with javascript "));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage("Yes, you can use JavaScript with FF4j " +
+                "(Feature Flipping for Java) through its REST API. " +
+                "FF4j provides " +
+                "a RESTful service that you can interact with from JavaScript."));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage(ToolExecutionRequest.builder()
+                .id("ff4j")
+                .arguments("--Ddebug-true")
+                .name("langchain").build()));
+
+        // SHOW THE CHAT
+        assertThat(chatMemory.messages()).size().isEqualTo(6);
+        chatMemory.messagesAstra().forEach(msg -> {
+            System.out.println(msg.messageTime() + "[" + msg.type() + "] - " + msg.text());
+        });
+    }
+
+    @Test
+    public void testTablePreviewChatMemory() throws InterruptedException {
+        UUID chatId = UUID.randomUUID();
+        AstraDbTableChatMemory chatMemory = new AstraDbTableChatMemory(db, "langchain4j_chat_memory_table", chatId);
+        // When
+        chatMemory.add(systemMessage("Your are an helpful assistant and provide advice to java developers"));
+        Thread.sleep(1000);
+        chatMemory.add(userMessage("I will ask you a few question about ff4j."));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage("Sure, go ahead!"));
+        Thread.sleep(1000);
+        chatMemory.add(userMessage("Can i use it with javascript "));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage("Yes, you can use JavaScript with FF4j " +
+                "(Feature Flipping for Java) through its REST API. " +
+                "FF4j provides " +
+                "a RESTful service that you can interact with from JavaScript."));
+        Thread.sleep(1000);
+        chatMemory.add(aiMessage(ToolExecutionRequest.builder()
+                .id("ff4j")
+                .arguments("--Ddebug-true")
+                .name("langchain").build()));
+
+        // SHOW THE CHAT
+        chatMemory.messagesAstra().forEach(msg -> {
+            System.out.println(msg.getMessageTime() + "[" + msg.getMessageType() + "] - " + msg.getText());
+        });
+
     }
 
 }

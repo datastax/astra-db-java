@@ -585,6 +585,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * Retrieves a single row from the table that matches the specified filter criteria.
      *
      * @param filter the filter criteria used to select the row; may be {@code null}.
+     * @param findOneOptions options for the find one operation
+     * @param newRowClass the class representing the row type for the result; must not be {@code null}.
+     * @param <R> the type of the row in the result.
      * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
      */
     public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
@@ -728,7 +731,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return A {@link TableCursor} for iterating over all rows in the table.
      */
     public TableCursor<T, T> findAll() {
-        return find(null, null);
+        return find(null, new TableFindOptions());
     }
 
     /**
@@ -772,7 +775,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
 
         // load sortVector if available
         float[] sortVector = null;
-        if (options.includeSortVector() != null &&
+        if (options!= null &&
+                options.includeSortVector() != null &&
                 apiResponse.getStatus() != null &&
                 apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
             sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
@@ -801,6 +805,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      class of the result
      * @param <R>
      *     type of the result
+     * @return
+     *   list of distinct values
      */
     public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
         return distinct(fieldName, filter, resultClass, null);
@@ -815,6 +821,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      filter to apply
      * @param resultClass
      *      class of the result
+     * @param options
+     *    options to apply to the operation
      * @return
      *     list of distinct values
      * @param <R>
@@ -1133,6 +1141,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     /**
      * Finds all the indices in the selected keyspace.
      *
+     * @param listIndexesOptions
+     *     options for the list indexes operation
      * @return
      *      list of table definitions
      */

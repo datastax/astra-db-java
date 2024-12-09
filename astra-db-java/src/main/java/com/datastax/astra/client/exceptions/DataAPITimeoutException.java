@@ -24,22 +24,10 @@ package com.datastax.astra.client.exceptions;
  * A request to the Data API resulted in an HTTP 4xx or 5xx response.
  * In most cases this comes with additional information: the purpose
  * of this class is to present such information in a structured way,
- * askin to what happens for the DataAPIResponseException, while
+ * asking to what happens for the DataAPIResponseException, while
  * still raising`.
  */
-public class DataAPIHttpException extends DataAPIException {
-
-    /**
-     * Constructors providing all arguments and a parent exception.
-     *
-     * @param code
-     *    error code
-     * @param errorMessage
-     *      error message
-     */
-    public DataAPIHttpException(ClientErrorCodes code, String errorMessage) {
-        super(code, errorMessage);
-    }
+public class DataAPITimeoutException extends DataAPIHttpException {
 
     /**
      * Constructors providing all arguments and a parent exception.
@@ -47,8 +35,8 @@ public class DataAPIHttpException extends DataAPIException {
      * @param errorMessage
      *      error message
      */
-    public DataAPIHttpException(String errorMessage) {
-        this(ClientErrorCodes.HTTP, errorMessage);
+    public DataAPITimeoutException(String errorMessage) {
+        super(ClientErrorCodes.TIMEOUT, errorMessage);
     }
 
 }

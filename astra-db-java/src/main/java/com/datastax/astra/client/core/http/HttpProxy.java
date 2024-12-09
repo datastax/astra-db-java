@@ -30,8 +30,6 @@ import lombok.experimental.Accessors;
  * Subclass to represent an http proxy.
  */
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class HttpProxy implements Cloneable {
 
@@ -41,6 +39,25 @@ public class HttpProxy implements Cloneable {
     /** port of the proxy. */
     int port;
 
+    /**
+     * Default constructor.
+     */
+    public HttpProxy() {}
+
+    /**
+     * Constructor with hostname and port.
+     *
+     * @param hostname
+     *      hostname of the proxy
+     * @param port
+     *      port for the proxy
+     */
+    public HttpProxy(String hostname, int port) {
+        this.hostname = hostname;
+        this.port = port;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public HttpProxy clone() {
         return new HttpProxy(this.hostname, this.port);

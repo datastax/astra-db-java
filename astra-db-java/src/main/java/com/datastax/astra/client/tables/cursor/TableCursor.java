@@ -146,6 +146,8 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *
      * @param newFilter
      *      a new filter
+     * @return
+     *    a new cursor
      */
     public TableCursor<T, R> filter(Filter newFilter) {
         checkIdleState();
@@ -331,6 +333,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             consumedCount++;
             // Converted as Row Fist (pivot)
             Row row = RowMapper.mapAsRow(rawDoc);
+
             // From Pivot to new class
             return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
         }
@@ -343,7 +346,6 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     private void fetchNextBatch() {
         if (currentPage == null) {
             currentPage = table.findPage(filter, tableFindOptions);
-
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
             tableFindOptions.pageState(currentPage.getPageState().get());

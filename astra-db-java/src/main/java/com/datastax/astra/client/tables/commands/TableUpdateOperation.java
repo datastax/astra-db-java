@@ -76,12 +76,23 @@ public class TableUpdateOperation extends Row {
         }
         return this;
     }
+
+    /**
+     * Builder pattern, unset a field
+     *
+     * @param field
+     *      field name
+     * @param value
+     *      filed value
+     * @return
+     *      reference to self
+     */
     public TableUpdateOperation unset(String field, Object value) {
         return update("$unset", field, value);
     }
 
     /**
-     * Builder pattern
+     * Builder pattern, set a field value
      *
      * @param key
      *      field name
@@ -94,9 +105,8 @@ public class TableUpdateOperation extends Row {
         return update("$set", key, value);
     }
 
-
     /**
-     * Builder pattern
+     * Set all elements of a row
      *
      * @param row`
      *     new value for row

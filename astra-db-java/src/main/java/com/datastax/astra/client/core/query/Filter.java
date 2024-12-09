@@ -40,12 +40,19 @@ public class Filter extends Document {
         super();
     }
 
+    /**
+     * Create a filter from a map.
+     *
+     * @param conditions
+     *      conditions
+     */
     public Filter(Map<String, Object> conditions) {
         super();
         if (conditions != null) {
             documentMap.putAll(conditions);
         }
     }
+
     /**
      * Create a filter from a where clause.
      *

@@ -23,8 +23,18 @@ package com.datastax.astra.client.exceptions;
 import static com.datastax.astra.client.exceptions.ClientErrorCodes.CONFIG_MISSING;
 import static com.datastax.astra.client.exceptions.ClientErrorCodes.MISSING_ANNOTATION;
 
+/**
+ * Exception thrown when the configuration is invalid.
+ */
 public class InvalidConfigurationException extends DataAPIException {
 
+    /**
+     * Constructor with code and message
+     * @param code
+     *      error code
+     * @param message
+     *      error message
+     */
     public InvalidConfigurationException(ClientErrorCodes code, String message) {
         super(code, message);
     }
@@ -42,6 +52,16 @@ public class InvalidConfigurationException extends DataAPIException {
                 String.format(CONFIG_MISSING.getMessage(), configParameter, operation));
     }
 
+    /**
+     * Format error message.
+     *
+     * @param annotation
+     *      annotation
+     * @param bean
+     *      bean
+     * @param operation
+     *      operation
+     */
     public static void throwErrorMissingAnnotation(String annotation, String bean, String operation) {
         throw new InvalidConfigurationException(MISSING_ANNOTATION,
                 String.format(MISSING_ANNOTATION.getMessage(), annotation, bean, operation));

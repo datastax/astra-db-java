@@ -697,14 +697,36 @@ public class Row implements Serializable {
     public String getAscii(final String key) {
         return (String) get(key);
     }
+
+    /**
+     * Gets the value of the given key as a String.
+     *
+     * @param key the key
+     * @return the value as a String, which may be null
+     * @throws ClassCastException if the value is not a String
+     */
     public String getText(final String key) {
         return (String) get(key);
     }
 
+    /**
+     * Gets the value of the given key as a Long.
+     *
+     * @param key the key
+     * @return the value as a Long, which may be null
+     * @throws ClassCastException if the value is not a Long
+     */
     public Long getBigInt(final String key) {
         return Long.parseLong(String.valueOf(get(key)));
     }
 
+    /**
+     * Gets the value of the given key as a DataAPIVector.
+     *
+     * @param key the key
+     * @return the value as a DataAPIVector, which may be null
+     * @throws ClassCastException if the value is not a DataAPIVector
+     */
     public DataAPIVector getVector(final String key) {
         return get(key, DataAPIVector.class);
     }

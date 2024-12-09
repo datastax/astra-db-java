@@ -32,23 +32,30 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * A chat message stored in AstraDB.
  */
-@Setter @Getter @NoArgsConstructor
-public class AstraDbChatMessage {
+@NoArgsConstructor
+@Setter @Getter
+@Accessors(fluent = true)
+public class AstraDbChatMessage implements ChatMessage {
 
     /** Public Static to help build filters if any. */
     public static final String PROP_CHAT_ID = "chat_id";
 
     /** Public Static to help build filters if any. */
     public static final String PROP_MESSAGE = "text";
+
+    /** Public Static to help build filters if any. */
+    public static final String PROP_MESSAGE_ID = "message_id";
 
     /** Public Static to help build filters if any. */
     public static final String PROP_MESSAGE_TIME = "message_time";
@@ -68,6 +75,9 @@ public class AstraDbChatMessage {
     @JsonProperty(PROP_CHAT_ID)
     private String chatId;
 
+    @JsonProperty(PROP_MESSAGE_ID)
+    private UUID messageId;
+
     @JsonProperty(PROP_MESSAGE_TYPE)
     private ChatMessageType messageType;
 
@@ -85,6 +95,12 @@ public class AstraDbChatMessage {
 
     @JsonProperty(PROP_CONTENTS)
     private List<AstraDbContent> contents;
+
+    /** {@inheritDoc} */
+    @Override
+    public ChatMessageType type() {
+        return messageType;
+    }
 
     @Data @NoArgsConstructor
     public static class ToolExecutionRequest {
@@ -111,7 +127,6 @@ public class AstraDbChatMessage {
      *      lc4j classes
      */
     public AstraDbChatMessage(ChatMessage chatMessage) {
-        this.chatId = chatMessage.type().name();
         this.messageType = chatMessage.type();
         this.messageTime = Instant.now();
         // Flatten to ease serialization in DB
@@ -127,6 +142,9 @@ public class AstraDbChatMessage {
                     this.contents = userMessage.contents()
                             .stream()
                             .map(AstraDbContent::new).collect(Collectors.toList());
+                    if (!this.contents.isEmpty()) {
+                        this.text = this.contents.get(0).getText();
+                    }
                 }
                 break;
             case AI:
