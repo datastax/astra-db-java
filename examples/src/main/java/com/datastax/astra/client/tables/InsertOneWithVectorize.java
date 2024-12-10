@@ -1,5 +1,6 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
@@ -16,8 +17,7 @@ import static com.datastax.astra.client.tables.definition.indexes.TableVectorInd
 
 public class InsertOneWithVectorize {
     public static void main(String[] args) {
-        // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
 
         // Create a table with a vector column (+vectorize)
         VectorServiceOptions openAI = new VectorServiceOptions()

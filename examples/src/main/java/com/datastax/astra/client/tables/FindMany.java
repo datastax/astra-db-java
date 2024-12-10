@@ -1,27 +1,21 @@
 package com.datastax.astra.client.tables;
 
-import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.util.List;
-import java.util.Optional;
 
-import static com.datastax.astra.client.core.query.Filters.and;
 import static com.datastax.astra.client.core.query.Filters.eq;
-import static com.datastax.astra.client.core.query.Filters.gt;
 import static com.datastax.astra.client.core.query.Projection.include;
 
 public class FindMany {
  public static void main(String[] args) {
-   Database db = DataAPIClients.localDbWithDefaultKeyspace();
-   // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
+   Database db = new DataAPIClient("token").getDatabase("endpoint");
 
    Table<Row> table = db.getTable("games");
 

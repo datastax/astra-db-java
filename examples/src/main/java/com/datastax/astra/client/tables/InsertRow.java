@@ -1,5 +1,6 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public class InsertRow {
   public static void main(String[] args) {
-   Database db = DataAPIClients.localDbWithDefaultKeyspace();
+   Database db = new DataAPIClient("token").getDatabase("endpoint");
    Table<Row> table = db.getTable("games");
    TableInsertOneResult result = table.insertOne(new Row()
      .addText("match_id", "mtch_0")

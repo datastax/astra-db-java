@@ -14,8 +14,7 @@ import java.time.Duration;
 
 public class CreateVectorIndex {
  public static void main(String[] args) {
-   //Database db = new DataAPIClient("token").getDatabase("endpoint");
-   Database db = DataAPIClients.localDbWithDefaultKeyspace();
+   Database db = new DataAPIClient("token").getDatabase("endpoint");
    Table<Row> tableGames = db.getTable("games");
 
    //tableGames.createVectorIndex("m_vector_index", "m_vector");

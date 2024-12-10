@@ -1,5 +1,6 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
@@ -16,8 +17,7 @@ import java.util.List;
 
 public class ListIndexes {
  public static void main(String[] args) {
-   //Database db = new DataAPIClient("token").getDatabase("endpoint");
-   Database db = DataAPIClients.localDbWithDefaultKeyspace();
+   Database db = new DataAPIClient("token").getDatabase("endpoint");
    Table<Row> tableGames = db.getTable("games");
 
    //List<TableIndexDescriptor> indexes = tableGames.listIndexes();

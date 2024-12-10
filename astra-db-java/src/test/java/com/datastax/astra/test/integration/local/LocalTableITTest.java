@@ -470,7 +470,7 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     public void should_delete_many() {
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        /*
+
         for(int i = 0; i < 1000; i+=10) {
             t.insertMany(
                     new TableCompositeRow(i, "a", "b"),
@@ -484,14 +484,14 @@ public class LocalTableITTest extends AbstractTableITTest {
                     new TableCompositeRow(i+8, "c", "c"),
                     new TableCompositeRow(i+9, "a", "b"));
         }
-*/
+
         // Position a retry count at 3 default is 1
         HttpClientOptions httpClientOptions =  new HttpClientOptions()
                 .retryCount(3)
                 .retryDelay(Duration.ofMillis(100));
         TableDeleteManyOptions deleteManyOptions = new TableDeleteManyOptions()
                 .httpClientOptions(httpClientOptions)
-                .timeout(Duration.ofMillis(10));
+                .timeout(Duration.ofMillis(1000));
 
         t.deleteMany(null, deleteManyOptions);
     }

@@ -1,8 +1,13 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
@@ -18,7 +23,8 @@ import java.util.UUID;
 
 public class InsertManyRows {
   public static void main(String[] args) {
-   Database db = DataAPIClients.localDbWithDefaultKeyspace();
+   Database db = new DataAPIClient("token").getDatabase("endpoint");
+
    Table<Row> table = db.getTable("games");
 
    TableInsertManyOptions options = new TableInsertManyOptions()

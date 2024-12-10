@@ -14,8 +14,7 @@ import com.datastax.astra.client.tables.definition.rows.Row;
 
 public class WorkingWithSorts {
     public static void main(String[] args) {
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
-        // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
 
         Table<Row> tableRow = db.getTable("TABLE_NAME");
 

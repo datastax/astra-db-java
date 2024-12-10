@@ -1,5 +1,6 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
@@ -15,8 +16,7 @@ import static com.datastax.astra.client.core.query.Filters.eq;
 
 public class DeleteOne {
  public static void main(String[] args) {
-  Database db = DataAPIClients.localDbWithDefaultKeyspace();
-  // Database astraDb = new DataAPIClient(token).getDatabase(endpoint);
+  Database db = new DataAPIClient("token").getDatabase("endpoint");
 
   Table<Row> tableRow = db.getTable("games");
 

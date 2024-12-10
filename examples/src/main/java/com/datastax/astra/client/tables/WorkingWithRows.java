@@ -1,5 +1,6 @@
 package com.datastax.astra.client.tables;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
@@ -21,7 +22,7 @@ public class WorkingWithRows {
     }
 
     public static void workingWithList() {
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
                 .addColumnSet("set_column", ColumnTypes.INT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
@@ -29,7 +30,7 @@ public class WorkingWithRows {
     }
 
     public static void workingWithSet() {
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
                 .addColumnList("list_column", ColumnTypes.TEXT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
@@ -37,7 +38,7 @@ public class WorkingWithRows {
     }
 
     public static void workingWithMap() {
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
                 .addColumnMap("map_column", ColumnTypes.TEXT, ColumnTypes.INT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
@@ -45,7 +46,7 @@ public class WorkingWithRows {
     }
 
     public static void insertFullRow() {
-        Database db = DataAPIClients.localDbWithDefaultKeyspace();
+        Database db = new DataAPIClient("token").getDatabase("endpoint");
         // cf CreateTable.java
         Table<Row> table = db.getTable("games");
         table.insertOne(new Row()
