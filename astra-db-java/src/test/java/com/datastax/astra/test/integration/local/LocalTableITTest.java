@@ -25,6 +25,7 @@ import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
+import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
 import com.datastax.astra.client.tables.commands.options.TableDeleteOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
@@ -469,14 +470,30 @@ public class LocalTableITTest extends AbstractTableITTest {
     @Test
     public void should_delete_many() {
         Table<TableCompositeRow> t = getDatabase().getTable(TABLE_COMPOSITE, TableCompositeRow.class);
-        t.insertMany(
-                new TableCompositeRow(10, "a", "b"),
-                new TableCompositeRow(20, "a", "b"),
-                new TableCompositeRow(30, "a", "b"));
+        /*
+        for(int i = 0; i < 1000; i+=10) {
+            t.insertMany(
+                    new TableCompositeRow(i, "a", "b"),
+                    new TableCompositeRow(i+1, "a", "b"),
+                    new TableCompositeRow(i+2, "d", "c"),
+                    new TableCompositeRow(i+3, "f", "c"),
+                    new TableCompositeRow(i+4, "g", "c"),
+                    new TableCompositeRow(i+5, "h", "c"),
+                    new TableCompositeRow(i+6, "j", "c"),
+                    new TableCompositeRow(i+7, "j", "c"),
+                    new TableCompositeRow(i+8, "c", "c"),
+                    new TableCompositeRow(i+9, "a", "b"));
+        }
+*/
+        // Position a retry count at 3 default is 1
+        HttpClientOptions httpClientOptions =  new HttpClientOptions()
+                .retryCount(3)
+                .retryDelay(Duration.ofMillis(100));
+        TableDeleteManyOptions deleteManyOptions = new TableDeleteManyOptions()
+                .httpClientOptions(httpClientOptions)
+                .timeout(Duration.ofMillis(10));
 
-        t.deleteMany(new Filter()
-                .where("name").isEqualsTo("a")
-                .where("id").isEqualsTo("b"));
+        t.deleteMany(null, deleteManyOptions);
     }
 
     @Test

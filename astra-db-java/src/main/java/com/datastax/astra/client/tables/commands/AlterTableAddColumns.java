@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionList;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionMap;
@@ -30,6 +31,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.LinkedHashMap;
+
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * Represents an operation to add columns to an existing table in a database schema.

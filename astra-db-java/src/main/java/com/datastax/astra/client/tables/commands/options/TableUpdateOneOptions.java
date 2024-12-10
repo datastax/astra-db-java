@@ -20,12 +20,15 @@ package com.datastax.astra.client.tables.commands.options;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * Options for the updateOne operation
@@ -39,5 +42,6 @@ public class TableUpdateOneOptions extends BaseOptions<TableUpdateOneOptions> {
      * Default constructor.
      */
     public TableUpdateOneOptions() {
+        super(null, CommandType.GENERAL_METHOD, DEFAULT_TABLE_SERIALIZER, null);
     }
 }

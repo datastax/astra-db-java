@@ -20,11 +20,14 @@ package com.datastax.astra.client.tables.commands.options;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * List Options for a FindOne command.
@@ -34,8 +37,9 @@ import lombok.experimental.Accessors;
 public class EstimatedCountRowsOptions extends BaseOptions<EstimatedCountRowsOptions> {
 
         /**
-        * Default constructor.
-        */
+         * Default constructor.
+         */
         public EstimatedCountRowsOptions() {
+                super(null, CommandType.GENERAL_METHOD, DEFAULT_TABLE_SERIALIZER, null);
         }
 }

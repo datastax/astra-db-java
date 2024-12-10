@@ -301,11 +301,11 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
      */
     public long getRequestTimeout(TimeoutOptions timeoutOptions, CommandType type) {
         return switch (type) {
-            case DATABASE_ADMIN -> timeoutOptions.getDatabaseAdminTimeoutMillis();
-            case KEYSPACE_ADMIN -> timeoutOptions.getKeyspaceAdminTimeoutMillis();
-            case TABLE_ADMIN -> timeoutOptions.getTableAdminTimeoutMillis();
+            case DATABASE_ADMIN ->   timeoutOptions.getDatabaseAdminTimeoutMillis();
+            case KEYSPACE_ADMIN ->   timeoutOptions.getKeyspaceAdminTimeoutMillis();
+            case TABLE_ADMIN ->      timeoutOptions.getTableAdminTimeoutMillis();
             case COLLECTION_ADMIN -> timeoutOptions.getCollectionAdminTimeoutMillis();
-            default -> timeoutOptions.getRequestTimeoutMillis();
+            case GENERAL_METHOD ->   timeoutOptions.getGeneralMethodTimeoutMillis();
         };
     }
 

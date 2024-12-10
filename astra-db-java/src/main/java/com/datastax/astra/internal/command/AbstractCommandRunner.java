@@ -178,6 +178,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {
 
         log.debug("Running command: " + AnsiUtils.green("{}"), command.getName());
+
         // Initializing options with the Collection/Table/Database level options
         DataAPIClientOptions options = this.options.getDataAPIClientOptions();
 
@@ -191,15 +192,26 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         RetryHttpClient requestHttpClient = httpClient;
 
         // Should we override the client to use a different one
+        long requestTimeout = this.options.getRequestTimeout();
         if (overridingOptions != null && overridingOptions.getDataAPIClientOptions() != null) {
             DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
             HttpClientOptions overHttpClientOptions = overClientOptions.getHttpClientOptions();
             TimeoutOptions    overTimeoutOptions    = overClientOptions.getTimeoutOptions();
             // User provided specific parameters for the client
             if (overHttpClientOptions != null || overTimeoutOptions != null) {
+                log.debug("Overriding Http Client:");
+                // overTimeoutOptions used only for connection timeout
                 requestHttpClient = new RetryHttpClient(
                         overHttpClientOptions != null ? overHttpClientOptions : options.getHttpClientOptions(),
                         overTimeoutOptions != null ? overTimeoutOptions : options.getTimeoutOptions());
+            }
+
+            // =======================
+            // ===   Timeouts      ===
+            // =======================
+            if (overTimeoutOptions != null) {
+                requestTimeout = overridingOptions.getRequestTimeout();
+                log.debug("Overriding Timeouts to {}", requestTimeout);
             }
         }
 
@@ -244,16 +256,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             serializer = overridingOptions.getSerializer();
         }
 
-        // =======================
-        // ===   Timeouts      ===
-        // =======================
 
-        long requestTimeout = this.options.getRequestTimeout();
-        if (overridingOptions != null
-              && overridingOptions.getDataAPIClientOptions() != null
-              && overridingOptions.getDataAPIClientOptions().getTimeoutOptions() != null) {
-            requestTimeout = overridingOptions.getRequestTimeout();
-        }
 
         // Initializing the Execution infos (could be pushed to 3rd parties)
         ExecutionInfos.DataApiExecutionInfoBuilder executionInfo =
