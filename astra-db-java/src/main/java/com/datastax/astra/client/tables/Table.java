@@ -919,14 +919,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     public void deleteOne(Filter filter, TableDeleteOneOptions deleteOneOptions) {
         Command deleteOne = Command
                 .create("deleteOne")
-                .withFilter(filter)
-                .withSort(deleteOneOptions.getSortArray());
+                .withFilter(filter);
         runCommand(deleteOne, deleteOneOptions);
-        /*
-        DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
-        int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
-        return new TableDeleteResult(deletedCount);
-         */
     }
 
     // -------------------------

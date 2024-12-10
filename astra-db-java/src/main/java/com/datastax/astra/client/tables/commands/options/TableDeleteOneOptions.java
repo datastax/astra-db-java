@@ -35,35 +35,8 @@ import lombok.experimental.Accessors;
 public class TableDeleteOneOptions extends BaseOptions<TableDeleteOneOptions> {
 
     /**
-     * Order by.
-     */
-    Sort[] sort;
-
-    /**
      * Default constructor.
      */
     public TableDeleteOneOptions() {}
 
-    /**
-     * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
-     * @param s
-     *      sort options
-     * @return
-     *     current command
-     */
-    public TableDeleteOneOptions sort(Sort... s) {
-        this.sort = s;
-        return this;
-    }
-
-
-    /**
-     * Get the sort options.
-     *
-     * @return
-     *      sort options
-     */
-    public Sort[] getSortArray() {
-        return sort;
-    }
 }
