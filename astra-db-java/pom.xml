@@ -5,6 +5,7 @@
     <name>Java Client Library for Data API</name>
     <description>Implementation of a client to the Astra/Stargate Data API written in Java</description>
 
+    <!-- Reference to parent -->
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
