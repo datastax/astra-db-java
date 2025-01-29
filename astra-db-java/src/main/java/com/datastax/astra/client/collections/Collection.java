@@ -888,10 +888,11 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                   .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                 );
 
-        return Optional.ofNullable(
-                runCommand(findOne, findOneOptions)
-                        .getData().getDocument()
-                        .map(getDocumentClass()));
+        return Optional
+                // Get document first
+                .ofNullable(runCommand(findOne, findOneOptions).getData().getDocument())
+                // Map only if present
+                .map(doc -> doc.map(getDocumentClass()));
     }
 
     /**

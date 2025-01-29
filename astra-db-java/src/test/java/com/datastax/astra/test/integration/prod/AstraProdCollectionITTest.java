@@ -1,9 +1,14 @@
 package com.datastax.astra.test.integration.prod;
 
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+
+import java.util.Map;
 
 /**
  * Allow to test Collection information.
@@ -28,5 +33,7 @@ class AstraProdCollectionITTest extends AbstractCollectionITTest {
     public String getRegion() {
         return System.getenv("ASTRA_CLOUD_REGION");
     }
+
+
 
 }

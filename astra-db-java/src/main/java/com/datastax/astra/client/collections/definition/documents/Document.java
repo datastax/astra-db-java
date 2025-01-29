@@ -41,6 +41,7 @@ import com.datastax.astra.client.collections.definition.documents.types.ObjectId
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import com.datastax.astra.internal.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -49,15 +50,9 @@ import lombok.NonNull;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.time.Instant;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -73,7 +68,6 @@ public class Document implements Serializable {
     /**
      * Data to be used in the document.
      */
-    //@JsonUnwrapped
     public transient Map<String, Object> documentMap;
 
     /**
@@ -104,7 +98,7 @@ public class Document implements Serializable {
      */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
-        documentMap.put(key, value);
+        append(key, value);
     }
 
     /**
@@ -185,8 +179,26 @@ public class Document implements Serializable {
      * @param value value
      * @return this
      */
+    @SuppressWarnings("unchecked")
     public Document append(final String key, final Object value) {
-        documentMap.put(key, value);
+        if (!Utils.hasLength(key)) {
+            throw new IllegalArgumentException("Field name should not be null");
+        }
+        String[] tokens = key.split("\\.");
+        Map<String, Object> currentMap = documentMap;
+        for (int i = 0; i < tokens.length - 1; i++) {
+            String token = tokens[i];
+            Object nested = currentMap.get(token);
+            if (!(nested instanceof Map)) {
+                nested = new HashMap<>();
+                currentMap.put(token, nested);
+            }
+            // Go deeper
+            currentMap = (Map<String, Object>) nested;
+        }
+
+        // Finally put the value in the last token
+        currentMap.put(tokens[tokens.length - 1], value);
         return this;
     }
 
@@ -218,7 +230,7 @@ public class Document implements Serializable {
      * @throws ClassCastException if the value of the given key is not of type T
      */
     public <T> T get(@NonNull final String key, @NonNull final Class<T> clazz) {
-        return clazz.cast(SERIALIZER.convertValue(documentMap.get(key), clazz));
+        return clazz.cast(SERIALIZER.convertValue(get(key), clazz));
     }
 
     /**
@@ -260,7 +272,6 @@ public class Document implements Serializable {
         return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), text);
     }
 
-
     /**
      * Access attribute with vectorize name if any.
      *
@@ -279,7 +290,7 @@ public class Document implements Serializable {
      *      vector list
      */
     @JsonIgnore
-    public Optional<DataAPIVector>  getVector() {
+    public Optional<DataAPIVector> getVector() {
         return Optional
                 .ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class))
                 .map(DataAPIVector::new);
@@ -377,17 +388,6 @@ public class Document implements Serializable {
      */
     public Boolean getBoolean(final String key) {
         return (Boolean) get(key);
-    }
-
-    /**
-     * Gets the value of the given key as a Date.
-     *
-     * @param key the key
-     * @return the value as a Date, which may be null
-     * @throws ClassCastException if the value is not a Date
-     */
-    public Date getDate(final Object key) {
-        return (Date) get(key);
     }
 
     /**
@@ -506,7 +506,7 @@ public class Document implements Serializable {
      * @return
      *      configuration value
      */
-    public Date getDate(String k) {
+    public Date ge(String k) {
         return get(k, Date.class);
     }
 
@@ -530,6 +530,17 @@ public class Document implements Serializable {
      */
     public Instant getInstant(String k) {
         return get(k, Instant.class);
+    }
+
+    /**
+     * Access element from the map
+     * @param k
+     *      current configuration key
+     * @return
+     *      configuration value
+     */
+    public Date getDate(String k) {
+        return get(k, Date.class);
     }
 
     /**
@@ -583,16 +594,33 @@ public class Document implements Serializable {
     }
 
     /**
-     * Evaluation if a key is present in the document
-     * @param key
-     *     key to evaluate
-     * @return
-     *      true if the key is present
+     * Check if the given dot-delimited path exists as a key (final segment).
+     * e.g. containsKey("foo.bar") returns true if "bar" is present in the Map
+     * located at "foo".
      */
-    public boolean containsKey(final Object key) {
-        return documentMap.containsKey(key);
-    }
+    public boolean containsKey(String key) {
+        if (!Utils.hasLength(key)) {
+            throw new IllegalArgumentException("Field name should not be null");
+        }
+        String[] tokens = key.split("\\.");
+        Object current = documentMap;
 
+        // Navigate down to the second-to-last level
+        for (int i = 0; i < tokens.length - 1; i++) {
+            if (!(current instanceof Map)) {
+                return false;
+            }
+            current = ((Map<?, ?>) current).get(tokens[i]);
+            if (current == null) {
+                return false;
+            }
+        }
+        // Now check if we can see the last token as a key in the last map
+        if (!(current instanceof Map)) {
+            return false;
+        }
+        return ((Map<?, ?>) current).containsKey(tokens[tokens.length - 1]);
+    }
 
     /**
      * Retrieves the value associated with the specified key from the document.
@@ -600,8 +628,31 @@ public class Document implements Serializable {
      * @param key the key whose associated value is to be returned
      * @return the value associated with the specified key, or {@code null} if the key is not found
      */
-    public Object get(final Object key) {
-        return documentMap.get(key);
+    public Object get(final String key) {
+        if (!Utils.hasLength(key)) {
+            throw new IllegalArgumentException("Field name should not be null");
+        }
+        String[] tokens = key.split("\\.");
+        Object current = documentMap;
+        for (String token : tokens) {
+            if (!(current instanceof Map)) return null;
+
+            Matcher matcher = Pattern.compile("([a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
+            if (!matcher.matches()) return null;
+
+            String fieldName = matcher.group(1);
+            String indexStr = matcher.group(3);
+
+            current = ((Map<?, ?>) current).get(fieldName);
+            if (indexStr != null) {
+                if (!(current instanceof List)) return null;
+                List<?> list = (List<?>) current;
+                int idx = Integer.parseInt(indexStr);
+                if (idx < 0 || idx >= list.size()) return null;
+                current = list.get(idx);
+            }
+        }
+        return current;
     }
 
     /**
@@ -612,8 +663,8 @@ public class Document implements Serializable {
      * @param value the value to be associated with the specified key
      * @return the previous value associated with the key, or {@code null} if there was no mapping for the key
      */
-    public Object put(final String key, final Object value) {
-        return documentMap.put(key, value);
+    public Document put(final String key, final Object value) {
+        return append(key, value);
     }
 
     /**
@@ -622,8 +673,24 @@ public class Document implements Serializable {
      * @param key the key whose mapping is to be removed
      * @return the value that was associated with the key, or {@code null} if the key was not mapped
      */
-    public Object remove(final Object key) {
-        return documentMap.remove(key);
+    public Document remove(final String key) {
+        String[] tokens = key.split("\\.");
+        Object current = documentMap;
+        for (int i = 0; i < tokens.length - 1; i++) {
+            if (!(current instanceof Map)) {
+                return null;
+            }
+            current = ((Map<?, ?>) current).get(tokens[i]);
+            if (current == null) {
+                return null;
+            }
+        }
+        if (!(current instanceof Map)) {
+            return null;
+        }
+        // Remove the final segment from the map
+        ((Map<?, ?>) current).remove(tokens[tokens.length - 1]);
+        return this;
     }
 
     /**
@@ -633,17 +700,9 @@ public class Document implements Serializable {
      * @param map the map containing mappings to be copied to this document
      */
     public void putAll(final Map<? extends String, ?> map) {
-        documentMap.putAll(map);
-    }
-
-    /**
-     * Copies all mappings from the specified {@code Document} to this document.
-     * Existing mappings will be replaced with mappings from the provided document.
-     *
-     * @param doc the document whose mappings are to be copied to this document
-     */
-    public void putAll(Document doc) {
-        documentMap.putAll(doc.getDocumentMap());
+        if (map != null) {
+            map.forEach(this::append);
+        }
     }
 
     /**
@@ -652,25 +711,6 @@ public class Document implements Serializable {
      */
     public void clear() {
         documentMap.clear();
-    }
-
-    /**
-     * Returns a collection view of the values contained in this document.
-     *
-     * @return a collection view of the values contained in this document
-     */
-    public Collection<Object> values() {
-        return documentMap.values();
-    }
-
-    /**
-     * Returns a set view of the mappings contained in this document.
-     * Each entry in the set is a key-value pair.
-     *
-     * @return a set view of the mappings contained in this document
-     */
-    public Set<Map.Entry<String, Object>> entrySet() {
-        return documentMap.entrySet();
     }
 
     /**
@@ -702,7 +742,5 @@ public class Document implements Serializable {
     public int hashCode() {
         return documentMap.hashCode();
     }
-
-
 
 }

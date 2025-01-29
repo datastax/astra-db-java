@@ -34,12 +34,7 @@ import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Implementation of a cursor across the find items
@@ -96,6 +91,9 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     @Getter
     private Class<R> rowType;
 
+    /** Allow to return only distincts values; */
+    private boolean distinct = false;
+
     /**
      * Cursor to iterate on the result of a query.
      *
@@ -108,7 +106,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @param rowType
      *      row type returned with the cursor
      */
-    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, Class<R> rowType) {
+    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, boolean distinct, Class<R> rowType) {
         this.table = table;
         this.filter = filter;
         this.rowType = rowType;
@@ -116,6 +114,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         this.state = CursorState.IDLE;
         this.buffer = new ArrayList<>();
         this.consumedCount = 0;
+        this.distinct = distinct;
     }
 
     /**
@@ -125,14 +124,18 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *      previous cursor
      */
     private TableCursor(TableCursor<T, R> tableCursor) {
-        this.state = CursorState.IDLE;
-        this.table = tableCursor.table;
+        if (tableCursor == null) {
+            throw new IllegalArgumentException("Input cursor cannot be null");
+        }
+        this.table            = tableCursor.table;
         this.tableFindOptions = tableCursor.tableFindOptions;
         this.filter           = tableCursor.filter;
+        this.currentPage      = tableCursor.currentPage;
+        this.rowType          = tableCursor.rowType;
+        this.distinct         = tableCursor.distinct;
+        this.state            = CursorState.IDLE;
         this.buffer           = new ArrayList<>();
         this.consumedCount    = 0;
-        this.currentPage      = tableCursor.currentPage;
-        this.rowType         = tableCursor.rowType;
     }
 
     /** {@inheritDoc} */
@@ -291,67 +294,16 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     }
 
     /**
-     * A private iterator implementation for iterating over the results of a {@link TableCursor}.
-     * Handles lazy loading of data in batches to optimize memory usage and performance.
-     */
-    private class CursorIterator implements Iterator<R> {
-
-        /**
-         * Checks if there are more elements to iterate over.
-         * If the buffer is empty, it fetches the next batch of documents.
-         *
-         * @return {@code true} if there are more elements, {@code false} otherwise
-         */
-        @Override
-        public boolean hasNext() {
-            if (state == CursorState.CLOSED) {
-                return false;
-            }
-            if (state == CursorState.IDLE) {
-                state = CursorState.STARTED;
-            }
-            if (!buffer.isEmpty()) {
-                return true;
-            }
-            // Fetch next batch of documents into buffer (if buffer is empty)
-            fetchNextBatch();
-            return !buffer.isEmpty();
-        }
-
-        /**
-         * Retrieves the next element in the iteration.
-         *
-         * @return the next element of type {@code R}
-         * @throws NoSuchElementException if no more elements are available
-         */
-        @Override
-        @SuppressWarnings("unchecked")
-        public R next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-
-            T rawDoc = buffer.remove(0);
-            consumedCount++;
-
-            if (!rowType.isInstance(rawDoc)) {
-                Row row = RowMapper.mapAsRow(rawDoc);
-                return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
-            } else {
-                return (R) rawDoc;
-            }
-        }
-    }
-
-    /**
      * Fetches the next batch of documents into the buffer.
      * This method handles paging, using the page state from the previous batch to fetch the next one.
      */
     private void fetchNextBatch() {
         if (currentPage == null) {
+            // Searching First Page
             currentPage = table.findPage(filter, tableFindOptions);
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
+            // Searching next page if exist
             tableFindOptions.pageState(currentPage.getPageState().get());
             currentPage = table.findPage(filter, tableFindOptions);
             buffer.addAll(currentPage.getResults());
@@ -424,6 +376,94 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             return Optional.empty();
         }
         return currentPage.getSortVector().map(DataAPIVector::new);
+    }
+
+
+    /**
+     * A private iterator implementation for iterating over the results of a {@link TableCursor}.
+     * Handles lazy loading of data in batches to optimize memory usage and performance.
+     */
+    private class CursorIterator implements Iterator<R> {
+
+        /**
+         * Store distinct values returned.
+         */
+        private final Set<R> returnedValues = distinct ? new HashSet<>() : null;
+
+        /**
+         * Checks if there are more elements to iterate over.
+         * If the buffer is empty, it fetches the next batch of documents.
+         *
+         * @return {@code true} if there are more elements, {@code false} otherwise
+         */
+        @Override
+        public boolean hasNext() {
+            if (state == CursorState.CLOSED) {
+                return false;
+            }
+            if (state == CursorState.IDLE) {
+                state = CursorState.STARTED;
+            }
+
+            // Keep fetching the next batch if the buffer is empty
+            while (buffer.isEmpty() && currentPage != null && currentPage.getPageState().isPresent()) {
+                fetchNextBatch();
+            }
+
+            // Ensure we have elements and check distinct constraint
+            while (!buffer.isEmpty()) {
+                R nextValue = peekNext();
+                if (!distinct || returnedValues.add(nextValue)) {
+                    return true;
+                } else {
+                    buffer.remove(0); // Remove duplicate
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Retrieves the next element in the iteration.
+         *
+         * @return the next element of type {@code R}
+         * @throws NoSuchElementException if no more elements are available
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        public R next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            T rawDoc = buffer.remove(0);
+            consumedCount++;
+
+            R result;
+            if (!rowType.isInstance(rawDoc)) {
+                Row row = RowMapper.mapAsRow(rawDoc);
+                result = RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
+            } else {
+                result = (R) rawDoc;
+            }
+
+            if (distinct) {
+                returnedValues.add(result);
+            }
+            return result;
+        }
+
+        @SuppressWarnings("unchecked")
+        private R peekNext() {
+            T rawDoc = buffer.get(0);
+            if (!rowType.isInstance(rawDoc)) {
+                Row row = RowMapper.mapAsRow(rawDoc);
+                return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
+            } else {
+                return (R) rawDoc;
+            }
+        }
+
+
     }
 
 }

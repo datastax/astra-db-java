@@ -74,7 +74,6 @@ public class DistinctIterator<T, F> implements Iterator<F> {
         this.fieldName             = fieldName;
         this.fieldClass            = fieldClass;
         initResultIterator();
-
     }
 
     /**

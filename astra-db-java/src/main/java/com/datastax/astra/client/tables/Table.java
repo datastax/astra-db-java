@@ -741,6 +741,14 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return find(null, new TableFindOptions());
     }
 
+    // -------------------------
+    // ---   Distinct       ----
+    // -------------------------
+
+    public TableCursor<T, T> distinct(Filter filter, TableFindOptions options) {
+        return new TableCursor<>(this, filter, options, getRowClass());
+    }
+
     /**
      * Executes a paginated 'find' query on the table using the specified filter and find options.
      * <p>

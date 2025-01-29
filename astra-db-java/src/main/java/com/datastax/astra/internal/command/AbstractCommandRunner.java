@@ -199,7 +199,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             TimeoutOptions    overTimeoutOptions    = overClientOptions.getTimeoutOptions();
             // User provided specific parameters for the client
             if (overHttpClientOptions != null || overTimeoutOptions != null) {
-                log.debug("Overriding Http Client:");
+                log.debug("Overriding Http Client");
                 // overTimeoutOptions used only for connection timeout
                 requestHttpClient = new RetryHttpClient(
                         overHttpClientOptions != null ? overHttpClientOptions : options.getHttpClientOptions(),

@@ -27,6 +27,7 @@ import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.Utils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.NonNull;
@@ -42,14 +43,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 
@@ -92,7 +88,7 @@ public class Row implements Serializable {
      */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
-        columnMap.put(key, value);
+        add(key, value);
     }
 
     /**
@@ -150,9 +146,24 @@ public class Row implements Serializable {
      * @param value value
      * @return this
      */
+    @SuppressWarnings("unchecked")
     public Row add(final String key, final Object value) {
         hasLength(key, "Key must not be null or empty");
-        columnMap.put(key, value);
+        String[] tokens = key.split("\\.");
+        Map<String, Object> currentMap = columnMap;
+        for (int i = 0; i < tokens.length - 1; i++) {
+            String token = tokens[i];
+            Object nested = currentMap.get(token);
+            if (!(nested instanceof Map)) {
+                nested = new HashMap<>();
+                currentMap.put(token, nested);
+            }
+            // Go deeper
+            currentMap = (Map<String, Object>) nested;
+        }
+
+        // Finally put the value in the last token
+        currentMap.put(tokens[tokens.length - 1], value);
         return this;
     }
 
@@ -293,6 +304,7 @@ public class Row implements Serializable {
     public Row addTinyInt(final String key, final Byte value) {
         return add(key, value);
     }
+
     /**
      * Adds a Boolean value to the row.
      *
@@ -395,7 +407,6 @@ public class Row implements Serializable {
     public Row addDate(final String key, final Date value) {
         return add(key, value);
     }
-
 
     /**
      * Adds a LocalDate value to the row, converting it to a Date.
@@ -502,7 +513,6 @@ public class Row implements Serializable {
     public Row addTableDuration(final String key, final TableDuration value) {
         return add(key, value);
     }
-
 
     /**
      * Adds a UUID value to the row.
@@ -627,7 +637,6 @@ public class Row implements Serializable {
     public <T> Row addSet(String key, Set<T> set) {
         return add(key, set);
     }
-
 
     /**
      * Adds a map to the row.
@@ -914,8 +923,26 @@ public class Row implements Serializable {
      * @param key the key
      * @return the value of the given key, or null if the instance does not contain this key.
      */
-    public boolean containsKey(final Object key) {
-        return columnMap.containsKey(key);
+    public boolean containsKey(final String key) {
+        hasLength(key, "Field name should not be null nor empty");
+        String[] tokens = key.split("\\.");
+        Object current = columnMap;
+
+        // Navigate down to the second-to-last level
+        for (int i = 0; i < tokens.length - 1; i++) {
+            if (!(current instanceof Map)) {
+                return false;
+            }
+            current = ((Map<?, ?>) current).get(tokens[i]);
+            if (current == null) {
+                return false;
+            }
+        }
+        // Now check if we can see the last token as a key in the last map
+        if (!(current instanceof Map)) {
+            return false;
+        }
+        return ((Map<?, ?>) current).containsKey(tokens[tokens.length - 1]);
     }
 
     /**
@@ -925,8 +952,29 @@ public class Row implements Serializable {
      * @return
      *      configuration value
      */
-    public Object get(final Object key) {
-        return columnMap.get(key);
+    public Object get(final String key) {
+        hasLength(key, "Field name should not be null nor empty");
+        String[] tokens = key.split("\\.");
+        Object current = columnMap;
+        for (String token : tokens) {
+            if (!(current instanceof Map)) return null;
+
+            Matcher matcher = Pattern.compile("([a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
+            if (!matcher.matches()) return null;
+
+            String fieldName = matcher.group(1);
+            String indexStr = matcher.group(3);
+
+            current = ((Map<?, ?>) current).get(fieldName);
+            if (indexStr != null) {
+                if (!(current instanceof List)) return null;
+                List<?> list = (List<?>) current;
+                int idx = Integer.parseInt(indexStr);
+                if (idx < 0 || idx >= list.size()) return null;
+                current = list.get(idx);
+            }
+        }
+        return current;
     }
 
     /**
@@ -939,9 +987,37 @@ public class Row implements Serializable {
      * @return
      *      current map
      */
-    public Object put(final String key, final Object value) {
-        return columnMap.put(key, value);
+    public Row put(final String key, final Object value)  {
+        return add(key, value);
     }
+
+    /**
+     * Removes the mapping for a key from the row if it is present.
+     *
+     * @param key the key whose mapping is to be removed
+     * @return the value that was associated with the key, or {@code null} if the key was not mapped
+     */
+    public Row remove(final String key) {
+        hasLength(key, "Field name should not be null nor empty");
+        String[] tokens = key.split("\\.");
+        Object current = columnMap;
+        for (int i = 0; i < tokens.length - 1; i++) {
+            if (!(current instanceof Map)) {
+                return null;
+            }
+            current = ((Map<?, ?>) current).get(tokens[i]);
+            if (current == null) {
+                return null;
+            }
+        }
+        if (!(current instanceof Map)) {
+            return null;
+        }
+        // Remove the final segment from the map
+        ((Map<?, ?>) current).remove(tokens[tokens.length - 1]);
+        return this;
+    }
+
 
     /**
      * Add all information from the map.
@@ -950,18 +1026,7 @@ public class Row implements Serializable {
      *    map to add
      */
     public void putAll(final Map<? extends String, ?> map) {
-        columnMap.putAll(map);
-    }
-
-    /**
-     * Add all information from the input row.
-     * @param row
-     *      row to add
-     */
-    public void putAll(Row row) {
-        if (row !=null) {
-            columnMap.putAll(row.getColumnMap());
-        }
+        if (map != null) map.forEach(this::put);
     }
 
     /** {@inheritDoc} */
