@@ -1751,7 +1751,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 result.setModifiedCount(result.getModifiedCount() + status.getInteger(RESULT_MODIFIED_COUNT));
             }
             if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setUpsertedId(status.getInteger(RESULT_UPSERTED_ID));
+                result.setUpsertedId(status.get(RESULT_UPSERTED_ID));
             }
         } while(nextPageState != null);
         return result;
