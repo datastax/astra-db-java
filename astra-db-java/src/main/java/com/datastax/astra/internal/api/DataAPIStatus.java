@@ -155,6 +155,17 @@ public class DataAPIStatus {
     }
 
     /**
+     * Gets the value of the given key as an Integer.
+     *
+     * @param key the key
+     * @return the value as an integer, which may be null
+     * @throws ClassCastException if the value is not an integer
+     */
+    public String getString(final String key) {
+        return (String) get(key);
+    }
+
+    /**
      * Gets the value of the given key as a Boolean.
      *
      * @param key the key

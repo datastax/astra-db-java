@@ -40,7 +40,7 @@ import com.datastax.astra.client.collections.commands.options.CollectionReplaceO
 import com.datastax.astra.client.collections.commands.options.CollectionUpdateManyOptions;
 import com.datastax.astra.client.collections.commands.options.CountDocumentsOptions;
 import com.datastax.astra.client.collections.commands.options.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.collections.commands.options.UpdateOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionDeleteResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
@@ -62,8 +62,6 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
-import com.datastax.astra.client.tables.commands.options.TableFindOptions;
-import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -90,7 +88,6 @@ import java.util.stream.StreamSupport;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
-import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
@@ -1645,7 +1642,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      the result of the update one operation
      */
     public CollectionUpdateResult updateOne(Filter filter, Update update) {
-        return updateOne(filter, update, new UpdateOneOptions());
+        return updateOne(filter, update, new CollectionUpdateOneOptions());
     }
 
     /**
@@ -1660,7 +1657,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the result of the update one operation
      */
-    public CollectionUpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
+    public CollectionUpdateResult updateOne(Filter filter, Update update, CollectionUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
@@ -1693,7 +1690,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
             }
             if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
+                result.setUpsertedId(status.get(RESULT_UPSERTED_ID));
             }
         }
         return result;

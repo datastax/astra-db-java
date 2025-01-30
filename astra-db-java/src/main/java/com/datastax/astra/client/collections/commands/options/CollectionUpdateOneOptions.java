@@ -23,7 +23,6 @@ package com.datastax.astra.client.collections.commands.options;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -32,7 +31,7 @@ import lombok.experimental.Accessors;
  */
 @Getter @Setter
 @Accessors(fluent = true, chain = true)
-public class UpdateOneOptions extends BaseOptions<UpdateOneOptions> {
+public class CollectionUpdateOneOptions extends BaseOptions<CollectionUpdateOneOptions> {
 
     /**
      * if upsert is selected
@@ -47,7 +46,7 @@ public class UpdateOneOptions extends BaseOptions<UpdateOneOptions> {
     /**
      * Default constructor.
      */
-    public UpdateOneOptions() {}
+    public CollectionUpdateOneOptions() {}
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
@@ -56,7 +55,7 @@ public class UpdateOneOptions extends BaseOptions<UpdateOneOptions> {
      * @return
      *     current command
      */
-    public UpdateOneOptions sort(Sort... s) {
+    public CollectionUpdateOneOptions sort(Sort... s) {
         this.sort = s;
         return this;
     }

@@ -105,7 +105,7 @@ public class Updates {
      * @return
      *      update object
      */
-    public static Update updateSetOnInsert( Map<String, Double> fields) {
+    public static Update updateSetOnInsert( Map<String, Object> fields) {
         return new Update().updateSetOnInsert(fields);
     }
 

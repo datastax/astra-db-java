@@ -3,7 +3,13 @@ package com.datastax.astra.test.integration.prod;
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.commands.Updates;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.databases.Database;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -135,6 +141,26 @@ public class AstraProdCollectionEvolutionTest {
 
         Set<String> races = ccc.distinct("metadata.animal", String.class);
         System.out.println(races);
+    }
+
+    @Test
+    public void shouldNotErrorOnUpdates() {
+        Collection<Document> ccc = getCollection(true);
+        ccc.insertOne(new Document("1")
+                .append("isCheckedOut", true)
+               .append("numberOfPages", 1)
+                .append("color", "blue"));
+
+        Filter filter = Filters.and(
+                Filters.eq("isCheckedOut", false),
+                Filters.lt("numberOfPages", 10));
+        Update update = Updates.set("color", "yellow");
+        CollectionUpdateOneOptions options = new CollectionUpdateOneOptions().upsert(true);
+        CollectionUpdateResult result = ccc.updateOne(filter, update, options);
+        System.out.println(result.getMatchedCount());
+        System.out.println(result.getModifiedCount());
+        System.out.println(result.getUpsertedId());
+
     }
 
 

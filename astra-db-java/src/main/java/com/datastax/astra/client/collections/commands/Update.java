@@ -253,7 +253,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update updateSetOnInsert(Map<String, Double> fields) {
+    public Update updateSetOnInsert(Map<String, Object> fields) {
         fields.forEach((key, value) -> update("$setOnInsert", key, value));
         return this;
     }

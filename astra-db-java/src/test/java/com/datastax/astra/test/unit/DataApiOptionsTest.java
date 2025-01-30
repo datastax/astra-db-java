@@ -19,7 +19,7 @@ import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.collections.commands.Update;
-import com.datastax.astra.client.collections.commands.options.UpdateOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
 import com.datastax.astra.client.collections.commands.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
@@ -108,10 +108,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeUpdateOne() {
-        assertThat(new UpdateOneOptions().sort(Sort.ascending("test"))).isNotNull();
-        assertThat(new UpdateOneOptions().upsert(true)).isNotNull();
-        assertThat(new UpdateOneOptions().sort(Sort.vector(new float[]{}))).isNotNull();
-        assertThat(new UpdateOneOptions().sort(Sort.vectorize("OK"))
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.ascending("test"))).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().upsert(true)).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.vector(new float[]{}))).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.vectorize("OK"))
                 .sort(Sort.ascending("test"))
                 .upsert(true)
                 .sort(Sort.vectorize("OK"))
