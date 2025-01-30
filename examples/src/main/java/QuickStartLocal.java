@@ -5,7 +5,6 @@ import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;

@@ -2,6 +2,7 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
@@ -10,7 +11,6 @@ import com.datastax.astra.client.collections.commands.options.CollectionUpdateMa
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Sort;
@@ -183,17 +183,17 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
     void shouldTestFindWithFilters() {
         getCollectionSimple().deleteAll();
         getCollectionSimple().insertMany(FRENCH_SOCCER_TEAM);
-        assertThat(getCollectionSimple().find(gte("_id", 20)).all()).hasSize(4);
-        assertThat(getCollectionSimple().find(gt("_id", 20)).all()).hasSize(3);
+        assertThat(getCollectionSimple().find(gte("_id", 20)).toList()).hasSize(4);
+        assertThat(getCollectionSimple().find(gt("_id", 20)).toList()).hasSize(3);
 
-        assertThat(getCollectionSimple().find(lt("_id", 3)).all()).hasSize(2);
-        assertThat(getCollectionSimple().find(lte("_id", 3)).all()).hasSize(3);
-        assertThat(getCollectionSimple().find(ne("_id", 20)).all()).hasSize(22);
-        assertThat(getCollectionSimple().find(exists("firstName")).all()).hasSize(23);
+        assertThat(getCollectionSimple().find(lt("_id", 3)).toList()).hasSize(2);
+        assertThat(getCollectionSimple().find(lte("_id", 3)).toList()).hasSize(3);
+        assertThat(getCollectionSimple().find(ne("_id", 20)).toList()).hasSize(22);
+        assertThat(getCollectionSimple().find(exists("firstName")).toList()).hasSize(23);
         assertThat(getCollectionSimple().find(and(
                 exists("firstName"),
                 gte("_id", 20)))
-                .all()).hasSize(4);
+                .toList()).hasSize(4);
     }
 
     @Test
@@ -203,27 +203,27 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
         assertThat(getCollectionSimple().find(new Filter()
                 .where("metadata_string")
-                .isInArray(new String[]{"hello", "world"})).all())
+                .isInArray(new String[]{"hello", "world"})).toList())
                 .hasSize(1);
         assertThat(getCollectionSimple().find(in("metadata_string", "hello", "world"))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter().where("metadata_string")
                 .isNotInArray(new String[]{"Hallo", "Welt"}))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
         assertThat(getCollectionSimple().find(nin("metadata_string", "Hallo", "Welt"))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter().where("metadata_boolean_array")
                 .hasSize(3))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
         assertThat(getCollectionSimple().find(hasSize("metadata_boolean_array", 3))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
 
         assertThat(getCollectionSimple().find(new Filter()
                         .where("metadata_instant")
                         .isLessThan(Instant.now()))
-                .all()).hasSize(1);
+                .toList()).hasSize(1);
     }
 
     @Test
@@ -262,8 +262,8 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         CollectionFindOptions options = new CollectionFindOptions()
                 .sort(Sort.vector(new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f}))
                 .limit(2);
-        try(FindIterable<Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
-            assertThat(docs.all()).hasSize(2);
+        try(CollectionCursor<Document, Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
+            assertThat(docs.toList()).hasSize(2);
         }
     }
 
@@ -300,13 +300,13 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         Document doc2 = new Document().id(2).append("a", "a").append("b", "b");
         getCollectionSimple().insertMany(List.of(doc1, doc2));
 
-        FindIterable<Document> iter = getCollectionSimple().findAll();;
-        iter.all();
-        assertThatThrownBy(iter::all).isInstanceOf(IllegalStateException.class);
+        CollectionCursor<Document, Document> iter = getCollectionSimple().findAll();;
+        iter.toList();
+        assertThatThrownBy(iter::toList).isInstanceOf(IllegalStateException.class);
 
-        FindIterable<Document> iter2 = getCollectionSimple().findAll();;
+        CollectionCursor<Document, Document> iter2 = getCollectionSimple().findAll();;
         iter2.iterator().next();
-        assertThatThrownBy(iter2::all).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(iter2::toList).isInstanceOf(IllegalStateException.class);
     }
 
 

@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-public class AstraCollectionEvolutionTest {
+public class AstraProdCollectionEvolutionTest {
 
     public static final String ASTRA_TOKEN = "AstraCS:vhsspOwbWKqoyZLRqRxnojcx:b9795c21e01f57197b62c3f250d422d22e00345f8a6e2dc9a568754b5e5a6701";
     public static final String ASTRA_DB_ENDPOINT = "https://7d7388a6-5ba2-431a-942a-250012f785c0-us-east1.apps.astra.datastax.com";
@@ -132,9 +132,10 @@ public class AstraCollectionEvolutionTest {
                         .append("metadata", Map.of("animal", "dog", "breed", "Siberian Husky", "fame", "real serum run hero")));
         ccc.insertMany(animal);
 
-        List<String> races = ccc.distinct("metadata.animal", String.class).all();
+        Set<String> races = ccc.distinct("metadata.animal", String.class);
         System.out.println(races);
-
     }
+
+
 
 }

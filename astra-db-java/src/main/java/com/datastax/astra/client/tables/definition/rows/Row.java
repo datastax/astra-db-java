@@ -201,7 +201,7 @@ public class Row implements Serializable {
         return addText(key, value);
     }
 
-// Repeat the following template for each method, adapting parameters and descriptions accordingly
+    // Repeat the following template for each method, adapting parameters and descriptions accordingly
 
     /**
      * Adds a vectorized value to the row.
@@ -752,17 +752,6 @@ public class Row implements Serializable {
     }
 
     /**
-     * Gets the value of the given key as a Date.
-     *
-     * @param key the key
-     * @return the value as a Date, which may be null
-     * @throws ClassCastException if the value is not a Date
-     */
-    public Date getDate(final Object key) {
-        return (Date) get(key);
-    }
-
-    /**
      * Return an Array of items.
      *
      * @param k
@@ -946,6 +935,16 @@ public class Row implements Serializable {
     }
 
     /**
+     * Access the similarity.
+     *
+     * @return
+     *      similarity value
+     */
+    public Double getSimilarity() {
+        return getDouble(DataAPIKeywords.SIMILARITY.getKeyword());
+    }
+
+    /**
      * Access element from the map
      * @param key
      *      current configuration key
@@ -959,7 +958,7 @@ public class Row implements Serializable {
         for (String token : tokens) {
             if (!(current instanceof Map)) return null;
 
-            Matcher matcher = Pattern.compile("([a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
+            Matcher matcher = Pattern.compile("(\\$?[a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
             if (!matcher.matches()) return null;
 
             String fieldName = matcher.group(1);

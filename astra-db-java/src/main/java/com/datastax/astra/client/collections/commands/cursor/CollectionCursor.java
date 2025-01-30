@@ -27,29 +27,42 @@ import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
+import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
 
 /**
  * Implementation of a cursor across the find items
  *
  * @param <T>
- *       type of the table
+ *       working bean of parent table
+ * @param <R>
+ *       working bean returned for the find
  */
-public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
+
+/**
+ * Implementation of a cursor across the find items
+ *
+ * @param <DOC>
+ *       working document object
+ * @param <RES>
+ *       working object for results, should be same as DOC if no projections
+ */
+public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Cloneable {
 
     /**
      * Input table reference
      */
     @Getter
-    private final Collection<T> myCollection;
+    private final Collection<DOC> collection;
 
     /**
      * Input Filter provided.
@@ -61,7 +74,7 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
      * Input Find options. Where will change the different options.
      * Immutable as not setter is provided.
      */
-    private CollectionFindOptions findOptions;
+    private CollectionFindOptions collectionFindOptions;
 
     /**
      * Cursor state.
@@ -71,12 +84,12 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
     /**
      * Records to process
      */
-    private List<T> buffer;
+    private List<DOC> buffer;
 
     /**
      * Current page
      */
-    private Page<T> currentPage;
+    private Page<DOC> currentPage;
 
     /**
      * How many consumed in the current buffer.
@@ -85,20 +98,29 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
     private int consumedCount;
 
     /**
+     * Type of the row to return
+     */
+    @Getter
+    private Class<RES> documentType;
+
+    /**
      * Cursor to iterate on the result of a query.
      *
-     * @param col
+     * @param collection
      *      source collection
      * @param filter
      *      current filter
      * @param options
      *      options of the find operation
+     * @param rowType
+     *      row type returned with the cursor
      */
-    public CollectionCursor(Collection<T> col, Filter filter, CollectionFindOptions options) {
-        this.myCollection = col;
+    public CollectionCursor(Collection<DOC> collection, Filter filter, CollectionFindOptions options, Class<RES> rowType) {
+        this.collection = collection;
         this.filter = filter;
-        this.findOptions = options;
-        this.state = CursorState.IDLE;
+        this.documentType = rowType;
+        this.collectionFindOptions = options;
+        this.state  = CursorState.IDLE;
         this.buffer = new ArrayList<>();
         this.consumedCount = 0;
     }
@@ -106,21 +128,26 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
     /**
      * Constructor by copy. Once cloning the cursor is set back at the beginning.
      *
-     * @param colCursor
+     * @param collectionCursor
      *      previous cursor
      */
-    private CollectionCursor(CollectionCursor<T> colCursor) {
+    private CollectionCursor(CollectionCursor<DOC, RES> collectionCursor) {
+        if (collectionCursor == null) {
+            throw new IllegalArgumentException("Input cursor should not be null");
+        }
         this.state = CursorState.IDLE;
-        this.myCollection = colCursor.myCollection;
-        this.findOptions = colCursor.findOptions;
-        this.filter = colCursor.filter;
-        this.buffer = new ArrayList<>();
-        this.consumedCount = 0;
+        this.buffer                = new ArrayList<>();
+        this.collection            = collectionCursor.collection;
+        this.collectionFindOptions = collectionCursor.collectionFindOptions;
+        this.filter                = collectionCursor.filter;
+        this.currentPage           = collectionCursor.currentPage;
+        this.documentType          = collectionCursor.documentType;
+        this.consumedCount         = collectionCursor.consumedCount;
     }
 
     /** {@inheritDoc} */
     @Override
-    public CollectionCursor<T> clone() {
+    public CollectionCursor<DOC, RES> clone() {
         return new CollectionCursor<>(this);
     }
 
@@ -129,100 +156,90 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
      *
      * @param newFilter
      *      a new filter
-     * @return a new {@code CollectionCursor} instance with the filter applied
+     * @return
+     *    a new cursor
      */
-    public CollectionCursor<T> filter(Filter newFilter) {
+    public CollectionCursor<DOC, RES> filter(Filter newFilter) {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.filter = newFilter;
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.filter = newFilter;
+        return newCursor;
     }
 
     /**
-     * Immutable methods that return a new Cursor instance.
+     * Creates a new {@link CollectionCursor} with an updated projection.
      *
-     * @param newProjection
-     *      a new projection
-     * @return a new {@code CollectionCursor} instance with the projection applied
+     * @param newProjection the new projection to apply
+     * @return a new {@link CollectionCursor} instance with the specified projection
      */
-    public CollectionCursor<T> project(Projection... newProjection) {
+    public CollectionCursor<DOC, RES> project(Projection... newProjection) {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.findOptions.projection(newProjection);
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.collectionFindOptions.projection(newProjection);
+        return newCursor;
     }
 
     /**
-     * Applies a sorting order to the cursor.
-     * Creates a new instance of the cursor with the specified sort options applied.
+     * Creates a new {@link CollectionCursor} with a specified sort order.
      *
-     * @param sort the sort options to apply
-     * @return a new {@code CollectionCursor} instance with the sorting applied
-     * @throws IllegalStateException if the cursor is not in an idle state
+     * @param sort the sort criteria to apply
+     * @return a new {@link CollectionCursor} instance with the specified sort order
      */
-    public CollectionCursor<T> sort(Sort... sort) {
+    public CollectionCursor<DOC, RES> sort(Sort... sort) {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.findOptions.sort(sort);
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.collectionFindOptions.sort(sort);
+        return newCursor;
     }
 
     /**
-     * Sets a limit on the number of results returned by the cursor.
-     * Creates a new instance of the cursor with the specified limit applied.
+     * Creates a new {@link CollectionCursor} with a specified limit on the number of results.
      *
-     * @param newLimit the maximum number of results to return
-     * @return a new {@code CollectionCursor} instance with the limit applied
-     * @throws IllegalStateException if the cursor is not in an idle state
+     * @param newLimit the maximum number of results to retrieve
+     * @return a new {@link CollectionCursor} instance with the specified limit
      */
-    public CollectionCursor<T> limit(int newLimit) {
+    public CollectionCursor<DOC, RES> limit(int newLimit) {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.limit(newLimit);
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.limit(newLimit);
+        return newCursor;
     }
 
     /**
-     * Skips the specified number of results.
-     * Creates a new instance of the cursor with the specified skip applied.
+     * Creates a new {@link CollectionCursor} that skips a specified number of results.
      *
      * @param newSkip the number of results to skip
-     * @return a new {@code CollectionCursor} instance with the skip applied
-     * @throws IllegalStateException if the cursor is not in an idle state
+     * @return a new {@link CollectionCursor} instance with the specified skip value
      */
-    public CollectionCursor<T> skip(int newSkip) {
+    public CollectionCursor<DOC, RES> skip(int newSkip) {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.skip(newSkip);
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.skip(newSkip);
+        return newCursor;
     }
 
     /**
-     * Includes similarity information in the results.
-     * Creates a new instance of the cursor with similarity information included.
+     * Creates a new {@link CollectionCursor} that includes similarity scores in the results.
      *
-     * @return a new {@code CollectionCursor} instance with similarity information included
-     * @throws IllegalStateException if the cursor is not in an idle state
+     * @return a new {@link CollectionCursor} instance with similarity scores included
      */
-    public CollectionCursor<T> includeSimilarity() {
+    public CollectionCursor<DOC, RES> includeSimilarity() {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.includeSimilarity();
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.includeSimilarity();
+        return newCursor;
     }
 
     /**
-     * Includes sort vector information in the results.
-     * Creates a new instance of the cursor with sort vector information included.
+     * Creates a new {@link CollectionCursor} that includes sort vector metadata in the results.
      *
-     * @return a new {@code CollectionCursor} instance with sort vector information included
-     * @throws IllegalStateException if the cursor is not in an idle state
+     * @return a new {@link CollectionCursor} instance with sort vector metadata included
      */
-    public CollectionCursor<T> includeSortVector() {
+    public CollectionCursor<DOC, RES> includeSortVector() {
         checkIdleState();
-        CollectionCursor<T> newTableCursor = this.clone();
-        newTableCursor.includeSortVector();
-        return newTableCursor;
+        CollectionCursor<DOC, RES> newCursor = this.clone();
+        newCursor.includeSortVector();
+        return newCursor;
     }
 
     /**
@@ -243,18 +260,18 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
     }
 
     /**
-     * Consume the buffer and return the results.
+     * Consume the buffer and return the list of items.
      *
      * @param n
-     *      consume n elements from the buffer
+     *      number of items to consume
      * @return
-     *      list of results
+     *      list of items
      */
-    public List<T> consumeBuffer(int n) {
+    public List<DOC> consumeBuffer(int n) {
         if (state == CursorState.CLOSED || state == CursorState.IDLE) {
             return Collections.emptyList();
         }
-        List<T> result = new ArrayList<>();
+        List<DOC> result = new ArrayList<>();
         int count = 0;
         while (!buffer.isEmpty() && count < n) {
             result.add(buffer.remove(0));
@@ -272,94 +289,75 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
         }
     }
 
-    // Iterator implementation
+    /**
+     * Iterate over the cursor.
+     *
+     * @return
+     *     iterator over the results
+     */
     @Override
-    public Iterator<T> iterator() {
+    public Iterator<RES> iterator() {
         return new CursorIterator();
     }
 
     /**
-     * Iterator about options
-     */
-    private class CursorIterator implements Iterator<T> {
-
-        @Override
-        public boolean hasNext() {
-            if (state == CursorState.CLOSED) {
-                return false;
-            }
-            if (state == CursorState.IDLE) {
-                state = CursorState.STARTED;
-            }
-            if (!buffer.isEmpty()) {
-                return true;
-            }
-            // Fetch next batch of documents into buffer (if buffer is empty)
-            fetchNextBatch();
-            return !buffer.isEmpty();
-        }
-
-        @Override
-        public T next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            T rawDoc = buffer.remove(0);
-            consumedCount++;
-            return (T) rawDoc;
-        }
-    }
-
-    /**
-     * Fetch the next batch of documents into the buffer.
+     * Fetches the next batch of documents into the buffer.
+     * This method handles paging, using the page state from the previous batch to fetch the next one.
      */
     private void fetchNextBatch() {
         if (currentPage == null) {
-            currentPage = myCollection.findPage(filter, findOptions);
+            // Searching First Page
+            currentPage = collection.findPage(filter, collectionFindOptions);
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
-            findOptions.pageState(currentPage.getPageState().get());
-            currentPage = myCollection.findPage(filter, findOptions);
+            // Searching next page if exist
+            collectionFindOptions.pageState(currentPage.getPageState().get());
+            currentPage = collection.findPage(filter, collectionFindOptions);
             buffer.addAll(currentPage.getResults());
-        } else {
-            System.out.println("no");
         }
     }
 
     /**
-     * Check if there is a next element.
+     * Checks if there are more elements in the cursor.
      *
-     * @return
-     *      true if there is a next element
+     * @return {@code true} if there are more elements, {@code false} otherwise
      */
     public boolean hasNext() {
         return iterator().hasNext();
     }
 
     /**
-     * Retrieve the next element.
+     * Retrieves the next element from the cursor.
      *
-     * @return
-     *      next element
+     * @return the next element of type {@code R}
+     * @throws java.util.NoSuchElementException if no more elements are available
      */
-    public T next() {
+    public RES next() {
         return iterator().next();
     }
 
     /**
-     * Retrieve all the elements in a list.
+     * Collects all remaining elements in the cursor into a list.
+     * Automatically closes the cursor after all elements are consumed.
      *
-     * @return
-     *      list of elements
+     * @return a {@link List} containing all remaining elements
      */
-    public List<T> toList() {
-        List<T> result = new ArrayList<>();
+    public List<RES> toList() {
         try {
-            forEach(result::add);
+            return stream().toList();
         } finally {
             close();
         }
-        return result;
+    }
+
+    /**
+     * Convert the current cursor as a stream
+     *
+     * @return
+     *      current as a stream
+     */
+    public Stream<RES> stream() {
+        return StreamSupport.stream(this.spliterator(), false);
     }
 
     /**
@@ -379,7 +377,76 @@ public class CollectionCursor<T> implements Iterable<T>, Closeable, Cloneable {
      *      keyspace name
      */
     public String getKeyspace() {
-        return myCollection.getKeyspaceName();
+        return collection.getKeyspaceName();
+    }
+
+    /**
+     * Access to the Sort Vector.
+     *
+     * @return
+     *      sort vector
+     */
+    public Optional<DataAPIVector> getSortVector() {
+        if (currentPage == null && state == CursorState.IDLE) {
+            fetchNextBatch();
+        }
+        if (currentPage == null) {
+            return Optional.empty();
+        }
+        return currentPage.getSortVector();
+    }
+
+    /**
+     * A private iterator implementation for iterating over the results of a {@link CollectionCursor}.
+     * Handles lazy loading of data in batches to optimize memory usage and performance.
+     */
+    private class CursorIterator implements Iterator<RES> {
+
+        /**
+         * Checks if there are more elements to iterate over.
+         * If the buffer is empty, it fetches the next batch of documents.
+         *
+         * @return {@code true} if there are more elements, {@code false} otherwise
+         */
+        @Override
+        public boolean hasNext() {
+            if (state == CursorState.CLOSED) {
+                return false;
+            }
+            if (state == CursorState.IDLE) {
+                state = CursorState.STARTED;
+            }
+            if (!buffer.isEmpty()) {
+                return true;
+            }
+            // Fetch next batch of documents into buffer (if buffer is empty)
+            fetchNextBatch();
+            return !buffer.isEmpty();
+        }
+
+        /**
+         * Retrieves the next element in the iteration.
+         *
+         * @return the next element of type {@code R}
+         * @throws NoSuchElementException if no more elements are available
+         */
+        @Override
+        @SuppressWarnings("unchecked")
+        public RES next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            DOC rawDoc = buffer.remove(0);
+            consumedCount++;
+
+            if (!documentType.isInstance(rawDoc)) {
+                Row row = RowMapper.mapAsRow(rawDoc);
+                return RowMapper.mapFromRow(row, collection.getOptions().getSerializer(), documentType);
+            } else {
+                return (RES) rawDoc;
+            }
+        }
     }
 
 }

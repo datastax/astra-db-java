@@ -667,7 +667,6 @@ public class LocalTableITTest extends AbstractTableITTest {
         tableCities
                 .find(Filters.eq("country", "france"), new TableFindOptions())
                 .forEach(row -> System.out.println(row.get("city")));
-
     }
 
     @Test

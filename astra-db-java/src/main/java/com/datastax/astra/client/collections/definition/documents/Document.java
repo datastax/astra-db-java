@@ -637,7 +637,7 @@ public class Document implements Serializable {
         for (String token : tokens) {
             if (!(current instanceof Map)) return null;
 
-            Matcher matcher = Pattern.compile("([a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
+            Matcher matcher = Pattern.compile("(\\$?[a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
             if (!matcher.matches()) return null;
 
             String fieldName = matcher.group(1);

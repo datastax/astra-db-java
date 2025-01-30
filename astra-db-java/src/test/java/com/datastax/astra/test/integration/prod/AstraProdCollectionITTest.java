@@ -34,6 +34,4 @@ class AstraProdCollectionITTest extends AbstractCollectionITTest {
         return System.getenv("ASTRA_CLOUD_REGION");
     }
 
-
-
 }

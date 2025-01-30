@@ -28,6 +28,7 @@ import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.tables.commands.AlterTableOperation;
@@ -67,10 +68,7 @@ import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -79,6 +77,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
@@ -741,14 +740,6 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return find(null, new TableFindOptions());
     }
 
-    // -------------------------
-    // ---   Distinct       ----
-    // -------------------------
-
-    public TableCursor<T, T> distinct(Filter filter, TableFindOptions options) {
-        return new TableCursor<>(this, filter, options, getRowClass());
-    }
-
     /**
      * Executes a paginated 'find' query on the table using the specified filter and find options.
      * <p>
@@ -789,12 +780,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
-        float[] sortVector = null;
-        if (options!= null &&
-                options.includeSortVector() != null &&
-                apiResponse.getStatus() != null &&
-                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
-            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        DataAPIVector sortVector = null;
+        if (options!= null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
         }
 
         return new Page<>(
@@ -827,7 +815,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *   list of distinct values
      */
-    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
         return distinct(fieldName, filter, resultClass, null);
     }
 
@@ -847,7 +835,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param <R>
      *     type of the result
      */
-    public <R> List<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
         Assert.hasLength(fieldName, "fieldName");
         Assert.notNull(resultClass, "resultClass");
         // Building a convenient find options
@@ -858,10 +846,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
         }
         // Exhausting the list of distinct values
-        return find(filter, findOptions, Row.class).toList().stream()
+        return StreamSupport.stream(find(filter, findOptions, Row.class).spliterator(), true)
                 .map(row -> row.get(fieldName, resultClass))
-                .distinct()
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     // -------------------------

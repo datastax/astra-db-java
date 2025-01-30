@@ -49,8 +49,6 @@ import com.datastax.astra.client.collections.commands.results.FindOneAndReplaceR
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
-import com.datastax.astra.client.collections.commands.cursor.CollectionDistinctIterable;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -58,9 +56,14 @@ import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -72,12 +75,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -88,6 +86,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
@@ -799,7 +798,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     }
 
     // --------------------------
-    // ---   Find*           ----
+    // ---   FindOne         ----
     // --------------------------
 
     /**
@@ -967,33 +966,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
-
-    /**
-     * Retrieves all documents in the collection.
-     * <p>
-     * This method returns an iterable interface that allows iterating over all documents in the collection,
-     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
-     * </p>
-     *
-     * @return A {@link FindIterable} for iterating over all documents in the collection.
-     */
-    public FindIterable<T> findAll() {
-        return find(null, new CollectionFindOptions());
-    }
-
-    /**
-     * Retrieves all documents in the collection.
-     * <p>
-     * This method returns an iterable interface that allows iterating over all documents in the collection,
-     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
-     * </p>
-     *
-     * @return A {@link CollectionCursor} for iterating over all documents in the collection.
-     */
-    public CollectionCursor<T> findAllWithCursor() {
-        return new CollectionCursor<T>(this, null, new CollectionFindOptions());
-    }
-
     /**
      * Retrieves a document by its identifier from the collection.
      * <p>
@@ -1010,16 +982,22 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return findOne(Filters.eq(id));
     }
 
+    // -------------------------
+    // ---   find           ----
+    // -------------------------
+
     /**
      * Finds all documents in the collection.
      *
      * @param filter
      *      the query filter
+     * @param options
+     *      options of find one
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(Filter filter) {
-        return find(filter, new CollectionFindOptions());
+    public CollectionCursor<T, T> find(Filter filter, CollectionFindOptions options) {
+        return new CollectionCursor<>(this, filter, options, getDocumentClass());
     }
 
     /**
@@ -1032,19 +1010,45 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(Filter filter, CollectionFindOptions options) {
-        return new FindIterable<>(this, filter, options);
+    public <R> CollectionCursor<T, R> find(Filter filter, CollectionFindOptions options, Class<R> newDocType) {
+        return new CollectionCursor<>(this, filter, options, newDocType);
     }
 
     /**
      * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @return
+     *      the find iterable interface
+     */
+    public CollectionCursor<T, T> find(Filter filter) {
+        return new CollectionCursor<>(this, filter, new CollectionFindOptions(), getDocumentClass());
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
      * @param options
      *      options of find one
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(CollectionFindOptions options) {
-        return find(null, options);
+    public CollectionCursor<T, T> find(CollectionFindOptions options) {
+        return new CollectionCursor<>(this, null, options, getDocumentClass());
+    }
+
+    /**
+     * Retrieves all documents in the collection.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all documents in the collection,
+     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
+     * </p>
+     *
+     * @return A {@link CollectionCursor} for iterating over all documents in the collection.
+     */
+    public CollectionCursor<T, T> findAll() {
+        return find(null, new CollectionFindOptions());
     }
 
     /**
@@ -1072,23 +1076,23 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     public Page<T> findPage(Filter filter, CollectionFindOptions options) {
         Command findCommand = Command
                 .create("find")
-                .withFilter(filter)
-                .withSort(options.getSortArray())
-                .withProjection(options.getProjectionArray())
-                .withOptions(new Document()
-                        .appendIfNotNull("skip", options.skip())
-                        .appendIfNotNull("limit", options.limit())
-                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                .withFilter(filter);
+        if (options != null) {
+            findCommand.withSort(options.getSortArray())
+                    .withProjection(options.getProjectionArray())
+                    .withOptions(new Document()
+                            .appendIfNotNull("skip", options.skip())
+                            .appendIfNotNull("limit", options.limit())
+                            .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+        }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
-        float[] sortVector = null;
-        if (options.includeSortVector() != null &&
-                apiResponse.getStatus() != null &&
-                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
-            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        DataAPIVector sortVector = null;
+        if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
         }
 
         return new Page<>(
@@ -1125,43 +1129,74 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return CompletableFuture.supplyAsync(() -> findPage(filter, options));
     }
 
-    // --------------------------
-    // ---   Distinct        ----
-    // --------------------------
+    // -------------------------
+    // ---   distinct       ----
+    // -------------------------
 
     /**
-     * Gets the distinct values of the specified field name.
-     * The iteration is performed at CLIENT-SIDE and will exhaust all the collections elements.
+     * Return a list of distinct values for the given field name.
      *
      * @param fieldName
-     *      the field name
+     *      name of the field
+     * @param filter
+     *      filter to apply
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param <R>
+     *     type of the result
      * @return
-     *      an iterable of distinct values
+     *   list of distinct values
      */
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
-        return distinct(fieldName, null, resultClass);
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+        return distinct(fieldName, filter, resultClass, null);
     }
 
     /**
-     * Gets the distinct values of the specified field name.
+     * Return a list of distinct values for the given field name.
      *
      * @param fieldName
-     *      the field name
-     * @param filter
-     *      the query filter
+     *      name of the field
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param <R>
+     *     type of the result
      * @return
-     *      an iterable of distinct values
+     *   list of distinct values
      */
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
+    public <R> Set<R> distinct(String fieldName, Class<R> resultClass) {
+        return distinct(fieldName, null, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldName
+     *      name of the field
+     * @param filter
+     *      filter to apply
+     * @param resultClass
+     *      class of the result
+     * @param options
+     *    options to apply to the operation
+     * @return
+     *     list of distinct values
+     * @param <R>
+     *     type of the result
+     */
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
+        Assert.hasLength(fieldName, "fieldName");
+        Assert.notNull(resultClass, "resultClass");
+        // Building a convenient find options
+        CollectionFindOptions findOptions =  new CollectionFindOptions()
+                .projection(Projection.include(fieldName));
+        // Overriding options
+        if (options != null && options.getDataAPIClientOptions() != null) {
+            findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
+        }
+        // Exhausting the list of distinct values
+        return StreamSupport.stream(find(filter, findOptions, Document.class).spliterator(), true)
+                .map(doc -> doc.get(fieldName, resultClass))
+                .collect(Collectors.toSet());
     }
 
     // ----------------------------

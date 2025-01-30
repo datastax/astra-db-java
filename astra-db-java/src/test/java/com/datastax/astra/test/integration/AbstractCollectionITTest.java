@@ -16,8 +16,6 @@ import com.datastax.astra.client.collections.commands.results.CollectionUpdateRe
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
-import com.datastax.astra.client.collections.commands.cursor.CollectionDistinctIterable;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -32,14 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -207,7 +198,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         // Should return a slice for an array
         Document doc3 = getCollectionSimple().find(null, new CollectionFindOptions()
                         .projection(ps[0], slice("metadata_string_array", 1, 2)))
-                        .all().get(0);
+                        .next();
         String[] strings = doc3.getArray("metadata_string_array", String.class);
         assertThat(strings).hasSize(2);
 
@@ -266,10 +257,10 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
-        FindIterable<Document> findIterable  = getCollectionSimple().findAll();
+        CollectionCursor<Document, Document> findIterable  = getCollectionSimple().findAll();
         for (Document document : findIterable) assertThat(document).isNotNull();
 
-        List<Document> documents = getCollectionSimple().findAll().all();
+        List<Document> documents = getCollectionSimple().findAll().toList();
         assertThat(documents).hasSize(25);
     }
 
@@ -278,7 +269,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         // Populate the Collection
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
-        CollectionCursor<Document> find = getCollectionSimple().findAllWithCursor();
+        CollectionCursor<Document, Document> find = getCollectionSimple().findAll();
         List<Document> documents = find.toList();
         assertThat(documents).hasSize(25);
     }
@@ -291,7 +282,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
 
         // Sort = no paging
         CollectionFindOptions options = new CollectionFindOptions().sort(ascending("indice")).skip(11).limit(2);
-        List<Document> documents = getCollectionSimple().find(options).all();
+        List<Document> documents = getCollectionSimple().find(options).toList();
         assertThat(documents).hasSize(2);
         assertThat(documents.get(0).getInteger("indice")).isEqualTo(11);
         assertThat(documents.get(1).getInteger("indice")).isEqualTo(12);
@@ -331,8 +322,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i%7));
         // Look for
-        CollectionDistinctIterable<Document, Integer> dis = getCollectionSimple().distinct("indice", Integer.class);
-        List<Integer> distinctList = dis.all();
+        Set<Integer> distinctList = getCollectionSimple().distinct("indice", null, Integer.class);
         assertThat(distinctList).hasSize(7);
     }
 
@@ -340,12 +330,12 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
     public void shouldTestFindOnEmptyResultList() {
         getCollectionSimple().deleteAll();
         // Find All
-        List<Document> okDoc = getCollectionSimple().findAll().all();
+        List<Document> okDoc = getCollectionSimple().findAll().toList();
         assertThat(okDoc).isEmpty();
 
         Filter filter = Filters.eq("userId", UUID.randomUUID());
         CollectionFindOptions options = new CollectionFindOptions().projection(include("transactionHash"));
-        List<Document> docs = getCollectionSimple().find(filter, options).all();
+        List<Document> docs = getCollectionSimple().find(filter, options).toList();
         assertThat(docs).isEmpty();
 
         //DistinctIterable<Document, Integer> dis = getCollectionSimple().distinct("indice", Integer.class);
@@ -398,7 +388,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         // Delete exactly one
         getCollectionSimple().deleteOne(eq("indice", 1));
         Map<Integer, Document> results = getCollectionSimple()
-                .findAll().all()
+                .findAll()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
         assertThat(results)
@@ -418,14 +408,13 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                 eq("test", "test"),
                 new CollectionDeleteOneOptions().sort(descending("indice")));;
         results = getCollectionSimple()
-                .findAll().all()
+                .findAll()
                 .stream().collect(Collectors
                         .toMap(doc-> doc.getId(Integer.class), Function.identity()));
         assertThat(results).hasSize(2)
                 .containsKey(0)
                 .containsKey(1)
                 .doesNotContainKey(2);
-
     }
 
     // FindOneAndReplace

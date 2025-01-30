@@ -1,7 +1,8 @@
 /**
- * Objects representing cursors working with find collections commands.
+ * Objects representing cursors working with find collection commands.
  */
 package com.datastax.astra.client.collections.commands.cursor;
+
 /*-
  * #%L
  * Data API Java Client

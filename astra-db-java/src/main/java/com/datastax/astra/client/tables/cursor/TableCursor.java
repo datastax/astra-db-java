@@ -35,7 +35,17 @@ import lombok.Getter;
 
 import java.io.Closeable;
 import java.util.*;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
+/**
+ * Implementation of a cursor across the find items
+ *
+ * @param <T>
+ *       working bean of parent table
+ * @param <R>
+ *       working bean returned for the find
+ */
 /**
  * Implementation of a cursor across the find items
  *
@@ -91,9 +101,6 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     @Getter
     private Class<R> rowType;
 
-    /** Allow to return only distincts values; */
-    private boolean distinct = false;
-
     /**
      * Cursor to iterate on the result of a query.
      *
@@ -106,7 +113,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @param rowType
      *      row type returned with the cursor
      */
-    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, boolean distinct, Class<R> rowType) {
+    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, Class<R> rowType) {
         this.table = table;
         this.filter = filter;
         this.rowType = rowType;
@@ -114,7 +121,6 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
         this.state = CursorState.IDLE;
         this.buffer = new ArrayList<>();
         this.consumedCount = 0;
-        this.distinct = distinct;
     }
 
     /**
@@ -124,18 +130,14 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *      previous cursor
      */
     private TableCursor(TableCursor<T, R> tableCursor) {
-        if (tableCursor == null) {
-            throw new IllegalArgumentException("Input cursor cannot be null");
-        }
-        this.table            = tableCursor.table;
+        this.state = CursorState.IDLE;
+        this.table = tableCursor.table;
         this.tableFindOptions = tableCursor.tableFindOptions;
         this.filter           = tableCursor.filter;
-        this.currentPage      = tableCursor.currentPage;
-        this.rowType          = tableCursor.rowType;
-        this.distinct         = tableCursor.distinct;
-        this.state            = CursorState.IDLE;
         this.buffer           = new ArrayList<>();
         this.consumedCount    = 0;
+        this.currentPage      = tableCursor.currentPage;
+        this.rowType         = tableCursor.rowType;
     }
 
     /** {@inheritDoc} */
@@ -335,14 +337,28 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *
      * @return a {@link List} containing all remaining elements
      */
+    /**
+     * Collects all remaining elements in the cursor into a list.
+     * Automatically closes the cursor after all elements are consumed.
+     *
+     * @return a {@link List} containing all remaining elements
+     */
     public List<R> toList() {
-        List<R> result = new ArrayList<>();
         try {
-            forEach(result::add);
+            return stream().toList();
         } finally {
             close();
         }
-        return result;
+    }
+
+    /**
+     * Convert the current cursor as a stream
+     *
+     * @return
+     *      current as a stream
+     */
+    public Stream<R> stream() {
+        return StreamSupport.stream(this.spliterator(), false);
     }
 
     /**
@@ -372,23 +388,20 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *      sort vector
      */
     public Optional<DataAPIVector> getSortVector() {
+        if (currentPage == null && state == CursorState.IDLE) {
+            fetchNextBatch();
+        }
         if (currentPage == null) {
             return Optional.empty();
         }
-        return currentPage.getSortVector().map(DataAPIVector::new);
+        return currentPage.getSortVector();
     }
-
 
     /**
      * A private iterator implementation for iterating over the results of a {@link TableCursor}.
      * Handles lazy loading of data in batches to optimize memory usage and performance.
      */
     private class CursorIterator implements Iterator<R> {
-
-        /**
-         * Store distinct values returned.
-         */
-        private final Set<R> returnedValues = distinct ? new HashSet<>() : null;
 
         /**
          * Checks if there are more elements to iterate over.
@@ -404,22 +417,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             if (state == CursorState.IDLE) {
                 state = CursorState.STARTED;
             }
-
-            // Keep fetching the next batch if the buffer is empty
-            while (buffer.isEmpty() && currentPage != null && currentPage.getPageState().isPresent()) {
-                fetchNextBatch();
+            if (!buffer.isEmpty()) {
+                return true;
             }
-
-            // Ensure we have elements and check distinct constraint
-            while (!buffer.isEmpty()) {
-                R nextValue = peekNext();
-                if (!distinct || returnedValues.add(nextValue)) {
-                    return true;
-                } else {
-                    buffer.remove(0); // Remove duplicate
-                }
-            }
-            return false;
+            // Fetch next batch of documents into buffer (if buffer is empty)
+            fetchNextBatch();
+            return !buffer.isEmpty();
         }
 
         /**
@@ -438,23 +441,6 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
             T rawDoc = buffer.remove(0);
             consumedCount++;
 
-            R result;
-            if (!rowType.isInstance(rawDoc)) {
-                Row row = RowMapper.mapAsRow(rawDoc);
-                result = RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
-            } else {
-                result = (R) rawDoc;
-            }
-
-            if (distinct) {
-                returnedValues.add(result);
-            }
-            return result;
-        }
-
-        @SuppressWarnings("unchecked")
-        private R peekNext() {
-            T rawDoc = buffer.get(0);
             if (!rowType.isInstance(rawDoc)) {
                 Row row = RowMapper.mapAsRow(rawDoc);
                 return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
@@ -462,8 +448,6 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
                 return (R) rawDoc;
             }
         }
-
-
     }
 
 }

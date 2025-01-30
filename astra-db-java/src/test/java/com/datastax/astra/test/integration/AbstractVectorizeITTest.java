@@ -1,6 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.definition.documents.Document;
@@ -10,7 +11,6 @@ import com.datastax.astra.client.collections.commands.options.CollectionInsertMa
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.DataAPIKeywords;
@@ -140,7 +140,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
 
-        FindIterable<Document> docs= collection.find(new CollectionFindOptions()
+        CollectionCursor<Document, Document> docs= collection.find(new CollectionFindOptions()
                 .sort(Sort.vectorize("You shouldn't come around here singing up at people like that"))
                 .includeSortVector(true)
                 .includeSimilarity(true));
