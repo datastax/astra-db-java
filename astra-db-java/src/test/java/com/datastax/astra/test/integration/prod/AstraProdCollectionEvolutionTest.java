@@ -12,7 +12,8 @@ import java.util.*;
 
 public class AstraProdCollectionEvolutionTest {
 
-    public static final String ASTRA_TOKEN = "AstraCS:vhsspOwbWKqoyZLRqRxnojcx:b9795c21e01f57197b62c3f250d422d22e00345f8a6e2dc9a568754b5e5a6701";
+    public static final String ASTRA_TOKEN = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
+
     public static final String ASTRA_DB_ENDPOINT = "https://7d7388a6-5ba2-431a-942a-250012f785c0-us-east1.apps.astra.datastax.com";
     public static final String COLLECTION_NAME = "sample_nested";
 
