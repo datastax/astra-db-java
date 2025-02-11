@@ -4,7 +4,7 @@
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
     <name>Data API Client</name>
-    <version>2.0.0-PREVIEW1</version>
+    <version>2.0.0-PREVIEW2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>https://github.com/datastax/astra-db-java</url>
     <inceptionYear>2024</inceptionYear>
@@ -330,7 +330,7 @@
         <connection>scm:git:git@github.com:datastax/astra-db-java.git</connection>
         <developerConnection>scm:git:git@github.com:datastax/astra-db-java.git</developerConnection>
         <url>https://github.com/datastax/astra-db-java</url>
-        <tag>2.0.0-PREVIEW1</tag>
+        <tag>1.4.6</tag>
     </scm>
 
     <developers>
