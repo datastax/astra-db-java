@@ -144,7 +144,7 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
         return chatMemoryCollection.find(eq(AstraDbChatMessage.PROP_CHAT_ID, conversationId),
                      new CollectionFindOptions()
                              .sort(descending(AstraDbChatMessage.PROP_MESSAGE_TIME)))
-                             .all();
+                             .toList();
     }
 
     /**

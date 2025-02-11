@@ -83,7 +83,7 @@ public class AstraDbChatMemory implements ChatMemory {
      */
     public List<AstraDbChatMessage> messagesAstra() {
         CollectionFindOptions options = new CollectionFindOptions().sort(ascending(PROP_MESSAGE_TIME));
-        return chatMemoryCollection.find(filter, options).all();
+        return chatMemoryCollection.find(filter, options).toList();
     }
 
     /** {@inheritDoc} */

@@ -280,7 +280,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                         .limit(maxResults)
                         .projection(include("*"))
                         .includeSimilarity(true))
-                .all().stream()
+                .toList().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)
                 .collect(Collectors.toList());
@@ -357,7 +357,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                         .sort(vectorize(vectorize))
                         .projection(include("*"))
                         .includeSimilarity(true))
-                .all().stream()
+                .toList().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)
                 .collect(Collectors.toList());
@@ -381,7 +381,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
         TextSegment embedded = null;
         Object body = doc.get(KEY_ATTRIBUTES_BLOB);
         if (body != null) {
-            Metadata metadata = new Metadata(doc.entrySet().stream()
+            Metadata metadata = new Metadata(doc.getDocumentMap().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
                                 entry -> entry.getValue() == null ? "" : entry.getValue().toString()
             )));

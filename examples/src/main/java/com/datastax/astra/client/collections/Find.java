@@ -1,6 +1,7 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
@@ -35,7 +36,7 @@ public class Find {
                 .includeSimilarity(true); // include similarity
 
         // Execute a find operation
-        FindIterable<Document> result = collection.find(filter, options);
+        CollectionCursor<Document, Document> result = collection.find(filter, options);
 
         // Iterate over the result
         for (Document document : result) {

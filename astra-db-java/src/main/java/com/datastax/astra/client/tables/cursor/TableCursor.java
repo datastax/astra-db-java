@@ -29,12 +29,15 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
-import com.datastax.astra.client.tables.definition.rows.Row;
-import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
 import java.io.Closeable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -82,12 +85,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     /**
      * Records to process
      */
-    private List<T> buffer;
+    private List<R> buffer;
 
     /**
      * Current page
      */
-    private Page<T> currentPage;
+    private Page<R> currentPage;
 
     /**
      * How many consumed in the current buffer.
@@ -262,11 +265,11 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @return
      *      list of items
      */
-    public List<T> consumeBuffer(int n) {
+    public List<R> consumeBuffer(int n) {
         if (state == CursorState.CLOSED || state == CursorState.IDLE) {
             return Collections.emptyList();
         }
-        List<T> result = new ArrayList<>();
+        List<R> result = new ArrayList<>();
         int count = 0;
         while (!buffer.isEmpty() && count < n) {
             result.add(buffer.remove(0));
@@ -302,12 +305,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     private void fetchNextBatch() {
         if (currentPage == null) {
             // Searching First Page
-            currentPage = table.findPage(filter, tableFindOptions);
+            currentPage = table.findPage(filter, tableFindOptions, rowType);
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
             // Searching next page if exist
             tableFindOptions.pageState(currentPage.getPageState().get());
-            currentPage = table.findPage(filter, tableFindOptions);
+            currentPage = table.findPage(filter, tableFindOptions, rowType);
             buffer.addAll(currentPage.getResults());
         }
     }
@@ -432,21 +435,13 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
          * @throws NoSuchElementException if no more elements are available
          */
         @Override
-        @SuppressWarnings("unchecked")
         public R next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-
-            T rawDoc = buffer.remove(0);
+            R rawDoc = buffer.remove(0);
             consumedCount++;
-
-            if (!rowType.isInstance(rawDoc)) {
-                Row row = RowMapper.mapAsRow(rawDoc);
-                return RowMapper.mapFromRow(row, table.getOptions().getSerializer(), rowType);
-            } else {
-                return (R) rawDoc;
-            }
+            return rawDoc;
         }
     }
 

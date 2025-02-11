@@ -2,6 +2,7 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
@@ -71,7 +72,7 @@ public class QuickStartOpenAI {
                 .sort(s)
                 .limit(2)
                 .includeSimilarity(true);
-        FindIterable<Document> results = collection.find(findOptions);
+        CollectionCursor<Document, Document> results = collection.find(findOptions);
         for (Document document : results) {
             System.out.println("Document: " + document);
         }

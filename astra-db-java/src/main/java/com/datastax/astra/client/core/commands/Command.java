@@ -118,7 +118,7 @@ public class Command implements Serializable {
      * @return
      *      self-reference
      */
-    public Command withProjection(Map<String, Object> projection) {
+    public Command withProjection(Map<String, Boolean> projection) {
         payload.appendIfNotNull("projection", projection);
         return this;
     }
@@ -142,9 +142,8 @@ public class Command implements Serializable {
                     throw new IllegalArgumentException("A projection must be include/exclude or a slide");
                 }
                 if (p.getPresent() != null) {
-                    finalProjection.put(p.getField(), p.getPresent() ? 1 : 0);
+                    finalProjection.put(p.getField(), p.getPresent());
                 } else {
-                    // SLICE
                     int start = p.getSliceStart();
                     Map<String, Object> slice = new LinkedHashMap<>();
                     if (p.getSliceEnd() != null) {

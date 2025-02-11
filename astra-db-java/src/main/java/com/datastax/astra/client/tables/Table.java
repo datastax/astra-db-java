@@ -65,6 +65,7 @@ import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.OptionsUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -740,6 +741,10 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return find(null, new TableFindOptions());
     }
 
+    public Page<T> findPage(Filter filter, TableFindOptions options) {
+        return findPage(filter, options, getRowClass());
+    }
+
     /**
      * Executes a paginated 'find' query on the table using the specified filter and find options.
      * <p>
@@ -762,7 +767,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the rows that match the query, along with pagination information.
      */
-    public Page<T> findPage(Filter filter, TableFindOptions options) {
+    public <R> Page<R> findPage(Filter filter, TableFindOptions options, Class<R> newRowType) {
         Command findCommand = Command
                 .create("find")
                 .withFilter(filter);
@@ -793,7 +798,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                     targetRow.getColumnMap().putAll(doc.getDocumentMap());
                     return targetRow;
                 })
-                .map(d -> RowMapper.mapFromRow(d, getSerializer(), getRowClass()))
+                .map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))
                 .collect(Collectors.toList()), sortVector);
     }
 

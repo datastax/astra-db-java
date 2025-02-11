@@ -171,7 +171,8 @@ public class Document implements Serializable {
     }
 
     /**
-     * Put the given key/value pair into this Document and return this.  Useful for chaining puts in a single expression, e.g.
+     * Put the given key/value pair into this Document and return this.
+     * Useful for chaining puts in a single expression, e.g.
      * <pre>
      * doc.append("a", 1).append("b", 2)}
      * </pre>

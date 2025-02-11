@@ -256,8 +256,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             serializer = overridingOptions.getSerializer();
         }
 
-
-
         // Initializing the Execution infos (could be pushed to 3rd parties)
         ExecutionInfos.DataApiExecutionInfoBuilder executionInfo =
                 ExecutionInfos.builder()

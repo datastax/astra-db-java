@@ -12,7 +12,7 @@
     </parent>
 
     <properties>
-        <langchain4j.version>0.36.2</langchain4j.version>
+        <langchain4j.version>1.0.0-beta1</langchain4j.version>
     </properties>
 
     <dependencies>
