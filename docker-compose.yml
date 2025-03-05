@@ -4,7 +4,7 @@ services:
 
   # Development mode with latest taf
   coordinator:
-    image: stargateio/coordinator-dse-next:v2.1.0-BETA-18
+    image: stargateio/coordinator-dse-next:v2.1
     networks:
       - stargate
     ports:
@@ -14,7 +14,7 @@ services:
     mem_limit: 2G
     environment:
       - JAVA_OPTS="-Xmx2G"
-      - CLUSTER_NAME=sgv2-cluster
+      - CLUSTER_NAME=dse-next
       - RACK_NAME=rack1
       - DATACENTER_NAME=datacenter1
       - ENABLE_AUTH=true

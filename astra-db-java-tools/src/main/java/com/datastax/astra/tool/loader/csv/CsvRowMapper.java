@@ -13,6 +13,6 @@ public interface CsvRowMapper {
      * @param doc
      *      document to process
      */
-    Document map(Document doc) ;
+    Document map(Document doc);
 
 }

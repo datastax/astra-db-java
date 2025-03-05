@@ -36,12 +36,14 @@ package com.datastax.astra.client.collections.definition.documents;
  * #L%
  */
 
-import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-import com.datastax.astra.internal.utils.Utils;
+import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -50,10 +52,17 @@ import lombok.NonNull;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 /**
  * Represents a document without schema constraints as a Map&lt;String, Object&gt;.(key/value)
@@ -176,19 +185,19 @@ public class Document implements Serializable {
      * <pre>
      * doc.append("a", 1).append("b", 2)}
      * </pre>
-     * @param key   key
+     * @param keys
+     *      list of keys to add to a document
      * @param value value
      * @return this
      */
     @SuppressWarnings("unchecked")
-    public Document append(final String key, final Object value) {
-        if (!Utils.hasLength(key)) {
-            throw new IllegalArgumentException("Field name should not be null");
-        }
-        String[] tokens = key.split("\\.");
+    public Document append(final String[] keys, final Object value) {
+        Assert.notNull(keys, "Field name should not be null");
+        Assert.isTrue(keys.length > 0, "Field name should not be empty");
         Map<String, Object> currentMap = documentMap;
-        for (int i = 0; i < tokens.length - 1; i++) {
-            String token = tokens[i];
+        for (int i = 0; i < keys.length - 1; i++) {
+            //String token = escapeSingleExpression(keys[i]);
+            String token = keys[i];
             Object nested = currentMap.get(token);
             if (!(nested instanceof Map)) {
                 nested = new HashMap<>();
@@ -197,14 +206,87 @@ public class Document implements Serializable {
             // Go deeper
             currentMap = (Map<String, Object>) nested;
         }
-
-        // Finally put the value in the last token
-        currentMap.put(tokens[tokens.length - 1], value);
+        // Finally, put the value in the last token
+        currentMap.put(keys[keys.length - 1], value);
         return this;
     }
 
     /**
-     * Put the given key/value pair into this Document and return this only if the value is not null
+     * Put the given key/value pair into this Document and return this.
+     * Useful for chaining puts in a single expression, e.g.
+     * <pre>
+     * doc.append("a", 1).append("b", 2)}
+     * </pre>
+     * @param key   key
+     * @param value value
+     * @return this
+     */
+    @SuppressWarnings("unchecked")
+    public Document append(final String key, final Object value) {
+        Assert.hasLength(key, "Field name should not be null");
+        // Properly split the key, considering escaped dots
+        List<String> tokens = parseKey(key);
+        Map<String, Object> currentMap = documentMap;
+        for (int i = 0; i < tokens.size() - 1; i++) {
+            String token = tokens.get(i);
+            Object nested = currentMap.get(token);
+            if (!(nested instanceof Map)) {
+                nested = new HashMap<>();
+                currentMap.put(token, nested);
+            }
+            // Go deeper
+            currentMap = (Map<String, Object>) nested;
+        }
+        // Finally, put the value in the last token
+        currentMap.put(tokens.get(tokens.size() - 1), value);
+        return this;
+    }
+
+    private List<String> parseKey(String key) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean pendingAmpersand = false;
+
+        for (int i = 0; i < key.length(); i++) {
+            char c = key.charAt(i);
+
+            if (c == '&') {
+                if (pendingAmpersand) {
+                    sb.append('&'); // Convert '&&' to a single '&'
+                    pendingAmpersand = false;
+                } else {
+                    pendingAmpersand = true;
+                }
+            } else if (c == '.') {
+                if (pendingAmpersand) {
+                    sb.append('.'); // Convert '&.' to '.'
+                    pendingAmpersand = false;
+                } else {
+                    tokens.add(sb.toString());
+                    sb.setLength(0);
+                }
+            } else {
+                if (pendingAmpersand) {
+                    InvalidFieldExpressionException.throwInvalidField(key,
+                            "Single '&' must be followed by '.' to escape a dot or another '&' to represent '&'.");
+                }
+                sb.append(c);
+            }
+        }
+
+        if (pendingAmpersand) {
+            InvalidFieldExpressionException.throwInvalidField(key,
+                    "Single '&' must be followed by '.' to escape a dot or another '&' to represent '&'."
+            );
+        }
+
+        tokens.add(sb.toString()); // Add the last token
+        return tokens;
+    }
+
+    /**
+     * Put the given key/value pair into this Document and return this only if the value is not null.
+     *
      * <pre>
      * doc.append("a", 1).append("b", 2)}
      * </pre>
@@ -600,27 +682,21 @@ public class Document implements Serializable {
      * located at "foo".
      */
     public boolean containsKey(String key) {
-        if (!Utils.hasLength(key)) {
-            throw new IllegalArgumentException("Field name should not be null");
-        }
-        String[] tokens = key.split("\\.");
+        Assert.hasLength(key, "Field name should not be null");
+        List<String> tokens = parseKey(key); // Get the parsed key segments
         Object current = documentMap;
+        for (int i = 0; i < tokens.size(); i++) {
+            if (!(current instanceof Map)) return false;
+            Map<?, ?> map = (Map<?, ?>) current;
+            String fieldName = tokens.get(i);
+            if (!map.containsKey(fieldName)) return false;
+            current = map.get(fieldName);
+        }
+        return true;
+    }
 
-        // Navigate down to the second-to-last level
-        for (int i = 0; i < tokens.length - 1; i++) {
-            if (!(current instanceof Map)) {
-                return false;
-            }
-            current = ((Map<?, ?>) current).get(tokens[i]);
-            if (current == null) {
-                return false;
-            }
-        }
-        // Now check if we can see the last token as a key in the last map
-        if (!(current instanceof Map)) {
-            return false;
-        }
-        return ((Map<?, ?>) current).containsKey(tokens[tokens.length - 1]);
+    public Object get(final String[] fieldPathSegment) {
+        return get(EscapeUtils.escapeFieldNames(fieldPathSegment));
     }
 
     /**
@@ -630,15 +706,17 @@ public class Document implements Serializable {
      * @return the value associated with the specified key, or {@code null} if the key is not found
      */
     public Object get(final String key) {
-        if (!Utils.hasLength(key)) {
-            throw new IllegalArgumentException("Field name should not be null");
-        }
-        String[] tokens = key.split("\\.");
+        Assert.hasLength(key, "Field name should not be null");
+        // Handling escaped dots
+        List<String> tokens = parseKey(key);
         Object current = documentMap;
         for (String token : tokens) {
             if (!(current instanceof Map)) return null;
-
-            Matcher matcher = Pattern.compile("(\\$?[a-zA-Z0-9_-]+)(\\[(\\d+)\\])?").matcher(token);
+            /*
+             * FieldName
+             */
+            Matcher matcher = Pattern.compile("([\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
+                    .matcher(token);
             if (!matcher.matches()) return null;
 
             String fieldName = matcher.group(1);
@@ -669,28 +747,51 @@ public class Document implements Serializable {
     }
 
     /**
+     * Associates the specified value with the specified key in the document.
+     * If the key already has a value, the old value is replaced.
+     *
+     * @param keys the keys for the field segment
+     * @param value the value to be associated with the specified key
+     * @return the previous value associated with the key, or {@code null} if there was no mapping for the key
+     */
+    public Document put(final String[] keys, final Object value) {
+        return append(keys, value);
+    }
+
+    /**
      * Removes the mapping for a key from the document if it is present.
      *
      * @param key the key whose mapping is to be removed
      * @return the value that was associated with the key, or {@code null} if the key was not mapped
      */
-    public Document remove(final String key) {
-        String[] tokens = key.split("\\.");
+    public Document remove(String key) {
+        Assert.hasLength(key, "Field name should not be null");
+        List<String> tokens = parseKey(key);
+        if (tokens.isEmpty()) return this;
+
         Object current = documentMap;
-        for (int i = 0; i < tokens.length - 1; i++) {
-            if (!(current instanceof Map)) {
-                return null;
-            }
-            current = ((Map<?, ?>) current).get(tokens[i]);
-            if (current == null) {
-                return null;
+        Map<?, ?> parent = null;
+        String lastKey = null;
+
+        for (int i = 0; i < tokens.size(); i++) {
+            if (!(current instanceof Map)) return this;
+
+            Map<String, Object> map = (Map<String, Object>) current;
+            String fieldName = tokens.get(i);
+
+            if (i == tokens.size() - 1) {
+                // Last segment, prepare to remove
+                parent = map;
+                lastKey = fieldName;
+            } else {
+                current = map.get(fieldName);
             }
         }
-        if (!(current instanceof Map)) {
-            return null;
+
+        if (parent != null && lastKey != null) {
+            parent.remove(lastKey); // Remove the key from the parent map
         }
-        // Remove the final segment from the map
-        ((Map<?, ?>) current).remove(tokens[tokens.length - 1]);
+
         return this;
     }
 

@@ -80,7 +80,7 @@ public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
      * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
      */
     public TableVectorIndexDefinition column(String column) {
-        this.column = column;
+        this.column = new TableIndexColumnDefinition(column);
         return this;
     }
 

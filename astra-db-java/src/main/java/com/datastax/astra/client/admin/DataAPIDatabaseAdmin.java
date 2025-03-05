@@ -71,6 +71,17 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         this.db = db;
         this.options.commandType(CommandType.KEYSPACE_ADMIN);
         String apiVersion = options.getDataAPIClientOptions().getApiVersion();
+        switch(options.getDataAPIClientOptions().getDestination()) {
+            case ASTRA:
+            case ASTRA_TEST:
+            case ASTRA_DEV:
+                if (db.getRootEndpoint().endsWith(".com")) {
+                    this.apiEndpoint += "/api/json";
+                }
+                break;
+            default:
+                break;
+        }
         if (!db.getRootEndpoint().endsWith(apiVersion)) {
           this.apiEndpoint += "/" + apiVersion;
         }

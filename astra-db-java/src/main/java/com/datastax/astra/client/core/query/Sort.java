@@ -22,6 +22,7 @@ package com.datastax.astra.client.core.query;
 
 import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -84,6 +85,17 @@ public class Sort {
     /**
      * Build a sort clause ascending.
      *
+     * @param fieldSegments
+     *      field Segments
+     * @return
+     *      sort instance.
+     */
+    public static Sort ascending(String[] fieldSegments) {
+        return new Sort(EscapeUtils.escapeFieldNames(fieldSegments), SortOrder.ASCENDING, null, null);
+    }
+    /**
+     * Build a sort clause ascending.
+     *
      * @param field
      *      current field
      * @return
@@ -91,6 +103,18 @@ public class Sort {
      */
     public static Sort ascending(String field) {
         return new Sort(field, SortOrder.ASCENDING, null, null);
+    }
+
+    /**
+     * Build a sort clause DESCENDING.
+     *
+     * @param fieldSegments
+     *      field Segments
+     * @return
+     *      sort instance.
+     */
+    public static Sort descending(String[] fieldSegments) {
+        return new Sort(EscapeUtils.escapeFieldNames(fieldSegments), SortOrder.DESCENDING, null, null);
     }
 
     /**

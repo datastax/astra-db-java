@@ -74,6 +74,15 @@ public enum ClientErrorCodes {
     MISSING_ANNOTATION("CLIENT_MISSING_ANNOTATION", "Annotation '%s' is missing on bean '%s' for operation '%s'"),
 
     /**
+     * Indicates a fieldname was invalid and cannot be escaped
+     * Dynamic placeholders:
+     * <ul>
+     *   <li>{@code '%s'}: The value for the field to escape</li>
+     * </ul>
+     */
+    INVALID_FIELD_EXPRESSION("CLIENT_INVALID_FIELD_EXPRESSION", "Invalid field expression: '%s'"),
+
+    /**
      * Generic client error with no specific message.
      */
     ERROR("CLIENT_ERROR", ""),

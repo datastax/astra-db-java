@@ -1004,6 +1004,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      the query filter
      * @param options
      *      options of find one
+     * @param newDocType
+     *      new class for return objects if projected
      * @return
      *      the find iterable interface
      */

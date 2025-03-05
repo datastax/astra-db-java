@@ -29,7 +29,7 @@ public class CsvLoaderAnoop {
 
          System.out.println(collection.find(and(
                  eq("origin", "55426"),
-                 eq("destination", "61701"))).all());
+                 eq("destination", "61701"))).toList());
 
     }
 

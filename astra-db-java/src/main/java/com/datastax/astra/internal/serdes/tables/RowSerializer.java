@@ -40,6 +40,7 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
@@ -123,6 +124,9 @@ public class RowSerializer implements DataAPISerializer {
             // API Vector
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
             module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
+            // Column Definitions
+            module.addSerializer(TableIndexColumnDefinition.class, new TableIndexColumnDefinitionSerializer());
+            module.addDeserializer(TableIndexColumnDefinition.class, new TableIndexColumnDefinitionDeserializer());
 
             // De-Serialization
             module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());

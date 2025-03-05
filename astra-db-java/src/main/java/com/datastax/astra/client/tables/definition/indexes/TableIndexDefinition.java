@@ -57,7 +57,19 @@ public class TableIndexDefinition extends TableBaseIndexDefinition {
      * @return the current instance of {@code TableIndexDefinition} for method chaining.
      */
     public TableIndexDefinition column(String column) {
-        this.column = column;
+        this.column = new TableIndexColumnDefinition(column, null);
+        return this;
+    }
+
+    /**
+     * Sets the name of the column for the index.
+     *
+     * @param column the name of the column to be indexed.
+     * @param type the type of the column to be indexed.
+     * @return the current instance of {@code TableIndexDefinition} for method chaining.
+     */
+    public TableIndexDefinition column(String column, TableIndexMapTypes type) {
+        this.column = new TableIndexColumnDefinition(column, type);
         return this;
     }
 

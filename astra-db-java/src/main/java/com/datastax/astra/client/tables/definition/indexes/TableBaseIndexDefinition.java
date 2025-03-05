@@ -37,7 +37,7 @@ public abstract class TableBaseIndexDefinition {
     /**
      * The name of the column that the index is associated with.
      */
-    protected String column;
+    protected TableIndexColumnDefinition column;
 
     /**
      * The API support configuration for the table index.
