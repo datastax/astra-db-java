@@ -356,6 +356,18 @@ public class Document implements Serializable {
     }
 
     /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param text
+     *      value for the vectorize attribute
+     * @return
+     *      self reference
+     */
+    public Document lexical(String text) {
+        return appendIfNotNull(DataAPIKeywords.LEXICAL.getKeyword(), text);
+    }
+
+    /**
      * Access attribute with vectorize name if any.
      *
      * @return

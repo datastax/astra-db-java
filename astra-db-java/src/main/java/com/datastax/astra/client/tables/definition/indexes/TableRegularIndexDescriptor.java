@@ -21,17 +21,16 @@ package com.datastax.astra.client.tables.definition.indexes;
  */
 
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
- * Descriptor for a table vector index.
+ * Represents a descriptor for a table index, including the table's name and associated index options.
+ * This class is designed for use in scenarios such as serialization/deserialization with libraries
+ * like Jackson and for method chaining in fluent-style APIs.
  */
-@Getter @Setter
-public class TableVectorIndexDescriptor extends TableIndexDescriptor<TableVectorIndexDefinition> {
+public class TableRegularIndexDescriptor extends TableIndexDescriptor<TableRegularIndexDefinition> {
 
-    public TableVectorIndexDescriptor() {
-        super(TableVectorIndexDescriptor::new);
+    public TableRegularIndexDescriptor() {
+        super(TableRegularIndexDescriptor::new);
     }
 
     /**
@@ -39,18 +38,19 @@ public class TableVectorIndexDescriptor extends TableIndexDescriptor<TableVector
      *
      * @param definition the index options to use.
      */
-    protected TableVectorIndexDescriptor(TableVectorIndexDefinition definition) {
-        super(TableVectorIndexDescriptor::new);
+    protected TableRegularIndexDescriptor(TableRegularIndexDefinition definition) {
+        super(TableRegularIndexDescriptor::new);
         this.definition = definition;
     }
 
     @Override
-    public TableVectorIndexDescriptor name(String name) {
-        return (TableVectorIndexDescriptor) super.name(name);
+    public TableRegularIndexDescriptor name(String name) {
+        return (TableRegularIndexDescriptor) super.name(name);
     }
 
     @Override
-    public TableVectorIndexDescriptor definition(TableVectorIndexDefinition def) {
-        return (TableVectorIndexDescriptor) super.definition(def);
+    public TableRegularIndexDescriptor definition(TableRegularIndexDefinition def) {
+        return (TableRegularIndexDescriptor) super.definition(def);
     }
+
 }

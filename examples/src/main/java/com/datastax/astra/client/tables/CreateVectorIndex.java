@@ -1,12 +1,9 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 

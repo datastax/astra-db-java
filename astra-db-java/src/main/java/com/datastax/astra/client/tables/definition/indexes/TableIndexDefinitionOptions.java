@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables.definition.indexes;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 /**

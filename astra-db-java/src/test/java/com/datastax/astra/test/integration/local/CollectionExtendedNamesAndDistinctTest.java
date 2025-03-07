@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.prod;
+package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
@@ -12,24 +12,20 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
-import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.internal.utils.EscapeUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
-import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
-
-public class ExtendedFieldNamesSupportTest {
+public class CollectionExtendedNamesAndDistinctTest {
 
     public static final String ASTRA_TOKEN = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
-
     public static final String ASTRA_DB_ENDPOINT = "https://7d7388a6-5ba2-431a-942a-250012f785c0-us-east1.apps.astra.datastax.com";
     public static final String COLLECTION_NAME = "sample_nested";
 
     private  Collection<Document> getCollection(boolean clear) {
-        DataAPIClient        client = DataAPIClients.astra(ASTRA_TOKEN);//new DataAPIClient(ASTRA_TOKEN);
+        DataAPIClient        client = DataAPIClients.astra(ASTRA_TOKEN);
         Database             db     = client.getDatabase(ASTRA_DB_ENDPOINT);
         Collection<Document>  ccc = db.createCollection(COLLECTION_NAME);
         if (clear) ccc.deleteAll();
@@ -37,63 +33,45 @@ public class ExtendedFieldNamesSupportTest {
     }
 
     @Test
-    public void should_test_unEscaped() {
-        String[] testCases = {
-                "",
-                "a.a",
-                "a.a&.a",
-                "a&.b.c&&d",
-                "p.0",
-                "&&.",
-                "&",
-                "tom&jerry"
-        };
-
-        System.out.println("Unescaping field paths");
-        for (String testCase : testCases) {
-            try {
-                String[] result = EscapeUtils.unEscapeFieldPath(testCase);
-                System.out.println("Input: \"" + testCase + "\" -> " + java.util.Arrays.toString(result));
-            } catch (InvalidFieldExpressionException e) {
-                System.out.println("Input: \"" + testCase + "\" -> Error: " + e.getMessage());
-            }
-        }
+    public void should_test_unEscapeFieldPath() {
+        Assertions.assertEquals(
+                Arrays.asList(""),
+                Arrays.asList(EscapeUtils.unEscapeFieldPath("")));
+        Assertions.assertEquals(
+                Arrays.asList("a", "a"),
+                Arrays.asList(EscapeUtils.unEscapeFieldPath("a.a")));
+        Assertions.assertEquals(
+                Arrays.asList("a", "a.a"),
+                Arrays.asList(EscapeUtils.unEscapeFieldPath("a.a&.a")));
+        Assertions.assertEquals(
+                Arrays.asList("a.b", "c&d"),
+                Arrays.asList(EscapeUtils.unEscapeFieldPath("a&.b.c&&d")));
+        Assertions.assertThrows(
+                InvalidFieldExpressionException.class,
+                () -> EscapeUtils.unEscapeFieldPath("&&."));
+        Assertions.assertThrows(
+                InvalidFieldExpressionException.class,
+                () -> EscapeUtils.unEscapeFieldPath("&"));
+        Assertions.assertThrows(
+                InvalidFieldExpressionException.class,
+                () -> EscapeUtils.unEscapeFieldPath("tom&jerry"));
     }
 
     @Test
-    public void should_test_escaped() {
-        String[][] testCases = {
-                {""},
-                {"a", "a"},
-                {"a.a"},
-                {"a.a&.a"},
-                {"a&.b.c&&d"},
-                {"p", "0"},
-                {"&&."},
-                {"&"},
-                {"tom&jerry"}
-        };
-
-        System.out.println("Escaping field paths");
-        for (String[] testCase : testCases) {
-            try {
-                String escaped = EscapeUtils.escapeFieldNames(testCase);
-                System.out.println("Input: " + java.util.Arrays.toString(testCase) + " -> \"" + escaped + "\"");
-
-                // Ensure the escaped string correctly replaces '&' and '.'
-                for (String segment : testCase) {
-                    Assertions.assertFalse(escaped.contains(".."), "Escaped string should not contain consecutive dots");
-                }
-
-            } catch (Exception e) {
-                System.out.println("Input: " + java.util.Arrays.toString(testCase) + " -> Error: " + e.getMessage());
-                Assertions.fail("Unexpected exception: " + e.getMessage());
-            }
-        }
+    public void should_test_escapeFieldNames() {
+        Assertions.assertEquals("", EscapeUtils.escapeFieldNames(new String[0]));
+        Assertions.assertEquals("a.a", EscapeUtils.escapeFieldNames("a", "a"));
+        Assertions.assertEquals("a&.a", EscapeUtils.escapeFieldNames("a.a"));
+        Assertions.assertEquals("a&.a&&&.a", EscapeUtils.escapeFieldNames("a.a&.a"));
+        Assertions.assertEquals("a&&&.b&.c&&&&d", EscapeUtils.escapeFieldNames("a&.b.c&&d"));
+        Assertions.assertEquals("p.0", EscapeUtils.escapeFieldNames("p", "0"));
+        Assertions.assertEquals("&&&&&.", EscapeUtils.escapeFieldNames("&&."));
+        Assertions.assertEquals("&&", EscapeUtils.escapeFieldNames("&"));
+        Assertions.assertEquals("tom&&jerry", EscapeUtils.escapeFieldNames("tom&jerry"));
     }
 
     @Test
-    public void shouldRetrieveNestedProperties() {
+    public void should_test_get_dotNotation() {
         Collection<Document> ccc = getCollection(false);
 
         String sampleId = "001";
@@ -143,7 +121,7 @@ public class ExtendedFieldNamesSupportTest {
     }
 
     @Test
-    public void shouldAppendWithDotNotationEscape() {
+    public void should_crud_dotNotation() {
         Document doc = new Document();
         // Top Level
         doc.append("top_string", "value1");
@@ -184,11 +162,12 @@ public class ExtendedFieldNamesSupportTest {
         Assertions.assertEquals("value2", doc.get(new String[] {"sub2", "lvl2&lvl3"}));
 
         doc.remove("sub2.field20&.field21");
+        Assertions.assertNull(doc.get(new String[] {"sub2", "field20.field21"}));
         System.out.println(doc.toJson());
     }
 
     @Test
-    public void shouldAppendWithDotNotation() {
+    public void should_append_dotNotation() {
         Document doc = new Document();
         doc.append("field1", "hello");
         doc.append("metadata.key1", "value1");
@@ -206,11 +185,10 @@ public class ExtendedFieldNamesSupportTest {
         // Remove
         doc.remove("metadata.key2.key11");
         Assertions.assertFalse(doc.containsKey("metadata.key2.key11"));
-        System.out.println(doc.toJson());
     }
 
     @Test
-    public void shouldWorkWithDistinct() {
+    public void should_test_distinct() {
         Collection<Document> ccc = getCollection(true);
         List<Document> animal = new ArrayList<>();
         animal.add(new Document("1")
@@ -270,10 +248,9 @@ public class ExtendedFieldNamesSupportTest {
 
     @Test
     public void should_distinct_values() {
-        Database db = DataAPIClients.clientCassandra().getDatabase(DEFAULT_ENDPOINT_LOCAL);
-        System.out.println(db.listCollectionNames());
-
+        Database db = DataAPIClients.localDbWithDefaultKeyspace();
         Collection<Document> collection = db.createCollection("extended_names");
+        collection.deleteAll();
         Document doc = new Document();
         // Top Level
         doc.append("top_string", "value1");
@@ -295,11 +272,17 @@ public class ExtendedFieldNamesSupportTest {
         doc.append("sub2.field20&.field21.p2", "hello2");
         doc.append("sub2.lvl2&&lvl3", "value2");
         collection.insertOne(doc);
-        Set<Map> values = collection.distinct("sub2.field20&.field21", Map.class);
 
+        Document doc2 = new Document();
+        doc.append("sub2.field20&.field21.p2", "hello1");
+        doc.append("sub.list", List.of("toto", "titi", "tata"));
+        collection.insertOne(doc);
 
+        Set<String> values = collection.distinct("sub2.field20&.field21.p2", String.class);
+        Assertions.assertTrue(values.contains("hello1") && values.contains("hello2"));
+
+        Set<String> firstItems = collection.distinct("sub.list[0]", String.class);
+        Assertions.assertTrue(firstItems.contains("toto") && firstItems.contains("alpha"));
     }
-
-
 
 }

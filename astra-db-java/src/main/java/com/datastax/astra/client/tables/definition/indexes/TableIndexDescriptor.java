@@ -4,7 +4,7 @@ package com.datastax.astra.client.tables.definition.indexes;
  * #%L
  * Data API Java Client
  * --
- * Copyright (C) 2024 DataStax
+ * Copyright (C) 2024 - 2025 DataStax
  * --
  * Licensed under the Apache License, Version 2.0
  * You may not use this file except in compliance with the License.
@@ -21,65 +21,90 @@ package com.datastax.astra.client.tables.definition.indexes;
  */
 
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Represents a descriptor for a table index, including the table's name and associated index options.
- * This class is designed for use in scenarios such as serialization/deserialization with libraries
- * like Jackson and for method chaining in fluent-style APIs.
- */
-@Getter
-@Setter
-public class TableIndexDescriptor {
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "indexType"
+)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = TableRegularIndexDescriptor.class, name = "regular"),
+    @JsonSubTypes.Type(value = TableVectorIndexDescriptor.class, name = "vector")
+})
+@Getter @Setter
+public abstract class TableIndexDescriptor<DEF extends TableIndexDefinition<?>> {
 
     /**
      * The name of the table.
      */
-    private String name;
+    protected String name;
+
+    /**
+     * The type of index (vector, regular)
+     */
+    protected String indexType;
 
     /**
      * The options defining the table's index characteristics.
      */
-    private TableIndexDefinition definition;
+    protected DEF definition;
 
     /**
-     * Default constructor for serialization/deserialization purposes.
+     * Function to create a new instance of the subclass.
      */
-    public TableIndexDescriptor() {
-        // Constructor intentionally left blank for serialization with Jackson.
+    @JsonIgnore
+    protected final Function<DEF, ? extends TableIndexDescriptor<DEF>> constructor;
+
+    /**
+     * Default constructor for serialization/deserialization.
+     */
+    /**
+     * Constructor that accepts a function for instance creation.
+     */
+    protected TableIndexDescriptor(Function<DEF, ? extends TableIndexDescriptor<DEF>> constructor) {
+        this.constructor = constructor;
     }
 
     /**
-     * Constructs a {@code TableIndexDescriptor} with the specified table name.
+     * Generic method to create a new instance with modified properties.
      *
-     * @param name the name of the table.
+     * @param updater Consumer function to modify the new instance.
+     * @return A new modified instance.
      */
-    public TableIndexDescriptor(String name) {
-        // Constructor intentionally left blank for serialization with Jackson.
-        this.name = name;
+    protected TableIndexDescriptor<DEF> mapImpl(Consumer<TableIndexDescriptor<DEF>> updater) {
+        TableIndexDescriptor<DEF> newInstance = constructor.apply(this.definition);
+        newInstance.indexType = this.indexType;
+        newInstance.definition = this.definition;
+        updater.accept(newInstance);
+        return newInstance;
     }
 
     /**
      * Sets the name of the table.
      *
      * @param name the name of the table.
-     * @return the current instance for method chaining.
+     * @return a new instance with the updated table name.
      */
-    public TableIndexDescriptor name(String name) {
-        this.name = name;
-        return this;
+    public TableIndexDescriptor<DEF> name(String name) {
+        return mapImpl(desc -> desc.name = name);
     }
 
     /**
      * Sets the index definition for the table.
      *
      * @param def the {@link TableIndexDefinition} defining the index options for the table.
-     * @return the current instance for method chaining.
+     * @return a new instance with the updated definition.
      */
-    public TableIndexDescriptor definition(TableIndexDefinition def) {
-        this.definition = def;
-        return this;
+    public TableIndexDescriptor<DEF> definition(DEF def) {
+        return mapImpl(desc -> desc.definition = def);
     }
 
     /**
@@ -91,4 +116,5 @@ public class TableIndexDescriptor {
     public String toString() {
         return new RowSerializer().marshall(this);
     }
+
 }

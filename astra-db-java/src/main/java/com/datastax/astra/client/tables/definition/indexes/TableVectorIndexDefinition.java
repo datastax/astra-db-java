@@ -21,8 +21,6 @@ package com.datastax.astra.client.tables.definition.indexes;
  */
 
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 /**
  * Represents a definition for table vector indices, allowing configuration of
@@ -41,47 +39,53 @@ import lombok.NoArgsConstructor;
  * }
  * </pre>
  */
-@Getter
-public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
+public class TableVectorIndexDefinition extends TableIndexDefinition<TableVectorIndexDefinitionOptions> {
 
     /** Initial source model. */
     public static final String SOURCE_MODEL_ADA002 = "ada002";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_BERT = "bert";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_COHERE_V3 = "cohere-v3";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_GECKO = "gecko";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_NV_QA_4 = "nv-qa-4";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_OPENAI_V3_LARGE = "openai-v3-large";
-
     /** Initial source model. */
     public static final String SOURCE_MODEL_OPENAI_V3_SMALL = "openai-v3-small";
-
-    /** Options for configuring the vector index. */
-    private TableVectorIndexDefinitionOptions options;
 
     /**
      * Constructs a new {@code TableVectorIndexDefinition} instance.
      */
-    public TableVectorIndexDefinition() {}
+    public TableVectorIndexDefinition() {
+        super(TableVectorIndexDefinition::new);
+    }
 
     /**
-     * Sets the name of the column for the vector index.
+     * Constructs a new {@code TableVectorIndexDefinition} instance with the specified options.
      *
-     * @param column the name of the column containing vector data.
-     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
+     * @param options the options to use for the vector index.
      */
+    protected TableVectorIndexDefinition(TableVectorIndexDefinitionOptions options) {
+        super(TableVectorIndexDefinition::new);
+        this.options = options;
+    }
+
+    @Override
     public TableVectorIndexDefinition column(String column) {
-        this.column = new TableIndexColumnDefinition(column);
-        return this;
+        return (TableVectorIndexDefinition) super.column(column);
+    }
+
+    @Override
+    public TableVectorIndexDefinition column(String column, TableIndexMapTypes type) {
+        return (TableVectorIndexDefinition) super.column(column, type);
+    }
+
+    @Override
+    public TableVectorIndexDefinition options(TableVectorIndexDefinitionOptions options) {
+        return (TableVectorIndexDefinition) super.options(options);
     }
 
     /**
@@ -112,14 +116,4 @@ public class TableVectorIndexDefinition extends TableBaseIndexDefinition {
         return this;
     }
 
-    /**
-     * Configures the options for the vector index.
-     *
-     * @param options an instance of {@link TableVectorIndexDefinitionOptions} containing vector index options.
-     * @return the current instance of {@code TableVectorIndexDefinition} for method chaining.
-     */
-    public TableVectorIndexDefinition options(TableVectorIndexDefinitionOptions options) {
-        this.options = options;
-        return this;
-    }
 }

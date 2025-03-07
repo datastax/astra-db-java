@@ -26,20 +26,19 @@ import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
 import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
-import com.datastax.astra.client.tables.commands.options.TableDeleteOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.commands.results.TableUpdateResult;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
+import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
@@ -49,7 +48,6 @@ import com.datastax.astra.test.model.TableCompositeRow;
 import com.datastax.astra.test.model.TableCompositeRowGenerator;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
@@ -141,7 +139,7 @@ public class LocalTableITTest extends AbstractTableITTest {
         assertThat(getDatabase().tableExists(TABLE_SIMPLE)).isTrue();
 
         // Create Index Simple
-        tableSimple.createIndex(INDEX_COUNTRY, new TableIndexDefinition()
+        tableSimple.createIndex(INDEX_COUNTRY, new TableRegularIndexDefinition()
                     .column("country")
                     .options(new TableIndexDefinitionOptions()
                             .ascii(true)
@@ -152,7 +150,7 @@ public class LocalTableITTest extends AbstractTableITTest {
 
     @Test
     public void listIndex() {
-        for (TableIndexDescriptor tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
+        for (TableIndexDescriptor<?> tid : getDatabase().getTable(TABLE_SIMPLE).listIndexes()) {
             System.out.println(tid.getName());
         }
     }
@@ -215,7 +213,7 @@ public class LocalTableITTest extends AbstractTableITTest {
                         .options(new TableVectorIndexDefinitionOptions().metric(COSINE)),
                         new CreateVectorIndexOptions().ifNotExists(true));
 
-        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new TableIndexDefinition()
+        tableAllReturns.createIndex(INDEX_ALL_RETURNS_PTEXT, new TableRegularIndexDefinition()
                         .column("p_text")
                         .options(new TableIndexDefinitionOptions()
                                 .ascii(true)

@@ -20,10 +20,14 @@ package com.datastax.astra.client.collections.definition;
  * #L%
  */
 
+import com.datastax.astra.client.core.lexical.LexicalAnalyzers;
+import com.datastax.astra.client.core.lexical.LexicalOptions;
+import com.datastax.astra.client.core.reranking.RerankingOptions;
+import com.datastax.astra.client.core.reranking.RerankingProvider;
+import com.datastax.astra.client.core.reranking.RerankingServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -53,6 +57,16 @@ public class CollectionDefinition {
      * Indexing options
      */
     private IndexingOptions indexing;
+
+    /**
+     * Lexical options
+     */
+    private LexicalOptions lexical;
+
+    /**
+     * Reranking options
+     */
+    private RerankingOptions reranking;
 
     /**
      * Default constructor.
@@ -145,6 +159,7 @@ public class CollectionDefinition {
         return vector;
     }
 
+
     /**
      * Access the indexing options.
      *
@@ -152,6 +167,24 @@ public class CollectionDefinition {
      */
     public IndexingOptions getIndexing() {
         return indexing;
+    }
+
+    /**
+     * Gets lexical
+     *
+     * @return value of lexical
+     */
+    public LexicalOptions getLexical() {
+        return lexical;
+    }
+
+    /**
+     * Gets reranking
+     *
+     * @return value of reranking
+     */
+    public RerankingOptions getReranking() {
+        return reranking;
     }
 
     /**
@@ -172,6 +205,35 @@ public class CollectionDefinition {
      */
     public CollectionDefinition defaultId(CollectionDefaultIdTypes type) {
         this.defaultId = new DefaultIdOptions(type);
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param analyzers size
+     * @return self reference
+     */
+    public CollectionDefinition lexical(LexicalAnalyzers analyzers) {
+        if (getLexical() == null) {
+            lexical = new LexicalOptions();
+        }
+        getLexical().enabled(true).analyzer(analyzers);
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param reranker
+     *      reranker
+     * @return self reference
+     */
+    public CollectionDefinition reranking(String reranker) {
+        if (getReranking() == null) {
+            reranking = new RerankingOptions();
+        }
+        getReranking().service(new RerankingServiceOptions().provider(reranker));
         return this;
     }
 

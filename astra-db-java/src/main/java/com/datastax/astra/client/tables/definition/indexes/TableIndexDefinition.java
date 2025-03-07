@@ -20,45 +20,73 @@ package com.datastax.astra.client.tables.definition.indexes;
  * #L%
  */
 
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 /**
- * Represents a definition for table indices, allowing customization of various indexing options.
- * This class provides a fluent interface to configure column names and index properties
- * such as ASCII encoding, normalization, and case sensitivity.
+ * Represents the base class for table index definitions, encapsulating common properties
+ * and behaviors for index definitions, including the column being indexed and API support
+ * for index-related operations.
  * <p>
- * Example usage:
+ * Subclasses should extend this abstract class to implement specific types of index definitions.
  * </p>
- * <pre>
- * {@code
- * TableIndexDefinition indexDefinition = new TableIndexDefinition()
- *     .column("username")
- *     .ascii(true)
- *     .normalize(false)
- *     .caseSensitive(true);
- * }
- * </pre>
  */
 @Getter
-public class TableIndexDefinition extends TableBaseIndexDefinition {
-
-    /** Options for configuring the table index. */
-    private TableIndexDefinitionOptions options;
+public abstract class TableIndexDefinition<OPTIONS> {
 
     /**
-     * Default constructor.
+     * The name of the column that the index is associated with.
      */
-    public TableIndexDefinition() {
+    protected TableIndexColumnDefinition column;
+
+    /**
+     * The API support configuration for the table index.
+     */
+    protected TableIndexDefinitionApiSupport apiSupport;
+
+    /**
+     * The Options for this particular index.
+     */
+    protected OPTIONS options;
+
+    /**
+     * Constructor function to create new instances in subclasses.
+     */
+    @JsonIgnore
+    protected final Function<OPTIONS, ? extends TableIndexDefinition<OPTIONS>> constructor;
+
+    /**
+     * Constructor.
+     */
+    protected TableIndexDefinition(Function<OPTIONS, ? extends TableIndexDefinition<OPTIONS>> constructor) {
+        this.constructor = constructor;
+    }
+
+    /**
+     * Invoke the constructor function to create a new instance of the subclass.
+     * @param updater
+     * @return
+     */
+    protected TableIndexDefinition<OPTIONS> mapImpl(Consumer<TableIndexDefinition<OPTIONS>> updater) {
+        TableIndexDefinition<OPTIONS> newInstance = constructor.apply(this.options);
+        newInstance.column = this.column;
+        newInstance.apiSupport = this.apiSupport;
+        updater.accept(newInstance); // No need to return a value
+        return newInstance;
     }
 
     /**
      * Sets the name of the column for the index.
      *
      * @param column the name of the column to be indexed.
-     * @return the current instance of {@code TableIndexDefinition} for method chaining.
+     * @return a new instance with the updated column.
      */
-    public TableIndexDefinition column(String column) {
-        this.column = new TableIndexColumnDefinition(column, null);
-        return this;
+    public TableIndexDefinition<OPTIONS> column(String column) {
+        return mapImpl(def -> def.column = new TableIndexColumnDefinition(column, null));
     }
 
     /**
@@ -68,9 +96,8 @@ public class TableIndexDefinition extends TableBaseIndexDefinition {
      * @param type the type of the column to be indexed.
      * @return the current instance of {@code TableIndexDefinition} for method chaining.
      */
-    public TableIndexDefinition column(String column, TableIndexMapTypes type) {
-        this.column = new TableIndexColumnDefinition(column, type);
-        return this;
+    public TableIndexDefinition<OPTIONS> column(String column, TableIndexMapTypes type) {
+        return mapImpl(def -> def.column = new TableIndexColumnDefinition(column, type));
     }
 
     /**
@@ -79,50 +106,9 @@ public class TableIndexDefinition extends TableBaseIndexDefinition {
      * @param options an instance of {@link TableIndexDefinitionOptions} containing index options.
      * @return the current instance of {@code TableIndexDefinition} for method chaining.
      */
-    public TableIndexDefinition options(TableIndexDefinitionOptions options) {
-        this.options = options;
-        return this;
+    public TableIndexDefinition<OPTIONS> options(OPTIONS options) {
+        return mapImpl(def -> def.options = options);
     }
 
-    /**
-     * Enables or disables ASCII encoding for the index.
-     *
-     * @param ascii {@code true} to enable ASCII encoding, {@code false} otherwise.
-     * @return the current instance of {@code TableIndexDefinition} for method chaining.
-     */
-    public TableIndexDefinition ascii(boolean ascii) {
-        if (this.options == null) {
-            this.options = new TableIndexDefinitionOptions();
-        }
-        this.options.ascii(ascii);
-        return this;
-    }
-
-    /**
-     * Enables or disables normalization for the index.
-     *
-     * @param normalize {@code true} to enable normalization, {@code false} otherwise.
-     * @return the current instance of {@code TableIndexDefinition} for method chaining.
-     */
-    public TableIndexDefinition normalize(boolean normalize) {
-        if (this.options == null) {
-            this.options = new TableIndexDefinitionOptions();
-        }
-        this.options.normalize(normalize);
-        return this;
-    }
-
-    /**
-     * Sets whether the index should be case-sensitive.
-     *
-     * @param caseSensitive {@code true} if the index should be case-sensitive, {@code false} otherwise.
-     * @return the current instance of {@code TableIndexDefinition} for method chaining.
-     */
-    public TableIndexDefinition caseSensitive(boolean caseSensitive) {
-        if (this.options == null) {
-            this.options = new TableIndexDefinitionOptions();
-        }
-        this.options.caseSensitive(caseSensitive);
-        return this;
-    }
 }
+

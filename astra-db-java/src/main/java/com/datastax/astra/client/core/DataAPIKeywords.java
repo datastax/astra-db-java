@@ -102,7 +102,17 @@ public enum DataAPIKeywords {
     /**
      * VECTORIZE.
      */
-    VECTORIZE("$vectorize");
+    VECTORIZE("$vectorize"),
+
+    /**
+     * LEXICAL.
+     */
+    LEXICAL("$lexical"),
+
+    /**
+     * HYBRID.
+     */
+    HYBRID("$hybrid");;
 
     /**
      * Keyword.

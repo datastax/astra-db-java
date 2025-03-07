@@ -52,8 +52,9 @@ import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
@@ -65,13 +66,11 @@ import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.OptionsUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,7 +79,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.datastax.astra.client.core.DataAPIKeywords.SORT_VECTOR;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
@@ -320,7 +318,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      column on which is the index
      */
     public void createIndex(String idxName, String columnName) {
-        createIndex(idxName, new TableIndexDefinition().column(columnName), null);
+        createIndex(idxName, new TableRegularIndexDefinition().column(columnName), null);
     }
 
     /**
@@ -334,7 +332,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      index options
      */
     public void createIndex(String idxName, String columnName, CreateIndexOptions idxOptions) {
-       createIndex(idxName, new TableIndexDefinition().column(columnName), idxOptions);
+       createIndex(idxName, new TableRegularIndexDefinition().column(columnName), idxOptions);
     }
 
     /**
@@ -347,7 +345,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param idxOptions
      *      index options
      */
-    public void createIndex(String idxName, TableIndexDefinition idxDefinition, CreateIndexOptions idxOptions) {
+    public void createIndex(String idxName, TableRegularIndexDefinition idxDefinition, CreateIndexOptions idxOptions) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -1139,6 +1137,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      list of table definitions
      */
+    @SuppressWarnings("unchecked")
     public List<TableIndexDescriptor> listIndexes() {
         return listIndexes(null);
     }
@@ -1151,13 +1150,13 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      list of table definitions
      */
-    public List<TableIndexDescriptor> listIndexes(ListIndexesOptions listIndexesOptions) {
-        Command findTables = Command
-                .create("listIndexes")
-                .withOptions(new Document().append("explain", true));
-        return runCommand(findTables, listIndexesOptions)
-                .getStatusKeyAsList("indexes", TableIndexDescriptor.class);
-    }
+        public List<TableIndexDescriptor> listIndexes(ListIndexesOptions listIndexesOptions) {
+            Command findTables = Command
+                    .create("listIndexes")
+                    .withOptions(new Document().append("explain", true));
+            return runCommand(findTables, listIndexesOptions)
+                    .getStatusKeyAsList("indexes", TableIndexDescriptor.class);
+        }
 
     // --------------------------
     // ---   Listeners       ----

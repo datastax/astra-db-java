@@ -68,6 +68,7 @@ import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -1135,6 +1136,28 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     /**
      * Return a list of distinct values for the given field name.
      *
+     * @param fieldPath
+     *      chunks of the paths
+     * @param filter
+     *      filter to apply
+     * @param resultClass
+     *      class of the result
+     * @param <R>
+     *     type of the result
+     * @return
+     *   list of distinct values
+     */
+    public <R> Set<R> distinct(String[] fieldPath, Filter filter, Class<R> resultClass) {
+        Assert.notNull(fieldPath, "field path");
+        if (fieldPath.length == 0) {
+            throw new IllegalArgumentException("field path must not be empty");
+        }
+        return distinct(EscapeUtils.escapeFieldNames(fieldPath), filter, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
      * @param fieldName
      *      name of the field
      * @param filter
@@ -1148,6 +1171,26 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      */
     public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
         return distinct(fieldName, filter, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldPath
+     *      segments of the path
+     * @param resultClass
+     *      class of the result
+     * @param <R>
+     *     type of the result
+     * @return
+     *   list of distinct values
+     */
+    public <R> Set<R> distinct(String[] fieldPath, Class<R> resultClass) {
+        Assert.notNull(fieldPath, "field path");
+        if (fieldPath.length == 0) {
+            throw new IllegalArgumentException("field path must not be empty");
+        }
+        return distinct(EscapeUtils.escapeFieldNames(fieldPath), null, resultClass, null);
     }
 
     /**
@@ -1187,7 +1230,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         Assert.notNull(resultClass, "resultClass");
         // Building a convenient find options
         CollectionFindOptions findOptions =  new CollectionFindOptions()
-                .projection(Projection.include(fieldName));
+                .projection(Projection.include( fieldName.replaceAll("\\[\\d+\\]", "")));
         // Overriding options
         if (options != null && options.getDataAPIClientOptions() != null) {
             findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
