@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static com.datastax.astra.client.core.query.Projection.include;
 import static com.datastax.astra.client.tables.commands.options.CreateIndexOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.internal.serdes.tables.RowMapper.mapAsRow;
 
 public class UpdateOneExample2 {
 
@@ -60,18 +61,13 @@ public class UpdateOneExample2 {
          * But here we need to override 'summaryGenresVector' with
          * a String to use the "Vectorize" feature of Astra.
          */
-        List<Row> rows = books.stream().map(book -> {
-            Row row = RowMapper.mapAsRow(book);
-            // Override 'summaryGenresVector' with a String
-            row.put("summaryGenresVector", String.format(
+        List<Row> rows = books.stream().map(book ->
+                mapAsRow(book).put("summaryGenresVector", String.format(
                     "summary: %s | genres: %s", book.getSummary(),
-                    String.join(", ", book.getGenres())));
-            return row;
-        }).toList();
+                    String.join(", ", book.getGenres())))).toList();
         database.getTable("quickstart_table").insertMany(rows);
 
-
-        // Next Seach Table
+        // Next Search Table
 
     }
 
