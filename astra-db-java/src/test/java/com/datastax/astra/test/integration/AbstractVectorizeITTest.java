@@ -1,7 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.definition.documents.Document;
@@ -140,7 +140,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         assertThat(doc.get().getId(Integer.class)).isEqualTo(7);
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
 
-        CollectionCursor<Document, Document> docs= collection.find(new CollectionFindOptions()
+        CollectionFindCursor<Document, Document> docs= collection.find(new CollectionFindOptions()
                 .sort(Sort.vectorize("You shouldn't come around here singing up at people like that"))
                 .includeSortVector(true)
                 .includeSimilarity(true));

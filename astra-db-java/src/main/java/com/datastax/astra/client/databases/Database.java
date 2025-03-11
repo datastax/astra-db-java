@@ -35,21 +35,25 @@ import com.datastax.astra.client.collections.definition.CollectionDescriptor;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableOptions;
 import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.reflection.EntityBeanDefinition;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
@@ -1307,7 +1311,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(Class<T> rowClass) {
-        return createTable(rowClass, new CreateTableOptions());
+        return createTable(rowClass, new CreateTableOptions().ifNotExists(true));
     }
 
     /**
@@ -1364,7 +1368,16 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
                 tableOptions.token(createTableOptions.getToken());
             }
         }
-        return getTable(tableName, rowClass, tableOptions);
+
+        // Table is ready
+        Table<T> table = getTable(tableName, rowClass, tableOptions);
+
+        // Creating Vector Index for each column definition
+        EntityBeanDefinition.listVectorIndexDefinitions(tableName, rowClass).forEach(index -> {
+            table.createVectorIndex("vidx_" + tableName + "_" + index.getColumn().getName(), index, CreateVectorIndexOptions.IF_NOT_EXISTS);
+        });
+
+        return table;
     }
 
     /**

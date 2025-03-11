@@ -22,11 +22,13 @@ package com.datastax.astra.client.tables.definition.rows;
 
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.Preview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.NonNull;
@@ -224,6 +226,58 @@ public class Row implements Serializable {
      */
     public Row addVectorize(final String key, final String value) {
         return add(key, value);
+    }
+
+    /**
+     * Adds a vectorized value to the row.
+     *
+     * @param value the vectorized value to add
+     * @return the updated row
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * row.hybrid("vectorize and bm25 this text pls");
+     * }
+     * </pre>
+     */
+    @Preview
+    public Row addHybrid(final String value) {
+        if (value == null) {
+            return this;
+        }
+        return add(DataAPIKeywords.HYBRID.getKeyword(), value);
+    }
+
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param vectorize
+     *      string to converted to vector
+     * @param lexical
+     *      string to be used for lexical search
+     * @return
+     *      self reference
+     */
+    @Preview
+    public Row addHybrid(String vectorize, String lexical) {
+        if (vectorize == null && lexical == null) {
+            return this;
+        }
+        return addHybrid(new Hybrid(vectorize, lexical));
+    }
+
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param hybrid
+     *      hybrid object to be added
+     */
+    @Preview
+    public Row addHybrid(Hybrid hybrid) {
+        if (hybrid == null) {
+            return this;
+        }
+        return add(DataAPIKeywords.HYBRID.getKeyword(), hybrid);
     }
 
     /**

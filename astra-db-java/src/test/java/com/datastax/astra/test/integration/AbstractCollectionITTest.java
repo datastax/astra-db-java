@@ -14,14 +14,12 @@ import com.datastax.astra.client.collections.commands.options.CollectionInsertMa
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.lexical.LexicalAnalyzers;
 import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
-import com.datastax.astra.client.core.reranking.RerankingProvider;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.datastax.astra.client.collections.commands.ReturnDocument.AFTER;
-import static com.datastax.astra.client.core.lexical.LexicalAnalyzers.STANDARD;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.gt;
@@ -46,7 +43,6 @@ import static com.datastax.astra.client.core.query.Projection.include;
 import static com.datastax.astra.client.core.query.Projection.slice;
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
-import static com.datastax.astra.client.core.reranking.RerankingProvider.BM25;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -261,7 +257,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
 
-        CollectionCursor<Document, Document> findIterable  = getCollectionSimple().findAll();
+        CollectionFindCursor<Document, Document> findIterable  = getCollectionSimple().findAll();
         for (Document document : findIterable) assertThat(document).isNotNull();
 
         List<Document> documents = getCollectionSimple().findAll().toList();
@@ -273,7 +269,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         // Populate the Collection
         getCollectionSimple().deleteAll();
         for(int i=0;i<25;i++) getCollectionSimple().insertOne(Document.create(i).append("indice", i));
-        CollectionCursor<Document, Document> find = getCollectionSimple().findAll();
+        CollectionFindCursor<Document, Document> find = getCollectionSimple().findAll();
         List<Document> documents = find.toList();
         assertThat(documents).hasSize(25);
     }

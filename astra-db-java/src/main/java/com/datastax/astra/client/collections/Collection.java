@@ -48,7 +48,7 @@ import com.datastax.astra.client.collections.commands.results.CollectionUpdateRe
 import com.datastax.astra.client.collections.commands.results.FindOneAndReplaceResult;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -994,8 +994,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public CollectionCursor<T, T> find(Filter filter, CollectionFindOptions options) {
-        return new CollectionCursor<>(this, filter, options, getDocumentClass());
+    public CollectionFindCursor<T, T> find(Filter filter, CollectionFindOptions options) {
+        return new CollectionFindCursor<>(this, filter, options, getDocumentClass());
     }
 
     /**
@@ -1010,8 +1010,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public <R> CollectionCursor<T, R> find(Filter filter, CollectionFindOptions options, Class<R> newDocType) {
-        return new CollectionCursor<>(this, filter, options, newDocType);
+    public <R> CollectionFindCursor<T, R> find(Filter filter, CollectionFindOptions options, Class<R> newDocType) {
+        return new CollectionFindCursor<>(this, filter, options, newDocType);
     }
 
     /**
@@ -1022,8 +1022,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public CollectionCursor<T, T> find(Filter filter) {
-        return new CollectionCursor<>(this, filter, new CollectionFindOptions(), getDocumentClass());
+    public CollectionFindCursor<T, T> find(Filter filter) {
+        return new CollectionFindCursor<>(this, filter, new CollectionFindOptions(), getDocumentClass());
     }
 
     /**
@@ -1034,8 +1034,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public CollectionCursor<T, T> find(CollectionFindOptions options) {
-        return new CollectionCursor<>(this, null, options, getDocumentClass());
+    public CollectionFindCursor<T, T> find(CollectionFindOptions options) {
+        return new CollectionFindCursor<>(this, null, options, getDocumentClass());
     }
 
     /**
@@ -1045,9 +1045,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
      * </p>
      *
-     * @return A {@link CollectionCursor} for iterating over all documents in the collection.
+     * @return A {@link CollectionFindCursor} for iterating over all documents in the collection.
      */
-    public CollectionCursor<T, T> findAll() {
+    public CollectionFindCursor<T, T> findAll() {
         return find(null, new CollectionFindOptions());
     }
 
@@ -1127,6 +1127,24 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      */
     public CompletableFuture<Page<T>> findPageASync(Filter filter, CollectionFindOptions options) {
         return CompletableFuture.supplyAsync(() -> findPage(filter, options));
+    }
+
+    // -----------------------------
+    // ---   Find and Rerank    ----
+    // -----------------------------
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public CollectionFindCursor<T, T> findAndRerank(Filter filter, CollectionFindOptions options) {
+        return new CollectionFindCursor<>(this, filter, options, getDocumentClass());
     }
 
     // -------------------------

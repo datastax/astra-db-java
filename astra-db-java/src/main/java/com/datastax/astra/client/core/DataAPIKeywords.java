@@ -110,6 +110,21 @@ public enum DataAPIKeywords {
     LEXICAL("$lexical"),
 
     /**
+     * PASSAGE.
+     */
+    PASSAGE("$passage"),
+
+    /**
+     * PASSAGE.
+     */
+    RERANK("$rerank"),
+
+    /**
+     * SET_PASSAGE.
+     */
+    SET_PASSAGE("$setPassage"),
+
+    /**
      * HYBRID.
      */
     HYBRID("$hybrid");;

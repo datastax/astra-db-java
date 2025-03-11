@@ -2,7 +2,7 @@ package com.datastax.astra.genai;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
@@ -75,7 +75,7 @@ public class QuickStartHuggingFaceDedicated {
                 .limit(2)
                 .includeSimilarity(true)
                 .sort(Sort.vectorize("I'd like some talking shoes"));
-        CollectionCursor<Document, Document> results = collection.find(findOptions);
+        CollectionFindCursor<Document, Document> results = collection.find(findOptions);
         for (Document document : results) {
             System.out.println("Document: " + document);
         }

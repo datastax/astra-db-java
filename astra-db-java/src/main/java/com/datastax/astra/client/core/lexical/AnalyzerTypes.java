@@ -23,7 +23,7 @@ package com.datastax.astra.client.core.lexical;
 import lombok.Getter;
 
 @Getter
-public enum LexicalAnalyzers {
+public enum AnalyzerTypes {
 
     /**
      * Filters StandardTokenizer output that divides text
@@ -45,7 +45,7 @@ public enum LexicalAnalyzers {
 
     final String value;
 
-    LexicalAnalyzers(String value) {
+    AnalyzerTypes(String value) {
         this.value = value;
     }
 

@@ -5,7 +5,7 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
-import com.datastax.astra.client.tables.cursor.TableCursor;
+import com.datastax.astra.client.tables.cursor.TableFindCursor;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.util.List;
@@ -28,18 +28,18 @@ public class FindMany {
      .includeSortVector(true)
      .includeSimilarity(true);
 
-   TableCursor<Row, Row> row = table.find(filter, options);
+   TableFindCursor<Row, Row> row = table.find(filter, options);
     row.forEach(r -> {
       System.out.println("Row: " + r);
     });
 
-     TableCursor<Row, Game> gameCursor = table.find(filter, options, Game.class);
+     TableFindCursor<Row, Game> gameCursor = table.find(filter, options, Game.class);
      gameCursor.forEach(g -> {
          System.out.println("Game: " + g.getWinner());
      });
 
 
-   TableCursor<Row, Row> row2 = table.find(eq("match_id", "tournamentA"));
+   TableFindCursor<Row, Row> row2 = table.find(eq("match_id", "tournamentA"));
    row2.getSortVector().ifPresent(v -> {
        System.out.println("Sort Vector: " + v);
    });

@@ -93,6 +93,18 @@ public class FilterBuilder {
     }
 
     /**
+     * "fieldName": "value" ($eq is omitted)
+     *
+     * @param value
+     *      value
+     * @return
+     *      self reference
+     */
+    public Filter isEqualsToExplicit(Object value) {
+        return simpleOperator(FilterOperator.EQUALS_TO, value);
+    }
+
+    /**
      * $eq: [ ... ]
      *
      * @param value

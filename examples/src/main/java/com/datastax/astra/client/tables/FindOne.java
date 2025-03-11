@@ -72,7 +72,7 @@ public class FindOne {
 
  @Data
  public static class MiniGame {
-    @Column(name = "match_id")
+    @Column("match_id")
     private String matchId;
     private String winner;
  }

@@ -1,6 +1,6 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
@@ -57,7 +57,7 @@ public class Quickstart {
     CollectionFindOptions options = new CollectionFindOptions()
             .sort(vector(new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
             .limit(10);
-    CollectionCursor<Document, Document> resultsSet = col.find(filter,options);
+    CollectionFindCursor<Document, Document> resultsSet = col.find(filter,options);
     resultsSet.forEach(System.out::println);
 // end::search[]
 

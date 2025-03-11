@@ -20,9 +20,6 @@ package com.datastax.astra.client.core.lexical;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -43,12 +40,7 @@ public class LexicalOptions {
     /**
      * Similarity metric.
      */
-    private LexicalAnalyzers analyzer;
-
-    /**
-     * Service for vectorization
-     */
-    private List<LexicalFilters> filters;
+    private Analyzer analyzer;
 
     /**
      * Default constructor.
@@ -69,17 +61,8 @@ public class LexicalOptions {
      *
      * @return value of analyzer
      */
-    public LexicalAnalyzers getAnalyzer() {
+    public Analyzer getAnalyzer() {
         return analyzer;
-    }
-
-    /**
-     * Gets filters
-     *
-     * @return value of filters
-     */
-    public List<LexicalFilters> getFilters() {
-        return filters;
     }
 }
 

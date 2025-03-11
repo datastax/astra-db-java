@@ -2,7 +2,7 @@ package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.cursor.CollectionCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
@@ -262,7 +262,7 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         CollectionFindOptions options = new CollectionFindOptions()
                 .sort(Sort.vector(new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f}))
                 .limit(2);
-        try(CollectionCursor<Document, Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
+        try(CollectionFindCursor<Document, Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
             assertThat(docs.toList()).hasSize(2);
         }
     }
@@ -300,11 +300,11 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
         Document doc2 = new Document().id(2).append("a", "a").append("b", "b");
         getCollectionSimple().insertMany(List.of(doc1, doc2));
 
-        CollectionCursor<Document, Document> iter = getCollectionSimple().findAll();;
+        CollectionFindCursor<Document, Document> iter = getCollectionSimple().findAll();;
         iter.toList();
         assertThatThrownBy(iter::toList).isInstanceOf(IllegalStateException.class);
 
-        CollectionCursor<Document, Document> iter2 = getCollectionSimple().findAll();;
+        CollectionFindCursor<Document, Document> iter2 = getCollectionSimple().findAll();;
         iter2.iterator().next();
         assertThatThrownBy(iter2::toList).isInstanceOf(IllegalStateException.class);
     }

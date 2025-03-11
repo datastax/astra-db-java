@@ -36,6 +36,7 @@ import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.client.tables.commands.options.AlterTableOptions;
 import com.datastax.astra.client.tables.commands.options.CountRowsOptions;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTextIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.EstimatedCountRowsOptions;
 import com.datastax.astra.client.tables.commands.options.ListIndexesOptions;
@@ -49,12 +50,12 @@ import com.datastax.astra.client.tables.commands.options.TableInsertOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableUpdateOneOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.cursor.TableCursor;
+import com.datastax.astra.client.tables.cursor.TableFindCursor;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableTextIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
@@ -413,6 +414,60 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
+    // ------------------------------
+    // ---    createTextIndex    ----
+    // ------------------------------
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      name of the column
+     */
+    public void createTextIndex(String idxName, String columnName) {
+        Assert.hasLength(idxName, "indexName");
+        Assert.hasLength(columnName, "columnName");
+        createTextIndex(idxName, new TableTextIndexDefinition().column(columnName), null);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
+     *      definition of the index
+     */
+    public void createTextIndex(String idxName, TableTextIndexDefinition idxDefinition) {
+        createTextIndex(idxName, idxDefinition, null);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
+     *      definition of the index
+     * @param idxOptions
+     *      index options
+     */
+    public void createTextIndex(String idxName, TableTextIndexDefinition idxDefinition, CreateTextIndexOptions idxOptions) {
+        hasLength(idxName, "indexName");
+        notNull(idxDefinition, "idxDefinition");
+        Command createIndexCommand = Command
+                .create("createTextIndex")
+                .append("name", idxName)
+                .append("definition", idxDefinition);
+        if (idxOptions != null) {
+            createIndexCommand.append("options", idxOptions);
+        }
+        runCommand(createIndexCommand, idxOptions);
+        log.info("Index  '" + green("{}") + "' has been created", idxName);
+    }
+
     // --------------------------
     // ---   insertOne       ----
     // --------------------------
@@ -680,8 +735,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public TableCursor<T, T> find(Filter filter, TableFindOptions options) {
-        return new TableCursor<>(this, filter, options, getRowClass());
+    public TableFindCursor<T, T> find(Filter filter, TableFindOptions options) {
+        return new TableFindCursor<>(this, filter, options, getRowClass());
     }
 
     /**
@@ -698,8 +753,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public <R> TableCursor<T, R> find(Filter filter, TableFindOptions options, Class<R> newRowType) {
-        return new TableCursor<>(this, filter, options, newRowType);
+    public <R> TableFindCursor<T, R> find(Filter filter, TableFindOptions options, Class<R> newRowType) {
+        return new TableFindCursor<>(this, filter, options, newRowType);
     }
 
     /**
@@ -710,8 +765,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public TableCursor<T, T> find(Filter filter) {
-        return new TableCursor<>(this, filter, null, getRowClass());
+    public TableFindCursor<T, T> find(Filter filter) {
+        return new TableFindCursor<>(this, filter, new TableFindOptions(), getRowClass());
     }
 
     /**
@@ -722,8 +777,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public TableCursor<T, T> find(TableFindOptions options) {
-        return new TableCursor<>(this, null, options, getRowClass());
+    public TableFindCursor<T, T> find(TableFindOptions options) {
+        return new TableFindCursor<>(this, null, options, getRowClass());
     }
 
     /**
@@ -733,9 +788,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * without applying any filters. It leverages the default {@link TableFindOptions} for query execution.
      * </p>
      *
-     * @return A {@link TableCursor} for iterating over all rows in the table.
+     * @return A {@link TableFindCursor} for iterating over all rows in the table.
      */
-    public TableCursor<T, T> findAll() {
+    public TableFindCursor<T, T> findAll() {
         return find(null, new TableFindOptions());
     }
 

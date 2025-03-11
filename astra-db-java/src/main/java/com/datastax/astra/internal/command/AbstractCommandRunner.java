@@ -267,6 +267,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
+            log.debug("Json command: " + AnsiUtils.yellow("{}"), jsonCommand);
 
             URI targetUri;
             try {

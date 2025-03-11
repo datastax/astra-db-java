@@ -21,10 +21,11 @@ package com.datastax.astra.internal.reflection;
  */
 
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypeMapper;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.Column;
+import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
 import com.datastax.astra.client.tables.mapping.PartitionSort;
@@ -39,6 +40,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -132,35 +134,66 @@ public class EntityBeanDefinition<T> {
             field.setSetter((setter != null) ? setter.getAnnotated() : null);
 
             AnnotatedField annfield = property.getField();
-            Column column = annfield.getAnnotated().getAnnotation(Column.class);
-            if (column != null) {
-                if (Utils.hasLength(column.name())) {
-                    field.setColumnName(column.name());
+            if (annfield != null) {
+                Column column = annfield.getAnnotated()
+                        .getAnnotation(Column.class);
+                ColumnVector columnVector = annfield.getAnnotated()
+                        .getAnnotation(ColumnVector.class);
+                if (column != null && columnVector != null) {
+                    throw new IllegalArgumentException(String.format("Field '%s' in class '%s' cannot be annotated " +
+                            "with both @Column or @ColumnVector", field.getName(), clazz.getName()));
                 }
-                if (column.type() != ColumnTypes.UNDEFINED) {
-                    field.setColumnType(column.type());
+                if (column != null) {
+                    if (Utils.hasLength(column.value())) {
+                        field.setColumnName(column.value());
+                    }
+                    if (column.type() != ColumnTypes.UNDEFINED) {
+                        field.setColumnType(column.type());
+                    }
+                    if (column.valueType() != ColumnTypes.UNDEFINED) {
+                        field.setValueType(column.valueType());
+                    }
+                    if (column.keyType() != ColumnTypes.UNDEFINED) {
+                        field.setKeyType(column.keyType());
+                    }
+                } else if (columnVector != null) {
+                    field.setColumnType(ColumnTypes.VECTOR);
+                    field.setSimilarityMetric(columnVector.metric());
+                    if (Utils.hasLength(columnVector.value())) {
+                        field.setColumnName(columnVector.value());
+                    }
+                    if (columnVector.dimension() == -1) {
+                        field.setVectorDimension(columnVector.dimension());
+                    }
+                    if (Utils.hasLength(columnVector.provider())) {
+                        field.setVectorServiceProvider(columnVector.provider());
+                    }
+                    if (Utils.hasLength(columnVector.modelName())) {
+                        field.setVectorModelName(columnVector.modelName());
+                    }
+                    if (Utils.hasLength(columnVector.sourceModel())) {
+                        field.setVectorSourceModel(columnVector.sourceModel());
+                    }
+                    if (columnVector.authentication().length > 0) {
+                        field.setVectorAuthentication(EntityFieldDefinition.toMap(columnVector.authentication()));
+                    }
+                    if (columnVector.parameters().length > 0) {
+                        field.setVectorParameters(EntityFieldDefinition.toMap(columnVector.parameters()));
+                    }
                 }
-                if (column.valueType() != ColumnTypes.UNDEFINED) {
-                    field.setValueType(column.valueType());
-                }
-                if (column.keyType() != ColumnTypes.UNDEFINED) {
-                    field.setKeyType(column.keyType());
-                }
-                field.setDimension(column.dimension());
-                field.setMetric(column.metric());
-            }
 
-            PartitionBy partitionBy = annfield.getAnnotated().getAnnotation(PartitionBy.class);
-            if (partitionBy != null) {
-                field.setPartitionByPosition(partitionBy.value());
-            }
+                PartitionBy partitionBy = annfield.getAnnotated().getAnnotation(PartitionBy.class);
+                if (partitionBy != null) {
+                    field.setPartitionByPosition(partitionBy.value());
+                }
 
-            PartitionSort partitionSort = annfield.getAnnotated().getAnnotation(PartitionSort.class);
-            if (partitionSort != null) {
-                field.setPartitionSortPosition(partitionSort.position());
-                field.setPartitionSortOrder(partitionSort.order());
+                PartitionSort partitionSort = annfield.getAnnotated().getAnnotation(PartitionSort.class);
+                if (partitionSort != null) {
+                    field.setPartitionSortPosition(partitionSort.position());
+                    field.setPartitionSortOrder(partitionSort.order());
+                }
+                fields.put(field.getName(), field);
             }
-            fields.put(field.getName(), field);
         }
     }
 
@@ -206,6 +239,29 @@ public class EntityBeanDefinition<T> {
         return cc;
     }
 
+    public static List<TableVectorIndexDefinition> listVectorIndexDefinitions(String tableName, Class<?> clazz) {
+        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
+        if (Utils.hasLength(bean.getName()) && !bean.getName().equals(tableName)) {
+            throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + bean.getName() + "'");
+        }
+        List<TableVectorIndexDefinition> idxList = new ArrayList<>();
+        bean.getFields().forEach((name, field) -> {
+            ColumnTypes colType = field.getColumnType();
+            if (colType == ColumnTypes.VECTOR) {
+                TableVectorIndexDefinition idx = new TableVectorIndexDefinition();
+                if (Utils.hasLength(field.getColumnName())) {
+                    idx = idx.column(field.getColumnName());
+                } else {
+                    idx = idx.column(field.getName());
+                }
+                idx = idx.metric(field.getSimilarityMetric());
+                idx = idx.sourceModel(field.getVectorSourceModel());
+                idxList.add(idx);
+            }
+        });
+        return idxList;
+    }
+
     /**
      * Create a table command based on the annotated fields.
      *
@@ -241,16 +297,23 @@ public class EntityBeanDefinition<T> {
 
             // Vector: Dimension and Metric
             if (colType == ColumnTypes.VECTOR) {
-                if (field.getDimension() == null) {
-                    throw new IllegalArgumentException("Missing attribute 'dimension' in annotation '@Column' for field '" + field.getName() + "'");
+                if (field.getVectorDimension() != null) {
+                    column.append("dimension", field.getVectorDimension());
                 }
-                column.append("dimension", field.getDimension());
+                column.append("metric", field.getSimilarityMetric());
 
-                SimilarityMetric metric = SimilarityMetric.COSINE;
-                if (field.getMetric() != null) {
-                    metric = field.getMetric();
+                if (Utils.hasLength(field.getVectorServiceProvider())) {
+                    Map<String, Object > service = new HashMap<>();
+                    service.put("provider", field.getVectorServiceProvider());
+                    service.put("modelName", field.getVectorModelName());
+                    if (field.getVectorAuthentication() != null) {
+                        service.put("authentication", field.getVectorAuthentication());
+                    }
+                    if (field.getVectorParameters() != null) {
+                        service.put("parameters", field.getVectorParameters());
+                    }
+                    column.append("service", service);
                 }
-                column.append("metric", metric.getValue());
             }
 
             // KeyType with MAPS

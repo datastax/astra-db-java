@@ -23,10 +23,14 @@ package com.datastax.astra.internal.reflection;
 import com.datastax.astra.client.core.query.SortOrder;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.mapping.KeyValue;
 import com.fasterxml.jackson.databind.JavaType;
 import lombok.Data;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Definition of a field in an entity.
@@ -50,11 +54,20 @@ public class EntityFieldDefinition {
     private ColumnTypes columnType;
     private ColumnTypes valueType;
     private ColumnTypes keyType;
-    private Integer     dimension;
-    private SimilarityMetric metric;
-    // @PartitionBy
+
+    // @ColumnVector
+    private Integer             vectorDimension;
+    private String              vectorServiceProvider;
+    private String              vectorModelName;
+    private String              vectorSourceModel;
+    private Map<String, String> vectorAuthentication;
+    private Map<String, String> vectorParameters;
+    private SimilarityMetric    similarityMetric;
+
+    // @PartitionBy (partition key
     private Integer     partitionByPosition;
-    // @PartitionSort
+
+    // @PartitionSort(clustering key)
     private Integer     partitionSortPosition;
     private SortOrder   partitionSortOrder;
 
@@ -62,4 +75,18 @@ public class EntityFieldDefinition {
      * Default constructor.
      */
     public EntityFieldDefinition() {}
+
+    /**
+     * Constructor with field name.
+     *
+     * @param columnVector
+     *      annotation on a field
+     * @return value as a map
+     */
+    public static Map<String, String> toMap(KeyValue[] columnVector) {
+        if (columnVector == null) {
+            return null;
+        }
+        return Arrays.stream(columnVector).collect(Collectors.toMap(KeyValue::key, KeyValue::value));
+    }
 }

@@ -27,8 +27,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Annotation to define properties for a database column. This annotation can be used on fields
@@ -39,36 +37,43 @@ import java.util.Map;
  */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Column {
+public @interface ColumnVector {
 
     /**
      * Specifies the name of the column. If not provided, the field's name will be used.
      *
      * @return the custom column name or an empty string if not set
      */
-    String value();
+    String value() default "";
 
     /**
-     * Specifies the type of the column. If not provided, the field's type will be used.
+     * Specifies the dimension of the column, usually relevant for multidimensional data.
+     * Defaults to -1, indicating unspecified dimensions.
      *
-     * @return the column type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the dimension value or -1 if not set
      */
-    ColumnTypes type() default ColumnTypes.UNDEFINED;
+    int dimension() default -1;
 
     /**
-     * Specifies the value type of the column, typically used for complex data structures.
-     * If not provided, defaults to {@link ColumnTypes#UNDEFINED}.
+     * Specifies the similarity metric for the column. Defaults to {@link SimilarityMetric#COSINE}.
      *
-     * @return the value type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the similarity metric
      */
-    ColumnTypes valueType() default ColumnTypes.UNDEFINED;
+    SimilarityMetric metric() default SimilarityMetric.COSINE;
+
+    String sourceModel() default "other";
 
     /**
-     * Specifies the key type of the column, typically used for mapping keys in key-value pairs.
-     * If not provided, defaults to {@link ColumnTypes#UNDEFINED}.
+     * Specifies the column's index. Defaults to -1, indicating no index.
      *
-     * @return the key type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the index value or -1 if not set
      */
-    ColumnTypes keyType() default ColumnTypes.UNDEFINED;
+    String provider() default "";
+
+    String modelName() default "";
+
+    KeyValue[] authentication() default {};
+
+    KeyValue[] parameters() default {};
 
 }

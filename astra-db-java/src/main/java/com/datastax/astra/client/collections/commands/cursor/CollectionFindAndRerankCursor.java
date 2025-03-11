@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.cursor;
+package com.datastax.astra.client.collections.commands.cursor;
 
 /*-
  * #%L
@@ -20,6 +20,8 @@ package com.datastax.astra.client.tables.cursor;
  * #L%
  */
 
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
@@ -27,8 +29,8 @@ import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
-import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
 import java.io.Closeable;
@@ -49,21 +51,22 @@ import java.util.stream.StreamSupport;
  * @param <R>
  *       working bean returned for the find
  */
+
 /**
  * Implementation of a cursor across the find items
  *
- * @param <T>
- *       working bean of parent table
- * @param <R>
- *       working bean returned for the find
+ * @param <DOC>
+ *       working document object
+ * @param <RES>
+ *       working object for results, should be same as DOC if no projections
  */
-public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
+public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, Closeable, Cloneable {
 
     /**
      * Input table reference
      */
     @Getter
-    private final Table<T> table;
+    private final Collection<DOC> collection;
 
     /**
      * Input Filter provided.
@@ -75,7 +78,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * Input Find options. Where will change the different options.
      * Immutable as not setter is provided.
      */
-    private TableFindOptions tableFindOptions;
+    private CollectionFindOptions collectionFindOptions;
 
     /**
      * Cursor state.
@@ -85,12 +88,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     /**
      * Records to process
      */
-    private List<R> buffer;
+    private List<DOC> buffer;
 
     /**
      * Current page
      */
-    private Page<R> currentPage;
+    private Page<DOC> currentPage;
 
     /**
      * How many consumed in the current buffer.
@@ -102,13 +105,13 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * Type of the row to return
      */
     @Getter
-    private Class<R> rowType;
+    private Class<RES> documentType;
 
     /**
      * Cursor to iterate on the result of a query.
      *
-     * @param table
-     *      source table
+     * @param collection
+     *      source collection
      * @param filter
      *      current filter
      * @param options
@@ -116,12 +119,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @param rowType
      *      row type returned with the cursor
      */
-    public TableCursor(Table<T> table, Filter filter, TableFindOptions options, Class<R> rowType) {
-        this.table = table;
+    public CollectionFindAndRerankCursor(Collection<DOC> collection, Filter filter, CollectionFindOptions options, Class<RES> rowType) {
+        this.collection = collection;
         this.filter = filter;
-        this.rowType = rowType;
-        this.tableFindOptions = options;
-        this.state = CursorState.IDLE;
+        this.documentType = rowType;
+        this.collectionFindOptions = options;
+        this.state  = CursorState.IDLE;
         this.buffer = new ArrayList<>();
         this.consumedCount = 0;
     }
@@ -129,24 +132,27 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     /**
      * Constructor by copy. Once cloning the cursor is set back at the beginning.
      *
-     * @param tableCursor
+     * @param collectionFindCursor
      *      previous cursor
      */
-    private TableCursor(TableCursor<T, R> tableCursor) {
+    private CollectionFindAndRerankCursor(CollectionFindAndRerankCursor<DOC, RES> collectionFindCursor) {
+        if (collectionFindCursor == null) {
+            throw new IllegalArgumentException("Input cursor should not be null");
+        }
         this.state = CursorState.IDLE;
-        this.table = tableCursor.table;
-        this.tableFindOptions = tableCursor.tableFindOptions;
-        this.filter           = tableCursor.filter;
-        this.buffer           = new ArrayList<>();
-        this.consumedCount    = 0;
-        this.currentPage      = tableCursor.currentPage;
-        this.rowType         = tableCursor.rowType;
+        this.buffer                = new ArrayList<>();
+        this.collection            = collectionFindCursor.collection;
+        this.collectionFindOptions = collectionFindCursor.collectionFindOptions;
+        this.filter                = collectionFindCursor.filter;
+        this.currentPage           = collectionFindCursor.currentPage;
+        this.documentType          = collectionFindCursor.documentType;
+        this.consumedCount         = collectionFindCursor.consumedCount;
     }
 
     /** {@inheritDoc} */
     @Override
-    public TableCursor<T, R> clone() {
-        return new TableCursor<>(this);
+    public CollectionFindAndRerankCursor<DOC, RES> clone() {
+        return new CollectionFindAndRerankCursor<>(this);
     }
 
     /**
@@ -157,87 +163,87 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @return
      *    a new cursor
      */
-    public TableCursor<T, R> filter(Filter newFilter) {
+    public CollectionFindAndRerankCursor<DOC, RES> filter(Filter newFilter) {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.filter = newFilter;
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.filter = newFilter;
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} with an updated projection.
+     * Creates a new {@link CollectionFindAndRerankCursor} with an updated projection.
      *
      * @param newProjection the new projection to apply
-     * @return a new {@link TableCursor} instance with the specified projection
+     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified projection
      */
-    public TableCursor<T, R> project(Projection... newProjection) {
+    public CollectionFindAndRerankCursor<DOC, RES> project(Projection... newProjection) {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.tableFindOptions.projection(newProjection);
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.collectionFindOptions.projection(newProjection);
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} with a specified sort order.
+     * Creates a new {@link CollectionFindAndRerankCursor} with a specified sort order.
      *
      * @param sort the sort criteria to apply
-     * @return a new {@link TableCursor} instance with the specified sort order
+     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified sort order
      */
-    public TableCursor<T, R> sort(Sort... sort) {
+    public CollectionFindAndRerankCursor<DOC, RES> sort(Sort... sort) {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.tableFindOptions.sort(sort);
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.collectionFindOptions.sort(sort);
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} with a specified limit on the number of results.
+     * Creates a new {@link CollectionFindAndRerankCursor} with a specified limit on the number of results.
      *
      * @param newLimit the maximum number of results to retrieve
-     * @return a new {@link TableCursor} instance with the specified limit
+     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified limit
      */
-    public TableCursor<T, R> limit(int newLimit) {
+    public CollectionFindAndRerankCursor<DOC, RES> limit(int newLimit) {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.limit(newLimit);
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.limit(newLimit);
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} that skips a specified number of results.
+     * Creates a new {@link CollectionFindAndRerankCursor} that skips a specified number of results.
      *
      * @param newSkip the number of results to skip
-     * @return a new {@link TableCursor} instance with the specified skip value
+     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified skip value
      */
-    public TableCursor<T, R> skip(int newSkip) {
+    public CollectionFindAndRerankCursor<DOC, RES> skip(int newSkip) {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.skip(newSkip);
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.skip(newSkip);
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} that includes similarity scores in the results.
+     * Creates a new {@link CollectionFindAndRerankCursor} that includes similarity scores in the results.
      *
-     * @return a new {@link TableCursor} instance with similarity scores included
+     * @return a new {@link CollectionFindAndRerankCursor} instance with similarity scores included
      */
-    public TableCursor<T, R> includeSimilarity() {
+    public CollectionFindAndRerankCursor<DOC, RES> includeSimilarity() {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.includeSimilarity();
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.includeSimilarity();
+        return newCursor;
     }
 
     /**
-     * Creates a new {@link TableCursor} that includes sort vector metadata in the results.
+     * Creates a new {@link CollectionFindAndRerankCursor} that includes sort vector metadata in the results.
      *
-     * @return a new {@link TableCursor} instance with sort vector metadata included
+     * @return a new {@link CollectionFindAndRerankCursor} instance with sort vector metadata included
      */
-    public TableCursor<T, R> includeSortVector() {
+    public CollectionFindAndRerankCursor<DOC, RES> includeSortVector() {
         checkIdleState();
-        TableCursor<T, R> newTableCursor = this.clone();
-        newTableCursor.includeSortVector();
-        return newTableCursor;
+        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        newCursor.includeSortVector();
+        return newCursor;
     }
 
     /**
@@ -265,11 +271,11 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @return
      *      list of items
      */
-    public List<R> consumeBuffer(int n) {
+    public List<DOC> consumeBuffer(int n) {
         if (state == CursorState.CLOSED || state == CursorState.IDLE) {
             return Collections.emptyList();
         }
-        List<R> result = new ArrayList<>();
+        List<DOC> result = new ArrayList<>();
         int count = 0;
         while (!buffer.isEmpty() && count < n) {
             result.add(buffer.remove(0));
@@ -294,7 +300,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *     iterator over the results
      */
     @Override
-    public Iterator<R> iterator() {
+    public Iterator<RES> iterator() {
         return new CursorIterator();
     }
 
@@ -305,12 +311,12 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     private void fetchNextBatch() {
         if (currentPage == null) {
             // Searching First Page
-            currentPage = table.findPage(filter, tableFindOptions, rowType);
+            currentPage = collection.findPage(filter, collectionFindOptions);
             buffer.addAll(currentPage.getResults());
         } else if (currentPage.getPageState().isPresent()) {
             // Searching next page if exist
-            tableFindOptions.pageState(currentPage.getPageState().get());
-            currentPage = table.findPage(filter, tableFindOptions, rowType);
+            collectionFindOptions.pageState(currentPage.getPageState().get());
+            currentPage = collection.findPage(filter, collectionFindOptions);
             buffer.addAll(currentPage.getResults());
         }
     }
@@ -330,7 +336,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @return the next element of type {@code R}
      * @throws NoSuchElementException if no more elements are available
      */
-    public R next() {
+    public RES next() {
         return iterator().next();
     }
 
@@ -340,13 +346,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *
      * @return a {@link List} containing all remaining elements
      */
-    /**
-     * Collects all remaining elements in the cursor into a list.
-     * Automatically closes the cursor after all elements are consumed.
-     *
-     * @return a {@link List} containing all remaining elements
-     */
-    public List<R> toList() {
+    public List<RES> toList() {
         try {
             return stream().toList();
         } finally {
@@ -360,7 +360,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      * @return
      *      current as a stream
      */
-    public Stream<R> stream() {
+    public Stream<RES> stream() {
         return StreamSupport.stream(this.spliterator(), false);
     }
 
@@ -381,7 +381,7 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
      *      keyspace name
      */
     public String getKeyspace() {
-        return table.getKeyspaceName();
+        return collection.getKeyspaceName();
     }
 
     /**
@@ -401,10 +401,10 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
     }
 
     /**
-     * A private iterator implementation for iterating over the results of a {@link TableCursor}.
+     * A private iterator implementation for iterating over the results of a {@link CollectionFindAndRerankCursor}.
      * Handles lazy loading of data in batches to optimize memory usage and performance.
      */
-    private class CursorIterator implements Iterator<R> {
+    private class CursorIterator implements Iterator<RES> {
 
         /**
          * Checks if there are more elements to iterate over.
@@ -435,13 +435,21 @@ public class TableCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
          * @throws NoSuchElementException if no more elements are available
          */
         @Override
-        public R next() {
+        @SuppressWarnings("unchecked")
+        public RES next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            R rawDoc = buffer.remove(0);
+
+            DOC rawDoc = buffer.remove(0);
             consumedCount++;
-            return rawDoc;
+
+            if (!documentType.isInstance(rawDoc)) {
+                Row row = RowMapper.mapAsRow(rawDoc);
+                return RowMapper.mapFromRow(row, collection.getOptions().getSerializer(), documentType);
+            } else {
+                return (RES) rawDoc;
+            }
         }
     }
 

@@ -1,14 +1,11 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
-import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
-import com.datastax.astra.client.tables.cursor.TableCursor;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.util.List;

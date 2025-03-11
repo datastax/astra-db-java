@@ -38,12 +38,15 @@ package com.datastax.astra.client.collections.definition.documents;
 
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.core.vectorize.Vectorize;
 import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.EscapeUtils;
+import com.datastax.astra.internal.utils.Preview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -346,13 +349,68 @@ public class Document implements Serializable {
     /**
      * Add a vectorize attribute to the document.
      *
-     * @param text
+     * @param passage
      *      value for the vectorize attribute
      * @return
      *      self reference
      */
-    public Document vectorize(String text) {
-        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), text);
+    public Document vectorize(String passage) {
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), Vectorize.of(passage));
+    }
+
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param vectorize
+     *      value for the vectorize attribute
+     * @return
+     *      self reference
+     */
+    public Document vectorize(Vectorize vectorize) {
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), vectorize);
+    }
+
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param passage
+     *      string to converted to vector
+     * @param setPassage
+     *      field name in the document to store the vectorize string
+     * @return
+     *      self reference
+     */
+    @Preview
+    public Document vectorize(String passage, String setPassage) {
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), Vectorize.of(passage, setPassage));
+    }
+
+    /**
+     * Add a hybrid attribute in the documentW
+     *
+     * @param passage
+     *      value for the vectorize attribute
+     * @return
+     *      self reference
+     */
+    @Preview
+    public Document hybrid(String passage) {
+        return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(passage));
+    }
+
+    /**
+     * Add a vectorize attribute to the document.
+     *
+     * @param vectorize
+     *      string to converted to vector
+     * @param lexical
+     *      string to be used for lexical search
+     * @return
+     *      self reference
+     */
+    @Preview
+    public Document hybrid(String vectorize, String lexical) {
+        return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(vectorize, lexical));
     }
 
     /**

@@ -20,10 +20,10 @@ package com.datastax.astra.client.collections.definition;
  * #L%
  */
 
-import com.datastax.astra.client.core.lexical.LexicalAnalyzers;
+import com.datastax.astra.client.core.lexical.Analyzer;
+import com.datastax.astra.client.core.lexical.AnalyzerTypes;
 import com.datastax.astra.client.core.lexical.LexicalOptions;
 import com.datastax.astra.client.core.reranking.RerankingOptions;
-import com.datastax.astra.client.core.reranking.RerankingProvider;
 import com.datastax.astra.client.core.reranking.RerankingServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
@@ -44,34 +44,13 @@ import java.util.Map;
 public class CollectionDefinition {
 
     /**
-     * The 'defaultId' to allow working with different types of identifiers.
-     */
-    private DefaultIdOptions defaultId;
-
-    /**
-     * Vector options.
-     */
-    private VectorOptions vector;
-
-    /**
-     * Indexing options
-     */
-    private IndexingOptions indexing;
-
-    /**
-     * Lexical options
-     */
-    private LexicalOptions lexical;
-
-    /**
-     * Reranking options
-     */
-    private RerankingOptions reranking;
-
-    /**
      * Default constructor.
      */
     public CollectionDefinition() {}
+
+    // ---------------------
+    // DefaultId Options
+    // ---------------------
 
     /**
      * Subclass representing the indexing options.
@@ -109,6 +88,36 @@ public class CollectionDefinition {
             return type;
         }
     }
+
+    /**
+     * The 'defaultId' to allow working with different types of identifiers.
+     */
+    private DefaultIdOptions defaultId;
+
+    /**
+     * Gets defaultId
+     *
+     * @return value of defaultId
+     */
+    public DefaultIdOptions getDefaultId() {
+        return defaultId;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param type
+     *      default id type
+     * @return self reference
+     */
+    public CollectionDefinition defaultId(CollectionDefaultIdTypes type) {
+        this.defaultId = new DefaultIdOptions(type);
+        return this;
+    }
+
+    // ---------------------
+    // Indexing options
+    // ---------------------
 
     /**
      * Subclass representing the indexing options.
@@ -150,15 +159,10 @@ public class CollectionDefinition {
         }
     }
 
-    /*** Access the vector options.
-     *
-     * @return
-     *      vector options
+    /**
+     * Indexing options
      */
-    public VectorOptions getVector() {
-        return vector;
-    }
-
+    private IndexingOptions indexing;
 
     /**
      * Access the indexing options.
@@ -167,102 +171,6 @@ public class CollectionDefinition {
      */
     public IndexingOptions getIndexing() {
         return indexing;
-    }
-
-    /**
-     * Gets lexical
-     *
-     * @return value of lexical
-     */
-    public LexicalOptions getLexical() {
-        return lexical;
-    }
-
-    /**
-     * Gets reranking
-     *
-     * @return value of reranking
-     */
-    public RerankingOptions getReranking() {
-        return reranking;
-    }
-
-    /**
-     * Gets defaultId
-     *
-     * @return value of defaultId
-     */
-    public DefaultIdOptions getDefaultId() {
-        return defaultId;
-    }
-
-    /**
-     * Builder pattern.
-     *
-     * @param type
-     *      default id type
-     * @return self reference
-     */
-    public CollectionDefinition defaultId(CollectionDefaultIdTypes type) {
-        this.defaultId = new DefaultIdOptions(type);
-        return this;
-    }
-
-    /**
-     * Builder pattern.
-     *
-     * @param analyzers size
-     * @return self reference
-     */
-    public CollectionDefinition lexical(LexicalAnalyzers analyzers) {
-        if (getLexical() == null) {
-            lexical = new LexicalOptions();
-        }
-        getLexical().enabled(true).analyzer(analyzers);
-        return this;
-    }
-
-    /**
-     * Builder pattern.
-     *
-     * @param reranker
-     *      reranker
-     * @return self reference
-     */
-    public CollectionDefinition reranking(String reranker) {
-        if (getReranking() == null) {
-            reranking = new RerankingOptions();
-        }
-        getReranking().service(new RerankingServiceOptions().provider(reranker));
-        return this;
-    }
-
-    /**
-     * Builder pattern.
-     *
-     * @param size size
-     * @return self reference
-     */
-    public CollectionDefinition vectorDimension(int size) {
-        if (getVector() == null) {
-            vector = new VectorOptions();
-        }
-        getVector().dimension(size);
-        return this;
-    }
-
-    /**
-     * Builder pattern.
-     *
-     * @param metric similarity metric
-     * @return self reference
-     */
-    public CollectionDefinition vectorSimilarity(@NonNull SimilarityMetric metric) {
-        if (getVector() == null) {
-            vector = new VectorOptions();
-        }
-        getVector().metric(metric.getValue());
-        return this;
     }
 
     /**
@@ -296,6 +204,63 @@ public class CollectionDefinition {
             throw new IllegalStateException("'indexing.deny' and 'indexing.allow' are mutually exclusive");
         }
         getIndexing().allow(Arrays.asList(properties));
+        return this;
+    }
+
+    // ---------------------
+    // Vector Options
+    // ---------------------
+
+    /**
+     * Vector options.
+     */
+    private VectorOptions vector;
+
+    /*** Access the vector options.
+     *
+     * @return
+     *      vector options
+     */
+    public VectorOptions getVector() {
+        return vector;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param vectorOptions size
+     * @return self reference
+     */
+    public CollectionDefinition vector(VectorOptions vectorOptions) {
+        vector = vectorOptions;
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param size size
+     * @return self reference
+     */
+    public CollectionDefinition vectorDimension(int size) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
+        getVector().dimension(size);
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param metric similarity metric
+     * @return self reference
+     */
+    public CollectionDefinition vectorSimilarity(@NonNull SimilarityMetric metric) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
+        getVector().metric(metric.getValue());
         return this;
     }
 
@@ -363,5 +328,110 @@ public class CollectionDefinition {
         return this;
     }
 
+    // ---------------------
+    // Lexical options
+    // ---------------------
+
+    /**
+     * Lexical options
+     */
+    private LexicalOptions lexical;
+
+    /**
+     * Gets lexical
+     *
+     * @return value of lexical
+     */
+    public LexicalOptions getLexical() {
+        return lexical;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param lexicalOptions
+     *      lexical options positioned on Collection creation
+     * @return
+     *      self reference
+     */
+    public CollectionDefinition lexical(LexicalOptions lexicalOptions) {
+        lexical = lexicalOptions;
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param analyzer
+     *      analyzer structure
+     * @return
+     *      self reference
+     */
+    public CollectionDefinition lexical(Analyzer analyzer) {
+        if (getLexical() == null) {
+            lexical(new LexicalOptions().enabled(true));
+        }
+        getLexical().analyzer(analyzer);
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param analyzerType
+     *      type of analyzer
+     * @return self reference
+     */
+    public CollectionDefinition lexical(AnalyzerTypes analyzerType) {
+        return lexical(new Analyzer(analyzerType));
+    }
+
+    // ---------------------
+    // Reranking options
+    // ---------------------
+
+    /**
+     * Reranking options
+     */
+    private RerankingOptions reranking;
+
+    /**
+     * Gets reranking
+     *
+     * @return value of reranking
+     */
+    public RerankingOptions getReranking() {
+        return reranking;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param rerankingOptions
+     *      reranking service information
+     * @return
+     *      self reference
+     */
+    public CollectionDefinition reranking(RerankingOptions rerankingOptions) {
+        reranking = rerankingOptions;
+        return this;
+    }
+
+    /**
+     * Builder pattern.
+     *
+     * @param reranker
+     *      reranker
+     * @return self reference
+     */
+    public CollectionDefinition reranking(String reranker) {
+        if (getReranking() == null) {
+            reranking = new RerankingOptions().enabled(true);
+        }
+        getReranking()
+                .enabled(true)
+                .service(new RerankingServiceOptions().provider(reranker));
+        return this;
+    }
 
 }

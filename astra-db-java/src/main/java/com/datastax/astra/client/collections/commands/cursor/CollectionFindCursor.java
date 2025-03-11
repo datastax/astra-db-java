@@ -56,7 +56,7 @@ import java.util.stream.StreamSupport;
  * @param <RES>
  *       working object for results, should be same as DOC if no projections
  */
-public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Cloneable {
+public class CollectionFindCursor<DOC, RES> implements Iterable<RES>, Closeable, Cloneable {
 
     /**
      * Input table reference
@@ -115,7 +115,7 @@ public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Clo
      * @param rowType
      *      row type returned with the cursor
      */
-    public CollectionCursor(Collection<DOC> collection, Filter filter, CollectionFindOptions options, Class<RES> rowType) {
+    public CollectionFindCursor(Collection<DOC> collection, Filter filter, CollectionFindOptions options, Class<RES> rowType) {
         this.collection = collection;
         this.filter = filter;
         this.documentType = rowType;
@@ -128,27 +128,27 @@ public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Clo
     /**
      * Constructor by copy. Once cloning the cursor is set back at the beginning.
      *
-     * @param collectionCursor
+     * @param collectionFindCursor
      *      previous cursor
      */
-    private CollectionCursor(CollectionCursor<DOC, RES> collectionCursor) {
-        if (collectionCursor == null) {
+    private CollectionFindCursor(CollectionFindCursor<DOC, RES> collectionFindCursor) {
+        if (collectionFindCursor == null) {
             throw new IllegalArgumentException("Input cursor should not be null");
         }
         this.state = CursorState.IDLE;
         this.buffer                = new ArrayList<>();
-        this.collection            = collectionCursor.collection;
-        this.collectionFindOptions = collectionCursor.collectionFindOptions;
-        this.filter                = collectionCursor.filter;
-        this.currentPage           = collectionCursor.currentPage;
-        this.documentType          = collectionCursor.documentType;
-        this.consumedCount         = collectionCursor.consumedCount;
+        this.collection            = collectionFindCursor.collection;
+        this.collectionFindOptions = collectionFindCursor.collectionFindOptions;
+        this.filter                = collectionFindCursor.filter;
+        this.currentPage           = collectionFindCursor.currentPage;
+        this.documentType          = collectionFindCursor.documentType;
+        this.consumedCount         = collectionFindCursor.consumedCount;
     }
 
     /** {@inheritDoc} */
     @Override
-    public CollectionCursor<DOC, RES> clone() {
-        return new CollectionCursor<>(this);
+    public CollectionFindCursor<DOC, RES> clone() {
+        return new CollectionFindCursor<>(this);
     }
 
     /**
@@ -159,85 +159,85 @@ public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Clo
      * @return
      *    a new cursor
      */
-    public CollectionCursor<DOC, RES> filter(Filter newFilter) {
+    public CollectionFindCursor<DOC, RES> filter(Filter newFilter) {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.filter = newFilter;
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} with an updated projection.
+     * Creates a new {@link CollectionFindCursor} with an updated projection.
      *
      * @param newProjection the new projection to apply
-     * @return a new {@link CollectionCursor} instance with the specified projection
+     * @return a new {@link CollectionFindCursor} instance with the specified projection
      */
-    public CollectionCursor<DOC, RES> project(Projection... newProjection) {
+    public CollectionFindCursor<DOC, RES> project(Projection... newProjection) {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.collectionFindOptions.projection(newProjection);
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} with a specified sort order.
+     * Creates a new {@link CollectionFindCursor} with a specified sort order.
      *
      * @param sort the sort criteria to apply
-     * @return a new {@link CollectionCursor} instance with the specified sort order
+     * @return a new {@link CollectionFindCursor} instance with the specified sort order
      */
-    public CollectionCursor<DOC, RES> sort(Sort... sort) {
+    public CollectionFindCursor<DOC, RES> sort(Sort... sort) {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.collectionFindOptions.sort(sort);
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} with a specified limit on the number of results.
+     * Creates a new {@link CollectionFindCursor} with a specified limit on the number of results.
      *
      * @param newLimit the maximum number of results to retrieve
-     * @return a new {@link CollectionCursor} instance with the specified limit
+     * @return a new {@link CollectionFindCursor} instance with the specified limit
      */
-    public CollectionCursor<DOC, RES> limit(int newLimit) {
+    public CollectionFindCursor<DOC, RES> limit(int newLimit) {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.limit(newLimit);
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} that skips a specified number of results.
+     * Creates a new {@link CollectionFindCursor} that skips a specified number of results.
      *
      * @param newSkip the number of results to skip
-     * @return a new {@link CollectionCursor} instance with the specified skip value
+     * @return a new {@link CollectionFindCursor} instance with the specified skip value
      */
-    public CollectionCursor<DOC, RES> skip(int newSkip) {
+    public CollectionFindCursor<DOC, RES> skip(int newSkip) {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.skip(newSkip);
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} that includes similarity scores in the results.
+     * Creates a new {@link CollectionFindCursor} that includes similarity scores in the results.
      *
-     * @return a new {@link CollectionCursor} instance with similarity scores included
+     * @return a new {@link CollectionFindCursor} instance with similarity scores included
      */
-    public CollectionCursor<DOC, RES> includeSimilarity() {
+    public CollectionFindCursor<DOC, RES> includeSimilarity() {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.includeSimilarity();
         return newCursor;
     }
 
     /**
-     * Creates a new {@link CollectionCursor} that includes sort vector metadata in the results.
+     * Creates a new {@link CollectionFindCursor} that includes sort vector metadata in the results.
      *
-     * @return a new {@link CollectionCursor} instance with sort vector metadata included
+     * @return a new {@link CollectionFindCursor} instance with sort vector metadata included
      */
-    public CollectionCursor<DOC, RES> includeSortVector() {
+    public CollectionFindCursor<DOC, RES> includeSortVector() {
         checkIdleState();
-        CollectionCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindCursor<DOC, RES> newCursor = this.clone();
         newCursor.includeSortVector();
         return newCursor;
     }
@@ -397,7 +397,7 @@ public class CollectionCursor<DOC, RES> implements Iterable<RES>, Closeable, Clo
     }
 
     /**
-     * A private iterator implementation for iterating over the results of a {@link CollectionCursor}.
+     * A private iterator implementation for iterating over the results of a {@link CollectionFindCursor}.
      * Handles lazy loading of data in batches to optimize memory usage and performance.
      */
     private class CursorIterator implements Iterator<RES> {
