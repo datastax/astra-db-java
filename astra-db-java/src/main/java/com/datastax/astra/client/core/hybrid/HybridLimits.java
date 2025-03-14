@@ -57,4 +57,12 @@ public class HybridLimits {
         return this;
     }
 
+    public HybridLimits vector(Integer limit) {
+        if (mapOfLimits == null) {
+            mapOfLimits = new HashMap<>();
+        }
+        mapOfLimits.put(DataAPIKeywords.VECTOR.getKeyword(), limit);
+        return this;
+    }
+
 }
