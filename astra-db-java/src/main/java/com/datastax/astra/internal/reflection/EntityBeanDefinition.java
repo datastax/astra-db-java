@@ -144,8 +144,8 @@ public class EntityBeanDefinition<T> {
                             "with both @Column or @ColumnVector", field.getName(), clazz.getName()));
                 }
                 if (column != null) {
-                    if (Utils.hasLength(column.value())) {
-                        field.setColumnName(column.value());
+                    if (Utils.hasLength(column.name())) {
+                        field.setColumnName(column.name());
                     }
                     if (column.type() != ColumnTypes.UNDEFINED) {
                         field.setColumnType(column.type());
@@ -159,8 +159,8 @@ public class EntityBeanDefinition<T> {
                 } else if (columnVector != null) {
                     field.setColumnType(ColumnTypes.VECTOR);
                     field.setSimilarityMetric(columnVector.metric());
-                    if (Utils.hasLength(columnVector.value())) {
-                        field.setColumnName(columnVector.value());
+                    if (Utils.hasLength(columnVector.name())) {
+                        field.setColumnName(columnVector.name());
                     }
                     if (columnVector.dimension() == -1) {
                         field.setVectorDimension(columnVector.dimension());

@@ -20,15 +20,99 @@ package com.datastax.astra.client.core.lexical;
  * #L%
  */
 
+import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
 
 @Data
+//@JsonSerialize(using = AnalyzerSerializer.class)
 public class Analyzer {
 
-    final AnalyzerTypes type;
+    /** In the case of String analyzer */
+    String strAnalyzer;
 
-    public Analyzer(AnalyzerTypes type) {
-        this.type = type;
+    /** In the case of Document analyzer, free structure */
+    LexicalFilter tokenizer;
+
+    List<LexicalFilter> filters;
+
+    List<LexicalFilter> charFilters;
+
+    public Analyzer() {
     }
+
+    public Analyzer tokenizer(String name) {
+        return tokenizer(name, null);
+    }
+    public Analyzer tokenizer(String name, Map<String, String> args) {
+        this.tokenizer = new LexicalFilter().name(name).args(args);;
+        return this;
+    }
+
+    public Analyzer addFilter(String name) {
+        return addFilter(name, null);
+    }
+    public Analyzer addFilter(String name, Map<String, String> args) {
+        if (filters == null) {
+            filters = new java.util.ArrayList<>();
+        }
+        filters.add(new LexicalFilter().name(name).args(args));
+        return this;
+    }
+
+    public Analyzer addChartFilter(String name) {
+        return addChartFilter(name, null);
+    }
+    public Analyzer addChartFilter(String name, Map<String, String> args) {
+        if (charFilters == null) {
+            charFilters = new java.util.ArrayList<>();
+        }
+        charFilters.add(new LexicalFilter().name(name).args(args));
+        return this;
+    }
+
+    public Analyzer(AnalyzerTypes strAnalyzer) {
+        this.strAnalyzer = strAnalyzer.getValue();
+    }
+
+    @NoArgsConstructor
+    public static class LexicalFilter {
+
+        String name;
+
+        Map<String, String> args;
+
+        public LexicalFilter name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public LexicalFilter args(Map<String, String> args) {
+            this.args = args;
+            return this;
+        }
+
+        public LexicalFilter arg(String key, String value) {
+            if (args == null) {
+                args = new java.util.HashMap<>();
+            }
+            args.put(key, value);
+            return this;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Map<String, String> getArgs() {
+            return args;
+        }
+    }
+
+
 
 }

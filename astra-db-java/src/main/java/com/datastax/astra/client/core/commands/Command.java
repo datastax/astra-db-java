@@ -20,12 +20,12 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -37,9 +37,12 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represent a command to be executed against the Data API.
@@ -162,19 +165,6 @@ public class Command implements Serializable {
     /**
      * Builder pattern, update sort.
      *
-     * @param sort
-     *      sort for the command
-     * @return
-     *      self-reference
-     */
-    public Command withSort(Document sort) {
-        payload.appendIfNotNull("sort", sort);
-        return this;
-    }
-
-    /**
-     * Builder pattern, update sort.
-     *
      * @param sortCriteria
      *      sort criteria for the command
      * @return
@@ -183,16 +173,10 @@ public class Command implements Serializable {
     public Command withSort(Sort... sortCriteria) {
         if (sortCriteria != null) {
             LinkedHashMap<String, Object> results = new LinkedHashMap<>();
-            Object sortValue = null;
-            for (Sort p : sortCriteria) {
-                if (p.getOrder() != null) {
-                    sortValue = p.getOrder().getCode();
-                } else if (p.getVectorize() != null) {
-                    sortValue = p.getVectorize();
-                } else {
-                    sortValue = p.getVector();
+            for (Sort s : sortCriteria) {
+                if ( s != null) {
+                    results.put(s.getField(), s.getValue());
                 }
-                results.put(p.getField(), sortValue);
             }
             payload.appendIfNotNull("sort", results);
         }

@@ -21,27 +21,17 @@ package com.datastax.astra.client.collections.commands.cursor;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindAndRerankOptions;
 import com.datastax.astra.client.core.paging.CursorState;
-import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.vector.DataAPIVector;
-import com.datastax.astra.client.exceptions.CursorException;
-import com.datastax.astra.client.tables.definition.rows.Row;
-import com.datastax.astra.internal.serdes.tables.RowMapper;
+import com.datastax.astra.client.core.reranking.RerankResult;
+import com.datastax.astra.internal.command.AbstractCursor;
 import lombok.Getter;
 
-import java.io.Closeable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
 
 /**
  * Implementation of a cursor across the find items
@@ -55,18 +45,18 @@ import java.util.stream.StreamSupport;
 /**
  * Implementation of a cursor across the find items
  *
- * @param <DOC>
+ * @param <T>
  *       working document object
- * @param <RES>
+ * @param <R>
  *       working object for results, should be same as DOC if no projections
  */
-public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, Closeable, Cloneable {
+public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, RerankResult<R>> {
 
     /**
      * Input table reference
      */
     @Getter
-    private final Collection<DOC> collection;
+    private final Collection<T> dataSource;
 
     /**
      * Input Filter provided.
@@ -78,55 +68,30 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * Input Find options. Where will change the different options.
      * Immutable as not setter is provided.
      */
-    private CollectionFindOptions collectionFindOptions;
+    private CollectionFindAndRerankOptions options;
 
-    /**
-     * Cursor state.
-     */
-    private CursorState state;
-
-    /**
-     * Records to process
-     */
-    private List<DOC> buffer;
-
-    /**
-     * Current page
-     */
-    private Page<DOC> currentPage;
-
-    /**
-     * How many consumed in the current buffer.
-     */
-    @Getter
-    private int consumedCount;
-
-    /**
-     * Type of the row to return
-     */
-    @Getter
-    private Class<RES> documentType;
+    private Class<R> newRowType;
 
     /**
      * Cursor to iterate on the result of a query.
      *
-     * @param collection
+     * @param dataSource
      *      source collection
      * @param filter
      *      current filter
      * @param options
      *      options of the find operation
-     * @param rowType
-     *      row type returned with the cursor
      */
-    public CollectionFindAndRerankCursor(Collection<DOC> collection, Filter filter, CollectionFindOptions options, Class<RES> rowType) {
-        this.collection = collection;
+    @SuppressWarnings("unchecked")
+    public CollectionFindAndRerankCursor(Collection<T> dataSource, Filter filter, CollectionFindAndRerankOptions options, Class<R> recordType) {
+        super((Class<RerankResult<R>>) (Class<?>) RerankResult.class);
+        this.dataSource = dataSource;
         this.filter = filter;
-        this.documentType = rowType;
-        this.collectionFindOptions = options;
+        this.options = options;
         this.state  = CursorState.IDLE;
         this.buffer = new ArrayList<>();
-        this.consumedCount = 0;
+        this.consumed = 0;
+        this.newRowType = recordType;
     }
 
     /**
@@ -135,23 +100,21 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * @param collectionFindCursor
      *      previous cursor
      */
-    private CollectionFindAndRerankCursor(CollectionFindAndRerankCursor<DOC, RES> collectionFindCursor) {
-        if (collectionFindCursor == null) {
-            throw new IllegalArgumentException("Input cursor should not be null");
-        }
-        this.state = CursorState.IDLE;
+    private CollectionFindAndRerankCursor(CollectionFindAndRerankCursor<T, R> collectionFindCursor) {
+        super(collectionFindCursor.getRecordType());
+        this.state                 = CursorState.IDLE;
         this.buffer                = new ArrayList<>();
-        this.collection            = collectionFindCursor.collection;
-        this.collectionFindOptions = collectionFindCursor.collectionFindOptions;
+        this.dataSource            = collectionFindCursor.dataSource;
+        this.options               = collectionFindCursor.options;
         this.filter                = collectionFindCursor.filter;
         this.currentPage           = collectionFindCursor.currentPage;
-        this.documentType          = collectionFindCursor.documentType;
-        this.consumedCount         = collectionFindCursor.consumedCount;
+        this.consumed              = collectionFindCursor.consumed;
+        this.recordType            = collectionFindCursor.recordType;
     }
 
     /** {@inheritDoc} */
     @Override
-    public CollectionFindAndRerankCursor<DOC, RES> clone() {
+    public CollectionFindAndRerankCursor<T, R> clone() {
         return new CollectionFindAndRerankCursor<>(this);
     }
 
@@ -163,9 +126,9 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * @return
      *    a new cursor
      */
-    public CollectionFindAndRerankCursor<DOC, RES> filter(Filter newFilter) {
+    public CollectionFindAndRerankCursor<T, R> filter(Filter newFilter) {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
         newCursor.filter = newFilter;
         return newCursor;
     }
@@ -176,10 +139,10 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * @param newProjection the new projection to apply
      * @return a new {@link CollectionFindAndRerankCursor} instance with the specified projection
      */
-    public CollectionFindAndRerankCursor<DOC, RES> project(Projection... newProjection) {
+    public CollectionFindAndRerankCursor<T, R> project(Projection... newProjection) {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
-        newCursor.collectionFindOptions.projection(newProjection);
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
+        newCursor.options.projection(newProjection);
         return newCursor;
     }
 
@@ -189,10 +152,10 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * @param sort the sort criteria to apply
      * @return a new {@link CollectionFindAndRerankCursor} instance with the specified sort order
      */
-    public CollectionFindAndRerankCursor<DOC, RES> sort(Sort... sort) {
+    public CollectionFindAndRerankCursor<T, R> sort(Sort... sort) {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
-        newCursor.collectionFindOptions.sort(sort);
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
+        newCursor.options.sort(sort);
         return newCursor;
     }
 
@@ -202,23 +165,10 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      * @param newLimit the maximum number of results to retrieve
      * @return a new {@link CollectionFindAndRerankCursor} instance with the specified limit
      */
-    public CollectionFindAndRerankCursor<DOC, RES> limit(int newLimit) {
+    public CollectionFindAndRerankCursor<T, R> limit(int newLimit) {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
         newCursor.limit(newLimit);
-        return newCursor;
-    }
-
-    /**
-     * Creates a new {@link CollectionFindAndRerankCursor} that skips a specified number of results.
-     *
-     * @param newSkip the number of results to skip
-     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified skip value
-     */
-    public CollectionFindAndRerankCursor<DOC, RES> skip(int newSkip) {
-        checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
-        newCursor.skip(newSkip);
         return newCursor;
     }
 
@@ -227,9 +177,9 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      *
      * @return a new {@link CollectionFindAndRerankCursor} instance with similarity scores included
      */
-    public CollectionFindAndRerankCursor<DOC, RES> includeSimilarity() {
+    public CollectionFindAndRerankCursor<T, R> includeSimilarity() {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
         newCursor.includeSimilarity();
         return newCursor;
     }
@@ -239,139 +189,22 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      *
      * @return a new {@link CollectionFindAndRerankCursor} instance with sort vector metadata included
      */
-    public CollectionFindAndRerankCursor<DOC, RES> includeSortVector() {
+    public CollectionFindAndRerankCursor<T, R> includeSortVector() {
         checkIdleState();
-        CollectionFindAndRerankCursor<DOC, RES> newCursor = this.clone();
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
         newCursor.includeSortVector();
         return newCursor;
     }
 
     /**
-     * Change the state of the cursor to close.
+     * {PageState is always null, all is returned here }
      */
-    @Override
-    public void close() {
-        this.state = CursorState.CLOSED;
-    }
-
-    /**
-     * Rewind the cursor to the beginning.
-     */
-    private void rewind() {
-        this.state = CursorState.IDLE;
-        this.buffer.clear();
-        this.consumedCount = 0;
-    }
-
-    /**
-     * Consume the buffer and return the list of items.
-     *
-     * @param n
-     *      number of items to consume
-     * @return
-     *      list of items
-     */
-    public List<DOC> consumeBuffer(int n) {
-        if (state == CursorState.CLOSED || state == CursorState.IDLE) {
-            return Collections.emptyList();
-        }
-        List<DOC> result = new ArrayList<>();
-        int count = 0;
-        while (!buffer.isEmpty() && count < n) {
-            result.add(buffer.remove(0));
-            count++;
-        }
-        return result;
-    }
-
-    /**
-     * Validate that the cursor is in the IDLE state.
-     */
-    private void checkIdleState() {
-        if (state != CursorState.IDLE) {
-            throw new CursorException("Cannot modify cursor after it has been started.", state.toString());
-        }
-    }
-
-    /**
-     * Iterate over the cursor.
-     *
-     * @return
-     *     iterator over the results
-     */
-    @Override
-    public Iterator<RES> iterator() {
-        return new CursorIterator();
-    }
-
-    /**
-     * Fetches the next batch of documents into the buffer.
-     * This method handles paging, using the page state from the previous batch to fetch the next one.
-     */
-    private void fetchNextBatch() {
+    public void fetchNextBatch() {
+        // Only the first time
         if (currentPage == null) {
-            // Searching First Page
-            currentPage = collection.findPage(filter, collectionFindOptions);
-            buffer.addAll(currentPage.getResults());
-        } else if (currentPage.getPageState().isPresent()) {
-            // Searching next page if exist
-            collectionFindOptions.pageState(currentPage.getPageState().get());
-            currentPage = collection.findPage(filter, collectionFindOptions);
+            currentPage = dataSource.findAndRerankPage(filter, options, newRowType);
             buffer.addAll(currentPage.getResults());
         }
-    }
-
-    /**
-     * Checks if there are more elements in the cursor.
-     *
-     * @return {@code true} if there are more elements, {@code false} otherwise
-     */
-    public boolean hasNext() {
-        return iterator().hasNext();
-    }
-
-    /**
-     * Retrieves the next element from the cursor.
-     *
-     * @return the next element of type {@code R}
-     * @throws NoSuchElementException if no more elements are available
-     */
-    public RES next() {
-        return iterator().next();
-    }
-
-    /**
-     * Collects all remaining elements in the cursor into a list.
-     * Automatically closes the cursor after all elements are consumed.
-     *
-     * @return a {@link List} containing all remaining elements
-     */
-    public List<RES> toList() {
-        try {
-            return stream().toList();
-        } finally {
-            close();
-        }
-    }
-
-    /**
-     * Convert the current cursor as a stream
-     *
-     * @return
-     *      current as a stream
-     */
-    public Stream<RES> stream() {
-        return StreamSupport.stream(this.spliterator(), false);
-    }
-
-    /**
-     * Access the size of the buffer.
-     *
-     * @return
-     *      buffer count
-     */
-    public int getBufferedCount() {
-        return buffer.size();
     }
 
     /**
@@ -381,76 +214,6 @@ public class CollectionFindAndRerankCursor<DOC, RES> implements Iterable<RES>, C
      *      keyspace name
      */
     public String getKeyspace() {
-        return collection.getKeyspaceName();
+        return dataSource.getKeyspaceName();
     }
-
-    /**
-     * Access to the Sort Vector.
-     *
-     * @return
-     *      sort vector
-     */
-    public Optional<DataAPIVector> getSortVector() {
-        if (currentPage == null && state == CursorState.IDLE) {
-            fetchNextBatch();
-        }
-        if (currentPage == null) {
-            return Optional.empty();
-        }
-        return currentPage.getSortVector();
-    }
-
-    /**
-     * A private iterator implementation for iterating over the results of a {@link CollectionFindAndRerankCursor}.
-     * Handles lazy loading of data in batches to optimize memory usage and performance.
-     */
-    private class CursorIterator implements Iterator<RES> {
-
-        /**
-         * Checks if there are more elements to iterate over.
-         * If the buffer is empty, it fetches the next batch of documents.
-         *
-         * @return {@code true} if there are more elements, {@code false} otherwise
-         */
-        @Override
-        public boolean hasNext() {
-            if (state == CursorState.CLOSED) {
-                return false;
-            }
-            if (state == CursorState.IDLE) {
-                state = CursorState.STARTED;
-            }
-            if (!buffer.isEmpty()) {
-                return true;
-            }
-            // Fetch next batch of documents into buffer (if buffer is empty)
-            fetchNextBatch();
-            return !buffer.isEmpty();
-        }
-
-        /**
-         * Retrieves the next element in the iteration.
-         *
-         * @return the next element of type {@code R}
-         * @throws NoSuchElementException if no more elements are available
-         */
-        @Override
-        @SuppressWarnings("unchecked")
-        public RES next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-
-            DOC rawDoc = buffer.remove(0);
-            consumedCount++;
-
-            if (!documentType.isInstance(rawDoc)) {
-                Row row = RowMapper.mapAsRow(rawDoc);
-                return RowMapper.mapFromRow(row, collection.getOptions().getSerializer(), documentType);
-            } else {
-                return (RES) rawDoc;
-            }
-        }
-    }
-
 }

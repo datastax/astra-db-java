@@ -21,11 +21,10 @@ package com.datastax.astra.client.tables.commands.results;
  */
 
 
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
-import com.datastax.astra.internal.api.DataAPIDocumentResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class TableInsertManyResult {
     LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
 
     /** Document Response with flag is there. */
-    List<DataAPIDocumentResponse> documentResponses;
+    List<Document> documentResponses;
 
     /**
      * Default constructor.

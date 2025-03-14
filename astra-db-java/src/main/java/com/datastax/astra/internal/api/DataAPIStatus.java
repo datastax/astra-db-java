@@ -20,6 +20,7 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
@@ -50,7 +51,7 @@ public class DataAPIStatus {
     /**
      * Returned when insertMany with flag
      */
-    private List<DataAPIDocumentResponse> documentResponses;
+    private List<Document> documentResponses;
 
     /**
      * Sort Vector returned if flag include sortVector is set to true

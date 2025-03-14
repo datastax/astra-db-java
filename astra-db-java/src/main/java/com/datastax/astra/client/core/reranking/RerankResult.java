@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.lexical;
+package com.datastax.astra.client.core.reranking;
 
 /*-
  * #%L
@@ -20,19 +20,22 @@ package com.datastax.astra.client.core.lexical;
  * #L%
  */
 
-import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
-import com.datastax.astra.internal.serdes.core.LexicalSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
-import lombok.NonNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
-@JsonSerialize(using = LexicalSerializer.class)
-public class Lexical {
+import java.util.Map;
 
-    private String text;
+@Getter
+public class RerankResult<DOC> {
 
-    public Lexical(@NonNull String text) {
-        this.text = text;
+    private final DOC document;
+
+    private final Map<String, Double> scores;
+
+    public RerankResult(DOC document, Map<String, Double> scores) {
+        this.document = document;
+        this.scores = scores;
     }
+    
 }

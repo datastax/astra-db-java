@@ -20,15 +20,13 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
-import com.datastax.astra.client.collections.definition.CollectionDefinition;
-import com.datastax.astra.client.collections.definition.CollectionDescriptor;
-import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.collections.commands.Update;
-import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.commands.options.CollectionDeleteManyOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindAndRerankOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndDeleteOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndUpdateOptions;
@@ -38,35 +36,42 @@ import com.datastax.astra.client.collections.commands.options.CollectionInsertMa
 import com.datastax.astra.client.collections.commands.options.CollectionInsertOneOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionReplaceOneOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
 import com.datastax.astra.client.collections.commands.options.CountDocumentsOptions;
 import com.datastax.astra.client.collections.commands.options.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionDeleteResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.commands.results.FindOneAndReplaceResult;
-import com.datastax.astra.client.core.options.BaseOptions;
-import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
-import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.query.Filters;
-import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.CollectionDescriptor;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
+import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.commands.Command;
+import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.paging.Page;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.reranking.RerankResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.EscapeUtils;
 import lombok.Getter;
@@ -74,7 +79,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -91,6 +102,7 @@ import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CH
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.internal.serdes.tables.RowMapper.mapFromRow;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -1051,6 +1063,96 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return find(null, new CollectionFindOptions());
     }
 
+    public Page<T> findPage(Filter filter, CollectionFindOptions options) {
+        return findPage(filter, options, getDocumentClass());
+    }
+
+
+    // -----------------------------
+    // ---   Find and Rerank    ----
+    // -----------------------------
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public CollectionFindAndRerankCursor<T,T> findAndRerank(Filter filter, CollectionFindAndRerankOptions options) {
+        return findAndRerank(filter, options, getDocumentClass());
+    }
+
+    public <R> CollectionFindAndRerankCursor<T, R> findAndRerank(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
+        return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
+    }
+
+    public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
+        Command findAndRerankCommand = Command
+                .create("findAndRerank")
+                .withFilter(filter);
+        if (options != null) {
+            findAndRerankCommand
+                    .withSort(options.getSortArray())
+                    .withProjection(options.getProjectionArray())
+                    .withOptions(new Document()
+                            .appendIfNotNull("rerankOn", options.rerankOn())
+                            .appendIfNotNull("limit", options.limit())
+                            .appendIfNotNull("hybridProjection", options.hybridProjection().getValue())
+                            .appendIfNotNull("hybridLimits", options.hybridLimits())
+                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity())
+                    )
+            ;
+        }
+
+        // Responses MOCK for now
+        DataAPIResponse apiResponse = runCommand(findAndRerankCommand, options);
+
+        // load sortVector if available
+        DataAPIVector sortVector = null;
+        if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
+        }
+
+        List<RerankResult<R>> results = new ArrayList<>();
+        List<Document> documents = apiResponse.getData().getDocuments();
+        List<Document> documentResponses = apiResponse.getStatus().getDocumentResponses();
+        if (documents == null || documentResponses == null) {
+            throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
+                    apiResponse, "Documents or Documents reponses are not retuned");
+        }
+        if (documents.size() != documentResponses.size()) {
+            throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
+                    apiResponse, "Documents or Documents responses do not match");
+        }
+
+        for(int i = 0; i < documents.size(); i++) {
+
+            // Getting document and projecting as expected
+            Document document = documents.get(i);
+
+            // MAP WITH DOCUMENT FUNCTION
+            DocumentSerializer serializer = new DocumentSerializer();
+            R results1 = serializer.convertValue(document, newRowType);
+
+            // MAP WITH ROW FUNCTION
+            Row row = RowMapper.mapAsRow(document);
+            R result = RowMapper.mapFromRow(row, getSerializer(), newRowType);
+
+            // Getting associated document response
+            Document documentResponse = documentResponses.get(i);
+            Map<String, Double> scores = documentResponse.getMap("scores", String.class, Double.class);
+
+            results.add(new RerankResult<>(results1, scores));
+        }
+        // PageState is always NULL
+        return new Page<>(null, results, sortVector);
+    }
+
     /**
      * Executes a paginated 'find' query on the collection using the specified filter and find options.
      * <p>
@@ -1073,7 +1175,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.
      */
-    public Page<T> findPage(Filter filter, CollectionFindOptions options) {
+    public <R> Page<R> findPage(Filter filter, CollectionFindOptions options, Class<R> newRowType) {
         Command findCommand = Command
                 .create("find")
                 .withFilter(filter);
@@ -1094,12 +1196,15 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
             sortVector = apiResponse.getStatus().getSortVector();
         }
-
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
-                apiResponse.getData().getDocuments()
-                        .stream()
-                        .map(d -> d.map(getDocumentClass()))
+                apiResponse.getData().getDocuments().stream()
+                        .map(d -> {
+                            Row row = RowMapper.mapAsRow(d);
+                            return mapFromRow(row, getSerializer(), newRowType);
+                        })
+                        // .map(d -> d.map(newRowType))
+                        //.map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))
                         .collect(Collectors.toList()), sortVector);
     }
 
@@ -1129,23 +1234,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return CompletableFuture.supplyAsync(() -> findPage(filter, options));
     }
 
-    // -----------------------------
-    // ---   Find and Rerank    ----
-    // -----------------------------
-
-    /**
-     * Finds all documents in the collection.
-     *
-     * @param filter
-     *      the query filter
-     * @param options
-     *      options of find one
-     * @return
-     *      the find iterable interface
-     */
-    public CollectionFindCursor<T, T> findAndRerank(Filter filter, CollectionFindOptions options) {
-        return new CollectionFindCursor<>(this, filter, options, getDocumentClass());
-    }
 
     // -------------------------
     // ---   distinct       ----

@@ -20,12 +20,20 @@ package com.datastax.astra.client.collections.commands.options;
  * #L%
  */
 
+import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.hybrid.Hybrid;
+import com.datastax.astra.client.core.hybrid.HybridLimits;
+import com.datastax.astra.client.core.hybrid.HybridProjection;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import java.util.Map;
+
+import static com.datastax.astra.client.collections.Collection.DEFAULT_COLLECTION_SERIALIZER;
 
 /**
  * List Options for a FindOne command.
@@ -47,7 +55,7 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     /**
      * Skip a few result in the beginning
      */
-    Integer hybridLimits;
+    HybridLimits hybridLimits;
 
     /**
      * Stop processing after a few results
@@ -55,31 +63,56 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     Integer limit;
 
     /**
+     * Options for Rerank on.
+     */
+    String rerankOn;
+
+    /**
+     * Options for hybrid projection
+     */
+    HybridProjection hybridProjection;
+
+    /**
+     * Flag to include sortVector in the result when operating a semantic search.
+     */
+    Boolean includeSortVector;
+
+    Boolean includeSimilarity;
+
+    /**
      * Default constructor.
      */
     public CollectionFindAndRerankOptions() {
-    }
-
-    /**
-     * Get the sort options.
-     *
-     * @return
-     *      sort options
-     */
-    public Sort[] getSortArray() {
-        return sort;
+        super(null, CommandType.GENERAL_METHOD, DEFAULT_COLLECTION_SERIALIZER, null);
     }
 
     /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
-     * @param s
-     *      sort options
+     *
+     * @param hybrid
+     *      hybrid
      * @return
      *     current command
      */
-    public CollectionFindAndRerankOptions sort(Sort... s) {
-        this.sort = s;
+    public CollectionFindAndRerankOptions hybridSort(Hybrid hybrid) {
+        return sort(Sort.hybrid(hybrid));
+    }
+
+    /**
+     * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
+     *
+     * @param sorts
+     *      sorts criteria
+     * @return
+     *     current command
+     */
+    public CollectionFindAndRerankOptions sort(Sort... sorts) {
+        this.sort = sorts;
         return this;
+    }
+
+    public Sort[] getSortArray() {
+        return this.sort;
     }
 
     /**
@@ -128,9 +161,41 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
         if (limit < 0) {
             throw new IllegalArgumentException("HybridLimits must be positive");
         }
-        this.hybridLimits = hybridLimits;
+        this.hybridLimits = new HybridLimits(hybridLimits);
         return this;
     }
 
+    /**
+     * Add a hybridLimits clause in the find block
+     *
+     * @param hybridMapLimits value for limit options
+     * @return current command
+     */
+    public CollectionFindAndRerankOptions hybridLimits(Map<String, Integer> hybridMapLimits) {
+        this.hybridLimits = new HybridLimits(hybridMapLimits);
+        return this;
+    }
+
+    /**
+     * Add a rerankOn clause in the find block
+     *
+     * @param rerankOn value for rerankOn options
+     * @return current command
+     */
+    public CollectionFindAndRerankOptions rerankOn(String rerankOn) {
+        this.rerankOn = rerankOn;
+        return this;
+    }
+
+    /**
+     * Add a hybridProjection clause in the find block
+     *
+     * @param hybridProjection value for hybridProjection options
+     * @return current command
+     */
+    public CollectionFindAndRerankOptions hybridProjection(HybridProjection hybridProjection) {
+        this.hybridProjection = hybridProjection;
+        return this;
+    }
 
 }

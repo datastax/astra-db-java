@@ -35,7 +35,7 @@ public class LexicalOptions {
     /**
      * Size of the vector.
      */
-    private boolean enabled;
+    private boolean enabled = true;
 
     /**
      * Similarity metric.

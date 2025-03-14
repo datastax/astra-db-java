@@ -21,10 +21,9 @@ package com.datastax.astra.client.collections.commands.results;
  */
 
 
-import com.datastax.astra.internal.api.DataAPIDocumentResponse;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public class CollectionInsertManyResult {
     List<Object> insertedIds;
 
     /** Document Response with flag is there. */
-    List<DataAPIDocumentResponse> documentResponses;
+    List<Document> documentResponses;
 
     /**
      * Default constructor.

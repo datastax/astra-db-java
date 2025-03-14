@@ -1,6 +1,7 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertOneOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.commands.Update;
@@ -22,6 +23,7 @@ import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.api.DataAPIResponse;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
@@ -424,6 +426,9 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
         col.deleteAll();
         col.insertOne(new Document().id(1).append("hello", "world"));
         col.insertOne(new Document().id(2).append("bonjour", "monde"));
+
+        new CollectionInsertOneOptions()
+                .registerObserver("logger", new LoggingCommandObserver(Document.class));
 
         // Matched 1, modified 1, document is present
         Optional<Document> opt1 = col.findOneAndReplace(eq(1), new Document().id(1).append("hello", "world2"));

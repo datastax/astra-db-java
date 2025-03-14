@@ -1,4 +1,4 @@
-package com.datastax.astra.client.core.lexical;
+package com.datastax.astra.internal.command;
 
 /*-
  * #%L
@@ -20,19 +20,20 @@ package com.datastax.astra.client.core.lexical;
  * #L%
  */
 
-import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
-import com.datastax.astra.internal.serdes.core.LexicalSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
-import lombok.NonNull;
+import com.datastax.astra.client.core.paging.CursorState;
+import com.datastax.astra.client.exceptions.DataAPIException;
 
-@Data
-@JsonSerialize(using = LexicalSerializer.class)
-public class Lexical {
+public class CursorError extends DataAPIException {
 
-    private String text;
+    // The underlying cursor which caused this error.
+    public final AbstractCursor<?, ?> cursor;
 
-    public Lexical(@NonNull String text) {
-        this.text = text;
+    // The state of the cursor when the error occurred.
+    public final CursorState state;
+
+    public CursorError(String message, AbstractCursor<?, ?> cursor) {
+        super(DEFAULT_ERROR_CODE, message);
+        this.cursor = cursor;
+        this.state = cursor.getState();
     }
 }

@@ -40,9 +40,12 @@ import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
+import com.datastax.astra.client.core.hybrid.HybridLimits;
+import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
 import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
@@ -107,6 +110,7 @@ public class DocumentSerializer implements DataAPISerializer {
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
+
             // Date
             module.addSerializer(Date.class, new EJsonDateSerializer());
             module.addDeserializer(Date.class, new EJsonDateDeserializer());
@@ -135,6 +139,10 @@ public class DocumentSerializer implements DataAPISerializer {
             // DataAPIVector
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
             module.addDeserializer(DataAPIVector.class, new DataAPIVectorDeserializer());
+            // Analyzer
+            module.addSerializer(Analyzer.class, new AnalyzerSerializer());
+            // HybridLimits
+            module.addSerializer(HybridLimits.class, new HybridLimitsSerializer());
             objectMapper.registerModule(module);
         }
         return objectMapper;

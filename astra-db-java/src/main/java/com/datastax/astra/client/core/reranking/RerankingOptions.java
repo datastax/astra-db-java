@@ -36,7 +36,7 @@ public class RerankingOptions {
     /**
      * Size of the vector.
      */
-    private boolean enabled;
+    private boolean enabled = true;
 
     /**
      * Service for vectorization

@@ -269,6 +269,11 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             String jsonCommand = serializer.marshall(command);
             log.debug("Json command: " + AnsiUtils.yellow("{}"), jsonCommand);
 
+            // MOCK
+            if (command.getName().equalsIgnoreCase("findAndRerank")) {
+                return getSerializer().unMarshallBean(MOCK_RESPONSE_1, DataAPIResponse.class);
+            }
+
             URI targetUri;
             try {
                 targetUri = new URI(getApiEndpoint());
@@ -451,5 +456,91 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     public OPTIONS getOptions() {
         return options;
     }
+
+    public static String MOCK_RESPONSE_2 = """
+            {
+              "data": {
+                "documents": [
+                  {
+                    "$similarity": 0.773991,
+                    "$vectorize": "I have a neutral opinion on both cheese and monkeys",
+                    "_id": 3,
+                    "name": "Bob"
+                  },
+                  {
+                    "$similarity": 0.7426339,
+                    "$vectorize": "I like monkeys",
+                    "_id": 2,
+                    "name": "Aaron"
+                  },
+                  {
+                    "$similarity": 1,
+                    "$vectorize": "I like cheese",
+                    "_id": 1,
+                    "name": "Alice"
+                  }
+                ],
+                "nextPageState": null
+              },
+            
+              "status": {
+                "documentResponses": [
+                  {
+                    "$rerank": 0.4065417,
+                    "$vector": 0.773991
+                  },
+                  {
+                    "$rerank": 0.36485058,
+                    "$vector": 0.7426339
+                  },
+                  {
+                    "$rerank": 0.026098311,
+                    "$vector": 1
+                  }
+                ]
+              }
+            }
+            """;
+
+    public static String MOCK_RESPONSE_1 = """
+            {
+                "data": {
+                  "documents": [
+                    {
+                      "_id": 2,
+                      "$vectorize": "cheese is the best thing since monkeys!",
+                      "createOn": "monday"
+                    },
+                    {
+                      "_id": 1,
+                      "content": "monkeys are better than cheese",
+                      "createOn": "monday"
+                    }
+                  ],
+                  "nextPageState": null
+                },
+                "status": {
+                  "documentResponses": [
+                    {
+                      "_id": 2,
+                      "scores": {
+                        "$reranker": 1,
+                        "$vector": 0.23,
+                        "$lexical": 0.73
+                      }
+                    },
+                    {
+                      "_id": 1,
+                      "scores": {
+                        "$rerank": -1,
+                        "open_ai_vector_col": 0.23,
+                        "vertex_ai_vector_col": 0.23,
+                        "my_bm25_text_col": 0.4
+                      }
+                    }
+                  ]
+                }
+              }
+            """;
 
 }

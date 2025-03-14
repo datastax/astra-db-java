@@ -44,7 +44,7 @@ public @interface ColumnVector {
      *
      * @return the custom column name or an empty string if not set
      */
-    String value() default "";
+    String name() default "";
 
     /**
      * Specifies the dimension of the column, usually relevant for multidimensional data.

@@ -37,11 +37,13 @@ package com.datastax.astra.internal.serdes;
  */
 
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
+import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeDeserializer;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeSerializer;
+import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
 import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
@@ -113,6 +115,8 @@ public class DatabaseSerializer implements DataAPISerializer {
             // DataAPIVector
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
             module.addDeserializer(DataAPIVector.class, new DataAPIVectorDeserializer());
+            // Analyzer
+            module.addSerializer(Analyzer.class, new AnalyzerSerializer());
             objectMapper.registerModule(module);
         }
         return objectMapper;

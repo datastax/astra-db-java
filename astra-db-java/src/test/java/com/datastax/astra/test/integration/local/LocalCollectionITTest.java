@@ -50,10 +50,13 @@ class LocalCollectionITTest extends AbstractCollectionITTest {
 
     @Override
     protected AstraEnvironment getAstraEnvironment() { return null; }
+
     @Override
     protected CloudProviderType getCloudProvider() { return null; }
+
     @Override
     protected String getRegion() { return "";}
+
     @Override
     protected Database getDatabase() {
         if (database == null) {

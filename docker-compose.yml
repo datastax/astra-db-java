@@ -9,7 +9,7 @@ services:
     mem_limit: 2500M
     environment:
       - MAX_HEAP_SIZE=1536M
-      - CLUSTER_NAME=datacenter1
+      - CLUSTER_NAME=dc1
       - DS_LICENSE=accept
     volumes:
       - ${PWD}/dse.yaml:/opt/dse/resources/dse/conf/dse.yaml
@@ -21,31 +21,31 @@ services:
       timeout: 10s
       retries: 20
 
-  data-api:
-    #image: stargateio/data-api:v1
-    image: stargateio/jsonapi:v1
-    depends_on:
-      dse-1:
-        condition: service_healthy
-    networks:
-      - stargate
-    ports:
-      - "8181:8181"
-    mem_limit: 2G
-    environment:
-      - JAVA_MAX_MEM_RATIO=75
-      - JAVA_INITIAL_MEM_RATIO=50
-      - GC_CONTAINER_OPTIONS=-XX:+UseG1GC
-      - STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=dse-1
-      - STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1
-      - QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE
-      - QUARKUS_LOG_LEVEL=INFO
-      - STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true
-      - JAVA_OPTS_APPEND=-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
-    healthcheck:
-      test: curl -f http://localhost:8181/stargate/health || exit 1
-      interval: 5s
-      timeout: 10s
-      retries: 10
+#  data-api:
+#    #image: stargateio/data-api:v1
+#    image: stargateio/jsonapi:v1
+#    depends_on:
+#      dse-1:
+#        condition: service_healthy
+#    networks:
+#      - stargate
+#    ports:
+#      - "8181:8181"
+#    mem_limit: 2G
+#    environment:
+#      - JAVA_MAX_MEM_RATIO=75
+#      - JAVA_INITIAL_MEM_RATIO=50
+#      - GC_CONTAINER_OPTIONS=-XX:+UseG1GC
+#      - STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=dse-1
+#      - STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=datacenter1
+#      - QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE
+#      - QUARKUS_LOG_LEVEL=INFO
+#      - STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true
+#      - JAVA_OPTS_APPEND=-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+#    healthcheck:
+#      test: curl -f http://localhost:8181/stargate/health || exit 1
+#      interval: 5s
+#      timeout: 10s
+#      retries: 10
 networks:
   stargate:

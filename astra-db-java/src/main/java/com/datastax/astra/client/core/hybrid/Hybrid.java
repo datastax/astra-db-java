@@ -20,34 +20,40 @@ package com.datastax.astra.client.core.hybrid;
  * #L%
  */
 
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.lexical.Lexical;
 import com.datastax.astra.client.core.vectorize.Vectorize;
-import com.datastax.astra.internal.utils.Assert;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.datastax.astra.internal.serdes.core.HybridSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 @Data
+@JsonSerialize(using = HybridSerializer.class)
 public class Hybrid {
 
-    @JsonProperty("$vectorize")
-    final Vectorize vectorize;
-
-    @JsonProperty("$lexical")
-    final Lexical lexical;
+    final Document doc;
 
     public Hybrid(String text) {
-        this(new Vectorize(text), new Lexical(text));
+        this.doc = new Document()
+                .append(DataAPIKeywords.VECTORIZE.getKeyword(), text)
+                .append(DataAPIKeywords.LEXICAL.getKeyword(), text);
     }
 
     public Hybrid(String vectorize, String lexical) {
-        this(new Vectorize(vectorize), new Lexical(lexical));
+        this.doc = new Document()
+                .append(DataAPIKeywords.VECTORIZE.getKeyword(), vectorize)
+                .append(DataAPIKeywords.LEXICAL.getKeyword(), lexical);
     }
 
     public Hybrid(Vectorize vectorize, Lexical lexical) {
-        Assert.notNull(vectorize, "vectorize cannot be null");
-        Assert.notNull(lexical, "lexical cannot be null");
-        this.vectorize = vectorize;
-        this.lexical = lexical;
+        this.doc = new Document()
+                .append(DataAPIKeywords.VECTORIZE.getKeyword(), vectorize)
+                .append(DataAPIKeywords.LEXICAL.getKeyword(), lexical);
+    }
+
+    public Hybrid(Document doc) {
+        this.doc = doc;
     }
 
 }

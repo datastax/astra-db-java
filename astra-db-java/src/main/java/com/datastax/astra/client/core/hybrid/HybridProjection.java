@@ -1,4 +1,6 @@
-package com.datastax.astra.client.core.lexical;
+package com.datastax.astra.client.core.hybrid;
+
+import lombok.Getter;
 
 /*-
  * #%L
@@ -19,20 +21,27 @@ package com.datastax.astra.client.core.lexical;
  * limitations under the License.
  * #L%
  */
+@Getter
+public enum HybridProjection {
 
-import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
-import com.datastax.astra.internal.serdes.core.LexicalSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import lombok.Data;
-import lombok.NonNull;
+    /**
+     * Indicates that the projection will not retrieve any sorting informations
+     */
+    NONE("none"),
 
-@Data
-@JsonSerialize(using = LexicalSerializer.class)
-public class Lexical {
+    /**
+     * Indicates that the projection will not retrieve the 'passage:setPassage' as key value
+     */
+    PASSAGE("passage"),
 
-    private String text;
+    /**
+     * Indicates that the projection will not retrieve the extended scores
+     */
+    SCORES("scores");
 
-    public Lexical(@NonNull String text) {
-        this.text = text;
+    String value;
+
+    HybridProjection(String value) {
+       this.value = value;
     }
 }

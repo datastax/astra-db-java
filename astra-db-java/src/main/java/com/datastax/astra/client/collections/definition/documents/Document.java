@@ -54,6 +54,8 @@ import lombok.NonNull;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -64,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -711,15 +714,76 @@ public class Document implements Serializable {
         return constructValuesList(key, clazz, null);
     }
 
+    public <K,V> Map<K,V> getMap(@NonNull final String key, @NonNull final Class<K> keyClass, @NonNull final Class<V> valueClass) {
+        return constructValuesMap(key, keyClass, valueClass, null);
+    }
+
+    /**
+     * Converting the Number to the expected type.
+     */
+    private static final Map<Class<?>, Function<Number, ?>> NUMBER_CONVERTERS = new HashMap<>();
+    static {
+        NUMBER_CONVERTERS.put(Double.class, Number::doubleValue);
+        NUMBER_CONVERTERS.put(Float.class, Number::floatValue);
+        NUMBER_CONVERTERS.put(Long.class, Number::longValue);
+        NUMBER_CONVERTERS.put(Integer.class, Number::intValue);
+        NUMBER_CONVERTERS.put(Short.class, Number::shortValue);
+        NUMBER_CONVERTERS.put(BigInteger.class, num -> {
+            if (num instanceof BigDecimal) {
+                return ((BigDecimal) num).toBigInteger();
+            }
+            return BigInteger.valueOf(num.longValue());
+        });
+        NUMBER_CONVERTERS.put(BigDecimal.class, num -> {
+            if (num instanceof BigDecimal) {
+                return num;
+            } else if (num instanceof BigInteger) {
+                return new BigDecimal((BigInteger) num);
+            }
+            return BigDecimal.valueOf(num.doubleValue());
+        });
+    }
+
+
+    @SuppressWarnings("unchecked")
+    private <V, K> Map<K, V> constructValuesMap(@NonNull String key, @NonNull Class<K> keyClass,
+                                                @NonNull Class<V> valueClass, Object defaultValue) {
+        Map<K, V> value = get(key, Map.class);
+        if (value == null) {
+            return (Map<K, V>) defaultValue;
+        }
+        for (Map.Entry<K, V> entry : value.entrySet()) {
+            if (entry.getKey() != null && !keyClass.isAssignableFrom(entry.getKey().getClass())) {
+                throw new ClassCastException(String.format("Map key cannot be cast to %s", keyClass.getName()));
+            }
+            if (entry.getValue() != null && !valueClass.isAssignableFrom(entry.getValue().getClass())) {
+                if (entry.getValue() instanceof Number && NUMBER_CONVERTERS.containsKey(valueClass)) {
+                    Function<Number, ?> converter = NUMBER_CONVERTERS.get(valueClass);
+                    entry.setValue((V) converter.apply((Number) entry.getValue()));
+                } else {
+                    throw new ClassCastException(String.format("Map value %s, cannot be cast to %s",
+                            entry.getValue().getClass(), valueClass.getName()));
+                }
+            }
+        }
+        return value;
+    }
+
     @SuppressWarnings("unchecked")
     private <T> List<T> constructValuesList(final String key, final Class<T> clazz, final List<T> defaultValue) {
         List<T> value = get(key, List.class);
         if (value == null) {
             return defaultValue;
         }
-        for (Object item : value) {
+        for (int i = 0; i < value.size(); i++) {
+            Object item = value.get(i);
             if (item != null && !clazz.isAssignableFrom(item.getClass())) {
-                throw new ClassCastException(String.format("List element cannot be cast to %s", clazz.getName()));
+                if (item instanceof Number && NUMBER_CONVERTERS.containsKey(clazz)) {
+                    Function<Number, ?> converter = NUMBER_CONVERTERS.get(clazz);
+                    value.set(i, (T) converter.apply((Number) item));
+                } else {
+                    throw new ClassCastException(String.format("List element cannot be cast to %s", clazz.getName()));
+                }
             }
         }
         return value;

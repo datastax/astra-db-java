@@ -46,7 +46,7 @@ public @interface Column {
      *
      * @return the custom column name or an empty string if not set
      */
-    String value();
+    String name();
 
     /**
      * Specifies the type of the column. If not provided, the field's type will be used.

@@ -20,6 +20,8 @@ package com.datastax.astra.client.collections.commands.options;
  * #L%
  */
 
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
@@ -27,6 +29,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+
+import static com.datastax.astra.client.collections.Collection.DEFAULT_COLLECTION_SERIALIZER;
+import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * List Options for a FindOne command.
@@ -36,14 +41,14 @@ import lombok.experimental.Accessors;
 public class CollectionFindOptions extends BaseOptions<CollectionFindOptions> {
 
     /**
-     * Order by.
-     */
-    Sort[] sort;
-
-    /**
      * Projection for return document (select)
      */
     Projection[] projection;
+
+    /**
+     * Order by.
+     */
+    Sort[] sort;
 
     /**
      * Skip a few result in the beginning
@@ -74,6 +79,7 @@ public class CollectionFindOptions extends BaseOptions<CollectionFindOptions> {
      * Default constructor.
      */
     public CollectionFindOptions() {
+        super(null, CommandType.GENERAL_METHOD, DEFAULT_COLLECTION_SERIALIZER, null);
     }
 
     /**

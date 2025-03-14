@@ -30,8 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@Setter
-@Accessors(fluent = true, chain = true)
+@Getter @Setter
 public class RerankingServiceOptions {
 
     /**
