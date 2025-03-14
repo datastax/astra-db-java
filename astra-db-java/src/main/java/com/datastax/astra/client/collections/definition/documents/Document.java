@@ -744,29 +744,40 @@ public class Document implements Serializable {
         });
     }
 
-
     @SuppressWarnings("unchecked")
     private <V, K> Map<K, V> constructValuesMap(@NonNull String key, @NonNull Class<K> keyClass,
                                                 @NonNull Class<V> valueClass, Object defaultValue) {
-        Map<K, V> value = get(key, Map.class);
-        if (value == null) {
+        Map<K, V> originalMap = get(key, Map.class);
+        if (originalMap == null) {
             return (Map<K, V>) defaultValue;
         }
-        for (Map.Entry<K, V> entry : value.entrySet()) {
-            if (entry.getKey() != null && !keyClass.isAssignableFrom(entry.getKey().getClass())) {
-                throw new ClassCastException(String.format("Map key cannot be cast to %s", keyClass.getName()));
-            }
-            if (entry.getValue() != null && !valueClass.isAssignableFrom(entry.getValue().getClass())) {
-                if (entry.getValue() instanceof Number && NUMBER_CONVERTERS.containsKey(valueClass)) {
-                    Function<Number, ?> converter = NUMBER_CONVERTERS.get(valueClass);
-                    entry.setValue((V) converter.apply((Number) entry.getValue()));
+        Map<K, V> result = new HashMap<>();
+        for (Map.Entry<K, V> entry : originalMap.entrySet()) {
+            K originalKey = entry.getKey();
+            V value = entry.getValue();
+            K newKey = originalKey;
+            // Convert key if necessary
+            if (originalKey != null && !keyClass.isAssignableFrom(originalKey.getClass())) {
+                if (originalKey instanceof Number && NUMBER_CONVERTERS.containsKey(keyClass)) {
+                    Function<Number, ?> converter = NUMBER_CONVERTERS.get(keyClass);
+                    newKey = (K) converter.apply((Number) originalKey);
                 } else {
-                    throw new ClassCastException(String.format("Map value %s, cannot be cast to %s",
-                            entry.getValue().getClass(), valueClass.getName()));
+                    throw new ClassCastException(String.format("Map key cannot be cast to %s", keyClass.getName()));
                 }
             }
+            // Convert value if necessary
+            if (value != null && !valueClass.isAssignableFrom(value.getClass())) {
+                if (value instanceof Number && NUMBER_CONVERTERS.containsKey(valueClass)) {
+                    Function<Number, ?> converter = NUMBER_CONVERTERS.get(valueClass);
+                    value = (V) converter.apply((Number) value);
+                } else {
+                    throw new ClassCastException(String.format("Map value %s, cannot be cast to %s",
+                            value.getClass(), valueClass.getName()));
+                }
+            }
+            result.put(newKey, value);
         }
-        return value;
+        return result;
     }
 
     @SuppressWarnings("unchecked")
