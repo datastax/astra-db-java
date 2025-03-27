@@ -30,6 +30,7 @@ public class CsvPhilosophers {
         CsvLoader.load(csvFilename, collection, new CsvRowMapper() {
             @Override
             public Document map(Document csvRow) {
+
                 // Tags should be an Array
                 csvRow.vectorize(csvRow.getString("quote"));
                 csvRow.append("tags",csvRow.getString("tags").split(";"));

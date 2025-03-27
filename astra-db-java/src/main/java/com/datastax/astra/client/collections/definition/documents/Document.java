@@ -46,7 +46,7 @@ import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.EscapeUtils;
-import com.datastax.astra.internal.utils.Preview;
+import com.datastax.astra.internal.utils.BetaPreview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -383,7 +383,7 @@ public class Document implements Serializable {
      * @return
      *      self reference
      */
-    @Preview
+    @BetaPreview
     public Document vectorize(String passage, String setPassage) {
         return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), Vectorize.of(passage, setPassage));
     }
@@ -396,7 +396,7 @@ public class Document implements Serializable {
      * @return
      *      self reference
      */
-    @Preview
+    @BetaPreview
     public Document hybrid(String passage) {
         return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(passage));
     }
@@ -411,7 +411,7 @@ public class Document implements Serializable {
      * @return
      *      self reference
      */
-    @Preview
+    @BetaPreview
     public Document hybrid(String vectorize, String lexical) {
         return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(vectorize, lexical));
     }
@@ -424,8 +424,21 @@ public class Document implements Serializable {
      * @return
      *      self reference
      */
+    @BetaPreview
     public Document lexical(String text) {
         return appendIfNotNull(DataAPIKeywords.LEXICAL.getKeyword(), text);
+    }
+
+    /**
+     * Access attribute with vectorize name if any.
+     *
+     * @return
+     *      value for vectorize
+     */
+    @BetaPreview
+    @JsonIgnore
+    public Optional<String> getLexical() {
+        return Optional.ofNullable((String) documentMap.get(DataAPIKeywords.LEXICAL.getKeyword()));
     }
 
     /**
@@ -448,7 +461,7 @@ public class Document implements Serializable {
     @JsonIgnore
     public Optional<DataAPIVector> getVector() {
         return Optional
-                .ofNullable(get(DataAPIKeywords.VECTOR.getKeyword(), float[].class))
+                .ofNullable((float[]) documentMap.get(DataAPIKeywords.VECTOR.getKeyword()))
                 .map(DataAPIVector::new);
     }
 
@@ -484,7 +497,7 @@ public class Document implements Serializable {
      */
     @JsonIgnore
     public Optional<Double> getSimilarity() {
-        return Optional.ofNullable(get(DataAPIKeywords.SIMILARITY.getKeyword(), Double.class));
+        return Optional.ofNullable((Double) documentMap.get(DataAPIKeywords.SIMILARITY.getKeyword()));
     }
 
     /**
@@ -860,7 +873,7 @@ public class Document implements Serializable {
             /*
              * FieldName
              */
-            Matcher matcher = Pattern.compile("([\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
+            Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
                     .matcher(token);
             if (!matcher.matches()) return null;
 

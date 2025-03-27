@@ -9,8 +9,8 @@ import com.datastax.astra.client.collections.commands.options.CollectionFindOneO
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.DataAPIKeywords;
@@ -63,18 +63,6 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
             return parameters;
         }
         return null;
-    }
-
-    protected void dropCollection(String name) {
-        getDatabase().dropCollection(name);
-        log.info("Collection {} dropped", name);
-    }
-
-    protected void dropAllCollections() {
-        getDatabase().listCollections().forEach(collection -> {
-            getDatabase().dropCollection(collection.getName());
-            log.info("Collection {} dropped", collection.getName());
-        });
     }
 
     public void testEmbeddingProvider(String key, EmbeddingProvider provider) {
@@ -149,6 +137,7 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
     }
 
     protected void testCollection(Collection<Document> collection, EmbeddingHeadersProvider authProvider) {
+
         List<Document> entries = List.of(
                 new Document(1).vectorize("A lovestruck Romeo sings the streets a serenade"),
                 new Document(2).vectorize("Finds a streetlight, steps out of the shade"),
@@ -161,9 +150,12 @@ public abstract class AbstractVectorizeITTest extends AbstractDataAPITest {
         );
 
         // Ingestion
-        CollectionInsertManyResult res = collection.insertMany(entries, new CollectionInsertManyOptions().embeddingAuthProvider(authProvider));
+        CollectionInsertManyResult res = collection.insertMany(entries, new CollectionInsertManyOptions()
+                .embeddingAuthProvider(authProvider));
         assertThat(res.getInsertedIds()).hasSize(8);
         log.info("{} Documents inserted", res.getInsertedIds().size());
+
+        // Find one with Vectorize
         Optional<Document> doc = collection.findOne(null,
                 new CollectionFindOneOptions()
                         .sort(Sort.vectorize("You shouldn't come around here singing up at people like tha"))

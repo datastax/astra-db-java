@@ -5,7 +5,7 @@ import com.datastax.astra.client.collections.commands.options.CollectionFindOneO
 import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Sort;

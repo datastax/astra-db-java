@@ -21,6 +21,9 @@ package com.datastax.astra.internal.reflection;
  */
 
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.exceptions.DataAPIClientException;
+import com.datastax.astra.client.exceptions.ErrorCodesClient;
+import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypeMapper;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
@@ -159,11 +162,9 @@ public class EntityBeanDefinition<T> {
                 } else if (columnVector != null) {
                     field.setColumnType(ColumnTypes.VECTOR);
                     field.setSimilarityMetric(columnVector.metric());
+                    field.setVectorDimension(columnVector.dimension());
                     if (Utils.hasLength(columnVector.name())) {
                         field.setColumnName(columnVector.name());
-                    }
-                    if (columnVector.dimension() == -1) {
-                        field.setVectorDimension(columnVector.dimension());
                     }
                     if (Utils.hasLength(columnVector.provider())) {
                         field.setVectorServiceProvider(columnVector.provider());
@@ -297,9 +298,10 @@ public class EntityBeanDefinition<T> {
 
             // Vector: Dimension and Metric
             if (colType == ColumnTypes.VECTOR) {
-                if (field.getVectorDimension() != null) {
-                    column.append("dimension", field.getVectorDimension());
+                if (field.getVectorDimension() <= 0 || field.getVectorDimension() > 8192 ) {
+                    throw new DataAPIClientException(ErrorCodesClient.INVALID_ANNOTATION, "ColumnVector", field.getName(), "dimension is required and must be in between 1 amd 8192");
                 }
+                column.append("dimension", field.getVectorDimension());
                 column.append("metric", field.getSimilarityMetric());
 
                 if (Utils.hasLength(field.getVectorServiceProvider())) {

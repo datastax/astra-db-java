@@ -2,7 +2,7 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Sort;

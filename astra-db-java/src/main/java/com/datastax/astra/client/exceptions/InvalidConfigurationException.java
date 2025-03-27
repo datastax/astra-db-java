@@ -20,13 +20,13 @@ package com.datastax.astra.client.exceptions;
  * #L%
  */
 
-import static com.datastax.astra.client.exceptions.ClientErrorCodes.CONFIG_MISSING;
-import static com.datastax.astra.client.exceptions.ClientErrorCodes.MISSING_ANNOTATION;
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.MISSING_CONFIGURATION;
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.MISSING_ANNOTATION;
 
 /**
  * Exception thrown when the configuration is invalid.
  */
-public class InvalidConfigurationException extends DataAPIException {
+public class InvalidConfigurationException extends DataAPIClientException {
 
     /**
      * Constructor with code and message
@@ -35,7 +35,7 @@ public class InvalidConfigurationException extends DataAPIException {
      * @param message
      *      error message
      */
-    public InvalidConfigurationException(ClientErrorCodes code, String message) {
+    public InvalidConfigurationException(ErrorCodesClient code, Object... message) {
         super(code, message);
     }
 
@@ -48,8 +48,8 @@ public class InvalidConfigurationException extends DataAPIException {
      *      current environment
      */
     public static void throwErrorMissingConfiguration(String operation, String configParameter) {
-        throw new InvalidConfigurationException(CONFIG_MISSING,
-                String.format(CONFIG_MISSING.getMessage(), configParameter, operation));
+        throw new InvalidConfigurationException(MISSING_CONFIGURATION,
+                String.format(MISSING_CONFIGURATION.getMessage(), configParameter, operation));
     }
 
     /**

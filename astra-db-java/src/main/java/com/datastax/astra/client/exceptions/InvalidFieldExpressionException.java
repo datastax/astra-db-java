@@ -20,12 +20,12 @@ package com.datastax.astra.client.exceptions;
  * #L%
  */
 
-import static com.datastax.astra.client.exceptions.ClientErrorCodes.INVALID_FIELD_EXPRESSION;
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.INVALID_EXPRESSION;
 
 /**
  * Error raised during escaping or unescaping a field path.
  */
-public class InvalidFieldExpressionException extends DataAPIException {
+public class InvalidFieldExpressionException extends DataAPIClientException {
 
     /**
      * Constructor with code and message
@@ -34,7 +34,7 @@ public class InvalidFieldExpressionException extends DataAPIException {
      * @param message
      *      error message
      */
-    public InvalidFieldExpressionException(ClientErrorCodes code, String message) {
+    public InvalidFieldExpressionException(ErrorCodesClient code, String message) {
         super(code, message);
     }
 
@@ -45,7 +45,7 @@ public class InvalidFieldExpressionException extends DataAPIException {
      *      current field expression
      */
     public static void throwInvalidField(String path, String cause) {
-        throw new InvalidFieldExpressionException(INVALID_FIELD_EXPRESSION,
-                String.format(INVALID_FIELD_EXPRESSION.getMessage() + ":" + cause, path));
+        throw new InvalidFieldExpressionException(INVALID_EXPRESSION,
+                String.format(INVALID_EXPRESSION.getMessage() + ":" + cause, path));
     }
 }

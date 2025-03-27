@@ -23,9 +23,11 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -107,6 +109,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         return new FindEmbeddingProvidersResult(
                 res.getStatusKeyAsMap("embeddingProviders",
                 EmbeddingProvider.class));
+    }
+
+    @Override
+    public FindRerankingProvidersResult findRerankingProviders() {
+        DataAPIResponse res = runCommand(Command.create("findRerankingProviders"));
+        return new FindRerankingProvidersResult(
+                res.getStatusKeyAsMap("rerankingProviders",
+                        RerankProvider.class));
     }
 
     /** {@inheritDoc} */

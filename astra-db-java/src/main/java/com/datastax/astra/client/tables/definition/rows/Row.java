@@ -28,7 +28,7 @@ import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.Preview;
+import com.datastax.astra.internal.utils.BetaPreview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import lombok.NonNull;
@@ -240,7 +240,7 @@ public class Row implements Serializable {
      * }
      * </pre>
      */
-    @Preview
+    @BetaPreview
     public Row addHybrid(final String value) {
         if (value == null) {
             return this;
@@ -258,7 +258,7 @@ public class Row implements Serializable {
      * @return
      *      self reference
      */
-    @Preview
+    @BetaPreview
     public Row addHybrid(String vectorize, String lexical) {
         if (vectorize == null && lexical == null) {
             return this;
@@ -272,7 +272,7 @@ public class Row implements Serializable {
      * @param hybrid
      *      hybrid object to be added
      */
-    @Preview
+    @BetaPreview
     public Row addHybrid(Hybrid hybrid) {
         if (hybrid == null) {
             return this;

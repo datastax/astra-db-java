@@ -129,9 +129,11 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     // --- Build Requests --
 
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
+    protected static final String INPUT_INCLUDE_SIMILARITY  = "includeSimilarity";
     /** json inputs */
     protected static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
+    /** json inputs */
+    protected static final String INPUT_INCLUDE_SCORES      = "includeScores";
     /** json inputs */
     protected static final String INPUT_UPSERT = "upsert";
     /** json inputs */
@@ -176,10 +178,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     /** {@inheritDoc} */
     @Override
     public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {
-
-        log.debug("Running command: " + AnsiUtils.green("{}"), command.getName());
-
-        // Initializing options with the Collection/Table/Database level options
         DataAPIClientOptions options = this.options.getDataAPIClientOptions();
 
         // ==================
@@ -267,12 +265,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
-            log.debug("Json command: " + AnsiUtils.yellow("{}"), jsonCommand);
-
-            // MOCK
-            if (command.getName().equalsIgnoreCase("findAndRerank")) {
-                return getSerializer().unMarshallBean(MOCK_RESPONSE_1, DataAPIResponse.class);
-            }
 
             URI targetUri;
             try {
@@ -298,8 +290,8 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             // ===   HEADERS       ===
             // =======================
 
-            if (options.getEmbeddingAuthProvider() != null) {
-                options.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+            if (options.getEmbeddingHeadersProvider() != null) {
+                options.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
             }
             if (options.getDatabaseAdditionalHeaders() != null) {
                 options.getDatabaseAdditionalHeaders().forEach(builder::header);
@@ -310,8 +302,12 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             if (overridingOptions!= null && overridingOptions.getDataAPIClientOptions() != null) {
                 DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
-                if (overClientOptions.getEmbeddingAuthProvider() != null) {
-                    overClientOptions.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+                if (overClientOptions.getEmbeddingHeadersProvider() != null) {
+                    overClientOptions.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
+                }
+                if (overClientOptions.getRerankingHeadersProvider() != null) {
+                    System.out.println("ADDING RERANKING K");
+                    overClientOptions.getRerankingHeadersProvider().getHeaders().forEach(builder::header);
                 }
                 if (overClientOptions.getDatabaseAdditionalHeaders() != null) {
                     overClientOptions.getDatabaseAdditionalHeaders().forEach(builder::header);
@@ -456,91 +452,4 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     public OPTIONS getOptions() {
         return options;
     }
-
-    public static String MOCK_RESPONSE_2 = """
-            {
-              "data": {
-                "documents": [
-                  {
-                    "$similarity": 0.773991,
-                    "$vectorize": "I have a neutral opinion on both cheese and monkeys",
-                    "_id": 3,
-                    "name": "Bob"
-                  },
-                  {
-                    "$similarity": 0.7426339,
-                    "$vectorize": "I like monkeys",
-                    "_id": 2,
-                    "name": "Aaron"
-                  },
-                  {
-                    "$similarity": 1,
-                    "$vectorize": "I like cheese",
-                    "_id": 1,
-                    "name": "Alice"
-                  }
-                ],
-                "nextPageState": null
-              },
-            
-              "status": {
-                "documentResponses": [
-                  {
-                    "$rerank": 0.4065417,
-                    "$vector": 0.773991
-                  },
-                  {
-                    "$rerank": 0.36485058,
-                    "$vector": 0.7426339
-                  },
-                  {
-                    "$rerank": 0.026098311,
-                    "$vector": 1
-                  }
-                ]
-              }
-            }
-            """;
-
-    public static String MOCK_RESPONSE_1 = """
-            {
-                "data": {
-                  "documents": [
-                    {
-                      "_id": 2,
-                      "$vectorize": "cheese is the best thing since monkeys!",
-                      "createOn": "monday"
-                    },
-                    {
-                      "_id": 1,
-                      "content": "monkeys are better than cheese",
-                      "createOn": "monday"
-                    }
-                  ],
-                  "nextPageState": null
-                },
-                "status": {
-                  "documentResponses": [
-                    {
-                      "_id": 2,
-                      "scores": {
-                        "$reranker": 1,
-                        "$vector": 0.23,
-                        "$lexical": 0.73
-                      }
-                    },
-                    {
-                      "_id": 1,
-                      "scores": {
-                        "$rerank": -1,
-                        "open_ai_vector_col": 0.23,
-                        "vertex_ai_vector_col": 0.23,
-                        "my_bm25_text_col": 0.4
-                      }
-                    }
-                  ]
-                }
-              }
-            """;
-
 }

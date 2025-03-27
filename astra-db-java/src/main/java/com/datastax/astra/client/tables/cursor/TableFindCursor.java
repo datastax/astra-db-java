@@ -101,7 +101,6 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
         this.dataSource       = tableFindCursor.dataSource;
         this.tableFindOptions = tableFindCursor.tableFindOptions;
         this.filter           = tableFindCursor.filter;
-
     }
 
     /** {@inheritDoc} */

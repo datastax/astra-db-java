@@ -42,7 +42,7 @@ public class CursorException extends DataAPIException {
      * @param state        the state of the cursor at the time of the error
      */
     public CursorException(String errorMessage, String state) {
-        super(ClientErrorCodes.ERROR, errorMessage);
+        super("CURSOR_ERROR", errorMessage);
         this.state = state;
     }
 }

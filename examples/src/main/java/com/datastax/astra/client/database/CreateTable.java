@@ -1,12 +1,11 @@
 package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Game;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;

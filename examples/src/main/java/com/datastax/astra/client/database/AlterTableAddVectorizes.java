@@ -15,6 +15,7 @@ public class AlterTableAddVectorizes {
   // Database db = new DataAPIClient(token).getDatabase(endpoint);
   Database db = DataAPIClients.localDbWithDefaultKeyspace();
   Table<Row> myTable1 = db.getTable("games");
+
   AlterTableAddVectorize addVectorize =
    new AlterTableAddVectorize().columns(
     Map.of("m_vector", new VectorServiceOptions()

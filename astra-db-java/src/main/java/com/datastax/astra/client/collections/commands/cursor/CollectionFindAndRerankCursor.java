@@ -26,7 +26,7 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.reranking.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankResult;
 import com.datastax.astra.internal.command.AbstractCursor;
 import lombok.Getter;
 

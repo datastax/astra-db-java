@@ -20,9 +20,10 @@ package com.datastax.astra.client.core.options;
  * #L%
  */
 
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.headers.RerankingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -160,7 +161,13 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
     @SuppressWarnings("unchecked")
     public T embeddingAuthProvider(EmbeddingHeadersProvider embeddingAuthProvider) {
         Assert.notNull(embeddingAuthProvider, "embeddingAuthProvider");
-        getDataAPIClientOptions().embeddingAuthProvider(embeddingAuthProvider);
+        getDataAPIClientOptions().embeddingHeadersProvider(embeddingAuthProvider);
+        return (T) this;
+    }
+
+    public T rerankingAuthProvider(RerankingHeadersProvider rerankingHeadersProvider) {
+        Assert.notNull(rerankingHeadersProvider, "rerankHeadersProvider");
+        getDataAPIClientOptions().rerankingHeadersProvider(rerankingHeadersProvider);
         return (T) this;
     }
 

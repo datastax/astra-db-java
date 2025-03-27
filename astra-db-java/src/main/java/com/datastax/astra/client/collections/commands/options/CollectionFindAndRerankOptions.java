@@ -23,7 +23,6 @@ package com.datastax.astra.client.collections.commands.options;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.hybrid.HybridLimits;
-import com.datastax.astra.client.core.hybrid.HybridProjection;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
@@ -70,7 +69,7 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     /**
      * Options for hybrid projection
      */
-    HybridProjection hybridProjection;
+    Boolean includeScores;
 
     /**
      * Flag to include sortVector in the result when operating a semantic search.
@@ -187,15 +186,5 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
         return this;
     }
 
-    /**
-     * Add a hybridProjection clause in the find block
-     *
-     * @param hybridProjection value for hybridProjection options
-     * @return current command
-     */
-    public CollectionFindAndRerankOptions hybridProjection(HybridProjection hybridProjection) {
-        this.hybridProjection = hybridProjection;
-        return this;
-    }
 
 }

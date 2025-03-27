@@ -22,7 +22,6 @@ package com.datastax.astra.internal.command;
 
 import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.paging.Page;
-import com.datastax.astra.client.core.reranking.RerankResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
 import lombok.Getter;
@@ -179,6 +178,13 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Closeable, Cl
      * @return a {@link List} containing all remaining elements
      */
     public List<R> toList() {
+        // Should return an illegal state is the cursor is closed
+        if (state == CursorState.CLOSED) {
+            throw new CursorException("Cursor is closed", state.toString());
+        }
+        if (state == CursorState.STARTED) {
+            throw new CursorException("Cursor is already started", state.toString());
+        }
         try {
             return stream().toList();
         } finally {

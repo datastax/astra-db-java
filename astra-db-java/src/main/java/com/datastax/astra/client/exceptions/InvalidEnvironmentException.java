@@ -22,12 +22,12 @@ package com.datastax.astra.client.exceptions;
 
 import com.datastax.astra.client.DataAPIDestination;
 
-import static com.datastax.astra.client.exceptions.ClientErrorCodes.ENV_RESTRICTED_ASTRA;
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.ASTRA_RESTRICTED_OPERATION;
 
 /**
  * Exception thrown when the environment is invalid.
  */
-public class InvalidEnvironmentException extends DataAPIException {
+public class InvalidEnvironmentException extends DataAPIClientException {
 
     /**
      * Constructor with code and message
@@ -36,7 +36,7 @@ public class InvalidEnvironmentException extends DataAPIException {
      * @param message
      *      error message
      */
-    public InvalidEnvironmentException(ClientErrorCodes code, String message) {
+    public InvalidEnvironmentException(ErrorCodesClient code, String message) {
         super(code, message);
     }
 
@@ -49,8 +49,8 @@ public class InvalidEnvironmentException extends DataAPIException {
      *      current environment
      */
     public static void throwErrorRestrictedAstra(String operation, DataAPIDestination currentEnv) {
-        throw new InvalidEnvironmentException(ENV_RESTRICTED_ASTRA,
-                String.format(ENV_RESTRICTED_ASTRA.getMessage(), operation, currentEnv.name()));
+        throw new InvalidEnvironmentException(ASTRA_RESTRICTED_OPERATION,
+                String.format(ASTRA_RESTRICTED_OPERATION.getMessage(), operation, currentEnv.name()));
     }
 
 }

@@ -23,8 +23,8 @@ package com.datastax.astra.client.collections.definition;
 import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.lexical.AnalyzerTypes;
 import com.datastax.astra.client.core.lexical.LexicalOptions;
-import com.datastax.astra.client.core.reranking.RerankingOptions;
-import com.datastax.astra.client.core.reranking.RerankingServiceOptions;
+import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
+import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
@@ -346,6 +346,13 @@ public class CollectionDefinition {
         return lexical;
     }
 
+    public CollectionDefinition disableLexical() {
+        if (getLexical() == null) {
+            lexical(new LexicalOptions().enabled(false));
+        }
+        return this;
+    }
+
     /**
      * Builder pattern.
      *
@@ -393,27 +400,27 @@ public class CollectionDefinition {
     /**
      * Reranking options
      */
-    private RerankingOptions reranking;
+    private CollectionRerankOptions rerank;
 
     /**
      * Gets reranking
      *
      * @return value of reranking
      */
-    public RerankingOptions getReranking() {
-        return reranking;
+    public CollectionRerankOptions getRerank() {
+        return rerank;
     }
 
     /**
      * Builder pattern.
      *
-     * @param rerankingOptions
+     * @param collectionRerankOptions
      *      reranking service information
      * @return
      *      self reference
      */
-    public CollectionDefinition reranking(RerankingOptions rerankingOptions) {
-        reranking = rerankingOptions;
+    public CollectionDefinition rerank(CollectionRerankOptions collectionRerankOptions) {
+        rerank = collectionRerankOptions;
         return this;
     }
 
@@ -424,13 +431,20 @@ public class CollectionDefinition {
      *      reranker
      * @return self reference
      */
-    public CollectionDefinition reranking(String reranker) {
-        if (getReranking() == null) {
-            reranking = new RerankingOptions().enabled(true);
+    public CollectionDefinition rerank(String reranker) {
+        if (getRerank() == null) {
+            rerank = new CollectionRerankOptions().enabled(true);
         }
-        getReranking()
+        getRerank()
                 .enabled(true)
-                .service(new RerankingServiceOptions().provider(reranker));
+                .service(new RerankServiceOptions().provider(reranker));
+        return this;
+    }
+
+    public CollectionDefinition disableRerank() {
+        if (getRerank() == null) {
+            rerank = new CollectionRerankOptions().enabled(false);
+        }
         return this;
     }
 

@@ -41,14 +41,6 @@ public class HybridLimits {
         this.mapOfLimits = mapOfLimits;
     }
 
-    public HybridLimits vectorize(Integer limit) {
-        if (mapOfLimits == null) {
-            mapOfLimits = new HashMap<>();
-        }
-        mapOfLimits.put(DataAPIKeywords.VECTORIZE.getKeyword(), limit);
-        return this;
-    }
-
     public HybridLimits lexical(Integer limit) {
         if (mapOfLimits == null) {
             mapOfLimits = new HashMap<>();

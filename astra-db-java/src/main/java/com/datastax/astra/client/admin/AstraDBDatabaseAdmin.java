@@ -25,6 +25,7 @@ import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.utils.Assert;
@@ -190,6 +191,14 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         log.debug("findEmbeddingProviders");
         DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public FindRerankingProvidersResult findRerankingProviders() {
+        log.debug("findRerankingProviders");
+        DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
+        return new FindRerankingProvidersResult(admin.findRerankingProviders().getRerankingProviders());
     }
 
     /** {@inheritDoc} */

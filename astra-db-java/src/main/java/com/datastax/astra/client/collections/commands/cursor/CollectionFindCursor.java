@@ -22,6 +22,7 @@ package com.datastax.astra.client.collections.commands.cursor;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;

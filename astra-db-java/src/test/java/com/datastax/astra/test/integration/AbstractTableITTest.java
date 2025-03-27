@@ -10,6 +10,4 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public abstract class AbstractTableITTest extends AbstractDataAPITest {
 
-    record TableSimpleRow(String email, Boolean human, Integer age, String country, String name) {}
-
 }

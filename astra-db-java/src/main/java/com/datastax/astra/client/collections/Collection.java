@@ -59,7 +59,7 @@ import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
-import com.datastax.astra.client.core.reranking.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
@@ -73,6 +73,7 @@ import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.BetaPreview;
 import com.datastax.astra.internal.utils.EscapeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -1082,31 +1083,32 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
+    @BetaPreview
     public CollectionFindAndRerankCursor<T,T> findAndRerank(Filter filter, CollectionFindAndRerankOptions options) {
         return findAndRerank(filter, options, getDocumentClass());
     }
 
+    @BetaPreview
     public <R> CollectionFindAndRerankCursor<T, R> findAndRerank(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
     }
 
+    @BetaPreview
     public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         Command findAndRerankCommand = Command
                 .create("findAndRerank")
                 .withFilter(filter);
         if (options != null) {
             findAndRerankCommand
-                    .withSort(options.getSortArray())
-                    .withProjection(options.getProjectionArray())
-                    .withOptions(new Document()
-                            .appendIfNotNull("rerankOn", options.rerankOn())
-                            .appendIfNotNull("limit", options.limit())
-                            .appendIfNotNull("hybridProjection", options.hybridProjection().getValue())
-                            .appendIfNotNull("hybridLimits", options.hybridLimits())
-                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity())
-                    )
-            ;
+              .withSort(options.getSortArray())
+              .withProjection(options.getProjectionArray())
+              .withOptions(new Document()
+                  .appendIfNotNull("rerankOn", options.rerankOn())
+                  .appendIfNotNull("limit", options.limit())
+                  .appendIfNotNull("hybridLimits", options.hybridLimits())
+                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                  .appendIfNotNull(INPUT_INCLUDE_SCORES, options.includeScores())
+                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
         }
 
         // Responses MOCK for now
@@ -1138,10 +1140,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             // MAP WITH DOCUMENT FUNCTION
             DocumentSerializer serializer = new DocumentSerializer();
             R results1 = serializer.convertValue(document, newRowType);
-
-            // MAP WITH ROW FUNCTION
-            Row row = RowMapper.mapAsRow(document);
-            R result = RowMapper.mapFromRow(row, getSerializer(), newRowType);
 
             // Getting associated document response
             Document documentResponse = documentResponses.get(i);
@@ -1199,12 +1197,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
                 apiResponse.getData().getDocuments().stream()
-                        .map(d -> {
-                            Row row = RowMapper.mapAsRow(d);
-                            return mapFromRow(row, getSerializer(), newRowType);
-                        })
-                        // .map(d -> d.map(newRowType))
-                        //.map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))
+                        .map(d -> d.map(newRowType))
                         .collect(Collectors.toList()), sortVector);
     }
 

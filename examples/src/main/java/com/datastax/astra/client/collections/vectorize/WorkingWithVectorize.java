@@ -4,7 +4,7 @@ import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.query.Sort;
 
 import static com.datastax.astra.client.core.query.Sort.vectorize;

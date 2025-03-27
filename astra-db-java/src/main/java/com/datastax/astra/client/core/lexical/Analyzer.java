@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-//@JsonSerialize(using = AnalyzerSerializer.class)
+@JsonSerialize(using = AnalyzerSerializer.class)
 public class Analyzer {
 
     /** In the case of String analyzer */
@@ -43,6 +43,10 @@ public class Analyzer {
     List<LexicalFilter> charFilters;
 
     public Analyzer() {
+    }
+
+    public Analyzer(String strAnalyzer) {
+        this.strAnalyzer = strAnalyzer;
     }
 
     public Analyzer tokenizer(String name) {

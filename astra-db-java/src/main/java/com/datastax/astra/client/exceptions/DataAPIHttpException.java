@@ -32,13 +32,11 @@ public class DataAPIHttpException extends DataAPIException {
     /**
      * Constructors providing all arguments and a parent exception.
      *
-     * @param code
-     *    error code
      * @param errorMessage
      *      error message
      */
-    public DataAPIHttpException(ClientErrorCodes code, String errorMessage) {
-        super(code, errorMessage);
+    public DataAPIHttpException(String errorMessage) {
+        this(ERROR_CODE_HTTP, errorMessage);
     }
 
     /**
@@ -47,8 +45,8 @@ public class DataAPIHttpException extends DataAPIException {
      * @param errorMessage
      *      error message
      */
-    public DataAPIHttpException(String errorMessage) {
-        this(ClientErrorCodes.HTTP, errorMessage);
+    public DataAPIHttpException(String code, String errorMessage) {
+        super(code, errorMessage);
     }
 
 }

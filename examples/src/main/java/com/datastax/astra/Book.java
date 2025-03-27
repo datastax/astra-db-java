@@ -42,10 +42,11 @@ public class Book {
 
     boolean checkedOut;
 
-    @Column(value = "dueDate", type = ColumnTypes.DATE)
+    @Column(name = "dueDate", type = ColumnTypes.DATE)
     Date dueDate;
 
     @ColumnVector(
+            name="summaryGenresVector",
             // Vector properties
             dimension = 1024, metric = COSINE,
             // Adding vector service

@@ -21,10 +21,12 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
@@ -80,6 +82,24 @@ public interface DatabaseAdmin {
      *      list of available providers
      */
     FindEmbeddingProvidersResult findEmbeddingProviders();
+
+    /**
+     * Retrieve the list of reranking providers available in the current database. Reranking providers are services
+     * that sort a list of record based on a algorithm (eg bm25) . This method returns a map of provider names to
+     * {@link RerankProvider} instances, allowing applications
+     * to access and utilize the reranking services.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assuming 'client' is an instance of DataApiClient
+     * Map<String, EmbeddingProvider> providers = client.findEmbeddingProvidersAsMap());
+     * }
+     * </pre>
+     * @return
+     *      list of available providers
+     */
+    FindRerankingProvidersResult findRerankingProviders();
 
     /**
      * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates

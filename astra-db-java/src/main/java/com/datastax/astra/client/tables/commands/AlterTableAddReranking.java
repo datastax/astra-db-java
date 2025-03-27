@@ -20,8 +20,7 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
-import com.datastax.astra.client.core.reranking.RerankingServiceOptions;
-import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
+import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,10 +47,10 @@ import java.util.Map;
 public class AlterTableAddReranking implements AlterTableOperation {
 
     /**
-     * A map of column names to their respective {@link RerankingServiceOptions} configurations.
+     * A map of column names to their respective {@link RerankServiceOptions} configurations.
      * Represents the vectorized columns to be added to the table.
      */
-    private Map<String, RerankingServiceOptions> columns = new HashMap<>();
+    private Map<String, RerankServiceOptions> columns = new HashMap<>();
 
     /**
      * Default constructor.
@@ -77,7 +76,7 @@ public class AlterTableAddReranking implements AlterTableOperation {
      * @param def  the vectorization options for the column
      * @return this {@code AlterTableAddVectorize} instance
      */
-    public AlterTableAddReranking addColumn(String name, RerankingServiceOptions def) {
+    public AlterTableAddReranking addColumn(String name, RerankServiceOptions def) {
         columns.put(name, def);
         return this;
     }
@@ -88,7 +87,7 @@ public class AlterTableAddReranking implements AlterTableOperation {
      * @param columns a map of column names to their vectorization options
      * @return this {@code AlterTableAddVectorize} instance
      */
-    public AlterTableAddReranking columns(Map<String, RerankingServiceOptions> columns) {
+    public AlterTableAddReranking columns(Map<String, RerankServiceOptions> columns) {
         this.columns = columns;
         return this;
     }

@@ -88,19 +88,6 @@ public class DataAPIException extends RuntimeException {
     }
 
     /**
-     *Constructors providing all arguments and a parent exception.
-     *
-     * @param errorMessage
-     *      error message
-     * @param errorCode
-     *      error code
-     */
-    public DataAPIException(ClientErrorCodes errorCode, String errorMessage) {
-        super("[" + errorCode + "] - " + errorMessage);
-        this.errorCode = errorCode.getCode();
-    }
-
-    /**
      * Constructors providing all arguments and a parent exception.
      *
      * @param errorMessage

@@ -151,6 +151,10 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             case ASTRA:
             case ASTRA_TEST:
             case ASTRA_DEV:
+                // Remove Trailing Slash
+                if (rootEndpoint.endsWith("/")) {
+                    rootEndpoint = rootEndpoint.substring(0, rootEndpoint.length() - 1);
+                }
                 if (rootEndpoint.endsWith(".com")) {
                     dbApiEndPointBuilder.append("/api/json");
                 }
@@ -1374,7 +1378,9 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
         // Creating Vector Index for each column definition
         EntityBeanDefinition.listVectorIndexDefinitions(tableName, rowClass).forEach(index -> {
-            table.createVectorIndex("vidx_" + tableName + "_" + index.getColumn().getName(), index, CreateVectorIndexOptions.IF_NOT_EXISTS);
+            CreateVectorIndexOptions options = new CreateVectorIndexOptions().ifNotExists(true)
+                    .dataAPIClientOptions(createTableOptions.getDataAPIClientOptions().enableFeatureFlagTables());
+            table.createVectorIndex("vidx_" + tableName + "_" + index.getColumn().getName(), index, options);
         });
 
         return table;

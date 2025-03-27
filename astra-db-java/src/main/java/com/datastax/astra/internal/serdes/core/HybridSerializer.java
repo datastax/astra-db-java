@@ -36,6 +36,12 @@ public class HybridSerializer extends JsonSerializer<Hybrid> {
 
     @Override
     public void serialize(Hybrid value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        String vectorize = value.getDoc().getVectorize().orElse(null);
+        String lexical   = value.getDoc().getLexical().orElse(null);
+        if (vectorize != null && vectorize.equals(lexical)) {
+            gen.writeString(vectorize);
+            return;
+        }
         gen.writeObject(value.getDoc());
     }
 }

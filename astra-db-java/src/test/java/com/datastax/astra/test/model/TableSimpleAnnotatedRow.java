@@ -4,7 +4,7 @@ import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
 import com.datastax.astra.client.tables.mapping.PartitionSort;
 import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.test.integration.local.LocalTableITTest;
+import com.datastax.astra.test.integration.local.Local_20_TableITTest;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,7 +15,7 @@ import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TE
 
 @Data
 @Builder
-@EntityTable(LocalTableITTest.TABLE_SIMPLE)
+@EntityTable(Local_20_TableITTest.TABLE_SIMPLE)
 public class TableSimpleAnnotatedRow {
 
     @PartitionBy(0)

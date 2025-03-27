@@ -24,7 +24,6 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
@@ -32,7 +31,6 @@ import com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 

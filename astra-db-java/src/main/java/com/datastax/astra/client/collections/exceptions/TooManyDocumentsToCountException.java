@@ -21,19 +21,20 @@ package com.datastax.astra.client.collections.exceptions;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.exceptions.ClientErrorCodes;
+import com.datastax.astra.client.exceptions.DataAPIClientException;
+import com.datastax.astra.client.exceptions.ErrorCodesClient;
 import com.datastax.astra.client.exceptions.DataAPIException;
 
 /**
  * Error when too many documents in the collection
  */
-public class TooManyDocumentsToCountException extends DataAPIException {
+public class TooManyDocumentsToCountException extends DataAPIClientException {
 
     /**
      * Default constructor.
      */
     public TooManyDocumentsToCountException() {
-        super(ClientErrorCodes.HTTP, "Document count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
+        super(ErrorCodesClient.INVALID_VALUE, "Document count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
     }
 
     /**
@@ -43,6 +44,6 @@ public class TooManyDocumentsToCountException extends DataAPIException {
      *      what it the most the count can return
      */
     public TooManyDocumentsToCountException(int upperLimit) {
-        super(ClientErrorCodes.HTTP, "Document count exceeds upper bound set in method call " + upperLimit);
+        super(ErrorCodesClient.INVALID_VALUE, "Document count exceeds upper bound set in method call " + upperLimit);
     }
 }

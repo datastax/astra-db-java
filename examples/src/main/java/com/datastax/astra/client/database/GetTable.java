@@ -1,8 +1,6 @@
 package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Game;
 import com.datastax.astra.client.tables.Table;

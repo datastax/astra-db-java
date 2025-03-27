@@ -1,7 +1,7 @@
 package com.datastax.astra.client;
 
-import com.datastax.astra.client.core.auth.AWSEmbeddingHeadersProvider;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.AWSEmbeddingHeadersProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.http.HttpProxy;
@@ -79,8 +79,8 @@ public class Connecting {
   options.addCaller("MySampleApplication", "1.0.0");
 
   // Add an header to computer embeddings externally (integration)
-  options.embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("key_embeddings"));
-  options.embeddingAuthProvider(new AWSEmbeddingHeadersProvider("aws_access_key", "aws_secret_key"));
+  options.embeddingHeadersProvider(new EmbeddingAPIKeyHeaderProvider("key_embeddings"));
+  options.embeddingHeadersProvider(new AWSEmbeddingHeadersProvider("aws_access_key", "aws_secret_key"));
 
   // Add Headers to call for admin or database operations
   options.addAdminAdditionalHeader("X-My-Header", "MyValue");

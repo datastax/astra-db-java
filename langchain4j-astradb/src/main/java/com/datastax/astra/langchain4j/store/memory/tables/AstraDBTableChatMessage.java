@@ -45,31 +45,31 @@ import java.util.UUID;
 @EntityTable
 public class AstraDBTableChatMessage {
 
-    @Column("chat_id")
+    @Column(name="chat_id")
     UUID chatId;
 
-    @Column("message_id")
+    @Column(name="message_id")
     UUID messageId;
 
-    @Column("message_type")
+    @Column(name="message_type")
     String messageType;
 
-    @Column("message_time")
+    @Column(name="message_time")
     Instant messageTime;
 
-    @Column("text")
+    @Column(name="text")
     String text;
 
-    @Column("name")
+    @Column(name="name")
     String name;
 
-    @Column("contents")
+    @Column(name="contents")
     Map<String, String> contents = new HashMap<>();
 
-    @Column("tools_arguments")
+    @Column(name="tools_arguments")
     Map<String, String> toolsArguments = new HashMap<>();
 
-    @Column("tools_name")
+    @Column(name="tools_name")
     Map<String, String> toolsName = new HashMap<>();
 
     public AstraDBTableChatMessage chatId(UUID chatId) {

@@ -83,21 +83,21 @@ public class LoggingCommandObserver implements CommandObserver {
             String req = UUID.randomUUID().toString().substring(30);
             // Log Command
 
-            log("Command [" + AnsiUtils.cyan(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
+            log("Command [" + AnsiUtils.green(executionInfo.getCommand().getName()) + "] with id [" + AnsiUtils.cyan(req) + "]");
 
             //log(AnsiUtils.magenta("[" + req + "][options]") + "=" + AnsiUtils.yellow("{}"),
             //        executionInfo.getSerializer().marshall(executionInfo.getCommandOptions()));
             //log(AnsiUtils.magenta("[" + req + "][overriding]") + "=" + AnsiUtils.yellow("{}"),
             //        executionInfo.getSerializer().marshall(executionInfo.getOverridingCommandOptions()));
-            log(AnsiUtils.magenta("[" + req + "][url]") + "=" +
+            log(AnsiUtils.magenta("[" + req + "][endpoint-url   ]") + "=" +
                     AnsiUtils.yellow("{}"), executionInfo.getRequestUrl());
-            log(AnsiUtils.magenta("[" + req + "][request]") + "=" + AnsiUtils.yellow("{}"),
+            log(AnsiUtils.magenta("[" + req + "][request-payload]") + "=" + AnsiUtils.yellow("{}"),
                     executionInfo.getSerializer().marshall(executionInfo.getCommand()));
-            log(AnsiUtils.magenta("[" + req + "][response-code]") + "=" + AnsiUtils.yellow("{}"),
+            log(AnsiUtils.magenta("[" + req + "][response-code  ]") + "=" + AnsiUtils.yellow("{}"),
                     executionInfo.getResponseHttpCode());
-            log(AnsiUtils.magenta("[" + req + "][response-body]") + "=" + AnsiUtils.yellow("{}"),
+            log(AnsiUtils.magenta("[" + req + "][response-body  ]") + "=" + AnsiUtils.yellow("{}"),
                     executionInfo.getSerializer().marshall(executionInfo.getResponse()));
-            log(AnsiUtils.magenta("[" + req + "][response-time]") + "=" + AnsiUtils.yellow("{}") + " millis.",
+            log(AnsiUtils.magenta("[" + req + "][response-time  ]") + "=" + AnsiUtils.yellow("{}") + " millis.",
                     executionInfo.getExecutionTime());
             // Log Data
             DataAPIData data = executionInfo.getResponse().getData();

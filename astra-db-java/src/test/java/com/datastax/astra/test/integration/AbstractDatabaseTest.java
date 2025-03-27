@@ -1,26 +1,25 @@
 package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
+import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
-import com.datastax.astra.client.tables.TableOptions;
 import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
-import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.test.model.TableEntityGameWithAnnotation;
@@ -46,10 +45,17 @@ import static com.datastax.astra.client.collections.definition.CollectionDefault
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_ALLOW;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_DENY;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_OBJECT_ID;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_SIMPLE;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_UUID;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_UUID_V6;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_UUID_V7;
+import static com.datastax.astra.test.model.TestDataset.COLLECTION_VECTOR;
 import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 /**
  * Super Class to run Tests against Data API.
  */
@@ -89,8 +95,12 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Test
     @Order(2)
     public void shouldCreateCollectionsVector() {
+        getDatabase().dropCollection(COLLECTION_VECTOR, new DropCollectionOptions());
         Collection<Document> collectionVector = getDatabase().createCollection(COLLECTION_VECTOR,
-                new CollectionDefinition().vector(14, SimilarityMetric.COSINE));
+                new CollectionDefinition()
+                        .disableLexical()
+                        .disableRerank()
+                        .vector(14, SimilarityMetric.COSINE));
 
         assertThat(collectionVector).isNotNull();
         assertThat(collectionVector.getCollectionName()).isEqualTo(COLLECTION_VECTOR);
@@ -256,7 +266,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Order(11)
     public void shouldCollectionWorkWithObjectIds() {
         // When
-        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_OBJECTID,
+        Collection<Document> collectionUUID = getDatabase().createCollection(COLLECTION_OBJECT_ID,
                 new CollectionDefinition().defaultId(OBJECT_ID));
         collectionUUID.deleteAll();
 
@@ -285,7 +295,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         product.setName("name");
         product.setCode(UUID.randomUUID());
         product.setPrice(0d);
-        Collection<ProductObjectId> collectionObjectId = getDatabase().createCollection(COLLECTION_OBJECTID,
+        Collection<ProductObjectId> collectionObjectId = getDatabase().createCollection(COLLECTION_OBJECT_ID,
                 new CollectionDefinition().defaultId(OBJECT_ID), ProductObjectId.class);
         collectionObjectId.deleteAll();
         collectionObjectId.insertOne(product);
@@ -358,6 +368,7 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
     @Test
     @Order(14)
     public void shouldCreateTables() {
+        cleanupCollections();
         // Definition of the table in fluent style
         TableDefinition tableDefinition = new TableDefinition()
                 .addColumnText("match_id")
@@ -372,7 +383,11 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(tableDefinition).isNotNull();
 
         // Minimal creation
-        Table<Row> table1 = getDatabase().createTable("game1", tableDefinition);
+        // One can add options to setup the creation with finer grained:
+        CreateTableOptions createTableOptions = new CreateTableOptions()
+                .ifNotExists(true)
+                .timeout(ofSeconds(5));
+        Table<Row> table1 = getDatabase().createTable("game1", tableDefinition, createTableOptions);
         assertThat(table1).isNotNull();
         assertThat(getDatabase().tableExists("game1")).isTrue();
 
@@ -388,19 +403,6 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         Table<TableEntityGameWithAnnotationAllHints> tableY = getDatabase().createTable(
                 TableEntityGameWithAnnotationAllHints.class);
         assertThat(getDatabase().tableExists(tableYName)).isTrue();
-
-        // -- options --
-
-        // One can add options to setup the creation with finer grained:
-        CreateTableOptions createTableOptions = new CreateTableOptions()
-                .ifNotExists(true)
-                .timeout(ofSeconds(5));
-       // Table<Row> table3 = db.createTable("game3", tableDefinition, createTableOptions);
-
-        // One can can tuned the table object returned by the function
-        TableOptions tableOptions = new TableOptions()
-                .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider("api-key"))
-                .timeout(ofSeconds(5));
     }
 
     @Test
@@ -414,7 +416,6 @@ public abstract class AbstractDatabaseTest extends AbstractDataAPITest {
         assertThat(getDatabase().listTableNames(options)).isNotEmpty();
         List<TableDescriptor> tables = getDatabase().listTables();
         assertThat(getDatabase().listTables(options)).isNotEmpty();
-
     }
 
 
