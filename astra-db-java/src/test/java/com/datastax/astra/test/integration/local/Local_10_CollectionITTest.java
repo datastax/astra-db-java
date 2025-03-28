@@ -249,9 +249,8 @@ class Local_10_CollectionITTest extends AbstractCollectionITTest {
         CollectionFindOptions options = new CollectionFindOptions()
                 .sort(Sort.vector(new float[] {1f, 1f, 1f, 1f, 1f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f}))
                 .limit(2);
-        try(CollectionFindCursor<Document, Document> docs = collectionVectorRaw.find(metadataFilter, options)) {
-            assertThat(docs.toList()).hasSize(2);
-        }
+        CollectionFindCursor<Document, Document> docs = collectionVectorRaw.find(metadataFilter, options);
+        assertThat(docs.toList()).hasSize(2);
     }
 
     @Test

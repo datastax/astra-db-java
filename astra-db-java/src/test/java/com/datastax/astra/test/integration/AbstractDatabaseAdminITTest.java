@@ -25,6 +25,13 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
 
     @Test
     @Order(1)
+    void should_clean_up_db() {
+        dropAllTables();
+        dropAllCollections();
+    }
+
+    @Test
+    @Order(2)
     void shouldListAvailableKeyspace() {
         // Initialization
         assertThat(getDatabaseAdmin()).isNotNull();
@@ -39,7 +46,7 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(2)
+    @Order(3)
     void shouldListKeyspaces() {
         assertThat(getDatabaseAdmin()).isNotNull();
         // Sync
@@ -52,7 +59,7 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void shouldListEmbeddingProvider() {
         FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
         assertThat(result).isNotNull();
@@ -67,7 +74,7 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     // --------------------
 
     @Test
-    @Order(4)
+    @Order(5)
     void shouldKeyNamespaceDefault() throws InterruptedException {
         // When
         if (!getDatabaseAdmin().keyspaceExists("nsx")) {
@@ -101,7 +108,7 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(5)
+    @Order(6)
     void shouldCreateKeyspace() throws InterruptedException {
         assertThat(getDatabaseAdmin().listKeyspaceNames())
                 .as("Check if 'nsx' is present in the namespace names")

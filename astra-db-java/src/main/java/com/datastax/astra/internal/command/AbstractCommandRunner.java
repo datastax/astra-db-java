@@ -32,7 +32,6 @@ import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.utils.AnsiUtils;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
 import com.evanlennick.retry4j.Status;
@@ -129,21 +128,29 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     // --- Build Requests --
 
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SIMILARITY  = "includeSimilarity";
+    protected static final String OPTIONS_UPSERT = "upsert";
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
+    protected static final String OPTIONS_RETURN_DOCUMENT = "returnDocument";
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SCORES      = "includeScores";
+    protected static final String OPTIONS_ORDERED = "ordered";
     /** json inputs */
-    protected static final String INPUT_UPSERT = "upsert";
+    protected static final String OPTIONS_RETURN_DOCUMENT_RESPONSES = "returnDocumentResponses";
     /** json inputs */
-    protected static final String INPUT_RETURN_DOCUMENT = "returnDocument";
+    protected static final String OPTIONS_PAGE_STATE = "pageState";
     /** json inputs */
-    protected static final String INPUT_ORDERED = "ordered";
+    protected static final String OPTIONS_LIMIT = "limit";
     /** json inputs */
-    protected static final String INPUT_RETURN_DOCUMENT_RESPONSES = "returnDocumentResponses";
+    protected static final String OPTIONS_HYBRID_LIMITS = "hybridLimits";
     /** json inputs */
-    protected static final String INPUT_PAGE_STATE = "pageState";
+    protected static final String OPTIONS_RERANK_QUERY = "rerankQuery";
+    /** json inputs */
+    protected static final String OPTIONS_RERANK_ON = "rerankOn";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SORT_VECTOR = "includeSortVector";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SCORES = "includeScores";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SIMILARITY = "includeSimilarity";
 
     /** Http client reused when properties not override. */
     protected RetryHttpClient httpClient;

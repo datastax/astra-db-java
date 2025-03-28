@@ -67,6 +67,11 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     String rerankOn;
 
     /**
+     * Rerank Query.
+     */
+    String rerankQuery;
+
+    /**
      * Options for hybrid projection
      */
     Boolean includeScores;
@@ -75,8 +80,6 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
      * Flag to include sortVector in the result when operating a semantic search.
      */
     Boolean includeSortVector;
-
-    Boolean includeSimilarity;
 
     /**
      * Default constructor.
@@ -187,4 +190,8 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     }
 
 
+    public CollectionFindAndRerankOptions rerankQuery(String $lexical) {
+        this.rerankQuery = rerankOn;
+        return this;
+    }
 }

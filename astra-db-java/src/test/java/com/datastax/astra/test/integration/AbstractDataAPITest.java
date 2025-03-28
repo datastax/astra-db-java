@@ -67,6 +67,9 @@ public abstract class AbstractDataAPITest {
     protected DataAPIDestination getDataApiDestination() {
         if (destination == null) {
             String targetEnv = readEnvVariable(ENV_VAR_DESTINATION);
+            if (targetEnv == null) {
+                throw new IllegalArgumentException("Environment variable '" + ENV_VAR_DESTINATION + "' is not set");
+            }
             switch (targetEnv) {
                 case ENV_VAR_DESTINATION_ASTRA_DEV :
                     destination = DataAPIDestination.ASTRA_DEV;

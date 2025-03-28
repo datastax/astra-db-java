@@ -65,13 +65,11 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
-import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.BetaPreview;
 import com.datastax.astra.internal.utils.EscapeUtils;
@@ -103,7 +101,6 @@ import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CH
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
 import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
-import static com.datastax.astra.internal.serdes.tables.RowMapper.mapFromRow;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -793,8 +790,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, collectionInsertManyOptions.isOrdered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
+                            .append(OPTIONS_ORDERED, collectionInsertManyOptions.isOrdered())
+                            .append(OPTIONS_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
 
             DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
             CollectionInsertManyResult result = new CollectionInsertManyResult();
@@ -894,8 +891,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(findOneOptions.getSortArray())
                 .withProjection(findOneOptions.getProjectionArray())
                 .withOptions(new Document()
-                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                 );
 
         return Optional
@@ -1076,6 +1073,19 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     /**
      * Finds all documents in the collection.
      *
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    @BetaPreview
+    public CollectionFindAndRerankCursor<T,T> findAndRerank(CollectionFindAndRerankOptions options) {
+        return findAndRerank(null, options, getDocumentClass());
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
      * @param filter
      *      the query filter
      * @param options
@@ -1093,6 +1103,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
     }
 
+
     @BetaPreview
     public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         Command findAndRerankCommand = Command
@@ -1103,12 +1114,13 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
               .withSort(options.getSortArray())
               .withProjection(options.getProjectionArray())
               .withOptions(new Document()
-                  .appendIfNotNull("rerankOn", options.rerankOn())
-                  .appendIfNotNull("limit", options.limit())
-                  .appendIfNotNull("hybridLimits", options.hybridLimits())
-                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                  .appendIfNotNull(INPUT_INCLUDE_SCORES, options.includeScores())
-                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                  .appendIfNotNull(OPTIONS_RERANK_QUERY, options.rerankQuery())
+                  .appendIfNotNull(OPTIONS_RERANK_ON, options.rerankOn())
+                  .appendIfNotNull(OPTIONS_LIMIT, options.limit())
+                  .appendIfNotNull(OPTIONS_HYBRID_LIMITS, options.hybridLimits())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SCORES, options.includeScores())
+              );
         }
 
         // Responses MOCK for now
@@ -1183,9 +1195,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                     .withOptions(new Document()
                             .appendIfNotNull("skip", options.skip())
                             .appendIfNotNull("limit", options.limit())
-                            .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                            .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, options.includeSimilarity()));
         }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
@@ -1619,8 +1631,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(options.getSortArray())
                 .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                        .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.returnDocument())
+                        .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                        .appendIfNotNull(OPTIONS_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(findOneAndReplace, options);
@@ -1667,8 +1679,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withFilter(filter)
                 .withReplacement(replacement)
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, collectionReplaceOneOptions.upsert())
-                        .append(INPUT_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
+                        .appendIfNotNull(OPTIONS_UPSERT, collectionReplaceOneOptions.upsert())
+                        .append(OPTIONS_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
                 );
 
         // Execute the `findOneAndReplace`
@@ -1761,8 +1773,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(options.getSortArray())
                 .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                        .append(INPUT_RETURN_DOCUMENT, options.returnDocument())
+                        .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                        .append(OPTIONS_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(cmd, options);
@@ -1810,7 +1822,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withUpdate(update)
                 .withSort(updateOptions.getSortArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
+                        .appendIfNotNull(OPTIONS_UPSERT, updateOptions.upsert())
                 );
         return getUpdateResult(runCommand(cmd, updateOptions));
     }
@@ -1879,8 +1891,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                     .withFilter(filter)
                     .withUpdate(update)
                     .withOptions(new Document()
-                            .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                            .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
+                            .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, nextPageState));
             DataAPIResponse res = runCommand(cmd, options);
             // Data
             if (res.getData() != null) {

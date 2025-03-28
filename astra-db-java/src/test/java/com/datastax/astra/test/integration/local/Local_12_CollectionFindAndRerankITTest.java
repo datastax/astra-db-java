@@ -1,13 +1,12 @@
 package com.datastax.astra.test.integration.local;
 
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
 import com.datastax.astra.client.collections.commands.options.CollectionFindAndRerankOptions;
-import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.commands.options.CollectionInsertOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.headers.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.headers.RerankingAPIKeyHeaderProvider;
@@ -26,11 +25,10 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.test.integration.AbstractDataAPITest;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -40,6 +38,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.KEYWORD;
@@ -57,6 +56,9 @@ public class Local_12_CollectionFindAndRerankITTest extends AbstractDataAPITest 
     @Order(1)
     public void should_find_rerank_providers() {
         Database db = getDatabase();
+        dropAllCollections();
+        dropAllTables();
+
         FindRerankingProvidersResult res = db.getDatabaseAdmin().findRerankingProviders();
         res.getRerankingProviders().get("nvidia").getModels().forEach(model -> {
             System.out.println("Model: " + model.getName() + " - " + model.getUrl());
@@ -135,43 +137,34 @@ public class Local_12_CollectionFindAndRerankITTest extends AbstractDataAPITest 
     @Order(4)
     public void should_populate_collection_farr() throws IOException {
         Database db = getDatabase();
-
         Collection<Document> myCol = db.getCollection("c_find_rerank");
+        myCol.deleteAll();
 
         // Ingest the CSV
         EmbeddingHeadersProvider authEmbedding =
                 new EmbeddingAPIKeyHeaderProvider(System.getenv("OPENAI_API_KEY"));
-        CollectionInsertOneOptions options =
-                new CollectionInsertOneOptions().embeddingAuthProvider(authEmbedding);
-        Files.readAllLines(Paths.get("src/test/resources/philosopher-quotes.csv"))
-                .forEach(line -> {
+        List<Document> docs = Files.readAllLines(Paths.get("src/test/resources/philosopher-quotes.csv"))
+                .stream().map(line -> {
                     String[] chunks = line.split(",");
                     String quote = chunks[1].replace("\"", "");
-                    myCol.insertOne(new Document()
+                    return new Document()
                             .append("author", chunks[0])
                             .append("quote", quote)
                             // no insert why hybrid
                             .lexical(quote)
-                            .vectorize(quote), options);
-                });
+                            .vectorize(quote);
+                }).toList();
+
+        myCol.insertMany(docs, new CollectionInsertManyOptions()
+                .concurrency(5)
+                .chunkSize(20)
+                .embeddingAuthProvider(authEmbedding));
     }
 
     @Test
-    public void should_query_collection() {
-        Collection<Document> myCol = getDatabase().getCollection("c_farr");
-        EmbeddingHeadersProvider authEmbedding =
-                new EmbeddingAPIKeyHeaderProvider(System.getenv("OPENAI_API_KEY"));
-        myCol.find(new CollectionFindOptions()
-                        .embeddingAuthProvider(authEmbedding)
-                        .sort(Sort.vectorize("We struggle all in life")))
-                        .toList()
-                .stream()
-                .forEach(doc -> doc.get("author"));
-    }
-
-    @Test
+    @Order(5)
     public void should_query_collection_farr() throws IOException {
-        Collection<Document> myCol = getDatabase().getCollection("c_farr");
+        Collection<Document> myCol = getDatabase().getCollection("c_find_rerank");
 
         // HEADERS
         EmbeddingHeadersProvider authEmbedding =
@@ -182,15 +175,11 @@ public class Local_12_CollectionFindAndRerankITTest extends AbstractDataAPITest 
         CollectionFindAndRerankOptions farrOptions = new CollectionFindAndRerankOptions()
                 .embeddingAuthProvider(authEmbedding)
                 .rerankingAuthProvider(rerankingHeadersProvider)
-
                 .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
                 .projection(Projection.include("$vectorize"))
                 .limit(10)
                 .hybridLimits(10)
-                //.hybridLimits(Map.of("$vector", 100, "$lexical", 10))
-                .includeSimilarity(true)
                 .includeScores(true);
-                //.rerankOn("author");
 
         //Filter filter = Filters.eq("author", "aristotle");
         CollectionFindAndRerankCursor<Document, Document> cursor = myCol.findAndRerank(null, farrOptions);
@@ -199,6 +188,53 @@ public class Local_12_CollectionFindAndRerankITTest extends AbstractDataAPITest 
             System.out.println(doc.getDocument());
             System.out.println(doc.getScores());
         }
+    }
+
+    @Test
+    @Order(6)
+    public void should_query_collection_byov() {
+        String openAiApiKey = System.getenv("OPENAI_API_KEY");
+        Collection<Document> myCol = getDatabase().getCollection("c_find_rerank");
+
+        EmbeddingHeadersProvider authEmbedding =
+                new EmbeddingAPIKeyHeaderProvider(openAiApiKey);
+        EmbeddingModel embeddingModel =  OpenAiEmbeddingModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName("text-embedding-3-small")
+                .build();
+
+        // Exceptionally as local is pointing to ASTRA DEV
+        RerankingHeadersProvider rerankingHeadersProvider =
+                new RerankingAPIKeyHeaderProvider(System.getenv("ASTRA_DB_APPLICATION_TOKEN_DEV"));
+
+        List<RerankResult<Document>> result = myCol
+                .findAndRerank(new CollectionFindAndRerankOptions()
+                        .embeddingAuthProvider(authEmbedding)
+                        .rerankingAuthProvider(rerankingHeadersProvider)
+                        // byo vector
+                        .sort(Sort.hybrid(new Hybrid()
+                                .vector(embeddingModel.embed("We struggle all in life").content().vector())
+                                //.vectorize("We struggle all in life") not supported yet
+                                .lexical("struggle life")
+                        ))
+
+                        // Notes those fields needed for bring your own vector
+                        .rerankOn(DataAPIKeywords.VECTORIZE.getKeyword())
+                        .rerankQuery("We struggle all in life")
+
+                        .limit(10)
+                        .hybridLimits(20)
+                        .includeScores(true)
+                )
+                .toList();
+        Assertions.assertNotNull(result);
+        Assertions.assertFalse(result.isEmpty());
+        System.out.println("Result3: " + result.size());
+
+        result.forEach(r -> {
+            System.out.println("---- result ----");
+            System.out.println("$rerank = " + r.getScores().get("$rerank"));
+        });
     }
 
 

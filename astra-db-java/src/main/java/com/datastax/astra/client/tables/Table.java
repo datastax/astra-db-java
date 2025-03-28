@@ -623,8 +623,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             Command insertMany = new Command("insertMany")
                     .withDocuments(rows.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, insertManyOptions.ordered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, insertManyOptions.returnDocumentResponses()));
+                            .append(OPTIONS_ORDERED, insertManyOptions.ordered())
+                            .append(OPTIONS_RETURN_DOCUMENT_RESPONSES, insertManyOptions.returnDocumentResponses()));
             return runCommand(insertMany, insertManyOptions)
                     .getStatus(TableInsertManyResult.class);
         };
@@ -649,7 +649,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             findOne.withSort(findOneOptions.getSortArray())
                     .withProjection(findOneOptions.getProjectionArray())
                     .withOptions(new Document()
-                                    .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                                    .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
                             // not exposed in FindOne
                             //.appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                     );
@@ -831,9 +831,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                     .withOptions(new Document()
                             .appendIfNotNull("skip", options.skip())
                             .appendIfNotNull("limit", options.limit())
-                            .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                            .appendIfNotNull(INPUT_INCLUDE_SCORES, options.includeSortVector())
-                            .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SCORES, options.includeSortVector())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, options.includeSimilarity()));
         }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 

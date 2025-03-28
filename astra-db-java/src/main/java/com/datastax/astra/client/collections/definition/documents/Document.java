@@ -45,8 +45,8 @@ import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.datastax.astra.internal.utils.EscapeUtils;
 import com.datastax.astra.internal.utils.BetaPreview;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -391,29 +391,14 @@ public class Document implements Serializable {
     /**
      * Add a hybrid attribute in the documentW
      *
-     * @param passage
-     *      value for the vectorize attribute
+     * @param hybrid
+     *      value for hybrid
      * @return
      *      self reference
      */
     @BetaPreview
-    public Document hybrid(String passage) {
-        return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(passage));
-    }
-
-    /**
-     * Add a vectorize attribute to the document.
-     *
-     * @param vectorize
-     *      string to converted to vector
-     * @param lexical
-     *      string to be used for lexical search
-     * @return
-     *      self reference
-     */
-    @BetaPreview
-    public Document hybrid(String vectorize, String lexical) {
-        return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), new Hybrid(vectorize, lexical));
+    public Document hybrid(Hybrid hybrid) {
+        return appendIfNotNull(DataAPIKeywords.HYBRID.getKeyword(), hybrid);
     }
 
     /**

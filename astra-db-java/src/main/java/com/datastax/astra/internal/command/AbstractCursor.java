@@ -44,7 +44,7 @@ import java.util.stream.StreamSupport;
  * @param <R>
  *       working bean returned for the find
  */
-public abstract class AbstractCursor<T, R> implements Iterable<R>, Closeable, Cloneable {
+public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
 
     /**
      * Cursor state.
@@ -90,7 +90,6 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Closeable, Cl
     /**
      * Change the state of the cursor to close.
      */
-    @Override
     public void close() {
         this.state = CursorState.CLOSED;
     }
