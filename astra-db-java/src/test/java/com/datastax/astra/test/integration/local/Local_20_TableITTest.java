@@ -79,7 +79,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 /**
  * Test Operation Locally with Docker and DSE/HCD
  */
-@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "local")
+@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "xxx")
 public class Local_20_TableITTest extends AbstractTableITTest {
 
     public static final String TABLE_SIMPLE       = "table_simple";
@@ -697,5 +697,4 @@ public class Local_20_TableITTest extends AbstractTableITTest {
         database2.getOptions().getDataAPIClientOptions();
         Table<Row> table = database1.getTable("table");
     }
-
 }

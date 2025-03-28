@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Allow to test Collection information.
  */
 @EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "local")
-class Local_10_CollectionITTest extends AbstractCollectionITTest {
+class Local_10_Collection_ITTest extends AbstractCollectionITTest {
 
     static final List<Document> FRENCH_SOCCER_TEAM = List.of(
             new Document().id(1).append("firstName", "Lucas").append("lastName", "Hernandez"),

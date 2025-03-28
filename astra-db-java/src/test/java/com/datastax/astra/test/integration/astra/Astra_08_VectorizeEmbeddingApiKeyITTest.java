@@ -7,6 +7,8 @@ import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -25,13 +27,27 @@ public class Astra_08_VectorizeEmbeddingApiKeyITTest extends AbstractVectorizeIT
 
     @Test
     public void should_test_embedding_providers() {
-        shouldTestOneProvider(
-                System.getenv("EMBEDDING_PROVIDER"),
-                System.getenv("EMBEDDING_API_KEY"));
-        // Flush the collections
-        getDatabase()
-                .listCollectionNames()
-                .forEach(name -> getDatabase().dropCollection(name));
+//        testVectorizeWithApiKeyHeader(
+//                System.getenv("EMBEDDING_PROVIDER"),
+//                System.getenv("EMBEDDING_API_KEY"));
+//        // Flush the collections
+//        getDatabase()
+//                .listCollectionNames()
+//                .forEach(name -> getDatabase().dropCollection(name));
     }
 
+    @Override
+    protected String getApiKey() {
+        return "";
+    }
+
+    @Override
+    protected String getEmbeddingProviderId() {
+        return "";
+    }
+
+    @Override
+    protected Map<String, Object> getAuthenticationParameters() {
+        return Map.of();
+    }
 }

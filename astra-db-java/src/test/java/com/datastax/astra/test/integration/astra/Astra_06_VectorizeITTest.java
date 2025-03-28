@@ -64,7 +64,7 @@ public class Astra_06_VectorizeITTest extends AbstractVectorizeITTest {
 
         // --- OPEN AI ---
         //shouldTestOneProvider("openai");
-        shouldTestOneProviderSharedKey("openai", "OPENAI_API_KEY");
+        testVectorizeWithSharedKey("openai", "OPENAI_API_KEY");
 
         // --- JINA_AI ---
         //shouldTestOneProvider("jinaAI");
@@ -102,5 +102,20 @@ public class Astra_06_VectorizeITTest extends AbstractVectorizeITTest {
             //this.testEmbeddingProvider(entry.getKey(), entry.getValue());
             System.out.println("Provider: " + entry.getKey());
         }
+    }
+
+    @Override
+    protected String getApiKey() {
+        return "";
+    }
+
+    @Override
+    protected String getEmbeddingProviderId() {
+        return "";
+    }
+
+    @Override
+    protected Map<String, Object> getAuthenticationParameters() {
+        return Map.of();
     }
 }

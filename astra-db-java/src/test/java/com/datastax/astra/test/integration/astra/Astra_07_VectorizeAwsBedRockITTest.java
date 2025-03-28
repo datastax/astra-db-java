@@ -87,4 +87,18 @@ public class Astra_07_VectorizeAwsBedRockITTest extends AbstractVectorizeITTest 
         assertThat(doc.get().getDouble(DataAPIKeywords.SIMILARITY.getKeyword())).isGreaterThan(.8);
     }
 
+    @Override
+    protected String getApiKey() {
+        return "";
+    }
+
+    @Override
+    protected String getEmbeddingProviderId() {
+        return "";
+    }
+
+    @Override
+    protected Map<String, Object> getAuthenticationParameters() {
+        return Map.of();
+    }
 }

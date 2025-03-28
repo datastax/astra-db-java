@@ -23,6 +23,18 @@ public class TestDataset {
     public static String COLLECTION_DENY      = "collection_deny";
     public static String COLLECTION_ALLOW     = "collection_allow";
 
+    public static final List<Document> DOCS_SONG_DIRE_STRAITS = List.of(
+            new Document(1).vectorize("A lovestruck Romeo sings the streets a serenade"),
+            new Document(2).vectorize("Finds a streetlight, steps out of the shade"),
+            new Document(3).vectorize("Says something like, You and me babe, how about it?"),
+            new Document(4).vectorize("Juliet says,Hey, it's Romeo, you nearly gimme a heart attack"),
+            new Document(5).vectorize("He's underneath the window"),
+            new Document(6).vectorize("She's singing, Hey la, my boyfriend's back"),
+            new Document(7).vectorize("You shouldn't come around here singing up at people like that"),
+            new Document(8).vectorize("Anyway, what you gonna do about it?")
+    );
+
+
     public static Document COMPLETE_DOCUMENT = new Document().id("1")
             .append("metadata_instant", Instant.now())
             .append("metadata_date", new Date())

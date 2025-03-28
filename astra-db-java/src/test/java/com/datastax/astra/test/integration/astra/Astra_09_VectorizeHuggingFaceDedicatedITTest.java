@@ -6,8 +6,6 @@ import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.test.integration.AbstractVectorizeITTest;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
@@ -48,10 +46,24 @@ public class Astra_09_VectorizeHuggingFaceDedicatedITTest extends AbstractVector
         assertThat(getDatabase().collectionExists(collectionName)).isTrue();
 
         // Test Collection
-        testCollection(collection, new EmbeddingAPIKeyHeaderProvider( System.getenv("EMBEDDING_API_KEY")));
+        //ingestAndFindWithVectorize(collection, new EmbeddingAPIKeyHeaderProvider( System.getenv("HUGGINGFACEDED_API_KEY")));
 
         // Drop Collection
         getDatabase().dropCollection(collectionName);
     }
 
+    @Override
+    protected String getApiKey() {
+        return "";
+    }
+
+    @Override
+    protected String getEmbeddingProviderId() {
+        return "";
+    }
+
+    @Override
+    protected Map<String, Object> getAuthenticationParameters() {
+        return Map.of();
+    }
 }

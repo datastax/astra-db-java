@@ -6,19 +6,15 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.admin.AdminOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.io.IOException;
@@ -32,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Integration tests against a Local Instance of Stargate.
  */
 @EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "local")
-class Local_02_DatabaseITTest extends AbstractDatabaseTest {
+class Local_02_Database_ITTest extends AbstractDatabaseTest {
 
     @Test
     void shouldGetATokenFromAuthenticationEndpoint() {

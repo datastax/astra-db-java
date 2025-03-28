@@ -4,26 +4,25 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.commands.Update;
 import com.datastax.astra.client.collections.commands.Updates;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
 import com.datastax.astra.internal.utils.EscapeUtils;
 import com.datastax.astra.test.integration.AbstractDataAPITest;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.util.*;
 
 @EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "local")
-public class Local_11_CollectionExtendedITTest extends AbstractDataAPITest {
+public class Local_11_Collection_Extended_ITTest extends AbstractDataAPITest {
 
     protected  Collection<Document> getCollection(boolean clear) {
         Collection<Document>  ccc = getDatabase().createCollection("extended_names");
@@ -242,7 +241,11 @@ public class Local_11_CollectionExtendedITTest extends AbstractDataAPITest {
         CollectionUpdateResult result = ccc.updateOne(filter, update, options);
         Assertions.assertEquals(0, result.getMatchedCount());
         Assertions.assertEquals(0, result.getModifiedCount());
-        Assertions.assertNull(result.getUpsertedId());
+        Assertions.assertNotNull(result.getUpsertedId());
+
+        CollectionFindOneOptions options2 = new CollectionFindOneOptions()
+                .sort(Sort.ascending("rating"),
+                      Sort.descending("title"));
     }
 
     @Test

@@ -34,7 +34,7 @@ public abstract class AbstractDataAPITest {
     public static final String ENV_VAR_DESTINATION_ASTRA_PROD = "astra_prod";
     public static final String ENV_VAR_DESTINATION_ASTRA_TEST = "astra_test";
 
-    private String readEnvVariable(String key) {
+    public String readEnvVariable(String key) {
         String envVar       = System.getenv(key);
         String systemEnvVar = System.getProperty(key);
         if (Utils.hasLength(envVar)) {

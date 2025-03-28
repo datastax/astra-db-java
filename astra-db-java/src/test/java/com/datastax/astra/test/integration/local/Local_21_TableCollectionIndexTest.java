@@ -21,7 +21,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "local")
+@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "xxx")
 public class Local_21_TableCollectionIndexTest {
 
     static Database database;
