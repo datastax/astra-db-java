@@ -358,7 +358,7 @@ public class Document implements Serializable {
      *      self reference
      */
     public Document vectorize(String passage) {
-        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), Vectorize.of(passage));
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), new Vectorize(passage));
     }
 
     /**
@@ -385,7 +385,7 @@ public class Document implements Serializable {
      */
     @BetaPreview
     public Document vectorize(String passage, String setPassage) {
-        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), Vectorize.of(passage, setPassage));
+        return appendIfNotNull(DataAPIKeywords.VECTORIZE.getKeyword(), new Vectorize(passage, setPassage));
     }
 
     /**

@@ -61,17 +61,32 @@ public @interface ColumnVector {
      */
     SimilarityMetric metric() default SimilarityMetric.COSINE;
 
+    /**
+     * Specifies source model for the column. Defaults to "other".
+     *
+     * @return the source model value or "other" if not set
+     */
     String sourceModel() default "other";
 
     /**
-     * Specifies the column's index. Defaults to -1, indicating no index.
+     * Specifies the provider for the column. Defaults to an empty string.
      *
-     * @return the index value or -1 if not set
+     * @return the provider value or an empty string if not set
      */
     String provider() default "";
 
+    /**
+     * Specifies the model name for the column. Defaults to an empty string.
+     *
+     * @return the model name value or an empty string if not set
+     */
     String modelName() default "";
 
+    /**
+     * List some authentication information for the column. Defaults to an empty array.
+     *
+     * @return the index value or -1 if not set
+     */
     KeyValue[] authentication() default {};
 
     KeyValue[] parameters() default {};

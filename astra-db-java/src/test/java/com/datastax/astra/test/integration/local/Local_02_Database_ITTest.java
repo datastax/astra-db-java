@@ -7,10 +7,13 @@ import com.datastax.astra.client.admin.AdminOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.options.TimeoutOptions;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.http.HttpProxy;
+import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.test.integration.AbstractDatabaseTest;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -18,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Set;
 
 import static com.datastax.astra.client.DataAPIClients.DEFAULT_ENDPOINT_LOCAL;
@@ -44,6 +48,13 @@ class Local_02_Database_ITTest extends AbstractDatabaseTest {
         } catch(DataAPIException dat) {
             assertThat(dat.getMessage()).contains("COMMAND_UNKNOWN");;
         }
+
+        getDataApiClient().getDatabase("endpoints", new DatabaseOptions()
+                .keyspace("sss").token("...")
+                .dataAPIClientOptions(new DataAPIClientOptions()
+                        .timeoutOptions(new TimeoutOptions()
+                                .requestTimeout(Duration.ofSeconds(30)))));
+
     }
 
     @Test
@@ -72,6 +83,7 @@ class Local_02_Database_ITTest extends AbstractDatabaseTest {
                 // Moving to admin I add a HTTP PROXY
                 .getDatabaseAdmin(new AdminOptions()
                         .dataAPIClientOptions(new DataAPIClientOptions()
+                                .timeoutOptions(new TimeoutOptions())
                                 .httpClientOptions(new HttpClientOptions()
                                         .httpProxy(new HttpProxy(mockWebServer.getHostName(), mockWebServer.getPort()))
                                 )
@@ -89,6 +101,7 @@ class Local_02_Database_ITTest extends AbstractDatabaseTest {
                 new UsernamePasswordTokenProvider().getToken(),
                 new DataAPIClientOptions()
                         .destination(DataAPIDestination.CASSANDRA)
+                        .addObserver(new LoggingCommandObserver(getClass()))
                         .addCaller("Cedrick", "1.0"));
         assertThat(otherCallerClient
                 .getDatabase(DEFAULT_ENDPOINT_LOCAL)

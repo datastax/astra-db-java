@@ -427,17 +427,19 @@ public class CollectionDefinition {
     /**
      * Builder pattern.
      *
-     * @param reranker
-     *      reranker
+     * @param provider
+     *      reranker provider
+     * @param model
+     *      model
      * @return self reference
      */
-    public CollectionDefinition rerank(String reranker) {
+    public CollectionDefinition rerank(String provider, String model) {
         if (getRerank() == null) {
             rerank = new CollectionRerankOptions().enabled(true);
         }
         getRerank()
                 .enabled(true)
-                .service(new RerankServiceOptions().provider(reranker));
+                .service(new RerankServiceOptions().provider(provider).modelName(model));
         return this;
     }
 

@@ -23,14 +23,25 @@ package com.datastax.astra.internal.command;
 import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.exceptions.DataAPIException;
 
+/**
+ * Exception thrown when an error occurs while using a cursor.
+ */
 public class CursorError extends DataAPIException {
 
-    // The underlying cursor which caused this error.
+    /** The default error code for cursor errors. */
     public final AbstractCursor<?, ?> cursor;
 
-    // The state of the cursor when the error occurred.
+    /** The state of the cursor when the error occurred. */
     public final CursorState state;
 
+    /**
+     * Constructor.
+     *
+     * @param message
+     *      the error message.
+     * @param cursor
+     *      the cursor that caused the error.
+     */
     public CursorError(String message, AbstractCursor<?, ?> cursor) {
         super(DEFAULT_ERROR_CODE, message);
         this.cursor = cursor;

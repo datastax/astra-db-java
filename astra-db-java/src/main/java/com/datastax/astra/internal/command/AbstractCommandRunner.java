@@ -313,7 +313,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                     overClientOptions.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
                 }
                 if (overClientOptions.getRerankingHeadersProvider() != null) {
-                    System.out.println("ADDING RERANKING K");
                     overClientOptions.getRerankingHeadersProvider().getHeaders().forEach(builder::header);
                 }
                 if (overClientOptions.getDatabaseAdditionalHeaders() != null) {
@@ -323,7 +322,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                     overClientOptions.getAdminAdditionalHeaders().forEach(builder::header);
                 }
             }
-
 
             HttpRequest request = builder.build();
             executionInfo.withSerializer(serializer);

@@ -120,6 +120,27 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
                 .rerank(rerankOptions);
 
         getDatabase().createCollection("c_find_rerank",def);
+
+
+//        getDatabase().createCollection("c_find_rerank", new CollectionDefinition()
+//
+//                .vector(new VectorOptions()
+//                        .dimension(1536)
+//                        .metric(SimilarityMetric.COSINE.getValue())
+//                        .service(new VectorServiceOptions()
+//                                .provider( "openai")
+//                                .modelName("text-embedding-3-small")))
+//
+//                .lexical(new LexicalOptions()
+//                        .enabled(true)
+//                        .analyzer(new Analyzer(STANDARD)))
+//
+//                .rerank(new CollectionRerankOptions()
+//                        .enabled(true)
+//                        .service(new RerankServiceOptions()
+//                                .modelName("nvidia/llama-3.2-nv-rerankqa-1b-v2")
+//                                .provider("nvidia"))));
+
     }
 
     @Test
@@ -132,6 +153,7 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
         // Ingest the CSV
         EmbeddingHeadersProvider authEmbedding =
                 new EmbeddingAPIKeyHeaderProvider(System.getenv("OPENAI_API_KEY"));
+
         List<Document> docs = Files.readAllLines(Paths.get("src/test/resources/philosopher-quotes.csv"))
                 .stream().map(line -> {
                     String[] chunks = line.split(",");
