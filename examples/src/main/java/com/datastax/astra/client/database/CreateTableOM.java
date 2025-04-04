@@ -6,7 +6,7 @@ import com.datastax.astra.client.tables.GameWithAnnotation;
 import com.datastax.astra.client.tables.GameWithAnnotationAllHints;
 import com.datastax.astra.client.tables.Table;
 
-import static com.datastax.astra.client.tables.ddl.DropTableOptions.IF_EXISTS;
+import static com.datastax.astra.client.tables.commands.options.DropTableOptions.IF_EXISTS;
 
 public class CreateTableOM {
 

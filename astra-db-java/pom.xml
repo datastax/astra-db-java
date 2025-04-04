@@ -5,10 +5,11 @@
     <name>Java Client Library for Data API</name>
     <description>Implementation of a client to the Astra/Stargate Data API written in Java</description>
 
+    <!-- Reference to parent -->
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>2.0.0-PREVIEW2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -85,6 +86,21 @@
             <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Embedding model in memory for testing -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-embeddings-all-minilm-l6-v2</artifactId>
+            <version>1.0.0-beta2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>1.0.0-beta2</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

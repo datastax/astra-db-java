@@ -26,12 +26,37 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 
 import java.io.IOException;
 
+/**
+ * A custom deserializer for {@link Double} values, extending {@link StdDeserializer}.
+ * This class provides special handling for textual representations of special
+ * floating-point values such as "Infinity", "-Infinity", and "NaN".
+ *
+ * <p>The deserializer converts these strings to their corresponding
+ * {@link Double} constants: {@link Double#POSITIVE_INFINITY}, {@link Double#NEGATIVE_INFINITY},
+ * and {@link Double#NaN}. For any other input string, it attempts to parse the value
+ * as a {@link Double} using {@link Double#parseDouble(String)}.</p>
+ */
 public class DoubleDeserializer extends StdDeserializer<Double> {
 
+    /**
+     * Default constructor. Initializes the deserializer for {@link Double} type.
+     */
     public DoubleDeserializer() {
         super(Double.class);
     }
 
+    /**
+     * Deserializes a JSON string into a {@link Double} object.
+     * <p>
+     * Special string values such as "Infinity", "-Infinity", and "NaN" are mapped to their respective
+     * {@link Double} constants. For other strings, the value is parsed as a {@link Double}.
+     * </p>
+     *
+     * @param p     the {@link JsonParser} providing access to the JSON content.
+     * @param ctxt  the {@link DeserializationContext} for contextual information.
+     * @return the deserialized {@link Double} value.
+     * @throws IOException if an I/O error occurs or if the input is invalid.
+     */
     @Override
     public Double deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         String text = p.getText();
@@ -42,4 +67,5 @@ public class DoubleDeserializer extends StdDeserializer<Double> {
             default -> Double.parseDouble(text);
         };
     }
+
 }

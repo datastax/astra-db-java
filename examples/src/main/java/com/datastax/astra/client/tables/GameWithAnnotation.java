@@ -4,6 +4,7 @@ import com.datastax.astra.client.core.query.SortOrder;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.mapping.Column;
+import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
 import com.datastax.astra.client.tables.mapping.PartitionSort;
@@ -15,13 +16,6 @@ import java.time.Instant;
 import java.util.Set;
 import java.util.UUID;
 
-import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.SET;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.TIMESTAMP;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.UUID;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.VECTOR;
-
 @Data
 @EntityTable("game_ann2")
 @NoArgsConstructor
@@ -29,7 +23,7 @@ import static com.datastax.astra.client.tables.columns.ColumnTypes.VECTOR;
 public class GameWithAnnotation {
 
     @PartitionBy(0)
-    @Column(name ="match_id")
+    @Column(value ="match_id")
     private String matchId;
 
     @PartitionSort(position = 0, order = SortOrder.ASCENDING)
@@ -43,7 +37,7 @@ public class GameWithAnnotation {
 
     private Set<UUID> fighters;
 
-    @Column(name ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
+    @ColumnVector(value ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
     private DataAPIVector vector;
     
 }

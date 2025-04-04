@@ -20,13 +20,13 @@ package com.datastax.astra.client.core.commands;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.collections.documents.Update;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.tables.row.TableUpdate;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -37,10 +37,12 @@ import lombok.Setter;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Represent a command to be executed against the Data API.
@@ -119,7 +121,7 @@ public class Command implements Serializable {
      * @return
      *      self-reference
      */
-    public Command withProjection(Map<String, Object> projection) {
+    public Command withProjection(Map<String, Boolean> projection) {
         payload.appendIfNotNull("projection", projection);
         return this;
     }
@@ -143,9 +145,8 @@ public class Command implements Serializable {
                     throw new IllegalArgumentException("A projection must be include/exclude or a slide");
                 }
                 if (p.getPresent() != null) {
-                    finalProjection.put(p.getField(), p.getPresent() ? 1 : 0);
+                    finalProjection.put(p.getField(), p.getPresent());
                 } else {
-                    // SLICE
                     int start = p.getSliceStart();
                     Map<String, Object> slice = new LinkedHashMap<>();
                     if (p.getSliceEnd() != null) {
@@ -164,19 +165,6 @@ public class Command implements Serializable {
     /**
      * Builder pattern, update sort.
      *
-     * @param sort
-     *      sort for the command
-     * @return
-     *      self-reference
-     */
-    public Command withSort(Document sort) {
-        payload.appendIfNotNull("sort", sort);
-        return this;
-    }
-
-    /**
-     * Builder pattern, update sort.
-     *
      * @param sortCriteria
      *      sort criteria for the command
      * @return
@@ -185,16 +173,10 @@ public class Command implements Serializable {
     public Command withSort(Sort... sortCriteria) {
         if (sortCriteria != null) {
             LinkedHashMap<String, Object> results = new LinkedHashMap<>();
-            Object sortValue = null;
-            for (Sort p : sortCriteria) {
-                if (p.getOrder() != null) {
-                    sortValue = p.getOrder().getCode();
-                } else if (p.getVectorize() != null) {
-                    sortValue = p.getVectorize();
-                } else {
-                    sortValue = p.getVector();
+            for (Sort s : sortCriteria) {
+                if ( s != null) {
+                    results.put(s.getField(), s.getValue());
                 }
-                results.put(p.getField(), sortValue);
             }
             payload.appendIfNotNull("sort", results);
         }
@@ -278,7 +260,7 @@ public class Command implements Serializable {
      * @return
      *      self-reference
      */
-    public Command withUpdate(TableUpdate update) {
+    public Command withUpdate(TableUpdateOperation update) {
         payload.appendIfNotNull("update", update);
         return this;
     }

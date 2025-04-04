@@ -1,10 +1,10 @@
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.paging.FindIterable;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 
@@ -51,7 +51,7 @@ public class QuickStartTraining {
         CollectionFindOptions options = new CollectionFindOptions()
                 .sort(vector(new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
                 .limit(10);
-        FindIterable<Document> resultsSet = collection.find(filter,options);
+        CollectionFindCursor<Document, Document> resultsSet = collection.find(filter,options);
         resultsSet.forEach(System.out::println);
 
         // Delete the collection

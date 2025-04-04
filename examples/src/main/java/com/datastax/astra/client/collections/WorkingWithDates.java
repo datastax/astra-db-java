@@ -2,15 +2,15 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
 import com.datastax.astra.client.core.query.Projection;
 
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
-import static com.datastax.astra.client.collections.documents.Updates.set;
+import static com.datastax.astra.client.collections.commands.Updates.set;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.lt;
 

@@ -2,29 +2,29 @@ package com.datastax.astra.test.unit;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.collections.documents.ReturnDocument;
+import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.results.CollectionDeleteResult;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionDeleteResult;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.commands.options.CollectionReplaceOneOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.collections.documents.Update;
-import com.datastax.astra.client.collections.options.UpdateOneOptions;
-import com.datastax.astra.client.collections.documents.Updates;
+import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
+import com.datastax.astra.client.collections.commands.Updates;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
-import com.datastax.astra.client.collections.CollectionDefaultIdTypes;
-import com.datastax.astra.client.collections.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.core.http.HttpProxy;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.FilterOperator;
@@ -108,10 +108,10 @@ class DataApiOptionsTest {
 
     @Test
     void shouldInitializeUpdateOne() {
-        assertThat(new UpdateOneOptions().sort(Sort.ascending("test"))).isNotNull();
-        assertThat(new UpdateOneOptions().upsert(true)).isNotNull();
-        assertThat(new UpdateOneOptions().sort(Sort.vector(new float[]{}))).isNotNull();
-        assertThat(new UpdateOneOptions().sort(Sort.vectorize("OK"))
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.ascending("test"))).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().upsert(true)).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.vector(new float[]{}))).isNotNull();
+        assertThat(new CollectionUpdateOneOptions().sort(Sort.vectorize("OK"))
                 .sort(Sort.ascending("test"))
                 .upsert(true)
                 .sort(Sort.vectorize("OK"))

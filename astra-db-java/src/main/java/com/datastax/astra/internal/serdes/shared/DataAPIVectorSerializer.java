@@ -33,10 +33,14 @@ import java.io.IOException;
  */
 public class DataAPIVectorSerializer extends StdSerializer<DataAPIVector> {
 
+    /**
+     * Default constructor.
+     */
     public DataAPIVectorSerializer() {
         super(DataAPIVector.class);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void serialize(DataAPIVector dataApiVector, JsonGenerator gen, SerializerProvider provider) throws IOException {
         if (dataApiVector == null) {

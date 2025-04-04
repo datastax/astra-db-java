@@ -20,21 +20,20 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.http.HttpClientOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.exception.DataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPITimeoutException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
-import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
-import com.dtsx.astra.sdk.db.domain.Database;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
+import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.internal.http.RetryHttpClient.CONTENT_TYPE_JSON;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_ACCEPT;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_AUTHORIZATION;
@@ -62,7 +61,37 @@ import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_TOKEN;
 import static com.datastax.astra.internal.http.RetryHttpClient.HEADER_USER_AGENT;
 
 /**
- * Execute the command and parse results throwing DataApiResponseException when needed.
+ * Abstract base class for executing commands and handling their results.
+ * <p>
+ * This class provides a template for implementing a command runner that executes commands
+ * with specific options and parses their results. It ensures consistent error handling by
+ * throwing a {@link DataAPIResponseException} when necessary.
+ * </p>
+ *
+ * <p>Subclasses must implement the command execution logic as required by the specific context.</p>
+ *
+ * @param <OPTIONS> the type of options used by the command runner, extending {@link BaseOptions}
+ *
+ * Example usage:
+ * <pre>
+ * {@code
+ * public class MyCommandRunner extends AbstractCommandRunner<MyOptions> {
+ *
+ *     @Override
+ *     protected void runCommand(MyOptions options) {
+ *         // Implement the command execution logic here
+ *     }
+ *
+ *     @Override
+ *     protected void parseResults() {
+ *         // Implement result parsing logic here
+ *     }
+ * }
+ *
+ * MyCommandRunner runner = new MyCommandRunner();
+ * runner.execute(new MyOptions());
+ * }
+ * </pre>
  */
 @Slf4j
 @Getter
@@ -99,19 +128,29 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     // --- Build Requests --
 
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SIMILARITY = "includeSimilarity";
+    protected static final String OPTIONS_UPSERT = "upsert";
     /** json inputs */
-    protected static final String INPUT_INCLUDE_SORT_VECTOR = "includeSortVector";
+    protected static final String OPTIONS_RETURN_DOCUMENT = "returnDocument";
     /** json inputs */
-    protected static final String INPUT_UPSERT = "upsert";
+    protected static final String OPTIONS_ORDERED = "ordered";
     /** json inputs */
-    protected static final String INPUT_RETURN_DOCUMENT = "returnDocument";
+    protected static final String OPTIONS_RETURN_DOCUMENT_RESPONSES = "returnDocumentResponses";
     /** json inputs */
-    protected static final String INPUT_ORDERED = "ordered";
+    protected static final String OPTIONS_PAGE_STATE = "pageState";
     /** json inputs */
-    protected static final String INPUT_RETURN_DOCUMENT_RESPONSES = "returnDocumentResponses";
+    protected static final String OPTIONS_LIMIT = "limit";
     /** json inputs */
-    protected static final String INPUT_PAGE_STATE = "pageState";
+    protected static final String OPTIONS_HYBRID_LIMITS = "hybridLimits";
+    /** json inputs */
+    protected static final String OPTIONS_RERANK_QUERY = "rerankQuery";
+    /** json inputs */
+    protected static final String OPTIONS_RERANK_ON = "rerankOn";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SORT_VECTOR = "includeSortVector";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SCORES = "includeScores";
+    /** json inputs */
+    protected static final String OPTIONS_INCLUDE_SIMILARITY = "includeSimilarity";
 
     /** Http client reused when properties not override. */
     protected RetryHttpClient httpClient;
@@ -119,9 +158,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     /** Api Endpoint for the API. */
     protected String apiEndpoint;
 
-    /**
-     * Default command options when not override
-     */
+    /**  Default command options when not override. */
     protected OPTIONS options;
 
     /**
@@ -130,6 +167,14 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     protected AbstractCommandRunner() {
     }
 
+    /**
+     * Constructor with the API endpoint and default options.
+     *
+     * @param apiEndpoint
+     *      the API endpoint
+     * @param options
+     *     the default options
+     */
     public AbstractCommandRunner(String apiEndpoint, OPTIONS options) {
         Assert.hasLength(apiEndpoint, "apiEndpoint");
         Assert.notNull(options, "options");
@@ -140,8 +185,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     /** {@inheritDoc} */
     @Override
     public DataAPIResponse runCommand(Command command, BaseOptions<?> overridingOptions) {
-
-        // Initializing options with the Collection/Table/Database level options
         DataAPIClientOptions options = this.options.getDataAPIClientOptions();
 
         // ==================
@@ -154,15 +197,26 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         RetryHttpClient requestHttpClient = httpClient;
 
         // Should we override the client to use a different one
+        long requestTimeout = this.options.getRequestTimeout();
         if (overridingOptions != null && overridingOptions.getDataAPIClientOptions() != null) {
             DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
             HttpClientOptions overHttpClientOptions = overClientOptions.getHttpClientOptions();
             TimeoutOptions    overTimeoutOptions    = overClientOptions.getTimeoutOptions();
             // User provided specific parameters for the client
             if (overHttpClientOptions != null || overTimeoutOptions != null) {
+                log.debug("Overriding Http Client");
+                // overTimeoutOptions used only for connection timeout
                 requestHttpClient = new RetryHttpClient(
                         overHttpClientOptions != null ? overHttpClientOptions : options.getHttpClientOptions(),
                         overTimeoutOptions != null ? overTimeoutOptions : options.getTimeoutOptions());
+            }
+
+            // =======================
+            // ===   Timeouts      ===
+            // =======================
+            if (overTimeoutOptions != null) {
+                requestTimeout = overridingOptions.getRequestTimeout();
+                log.debug("Overriding Timeouts to {}", requestTimeout);
             }
         }
 
@@ -194,6 +248,9 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         if (overridingOptions != null && overridingOptions.getToken() != null) {
             token = overridingOptions.getToken();
         }
+        if (token == null) {
+            throw new IllegalArgumentException("No token provided for the command");
+        }
 
         // =======================
         // ===   SERIALIZER    ===
@@ -202,17 +259,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         DataAPISerializer serializer = this.options.getSerializer();
         if (overridingOptions != null && overridingOptions.getSerializer() != null) {
             serializer = overridingOptions.getSerializer();
-        }
-
-        // =======================
-        // ===   Timeouts      ===
-        // =======================
-
-        long requestTimeout = this.options.getRequestTimeout();
-        if (overridingOptions != null
-              && overridingOptions.getDataAPIClientOptions() != null
-              && overridingOptions.getDataAPIClientOptions().getTimeoutOptions() != null) {
-            requestTimeout = overridingOptions.getRequestTimeout();
         }
 
         // Initializing the Execution infos (could be pushed to 3rd parties)
@@ -227,24 +273,32 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
 
+            URI targetUri;
+            try {
+                targetUri = new URI(getApiEndpoint());
+            } catch (URISyntaxException e) {
+                throw new IllegalArgumentException("Invalid Endpoints '" + getApiEndpoint() + "'", e);
+            }
             // Build the request
             HttpRequest.Builder builder = HttpRequest.newBuilder()
-                        .uri(new URI(getApiEndpoint()))
+                        .uri(targetUri)
                         .header(HEADER_CONTENT_TYPE, CONTENT_TYPE_JSON)
                         .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
                         .header(HEADER_USER_AGENT, httpClient.getUserAgentHeader())
                         .header(HEADER_REQUESTED_WITH, httpClient.getUserAgentHeader())
                         .header(HEADER_TOKEN, token)
                         .header(HEADER_AUTHORIZATION, "Bearer " + token)
-                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand))
-                        .timeout(Duration.ofSeconds(requestTimeout / 1000));
+                        .method("POST", HttpRequest.BodyPublishers.ofString(jsonCommand));
+            if (requestTimeout > 0) {
+                builder.timeout(Duration.ofMillis(requestTimeout));
+            }
 
             // =======================
             // ===   HEADERS       ===
             // =======================
 
-            if (options.getEmbeddingAuthProvider() != null) {
-                options.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+            if (options.getEmbeddingHeadersProvider() != null) {
+                options.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
             }
             if (options.getDatabaseAdditionalHeaders() != null) {
                 options.getDatabaseAdditionalHeaders().forEach(builder::header);
@@ -255,8 +309,12 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             if (overridingOptions!= null && overridingOptions.getDataAPIClientOptions() != null) {
                 DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
-                if (overClientOptions.getEmbeddingAuthProvider() != null) {
-                    overClientOptions.getEmbeddingAuthProvider().getHeaders().forEach(builder::header);
+                if (overClientOptions.getEmbeddingHeadersProvider() != null) {
+                    overClientOptions.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
+                }
+                if (overClientOptions.getRerankingHeadersProvider() != null) {
+                    System.out.println("ADDING RERANKING K");
+                    overClientOptions.getRerankingHeadersProvider().getHeaders().forEach(builder::header);
                 }
                 if (overClientOptions.getDatabaseAdditionalHeaders() != null) {
                     overClientOptions.getDatabaseAdditionalHeaders().forEach(builder::header);
@@ -271,18 +329,21 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withSerializer(serializer);
             executionInfo.withRequestHeaders(request.headers().map());
             executionInfo.withRequestUrl(getApiEndpoint());
-
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
 
-            DataAPIResponse apiResponse = serializer
-                    .unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
+            if (httpRes == null) {
+                throw new DataAPITimeoutException("Timeout while executing command '" +
+                        command.getName() + "' timeout: " + requestTimeout +
+                        " but was " + executionInfo.getExecutionTime());
+            }
+
+            DataAPIResponse apiResponse = serializer.unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
             apiResponse.setSerializer(serializer);
             if (apiResponse.getStatus() != null) {
                 apiResponse.getStatus().setSerializer(serializer);
             }
-
             executionInfo.withApiResponse(apiResponse);
             // Encapsulate Errors
             if (apiResponse.getErrors() != null) {
@@ -299,8 +360,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                 }
             }
             return apiResponse;
-        } catch(URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid URL '" + getApiEndpoint() + "'", e);
         } finally {
             // Notify the observers
             CompletableFuture.runAsync(()-> notifyASync(l -> l.onCommand(executionInfo.build()), observers));
@@ -320,7 +379,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
      *      operations to execute
      * @param observers
      *      list of observers to check
-     *
      */
     private void notifyASync(Consumer<CommandObserver> lambda, List<CommandObserver> observers) {
         if (observers != null) {
@@ -330,12 +388,28 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         }
     }
 
+    /**
+     * Validates that the current options are configured for Astra.
+     *
+     * <p>
+     * This method ensures that the operation is being performed in an Astra environment.
+     * If the options are not set for Astra, it throws an exception with details about the restriction.
+     * </p>
+     *
+     * @throws IllegalStateException if the configuration is not set for Astra
+     */
     protected void assertIsAstra() {
         if (!options.getDataAPIClientOptions().isAstra()) {
             throwErrorRestrictedAstra("getRegion", options.getDataAPIClientOptions().getDestination());
         }
     }
 
+    /**
+     * Gets the serializer currently in place to parse inputs and outputs.
+     *
+     * @return
+     *      the serializer
+     */
     protected DataAPISerializer getSerializer() {
         return this.options.getSerializer();
     }
@@ -385,5 +459,4 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     public OPTIONS getOptions() {
         return options;
     }
-
 }

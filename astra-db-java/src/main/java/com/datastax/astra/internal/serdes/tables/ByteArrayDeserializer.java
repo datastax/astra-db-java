@@ -28,12 +28,49 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import java.io.IOException;
 import java.util.Base64;
 
+/**
+ * A custom deserializer for byte arrays that expects the input JSON to be a Base64-encoded string
+ * wrapped in a JSON object with a specific field name.
+ * <p>
+ * This deserializer processes a JSON object with the following format:
+ * </p>
+ *
+ * <pre>
+ * {
+ *   "$binary": "base64EncodedString"
+ * }
+ * </pre>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * ObjectMapper mapper = new ObjectMapper();
+ * SimpleModule module = new SimpleModule();
+ * module.addDeserializer(byte[].class, new ByteArrayDeserializer());
+ * mapper.registerModule(module);
+ *
+ * String json = "{\"$binary\": \"AQID\"}";
+ * byte[] data = mapper.readValue(json, byte[].class);
+ * }
+ * </pre>
+ */
 public class ByteArrayDeserializer extends StdDeserializer<byte[]> {
 
+    /**
+     * Default constructor that specifies the {@code byte[]} type for deserialization.
+     */
     public ByteArrayDeserializer() {
         super(byte[].class);
     }
 
+    /**
+     * Deserializes a JSON object containing a Base64-encoded string into a byte array.
+     *
+     * @param p     the {@link JsonParser} used to parse the JSON input
+     * @param ctxt  the {@link DeserializationContext} that can be used to handle contextual information
+     * @return the deserialized byte array
+     * @throws IOException if the JSON structure is invalid or if a decoding error occurs
+     */
     @Override
     public byte[] deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
         if (p.getCurrentToken() == JsonToken.START_OBJECT) {
@@ -51,5 +88,4 @@ public class ByteArrayDeserializer extends StdDeserializer<byte[]> {
             throw new IOException("Expected START_OBJECT token");
         }
     }
-
 }

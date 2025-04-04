@@ -20,7 +20,7 @@ package com.datastax.astra.client.core.query;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 
 import java.util.Map;
 
@@ -90,6 +90,18 @@ public class FilterBuilder {
     public Filter isEqualsTo(Object value) {
         filter.documentMap.put(fieldName, value);
         return filter;
+    }
+
+    /**
+     * "fieldName": "value" ($eq is omitted)
+     *
+     * @param value
+     *      value
+     * @return
+     *      self reference
+     */
+    public Filter isEqualsToExplicit(Object value) {
+        return simpleOperator(FilterOperator.EQUALS_TO, value);
     }
 
     /**

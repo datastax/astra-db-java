@@ -21,8 +21,9 @@ package com.datastax.astra.langchain4j.store.memory;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.databases.Database;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
@@ -32,7 +33,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.query.Filters.eq;
@@ -48,7 +51,7 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
     /**
      * Some attributes in the collection to store the chat messages.
      */
-    public static final String DEFAULT_COLLECTION_NAME     = "chat_memory";
+    public static final String DEFAULT_COLLECTION_NAME = "chat_memory";
 
     /**
      * Client to work with an Astra Collection
@@ -80,7 +83,21 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
     public AstraDbChatMemoryStore(Database database) {
         this(database.createCollection(DEFAULT_COLLECTION_NAME,
              new CollectionDefinition().indexingDeny(PROP_MESSAGE),
-             AstraDbChatMessage.class));
+             AstraDbChatMessage.class, new CreateCollectionOptions().timeout(Duration.ofSeconds(30))));
+    }
+
+    /**
+     * Create a default collection (no vector) to store chat messages.
+     *
+     * @param database
+     *      client for existing active database
+     * @param collectionName
+     *      create a chat memory collection with a specific name
+     */
+    public AstraDbChatMemoryStore(Database database, String collectionName) {
+        this(database.createCollection(collectionName,
+                new CollectionDefinition().indexingDeny(PROP_MESSAGE),
+                AstraDbChatMessage.class));
     }
 
     /**
@@ -110,7 +127,9 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
     /** {@inheritDoc} */
     @Override
     public List<ChatMessage> getMessages(@NonNull Object chatId) {
-        return getConversation(chatId).stream().map(AstraDbChatMessage::toChatMessage).collect(Collectors.toList());
+        return getMessagesAstra(chatId)
+                .stream()
+                .map(AstraDbChatMessage::toChatMessage).collect(Collectors.toList());
     }
 
     /**
@@ -121,11 +140,11 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
      * @return
      *      list of messages
      */
-    public List<AstraDbChatMessage> getConversation(@NonNull Object conversationId) {
+    public List<AstraDbChatMessage> getMessagesAstra(@NonNull Object conversationId) {
         return chatMemoryCollection.find(eq(AstraDbChatMessage.PROP_CHAT_ID, conversationId),
                      new CollectionFindOptions()
                              .sort(descending(AstraDbChatMessage.PROP_MESSAGE_TIME)))
-                             .all();
+                             .toList();
     }
 
     /**
@@ -149,7 +168,8 @@ public class AstraDbChatMemoryStore implements ChatMemoryStore {
         if (list != null) {
             replaceConversation(o, list.stream().map(msg -> {
                 AstraDbChatMessage astraDBChatMessage = new AstraDbChatMessage(msg);
-                astraDBChatMessage.setChatId((String) o);
+                astraDBChatMessage.chatId((String) o);
+                astraDBChatMessage.messageId(UUID.randomUUID());
                 return astraDBChatMessage;
             }).collect(Collectors.toList()));
         }

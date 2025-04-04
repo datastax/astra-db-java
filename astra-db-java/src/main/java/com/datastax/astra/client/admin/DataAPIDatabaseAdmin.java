@@ -20,13 +20,15 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.core.rerank.RerankProvider;
+import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.keyspaces.KeyspaceOptions;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
@@ -71,6 +73,17 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         this.db = db;
         this.options.commandType(CommandType.KEYSPACE_ADMIN);
         String apiVersion = options.getDataAPIClientOptions().getApiVersion();
+        switch(options.getDataAPIClientOptions().getDestination()) {
+            case ASTRA:
+            case ASTRA_TEST:
+            case ASTRA_DEV:
+                if (db.getRootEndpoint().endsWith(".com")) {
+                    this.apiEndpoint += "/api/json";
+                }
+                break;
+            default:
+                break;
+        }
         if (!db.getRootEndpoint().endsWith(apiVersion)) {
           this.apiEndpoint += "/" + apiVersion;
         }
@@ -96,6 +109,14 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         return new FindEmbeddingProvidersResult(
                 res.getStatusKeyAsMap("embeddingProviders",
                 EmbeddingProvider.class));
+    }
+
+    @Override
+    public FindRerankingProvidersResult findRerankingProviders() {
+        DataAPIResponse res = runCommand(Command.create("findRerankingProviders"));
+        return new FindRerankingProvidersResult(
+                res.getStatusKeyAsMap("rerankingProviders",
+                        RerankProvider.class));
     }
 
     /** {@inheritDoc} */

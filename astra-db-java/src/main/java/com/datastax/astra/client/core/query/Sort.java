@@ -20,8 +20,11 @@ package com.datastax.astra.client.core.query;
  * #L%
  */
 
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.internal.utils.EscapeUtils;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,6 +46,9 @@ public class Sort {
     /** sort for the field (if vectorize). */
     private final DataAPIVector vector;
 
+    /** sort for the field (if hybrid). */
+    private final Hybrid hybrid;
+
     /**
      * Default Constructor.
      *
@@ -50,14 +56,20 @@ public class Sort {
      *      field name
      * @param order
      *      field ordering instruction
+     * @param vectorize
+     *     vectorize instruction
+     * @param vector
+     *     vector instruction
      */
-    public Sort(String field, SortOrder order, String vectorize, DataAPIVector vector) {
-        this.field = field;
-        this.order = order;
+    @Builder(builderMethodName = "internalBuilder")
+    private Sort(String field, SortOrder order, String vectorize, DataAPIVector vector, Hybrid hybrid) {
+        this.field     = field;
+        this.order     = order;
         this.vectorize = vectorize;
-        this.vector = vector;
-        if (order == null && vectorize == null && vector == null) {
-            throw new IllegalArgumentException("Sort must have an order, vectorize or vector");
+        this.vector    = vector;
+        this.hybrid   = hybrid;
+        if (order == null && vectorize == null && vector == null && hybrid == null) {
+            throw new IllegalArgumentException("Sort must have an order, vectorize, vector or hybrid");
         }
     }
 
@@ -69,12 +81,27 @@ public class Sort {
      */
     public Object getValue() {
         if (order != null) {
-            return order;
+            return order.getCode();
         }
         if (vectorize != null) {
             return vectorize;
         }
+        if (hybrid != null) {
+            return hybrid;
+        }
         return vector;
+    }
+
+    /**
+     * Build a sort clause ascending.
+     *
+     * @param fieldSegments
+     *      field Segments
+     * @return
+     *      sort instance.
+     */
+    public static Sort ascending(String[] fieldSegments) {
+        return ascending(EscapeUtils.escapeFieldNames(fieldSegments));
     }
 
     /**
@@ -86,7 +113,22 @@ public class Sort {
      *      sort instance.
      */
     public static Sort ascending(String field) {
-        return new Sort(field, SortOrder.ASCENDING, null, null);
+        return internalBuilder()
+                .field(field)
+                .order(SortOrder.ASCENDING)
+                .build();
+    }
+
+    /**
+     * Build a sort clause DESCENDING.
+     *
+     * @param fieldSegments
+     *      field Segments
+     * @return
+     *      sort instance.
+     */
+    public static Sort descending(String[] fieldSegments) {
+        return descending(EscapeUtils.escapeFieldNames(fieldSegments));
     }
 
     /**
@@ -98,7 +140,10 @@ public class Sort {
      *      sort instance.
      */
     public static Sort descending(String field) {
-        return new Sort(field, SortOrder.DESCENDING, null, null);
+        return internalBuilder()
+                .field(field)
+                .order(SortOrder.DESCENDING)
+                .build();
     }
 
     /**
@@ -110,7 +155,41 @@ public class Sort {
      *       sort instance.
      */
     public static Sort vector(float[] embeddings) {
-        return new Sort(DataAPIKeywords.VECTOR.getKeyword(), null, null, new DataAPIVector(embeddings));
+        return vector(DataAPIKeywords.VECTOR.getKeyword(), embeddings);
+    }
+
+    /**
+     * Build a sort clause with a vector on a table
+     *
+     * @param fieldName
+     *      current field
+     * @param embeddings
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vector(String fieldName, float[] embeddings) {
+        return internalBuilder()
+                .field(fieldName)
+                .vector(new DataAPIVector(embeddings))
+                .build();
+    }
+
+    /**
+     * Build a sort clause with a vector on a table
+     *
+     * @param fieldName
+     *      current field
+     * @param embeddings
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vector(String fieldName, DataAPIVector embeddings) {
+        return internalBuilder()
+                .field(fieldName)
+                .vector(embeddings)
+                .build();
     }
 
     /**
@@ -122,7 +201,39 @@ public class Sort {
      *       sort instance.
      */
     public static Sort vectorize(String vectorize) {
-        return new Sort(DataAPIKeywords.VECTORIZE.getKeyword(), null, vectorize, null);
+        return vectorize(DataAPIKeywords.VECTORIZE.getKeyword(), vectorize);
+    }
+
+    /**
+     * Build a sort clause with vectorize.
+     *
+     * @param fieldName
+     *      current field
+     * @param vectorize
+     *      vector of embeddings
+     * @return
+     *       sort instance.
+     */
+    public static Sort vectorize(String fieldName, String vectorize) {
+        return internalBuilder()
+                .field(fieldName)
+                .vectorize(vectorize)
+                .build();
+    }
+
+    /**
+     * Build a sort clause with vectorize.
+     *
+     * @param hybrid
+     *      hybrid sort
+     * @return
+     *       sort instance.
+     */
+    public static Sort hybrid(Hybrid hybrid) {
+        return internalBuilder()
+                .field(DataAPIKeywords.HYBRID.getKeyword())
+                .hybrid(hybrid)
+                .build();
     }
 
 }

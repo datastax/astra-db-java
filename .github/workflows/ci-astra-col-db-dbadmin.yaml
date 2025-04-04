@@ -16,7 +16,7 @@ on:
       java_version:
         description: 'JDK version to use'
         required: true
-        default: '11.0'
+        default: '17.0'
       cache_pkg_mgr_name:
         description: 'Cache package manager to be used'
         required: true

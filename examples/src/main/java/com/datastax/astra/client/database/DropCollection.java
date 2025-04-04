@@ -2,7 +2,7 @@ package com.datastax.astra.client.database;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.options.DropCollectionOptions;
+import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
 
 public class DropCollection {
   public static void main(String[] args) {

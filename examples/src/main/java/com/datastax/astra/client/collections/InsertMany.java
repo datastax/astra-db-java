@@ -1,9 +1,9 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

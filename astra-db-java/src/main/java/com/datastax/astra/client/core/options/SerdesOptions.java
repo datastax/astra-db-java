@@ -23,8 +23,11 @@ import lombok.experimental.Accessors;
  * limitations under the License.
  * #L%
  */
+
+/**
+ * Options for serialization and deserialization.
+ */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class SerdesOptions implements Cloneable {
 
@@ -33,6 +36,12 @@ public class SerdesOptions implements Cloneable {
 
     /** Encode the vector as binary. */
     boolean encodeDataApiVectorsAsBase64 = true;
+
+    /**
+     * Default constructor.
+     */
+    public SerdesOptions() {
+    }
 
     /**
      * Gets encodeDurationAsISO8601
@@ -52,14 +61,25 @@ public class SerdesOptions implements Cloneable {
         return encodeDataApiVectorsAsBase64;
     }
 
+    /**
+     * Disable the encoding of Data API vectors as Base64.
+     *
+     * @return this
+     */
     public SerdesOptions disableEncodeDataApiVectorsAsBase64() {
         return encodeDataApiVectorsAsBase64(false);
     }
 
+    /**
+     * Disable the encoding of Duration as ISO8601.
+     *
+     * @return this
+     */
     public SerdesOptions disableEncodeDurationAsISO8601() {
         return encodeDurationAsISO8601(false);
     }
 
+    /** {@inheritDoc} */
     @Override
     public SerdesOptions clone() {
         try {

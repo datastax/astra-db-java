@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.tables.TableDuration;
+import com.datastax.astra.client.tables.definition.TableDuration;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -31,14 +31,49 @@ import java.time.Period;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A custom deserializer for converting JSON strings into {@link TableDuration} objects.
+ * Supports both ISO 8601 duration notation (e.g., "P1Y2M10DT2H30M") and compact notation (e.g., "1y2mo10d2h30m").
+ * <p>The deserializer attempts to parse the input string in the following order:</p>
+ * <ol>
+ *     <li>ISO 8601 notation</li>
+ *     <li>Compact notation</li>
+ * </ol>
+ * If the input does not match either format, an {@link IOException} is thrown.
+ */
 public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
 
+    /**
+     * Regular expression pattern for parsing custom duration strings.
+     */
     private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+)([a-zA-Zµ]+)");
+
+    /**
+     * Regular expression pattern for parsing negative duration strings.
+     */
     private static final Pattern NEGATIVE_PATTERN = Pattern.compile("^-(.*)");
+
+    /**
+     * Regular expression pattern for parsing ISO 8601 duration strings.
+     */
     private static final Pattern ISO8601_PATTERN = Pattern.compile(
             "P((\\d+)Y)?((\\d+)M)?((\\d+)D)?(T((\\d+)H)?((\\d+)M)?((\\d+)S)?)?"
     );
 
+    /**
+     * Default constructor.
+     */
+    public TableDurationDeserializer() {
+    }
+
+    /**
+     * Deserializes a JSON string into a {@link TableDuration} object.
+     *
+     * @param p the {@link JsonParser} providing the JSON input
+     * @param ctxt the {@link DeserializationContext} in which the deserializer is operating
+     * @return a {@link TableDuration} object representing the parsed duration
+     * @throws IOException if the input string is not a valid duration format
+     */
     @Override
     public TableDuration deserialize(JsonParser p, DeserializationContext ctxt)
     throws IOException {
@@ -58,6 +93,13 @@ public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
         return parseCompactNotation(inputString);
     }
 
+    /**
+     * Parses a duration string in ISO 8601 notation (e.g., "P1Y2M10DT2H30M").
+     *
+     * @param inputString the duration string to parse
+     * @return a {@link TableDuration} object representing the parsed ISO 8601 duration
+     * @throws IllegalArgumentException if the input string does not conform to ISO 8601 duration notation
+     */
     private TableDuration parseIso8601(String inputString) {
         Matcher matcher = ISO8601_PATTERN.matcher(inputString);
         int years = matcher.group(2) != null ? Integer.parseInt(matcher.group(2)) : 0;
@@ -75,6 +117,28 @@ public class TableDurationDeserializer extends JsonDeserializer<TableDuration> {
         return new TableDuration(period, duration);
     }
 
+
+    /**
+     * Parses a duration string in compact notation (e.g., "1y2mo10d2h30m").
+     *
+     * <p>Compact notation supports the following units:</p>
+     * <ul>
+     *     <li><b>y</b>: years</li>
+     *     <li><b>mo</b>: months</li>
+     *     <li><b>w</b>: weeks (7 days)</li>
+     *     <li><b>d</b>: days</li>
+     *     <li><b>h</b>: hours</li>
+     *     <li><b>m</b>: minutes</li>
+     *     <li><b>s</b>: seconds</li>
+     *     <li><b>ms</b>: milliseconds</li>
+     *     <li><b>us</b>/<b>µs</b>: microseconds</li>
+     *     <li><b>ns</b>: nanoseconds</li>
+     * </ul>
+     *
+     * @param inputString the duration string to parse
+     * @return a {@link TableDuration} object representing the parsed compact duration
+     * @throws IOException if the input string contains invalid duration units or format
+     */
     private TableDuration parseCompactNotation(String inputString)
     throws IOException {
         boolean negative = false;

@@ -21,11 +21,11 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.commands.BaseOptions;
-import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.utils.Assert;
@@ -59,6 +59,8 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
      *
      * @param db
      *      target database
+     * @param adminOptions
+     *     options to use for the admin operations like timeouts
      */
     public AstraDBDatabaseAdmin(com.datastax.astra.client.databases.Database db, AdminOptions adminOptions) {
         Assert.notNull(db, "database");
@@ -174,6 +176,7 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         return new com.datastax.astra.client.databases.Database(getApiEndpoint(), db.getOptions());
     }
 
+    /** {@inheritDoc} */
     @Override
     public Set<String> listKeyspaceNames() {
         log.debug("listKeyspaceNames");
@@ -190,12 +193,22 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public FindRerankingProvidersResult findRerankingProviders() {
+        log.debug("findRerankingProviders");
+        DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
+        return new FindRerankingProvidersResult(admin.findRerankingProviders().getRerankingProviders());
+    }
+
+    /** {@inheritDoc} */
     @Override
     public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
         log.debug("createKeyspace");
         devopsDbClient.database(databaseId.toString()).keyspaces().create(keyspace);
     }
 
+    /** {@inheritDoc} */
     @Override
     public void dropKeyspace(String keyspace) {
         log.debug("dropKeyspace");

@@ -20,59 +20,70 @@ package com.datastax.astra.client.collections;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.documents.ReturnDocument;
-import com.datastax.astra.client.collections.documents.Update;
+import com.datastax.astra.client.collections.commands.ReturnDocument;
+import com.datastax.astra.client.collections.commands.Update;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
+import com.datastax.astra.client.collections.commands.options.CollectionDeleteManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionDeleteOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindAndRerankOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndDeleteOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndUpdateOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionUpdateOneOptions;
+import com.datastax.astra.client.collections.commands.options.CountDocumentsOptions;
+import com.datastax.astra.client.collections.commands.options.EstimatedCountDocumentsOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionDeleteResult;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
+import com.datastax.astra.client.collections.commands.results.FindOneAndReplaceResult;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.CollectionDescriptor;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
-import com.datastax.astra.client.collections.options.CollectionDeleteManyOptions;
-import com.datastax.astra.client.collections.options.CollectionDeleteOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndDeleteOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndUpdateOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOneOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertOneOptions;
-import com.datastax.astra.client.collections.options.CollectionReplaceOneOptions;
-import com.datastax.astra.client.collections.options.CollectionUpdateManyOptions;
-import com.datastax.astra.client.collections.options.CountDocumentsOptions;
-import com.datastax.astra.client.collections.options.EstimatedCountDocumentsOptions;
-import com.datastax.astra.client.collections.options.UpdateOneOptions;
-import com.datastax.astra.client.collections.results.CollectionDeleteResult;
-import com.datastax.astra.client.collections.results.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.results.CollectionInsertOneResult;
-import com.datastax.astra.client.collections.results.CollectionUpdateResult;
-import com.datastax.astra.client.collections.results.FindOneAndReplaceResult;
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.paging.CollectionCursor;
-import com.datastax.astra.client.core.paging.CollectionDistinctIterable;
-import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
-import com.datastax.astra.client.core.types.ObjectId;
-import com.datastax.astra.client.core.types.UUIDv6;
-import com.datastax.astra.client.core.types.UUIDv7;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
+import com.datastax.astra.internal.utils.BetaPreview;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -84,12 +95,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
-import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -171,6 +182,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *                       database. This name is used to route operations to the correct
      *                       collection and should adhere to the database's naming conventions.
      * @param collectionOptions the options to apply to the command operation. If left blank the default collection
+     * @param documentClass The {@code Class} object representing the schema of documents stored
      *
      * <p>Example usage:</p>
      * <pre>
@@ -193,6 +205,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         this.collectionName = collectionName;
         this.documentClass  = documentClass;
         this.options.serializer(new DocumentSerializer());
+        if (collectionOptions.getKeyspace() != null) {
+            this.database.useKeyspace(collectionOptions.getKeyspace());
+        }
     }
 
     // ----------------------------
@@ -775,8 +790,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Command insertMany = new Command("insertMany")
                     .withDocuments(documents.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, collectionInsertManyOptions.isOrdered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
+                            .append(OPTIONS_ORDERED, collectionInsertManyOptions.isOrdered())
+                            .append(OPTIONS_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
 
             DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
             CollectionInsertManyResult result = new CollectionInsertManyResult();
@@ -791,7 +806,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     }
 
     // --------------------------
-    // ---   Find*           ----
+    // ---   FindOne         ----
     // --------------------------
 
     /**
@@ -876,14 +891,15 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(findOneOptions.getSortArray())
                 .withProjection(findOneOptions.getProjectionArray())
                 .withOptions(new Document()
-                  .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                  .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
                 );
 
-        return Optional.ofNullable(
-                runCommand(findOne, findOneOptions)
-                        .getData().getDocument()
-                        .map(getDocumentClass()));
+        return Optional
+                // Get document first
+                .ofNullable(runCommand(findOne, findOneOptions).getData().getDocument())
+                // Map only if present
+                .map(doc -> doc.map(getDocumentClass()));
     }
 
     /**
@@ -958,24 +974,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
-
-    /**
-     * Retrieves all documents in the collection.
-     * <p>
-     * This method returns an iterable interface that allows iterating over all documents in the collection,
-     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
-     * </p>
-     *
-     * @return A {@link FindIterable} for iterating over all documents in the collection.
-     */
-    public FindIterable<T> findAll() {
-        return find(null, new CollectionFindOptions());
-    }
-
-    public CollectionCursor<T> findAllWithCursor() {
-        return new CollectionCursor<T>(this, null, new CollectionFindOptions());
-    }
-
     /**
      * Retrieves a document by its identifier from the collection.
      * <p>
@@ -992,6 +990,40 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return findOne(Filters.eq(id));
     }
 
+    // -------------------------
+    // ---   find           ----
+    // -------------------------
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public CollectionFindCursor<T, T> find(Filter filter, CollectionFindOptions options) {
+        return new CollectionFindCursor<>(this, filter, options, getDocumentClass());
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @param newDocType
+     *      new class for return objects if projected
+     * @return
+     *      the find iterable interface
+     */
+    public <R> CollectionFindCursor<T, R> find(Filter filter, CollectionFindOptions options, Class<R> newDocType) {
+        return new CollectionFindCursor<>(this, filter, options, newDocType);
+    }
+
     /**
      * Finds all documents in the collection.
      *
@@ -1000,8 +1032,55 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(Filter filter) {
-        return find(filter, new CollectionFindOptions());
+    public CollectionFindCursor<T, T> find(Filter filter) {
+        return new CollectionFindCursor<>(this, filter, new CollectionFindOptions(), getDocumentClass());
+    }
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    public CollectionFindCursor<T, T> find(CollectionFindOptions options) {
+        return new CollectionFindCursor<>(this, null, options, getDocumentClass());
+    }
+
+    /**
+     * Retrieves all documents in the collection.
+     * <p>
+     * This method returns an iterable interface that allows iterating over all documents in the collection,
+     * without applying any filters. It leverages the default {@link CollectionFindOptions} for query execution.
+     * </p>
+     *
+     * @return A {@link CollectionFindCursor} for iterating over all documents in the collection.
+     */
+    public CollectionFindCursor<T, T> findAll() {
+        return find(null, new CollectionFindOptions());
+    }
+
+    public Page<T> findPage(Filter filter, CollectionFindOptions options) {
+        return findPage(filter, options, getDocumentClass());
+    }
+
+
+    // -----------------------------
+    // ---   Find and Rerank    ----
+    // -----------------------------
+
+    /**
+     * Finds all documents in the collection.
+     *
+     * @param options
+     *      options of find one
+     * @return
+     *      the find iterable interface
+     */
+    @BetaPreview
+    public CollectionFindAndRerankCursor<T,T> findAndRerank(CollectionFindAndRerankOptions options) {
+        return findAndRerank(null, options, getDocumentClass());
     }
 
     /**
@@ -1014,19 +1093,74 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the find iterable interface
      */
-    public FindIterable<T> find(Filter filter, CollectionFindOptions options) {
-        return new FindIterable<>(this, filter, options);
+    @BetaPreview
+    public CollectionFindAndRerankCursor<T,T> findAndRerank(Filter filter, CollectionFindAndRerankOptions options) {
+        return findAndRerank(filter, options, getDocumentClass());
     }
 
-    /**
-     * Finds all documents in the collection.
-     * @param options
-     *      options of find one
-     * @return
-     *      the find iterable interface
-     */
-    public FindIterable<T> find(CollectionFindOptions options) {
-        return find(null, options);
+    @BetaPreview
+    public <R> CollectionFindAndRerankCursor<T, R> findAndRerank(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
+        return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
+    }
+
+
+    @BetaPreview
+    public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
+        Command findAndRerankCommand = Command
+                .create("findAndRerank")
+                .withFilter(filter);
+        if (options != null) {
+            findAndRerankCommand
+              .withSort(options.getSortArray())
+              .withProjection(options.getProjectionArray())
+              .withOptions(new Document()
+                  .appendIfNotNull(OPTIONS_RERANK_QUERY, options.rerankQuery())
+                  .appendIfNotNull(OPTIONS_RERANK_ON, options.rerankOn())
+                  .appendIfNotNull(OPTIONS_LIMIT, options.limit())
+                  .appendIfNotNull(OPTIONS_HYBRID_LIMITS, options.hybridLimits())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                  .appendIfNotNull(OPTIONS_INCLUDE_SCORES, options.includeScores())
+              );
+        }
+
+        // Responses MOCK for now
+        DataAPIResponse apiResponse = runCommand(findAndRerankCommand, options);
+
+        // load sortVector if available
+        DataAPIVector sortVector = null;
+        if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
+        }
+
+        List<RerankResult<R>> results = new ArrayList<>();
+        List<Document> documents = apiResponse.getData().getDocuments();
+        List<Document> documentResponses = apiResponse.getStatus().getDocumentResponses();
+        if (documents == null || documentResponses == null) {
+            throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
+                    apiResponse, "Documents or Documents reponses are not retuned");
+        }
+        if (documents.size() != documentResponses.size()) {
+            throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
+                    apiResponse, "Documents or Documents responses do not match");
+        }
+
+        for(int i = 0; i < documents.size(); i++) {
+
+            // Getting document and projecting as expected
+            Document document = documents.get(i);
+
+            // MAP WITH DOCUMENT FUNCTION
+            DocumentSerializer serializer = new DocumentSerializer();
+            R results1 = serializer.convertValue(document, newRowType);
+
+            // Getting associated document response
+            Document documentResponse = documentResponses.get(i);
+            Map<String, Double> scores = documentResponse.getMap("scores", String.class, Double.class);
+
+            results.add(new RerankResult<>(results1, scores));
+        }
+        // PageState is always NULL
+        return new Page<>(null, results, sortVector);
     }
 
     /**
@@ -1051,33 +1185,31 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.
      */
-    public Page<T> findPage(Filter filter, CollectionFindOptions options) {
+    public <R> Page<R> findPage(Filter filter, CollectionFindOptions options, Class<R> newRowType) {
         Command findCommand = Command
                 .create("find")
-                .withFilter(filter)
-                .withSort(options.getSortArray())
-                .withProjection(options.getProjectionArray())
-                .withOptions(new Document()
-                        .appendIfNotNull("skip", options.skip())
-                        .appendIfNotNull("limit", options.limit())
-                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                .withFilter(filter);
+        if (options != null) {
+            findCommand.withSort(options.getSortArray())
+                    .withProjection(options.getProjectionArray())
+                    .withOptions(new Document()
+                            .appendIfNotNull("skip", options.skip())
+                            .appendIfNotNull("limit", options.limit())
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, options.includeSimilarity()));
+        }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
-        float[] sortVector = null;
-        if (options.includeSortVector() != null &&
-                apiResponse.getStatus() != null &&
-                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
-            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        DataAPIVector sortVector = null;
+        if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
         }
-
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
-                apiResponse.getData().getDocuments()
-                        .stream()
-                        .map(d -> d.map(getDocumentClass()))
+                apiResponse.getData().getDocuments().stream()
+                        .map(d -> d.map(newRowType))
                         .collect(Collectors.toList()), sortVector);
     }
 
@@ -1107,43 +1239,117 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return CompletableFuture.supplyAsync(() -> findPage(filter, options));
     }
 
-    // --------------------------
-    // ---   Distinct        ----
-    // --------------------------
+
+    // -------------------------
+    // ---   distinct       ----
+    // -------------------------
 
     /**
-     * Gets the distinct values of the specified field name.
-     * The iteration is performed at CLIENT-SIDE and will exhaust all the collections elements.
+     * Return a list of distinct values for the given field name.
      *
-     * @param fieldName
-     *      the field name
+     * @param fieldPath
+     *      chunks of the paths
+     * @param filter
+     *      filter to apply
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param <R>
+     *     type of the result
      * @return
-     *      an iterable of distinct values
+     *   list of distinct values
      */
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
-        return distinct(fieldName, null, resultClass);
+    public <R> Set<R> distinct(String[] fieldPath, Filter filter, Class<R> resultClass) {
+        Assert.notNull(fieldPath, "field path");
+        if (fieldPath.length == 0) {
+            throw new IllegalArgumentException("field path must not be empty");
+        }
+        return distinct(EscapeUtils.escapeFieldNames(fieldPath), filter, resultClass, null);
     }
 
     /**
-     * Gets the distinct values of the specified field name.
+     * Return a list of distinct values for the given field name.
      *
      * @param fieldName
-     *      the field name
+     *      name of the field
      * @param filter
-     *      the query filter
+     *      filter to apply
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param <R>
+     *     type of the result
      * @return
-     *      an iterable of distinct values
+     *   list of distinct values
      */
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+        return distinct(fieldName, filter, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldPath
+     *      segments of the path
+     * @param resultClass
+     *      class of the result
+     * @param <R>
+     *     type of the result
+     * @return
+     *   list of distinct values
+     */
+    public <R> Set<R> distinct(String[] fieldPath, Class<R> resultClass) {
+        Assert.notNull(fieldPath, "field path");
+        if (fieldPath.length == 0) {
+            throw new IllegalArgumentException("field path must not be empty");
+        }
+        return distinct(EscapeUtils.escapeFieldNames(fieldPath), null, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldName
+     *      name of the field
+     * @param resultClass
+     *      class of the result
+     * @param <R>
+     *     type of the result
+     * @return
+     *   list of distinct values
+     */
+    public <R> Set<R> distinct(String fieldName, Class<R> resultClass) {
+        return distinct(fieldName, null, resultClass, null);
+    }
+
+    /**
+     * Return a list of distinct values for the given field name.
+     *
+     * @param fieldName
+     *      name of the field
+     * @param filter
+     *      filter to apply
+     * @param resultClass
+     *      class of the result
+     * @param options
+     *    options to apply to the operation
+     * @return
+     *     list of distinct values
+     * @param <R>
+     *     type of the result
+     */
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
+        Assert.hasLength(fieldName, "fieldName");
+        Assert.notNull(resultClass, "resultClass");
+        // Building a convenient find options
+        CollectionFindOptions findOptions =  new CollectionFindOptions()
+                .projection(Projection.include( fieldName.replaceAll("\\[\\d+\\]", "")));
+        // Overriding options
+        if (options != null && options.getDataAPIClientOptions() != null) {
+            findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
+        }
+        // Exhausting the list of distinct values
+        return StreamSupport.stream(find(filter, findOptions, Document.class).spliterator(), true)
+                .map(doc -> doc.get(fieldName, resultClass))
+                .collect(Collectors.toSet());
     }
 
     // ----------------------------
@@ -1327,7 +1533,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Command deleteMany = Command
                     .create("deleteMany")
                     .withFilter(filter);
-
             DataAPIResponse apiResponse = runCommand(deleteMany, options);
             DataAPIStatus status = apiResponse.getStatus();
             if (status != null) {
@@ -1349,7 +1554,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      the result of the remove many operation
      */
     public CollectionDeleteResult deleteMany(Filter filter) {
-        return deleteMany(filter, new CollectionDeleteManyOptions());
+        return deleteMany(filter, new CollectionDeleteManyOptions()
+                .timeout(Duration.ofSeconds(30)));
     }
 
     /**
@@ -1425,8 +1631,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(options.getSortArray())
                 .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                        .appendIfNotNull(INPUT_RETURN_DOCUMENT, options.returnDocument())
+                        .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                        .appendIfNotNull(OPTIONS_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(findOneAndReplace, options);
@@ -1473,8 +1679,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withFilter(filter)
                 .withReplacement(replacement)
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, collectionReplaceOneOptions.upsert())
-                        .append(INPUT_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
+                        .appendIfNotNull(OPTIONS_UPSERT, collectionReplaceOneOptions.upsert())
+                        .append(OPTIONS_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
                 );
 
         // Execute the `findOneAndReplace`
@@ -1567,8 +1773,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withSort(options.getSortArray())
                 .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                        .append(INPUT_RETURN_DOCUMENT, options.returnDocument())
+                        .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                        .append(OPTIONS_RETURN_DOCUMENT, options.returnDocument())
                 );
 
         DataAPIResponse res = runCommand(cmd, options);
@@ -1592,7 +1798,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      the result of the update one operation
      */
     public CollectionUpdateResult updateOne(Filter filter, Update update) {
-        return updateOne(filter, update, new UpdateOneOptions());
+        return updateOne(filter, update, new CollectionUpdateOneOptions());
     }
 
     /**
@@ -1607,7 +1813,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @return
      *      the result of the update one operation
      */
-    public CollectionUpdateResult updateOne(Filter filter, Update update, UpdateOneOptions updateOptions) {
+    public CollectionUpdateResult updateOne(Filter filter, Update update, CollectionUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
@@ -1616,7 +1822,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withUpdate(update)
                 .withSort(updateOptions.getSortArray())
                 .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
+                        .appendIfNotNull(OPTIONS_UPSERT, updateOptions.upsert())
                 );
         return getUpdateResult(runCommand(cmd, updateOptions));
     }
@@ -1640,7 +1846,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
             }
             if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
+                result.setUpsertedId(status.get(RESULT_UPSERTED_ID));
             }
         }
         return result;
@@ -1685,8 +1891,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                     .withFilter(filter)
                     .withUpdate(update)
                     .withOptions(new Document()
-                            .appendIfNotNull(INPUT_UPSERT, options.upsert())
-                            .appendIfNotNull(INPUT_PAGE_STATE, nextPageState));
+                            .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, nextPageState));
             DataAPIResponse res = runCommand(cmd, options);
             // Data
             if (res.getData() != null) {
@@ -1701,7 +1907,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 result.setModifiedCount(result.getModifiedCount() + status.getInteger(RESULT_MODIFIED_COUNT));
             }
             if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setUpsertedId(status.getInteger(RESULT_UPSERTED_ID));
+                result.setUpsertedId(status.get(RESULT_UPSERTED_ID));
             }
         } while(nextPageState != null);
         return result;

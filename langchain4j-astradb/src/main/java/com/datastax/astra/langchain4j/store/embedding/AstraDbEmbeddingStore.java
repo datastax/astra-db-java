@@ -21,12 +21,12 @@ package com.datastax.astra.langchain4j.store.embedding;
  */
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.query.Filter;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -172,6 +172,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
 
     /**
      * Add multiple embeddings as a single action.
+     *
      * @param textSegmentList
      *      list of text segment
      *
@@ -279,7 +280,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                         .limit(maxResults)
                         .projection(include("*"))
                         .includeSimilarity(true))
-                .all().stream()
+                .toList().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)
                 .collect(Collectors.toList());
@@ -356,7 +357,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                         .sort(vectorize(vectorize))
                         .projection(include("*"))
                         .includeSimilarity(true))
-                .all().stream()
+                .toList().stream()
                 .filter(r -> r.getSimilarity().isPresent() &&  r.getSimilarity().get()>= minScore)
                 .map(this::fromDocumentToEmbeddingMatch)
                 .collect(Collectors.toList());
@@ -375,12 +376,12 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
         String embeddingId  = doc.getId(String.class);
         Embedding embedding = null;
         if (doc.getVector().isPresent()) {
-            embedding = Embedding.from(doc.getVector().get());
+            embedding = Embedding.from(doc.getVector().get().getEmbeddings());
         }
         TextSegment embedded = null;
         Object body = doc.get(KEY_ATTRIBUTES_BLOB);
         if (body != null) {
-            Metadata metadata = new Metadata(doc.entrySet().stream()
+            Metadata metadata = new Metadata(doc.getDocumentMap().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
                                 entry -> entry.getValue() == null ? "" : entry.getValue().toString()
             )));

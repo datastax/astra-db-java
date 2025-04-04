@@ -22,8 +22,10 @@ package com.datastax.astra.client.core.options;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.auth.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.auth.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.EmbeddingHeadersProvider;
+import com.datastax.astra.client.core.headers.RerankingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.headers.RerankingHeadersProvider;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -31,7 +33,6 @@ import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
 import com.dtsx.astra.sdk.utils.Assert;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -142,7 +143,12 @@ public class DataAPIClientOptions implements Cloneable {
     /**
      * The embedding service API key can be provided at top level.
      */
-    private EmbeddingHeadersProvider embeddingAuthProvider;
+    private EmbeddingHeadersProvider embeddingHeadersProvider;
+
+    /**
+     * The rerank service API key can be provided at top level.
+     */
+    private RerankingHeadersProvider rerankingHeadersProvider;
 
     /**
      * Add headers to admin calls.
@@ -181,8 +187,19 @@ public class DataAPIClientOptions implements Cloneable {
      * @return astra environment if found
      */
     public AstraEnvironment getAstraEnvironment() {
-        if (getDestination() != null) {
-            switch (getDestination()) {
+        return getAstraEnvironment(getDestination());
+    }
+
+    /**
+     * Allow to map in between Astra Environment (devops) and the DataApiClient destinations
+     * @param env
+     *      target environment
+     * @return
+     *      astra environment
+     */
+    public static AstraEnvironment getAstraEnvironment(DataAPIDestination env) {
+        if (env != null) {
+            switch (env) {
                 case ASTRA:
                     return AstraEnvironment.PROD;
                 case ASTRA_DEV:
@@ -217,8 +234,17 @@ public class DataAPIClientOptions implements Cloneable {
      *
      * @return value of embeddingAuthProvider
      */
-    public EmbeddingHeadersProvider getEmbeddingAuthProvider() {
-        return embeddingAuthProvider;
+    public EmbeddingHeadersProvider getEmbeddingHeadersProvider() {
+        return embeddingHeadersProvider;
+    }
+
+    /**
+     * Gets rerankingHeadersProvider
+     *
+     * @return value of rerankingHeadersProvider
+     */
+    public RerankingHeadersProvider getRerankingHeadersProvider() {
+        return rerankingHeadersProvider;
     }
 
     /**
@@ -276,8 +302,18 @@ public class DataAPIClientOptions implements Cloneable {
     }
 
     /**
+     * Gets rerankHeadersProvider
+     *
+     * @return value of rerankHeadersProvider
+     */
+    public RerankingHeadersProvider getRerankHeadersProvider() {
+        return rerankingHeadersProvider;
+    }
+
+    /**
      * Register an observer with its className.
      *
+     * @param name     observer name
      * @param observer command observer
      * @return instance of the command options
      */
@@ -316,7 +352,17 @@ public class DataAPIClientOptions implements Cloneable {
      * @return self reference
      */
     public DataAPIClientOptions embeddingAPIKey(String embeddingAPIKey) {
-        return embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(embeddingAPIKey));
+        return embeddingHeadersProvider(new EmbeddingAPIKeyHeaderProvider(embeddingAPIKey));
+    }
+
+    /**
+     * Builder pattern, update http connection Timeout
+     *
+     * @param rerankAPIKey rerank API Key
+     * @return self reference
+     */
+    public DataAPIClientOptions rerankAPIKey(String rerankAPIKey) {
+        return rerankingHeadersProvider(new RerankingAPIKeyHeaderProvider(rerankAPIKey));
     }
 
     /**
@@ -356,10 +402,20 @@ public class DataAPIClientOptions implements Cloneable {
         return this;
     }
 
+    /**
+     * Enable the feature flag tables.
+     *
+     * @return self reference
+     */
     public DataAPIClientOptions enableFeatureFlagTables() {
         return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, "true");
     }
 
+    /**
+     * Disable the feature flag tables.
+     *
+     * @return self reference
+     */
     public DataAPIClientOptions disableFeatureFlagTables() {
         return addDatabaseAdditionalHeader(HEADER_FEATURE_FLAG_TABLES, null);
     }
@@ -368,6 +424,9 @@ public class DataAPIClientOptions implements Cloneable {
     // ---------- JAVA DEFAULTS   -----------------
     // --------------------------------------------
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return new DatabaseSerializer().marshall(this);
@@ -380,11 +439,16 @@ public class DataAPIClientOptions implements Cloneable {
         // defaulting values
     }
 
+    /**
+     * Copy constructor.
+     *
+     * @param options options to copy
+     */
     public DataAPIClientOptions(DataAPIClientOptions options) {
         Assert.notNull(options, "Options");
         this.apiVersion                 = options.apiVersion;
         this.destination                = options.destination;
-        this.embeddingAuthProvider      = options.embeddingAuthProvider;
+        this.embeddingHeadersProvider = options.embeddingHeadersProvider;
         // Deep Copy
         this.databaseAdditionalHeaders  = options.databaseAdditionalHeaders != null ?
                 new HashMap<>(options.databaseAdditionalHeaders) : null;
@@ -401,6 +465,9 @@ public class DataAPIClientOptions implements Cloneable {
                 options.serdesOptions.clone() : null;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public DataAPIClientOptions clone() {
         return new DataAPIClientOptions(this);

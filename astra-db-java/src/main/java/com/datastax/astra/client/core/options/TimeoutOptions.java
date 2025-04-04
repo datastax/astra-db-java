@@ -31,16 +31,42 @@ import java.time.Duration;
  * This class is used to define the timeout options for the client.
  */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class TimeoutOptions implements Cloneable {
 
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_CONNECT_TIMEOUT_MILLIS          =  10000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_REQUEST_TIMEOUT_MILLIS          =  10000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS   =  30000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_COLLECTION_ADMIN_TIMEOUT_MILLIS =  60000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_TABLE_ADMIN_TIMEOUT_MILLIS      =  30000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_DATABASE_ADMIN_TIMEOUT_MILLIS   = 600000L;
+
+    /**
+     * Default timeout values
+     */
     public static final long DEFAULT_KEYSPACE_ADMIN_TIMEOUT_MILLIS   =  30000L;
 
     /**
@@ -78,6 +104,12 @@ public class TimeoutOptions implements Cloneable {
      */
     long tableAdminTimeoutMillis = DEFAULT_TABLE_ADMIN_TIMEOUT_MILLIS;
 
+    /**
+     * Default constructor
+     */
+    public TimeoutOptions() {}
+
+    /** {@inheritDoc} */
     @Override
     public TimeoutOptions clone() {
         try {
@@ -87,42 +119,92 @@ public class TimeoutOptions implements Cloneable {
         }
     }
 
+
+    /**
+     * Sets the connection timeout.
+     *
+     * @param timeout the connection timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions connectTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.connectTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the request timeout.
+     *
+     * @param timeout the request timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions requestTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.requestTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the general method timeout.
+     *
+     * @param timeout the timeout for general methods, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions generalMethodTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.generalMethodTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the timeout for database administration operations.
+     *
+     * @param timeout the database admin timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions databaseAdminTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.databaseAdminTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the timeout for keyspace administration operations.
+     *
+     * @param timeout the keyspace admin timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions keyspaceAdminTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.keyspaceAdminTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the timeout for collection administration operations.
+     *
+     * @param timeout the collection admin timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions collectionAdminTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.collectionAdminTimeoutMillis = timeout.toMillis();
         return this;
     }
 
+    /**
+     * Sets the timeout for table administration operations.
+     *
+     * @param timeout the table admin timeout, must not be {@code null}
+     * @return the current {@code TimeoutOptions} instance for method chaining
+     * @throws IllegalArgumentException if {@code timeout} is {@code null}
+     */
     public TimeoutOptions tableAdminTimeout(Duration timeout) {
         Assert.notNull(timeout, "Timeout");
         this.tableAdminTimeoutMillis = timeout.toMillis();

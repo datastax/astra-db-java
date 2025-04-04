@@ -23,8 +23,8 @@ package com.datastax.astra.internal.http;
 import com.datastax.astra.client.core.http.Caller;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.exception.DataAPIHttpException;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIHttpException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.Status;
@@ -46,7 +46,7 @@ import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_HTTP;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_HTTP;
 
 /**
  * Http Client using JDK11 client with a retry mechanism.
@@ -143,6 +143,8 @@ public class RetryHttpClient {
      *      the response as an ApiResponseHttp
      */
     public ApiResponseHttp parseHttpResponse(HttpResponse<String> response) {
+        if (response == null) return null;
+
         ApiResponseHttp res = new ApiResponseHttp(response.body(), response.statusCode(),
                     response.headers().map().entrySet()
                             .stream()

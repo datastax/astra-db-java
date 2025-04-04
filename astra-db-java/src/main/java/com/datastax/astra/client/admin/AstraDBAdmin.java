@@ -21,7 +21,7 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.databases.DatabaseInfo;
+import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
@@ -49,7 +49,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
-import static com.datastax.astra.client.exception.InvalidEnvironmentException.throwErrorRestrictedAstra;
+import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorRestrictedAstra;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.dtsx.astra.sdk.utils.Utils.readEnvVariable;
 
@@ -92,8 +92,8 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Initialization with an authentication token and target environment, Use this constructor for testing purpose.
-
+     * Initialization with an authentication token and target environment,
+     * Use this constructor for testing purpose.
      * @param options
      *      options for client
      */
@@ -319,7 +319,7 @@ public class AstraDBAdmin {
      *
      * @param databaseId
      *      database identifier
-     * @param options
+     * @param dbOptions
      *      target keyspace name
      * @return
      *      database client

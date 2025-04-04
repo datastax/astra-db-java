@@ -27,12 +27,44 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Defines sorting behavior for partitioned fields or methods. This annotation allows specifying
+ * the position and sort order within a partition for annotated elements.
+ * <p>
+ * Apply this annotation to fields or methods to control their ordering when partitioned data is sorted.
+ * The {@code position()} specifies the sorting priority, and the {@code order()} determines whether
+ * the sorting is ascending or descending.
+ * </p>
+ *
+ * <p><b>Retention:</b> {@code RUNTIME}</p>
+ * This annotation is retained at runtime to enable runtime reflection.
+ *
+ * <p><b>Target:</b> {@code FIELD}, {@code METHOD}</p>
+ * This annotation can be applied to fields or methods.
+ */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PartitionSort {
 
+    /**
+     * Specifies the sorting position for the annotated field or method.
+     * Fields or methods with lower positions are sorted before those with higher positions.
+     *
+     * @return an integer indicating the sorting position
+     */
     int position();
 
+    /**
+     * Specifies the sorting order (ascending or descending) for the annotated field or method.
+     * The default value is {@code SortOrder.ASCENDING}.
+     *
+     * @return the sorting order
+     */
     SortOrder order() default SortOrder.ASCENDING;
-
 }
+

@@ -31,7 +31,6 @@ import lombok.experimental.Accessors;
  * Subclass representing the vector options.
  */
 @Setter
-@NoArgsConstructor
 @Accessors(fluent = true, chain = true)
 public class VectorOptions {
 
@@ -49,6 +48,11 @@ public class VectorOptions {
      * Service for vectorization
      */
     private VectorServiceOptions service;
+
+    /**
+     * Default constructor.
+     */
+    public VectorOptions() {}
 
     /**
      * Get metric as an enum.

@@ -22,7 +22,7 @@ package com.datastax.astra.internal.utils;
 
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.types.DataAPIKeywords;
+import com.datastax.astra.client.core.DataAPIKeywords;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -71,10 +71,10 @@ public class OptionsUtils {
                 throw new IllegalArgumentException("A projection cannot be include/exclude and a slide at same time");
             }
             if (p.getPresent() == null && p.getSliceStart() == null) {
-                throw new IllegalArgumentException("A projection must be include/exclude or a slide");
+                throw new IllegalArgumentException("A projection must be include/exclude or be a slide");
             }
             if (p.getPresent() != null) {
-                finalProjection.put(p.getField(),  p.getPresent() ? 1 : 0);
+                finalProjection.put(p.getField(), p.getPresent());
             } else {
                 // SLICE
                 int start = p.getSliceStart();

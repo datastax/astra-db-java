@@ -4,12 +4,12 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
-import com.datastax.astra.client.tables.row.Row;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,9 +18,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.columns.ColumnTypes.TEXT;
-import static com.datastax.astra.client.tables.ddl.CreateTableOptions.IF_NOT_EXISTS;
+import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.INT;
+import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.commands.options.CreateTableOptions.IF_NOT_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class QuickStartTablesLocal {

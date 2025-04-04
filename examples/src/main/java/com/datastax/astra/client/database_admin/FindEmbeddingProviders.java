@@ -2,7 +2,7 @@ package com.datastax.astra.client.database_admin;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.admin.DatabaseAdmin;
-import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
 

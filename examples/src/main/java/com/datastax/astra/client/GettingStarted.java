@@ -1,10 +1,10 @@
 package com.datastax.astra.client;
 
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.core.paging.FindIterable;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.databases.Database;
 
@@ -33,7 +33,7 @@ public class GettingStarted {
   );
 
   // Search
-  FindIterable<Document> docs = col.find(
+  CollectionFindCursor<Document, Document> docs = col.find(
     eq("key", "value1"), // metadata filter
     new CollectionFindOptions().limit(10).sort(Sort.vector(new float[] {.5f, .5f})));
 

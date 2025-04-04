@@ -29,14 +29,53 @@ import java.io.IOException;
 import java.time.Duration;
 
 /**
- * Serialize a date as compact or ISO8601 format.
+ * A custom serializer for {@link Duration} objects, extending {@link StdSerializer}.
+ * This serializer supports two serialization formats for durations:
+ *
+ * <ul>
+ *   <li>ISO-8601 format: Encodes the duration as an ISO-8601 string (e.g., {@code "PT1H30M"}).</li>
+ *   <li>Compact format: Encodes the duration as a human-readable string with unit suffixes
+ *       (e.g., {@code "1h30m"}).</li>
+ * </ul>
+ *
+ * <p>The format used is determined by the {@code isEncodeDurationAsISO8601()} option in
+ * {@link DataAPIClientOptions}. If the duration is {@code null}, it serializes as a JSON {@code null}.
+ * </p>
+ *
+ * <p>Supported time units in the compact format:</p>
+ * <ul>
+ *   <li>{@code h}: Hours</li>
+ *   <li>{@code m}: Minutes</li>
+ *   <li>{@code s}: Seconds</li>
+ *   <li>{@code ms}: Milliseconds</li>
+ *   <li>{@code us}: Microseconds</li>
+ *   <li>{@code ns}: Nanoseconds</li>
+ * </ul>
+ *
+ * <p>Negative durations are serialized with a {@code -} prefix (e.g., {@code "-1h30m"}).</p>
  */
 public class DurationSerializer extends StdSerializer<Duration> {
 
+    /**
+     * Default constructor. Initializes the serializer for {@link Duration} type.
+     */
     public DurationSerializer() {
         super(Duration.class);
     }
 
+    /**
+     * Serializes a {@link Duration} object into JSON.
+     * <p>
+     * The serialization format depends on the {@code isEncodeDurationAsISO8601()} option
+     * in {@link DataAPIClientOptions}. If enabled, the duration is serialized in ISO-8601 format.
+     * Otherwise, it is serialized in a compact human-readable format using time unit suffixes.
+     * </p>
+     *
+     * @param duration     the {@link Duration} object to serialize.
+     * @param gen          the {@link JsonGenerator} used to write JSON content.
+     * @param serializers  the {@link SerializerProvider} for accessing serialization configuration.
+     * @throws IOException if an I/O error occurs during serialization.
+     */
     @Override
     public void serialize(Duration duration, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (duration == null) {
@@ -53,7 +92,7 @@ public class DurationSerializer extends StdSerializer<Duration> {
         duration = duration.abs();
 
         long seconds = duration.getSeconds();
-        int nanos    = duration.getNano();
+        int nanos = duration.getNano();
 
         // Break down the duration into units
         long hours = seconds / 3600;
@@ -98,7 +137,5 @@ public class DurationSerializer extends StdSerializer<Duration> {
             durationString = negative ? "-0s" : "0s";
         }
         gen.writeString(durationString);
-
     }
-
 }

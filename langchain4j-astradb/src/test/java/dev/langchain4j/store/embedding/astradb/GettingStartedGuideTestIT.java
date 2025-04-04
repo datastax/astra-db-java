@@ -1,8 +1,8 @@
 package dev.langchain4j.store.embedding.astradb;
 
-import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.CollectionOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.langchain4j.Assistant;
 import com.datastax.astra.langchain4j.AstraDBTestSupport;
 import com.datastax.astra.langchain4j.store.embedding.AstraDbEmbeddingStore;
@@ -74,19 +74,16 @@ public class GettingStartedGuideTestIT {
          *      .getDatabase("https://astra.datastax.com/api/rest/v1/keyspaces");
          */
         storeJohnny = new AstraDbEmbeddingStore(
-           astraDatabase.createCollection("store_johnny", CollectionOptions
-                .builder()
+           astraDatabase.createCollection("store_johnny", new CollectionDefinition()
                 .vector(1536, SimilarityMetric.COSINE)
                 .vectorize("openai", "text-embedding-3-small")
-                .build()));
+                ));
         storeJohnny.clear();
 
         storeShadow = new AstraDbEmbeddingStore(
-                astraDatabase.createCollection("store_shadow", CollectionOptions
-                        .builder()
+                astraDatabase.createCollection("store_shadow", new CollectionDefinition()
                         .vector(1536, SimilarityMetric.COSINE)
-                        .vectorize("openai", "text-embedding-3-small")
-                        .build()));
+                        .vectorize("openai", "text-embedding-3-small")));
         storeShadow.clear();
 
         // Access the embedding Model

@@ -20,10 +20,10 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
-import com.datastax.astra.client.exception.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,8 +43,7 @@ import java.util.stream.Stream;
  * such as status information, error details, and data returned by 'find' operations. It provides flexibility to handle
  * various types of responses within a unified framework.
  */
-@Getter
-@Setter
+@Getter @Setter
 public class DataAPIResponse implements Serializable {
 
     /**
@@ -129,6 +128,14 @@ public class DataAPIResponse implements Serializable {
                         .constructMapType(Map.class, String.class, targetClass));
     }
 
+    /**
+     * Retrieves a single object from the 'status' map based on the provided key, casting it to the specified class.
+     * This method is suitable for cases where the status information contains a single object under a specific key.
+     *
+     * @param targetClass The class to which the object should be cast.
+     * @param <T> The type of the object to be returned.
+     * @return The object associated with the specified key, cast to the specified class; {@code null} if the key does not exist.
+     */
     public <T> T getStatus(Class<T> targetClass) {
         return serializer.getMapper().convertValue(status, targetClass);
     }

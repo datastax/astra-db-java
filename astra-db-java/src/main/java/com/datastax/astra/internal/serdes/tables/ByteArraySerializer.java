@@ -26,12 +26,57 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import java.io.IOException;
 import java.util.Base64;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import java.io.IOException;
+import java.util.Base64;
+
+/**
+ * A custom serializer for byte arrays that encodes the array as a Base64 string
+ * and wraps it in a JSON object with a specific field name.
+ * <p>
+ * This serializer converts a byte array into a JSON object with the following format:
+ * </p>
+ *
+ * <pre>
+ * {
+ *   "$binary": "base64EncodedString"
+ * }
+ * </pre>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * ObjectMapper mapper = new ObjectMapper();
+ * SimpleModule module = new SimpleModule();
+ * module.addSerializer(new ByteArraySerializer());
+ * mapper.registerModule(module);
+ *
+ * byte[] data = {1, 2, 3};
+ * String json = mapper.writeValueAsString(data);
+ * }
+ * </pre>
+ */
 public class ByteArraySerializer extends StdSerializer<byte[]> {
 
+    /**
+     * Default constructor that specifies the {@code byte[]} type for serialization.
+     */
     public ByteArraySerializer() {
         super(byte[].class);
     }
 
+    /**
+     * Serializes a byte array as a Base64-encoded string wrapped in a JSON object.
+     *
+     * @param value    the byte array to serialize
+     * @param gen      the {@link JsonGenerator} used to write the serialized JSON output
+     * @param provider the {@link SerializerProvider} that can be used to get serializers for
+     *                 serializing objects contained within this value
+     * @throws IOException if an I/O error occurs during serialization
+     */
     @Override
     public void serialize(byte[] value, JsonGenerator gen, SerializerProvider provider) throws IOException {
         String base64Encoded = Base64.getEncoder().encodeToString(value);

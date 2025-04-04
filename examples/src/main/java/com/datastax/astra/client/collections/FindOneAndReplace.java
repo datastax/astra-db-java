@@ -1,9 +1,8 @@
 package com.datastax.astra.client.collections;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.documents.ReturnDocument;
-import com.datastax.astra.client.collections.options.CollectionFindOneAndReplaceOptions;
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -11,7 +10,7 @@ import com.datastax.astra.client.core.query.Sort;
 
 import java.util.Optional;
 
-import static com.datastax.astra.client.collections.documents.ReturnDocument.AFTER;
+import static com.datastax.astra.client.collections.commands.ReturnDocument.AFTER;
 import static com.datastax.astra.client.core.query.Filters.lt;
 
 public class FindOneAndReplace {

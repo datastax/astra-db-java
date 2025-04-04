@@ -36,11 +36,16 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
+import com.datastax.astra.client.core.hybrid.HybridLimits;
+import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.TableDuration;
-import com.datastax.astra.client.tables.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.TableDuration;
+import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.collections.HybridLimitsSerializer;
+import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorDeserializer;
 import com.datastax.astra.internal.serdes.shared.DataAPIVectorSerializer;
 import com.datastax.astra.internal.serdes.shared.SimilarityMetricDeserializer;
@@ -67,8 +72,6 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Custom implementation of serialization : faster + no jackson dependency
- * 
- * @author Cedrick Lunven (@clunven)
  */
 @SuppressWarnings("deprecation")
 public class RowSerializer implements DataAPISerializer {
@@ -82,6 +85,12 @@ public class RowSerializer implements DataAPISerializer {
     public RowSerializer() {
     }
 
+    /**
+     * Definition of the Jackson object mapper to work with Tables.
+     *
+     * @return
+     *      object mapper
+     */
     @Override
     public ObjectMapper getMapper() {
         if (objectMapper == null) {
@@ -99,7 +108,6 @@ public class RowSerializer implements DataAPISerializer {
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                     .setDateFormat(new SimpleDateFormat("yyyy-MM-dd"))
-                    .registerModule(new JavaTimeModule())
                     .registerModule(new Jdk8Module())
                     .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
@@ -120,6 +128,13 @@ public class RowSerializer implements DataAPISerializer {
             // API Vector
             module.addSerializer(DataAPIVector.class, new DataAPIVectorSerializer());
             module.addSerializer(SimilarityMetric.class, new SimilarityMetricSerializer());
+            // Lexical and Reranking
+            // Analyzer
+            module.addSerializer(Analyzer.class, new AnalyzerSerializer());
+            module.addSerializer(HybridLimits.class, new HybridLimitsSerializer());
+            // Column Definitions
+            module.addSerializer(TableIndexColumnDefinition.class, new TableIndexColumnDefinitionSerializer());
+            module.addDeserializer(TableIndexColumnDefinition.class, new TableIndexColumnDefinitionDeserializer());
 
             // De-Serialization
             module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());

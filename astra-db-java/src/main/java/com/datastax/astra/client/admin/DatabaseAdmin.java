@@ -20,11 +20,13 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
-import com.datastax.astra.client.core.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
@@ -39,24 +41,6 @@ import java.util.concurrent.CompletableFuture;
  * creation, retrieval, updating, and deletion of namespaces. By leveraging the extended command runner capabilities,
  * it facilitates a streamlined and efficient approach to data management within the specified context.
  * </p>
- * <p>&nbsp;</p>
- * <p>Example usage:</p>
- * <pre>
- * {@code
- *
- * // Initialization of the client
- * DataApiClient client1 = DataApiClients.create("http://<>endpoint>", "<token>", new HttpClientOptions());
- *
- * // Example operation: Create a new namespace
- * DataApiNamespace newNamespace = client.createNamespace("exampleNamespace");
- *
- * // Example operation: Fetch a namespace
- * DataApiNamespace fetchedNamespace = client.getNamespace("exampleNamespace");
- *
- * // Example operation: Delete a namespace
- * client.deleteNamespace("exampleNamespace");
- * }
- * </pre>
  */
 public interface DatabaseAdmin {
 
@@ -98,6 +82,24 @@ public interface DatabaseAdmin {
      *      list of available providers
      */
     FindEmbeddingProvidersResult findEmbeddingProviders();
+
+    /**
+     * Retrieve the list of reranking providers available in the current database. Reranking providers are services
+     * that sort a list of record based on a algorithm (eg bm25) . This method returns a map of provider names to
+     * {@link RerankProvider} instances, allowing applications
+     * to access and utilize the reranking services.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assuming 'client' is an instance of DataApiClient
+     * Map<String, EmbeddingProvider> providers = client.findEmbeddingProvidersAsMap());
+     * }
+     * </pre>
+     * @return
+     *      list of available providers
+     */
+    FindRerankingProvidersResult findRerankingProviders();
 
     /**
      * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates
@@ -209,6 +211,35 @@ public interface DatabaseAdmin {
         dropKeyspace(keyspace, null);
     }
 
+    /**
+     * Drops (deletes) the specified keyspace from the database. This operation is idempotent; it will not
+     * produce an error if the keyspace does not exist. This method is useful for cleaning up data or removing
+     * entire keyspaces as part of database maintenance or restructuring. Caution should be exercised when using
+     * this method, as dropping a keyspace will remove all the data, collections, or tables contained within it,
+     * and this action cannot be undone.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * // Assume 'client' is an instance of your data API client
+     * String keyspace = "targetKeyspace";
+     *
+     * // Drop the keyspace
+     * client.dropKeyspace(keyspace);
+     *
+     * // The keyspace 'targetKeyspace' is now deleted, along with all its contained data
+     * }
+     * </pre>
+     *
+     * This example demonstrates how to safely drop a keyspace by name. The operation ensures that even if the
+     * keyspace does not exist, the method call will not interrupt the flow of the application, thereby allowing
+     * for flexible and error-tolerant code design.
+     *
+     * @param keyspace The name of the keyspace to be dropped. This parameter specifies the target keyspace
+     *                  that should be deleted. The operation will proceed silently and without error even if the
+     *                  keyspace does not exist, ensuring consistent behavior.
+     * @param options The options to use for the operation.
+     */
     void dropKeyspace(String keyspace, BaseOptions<?> options);
 
     /**
@@ -218,19 +249,6 @@ public interface DatabaseAdmin {
      * availability and cannot afford to block on potentially long-running operations. Just like its synchronous counterpart,
      * this method should be used with caution as dropping a keyspace will remove all associated data, collections,
      * or tables, and this action is irreversible.
-     *
-     * <p>Example usage:</p>
-     * <pre>
-     * {@code
-     * // Assume 'client' is an instance of your data API client
-     * String keyspace = "asyncTargetKeyspace";
-     *
-     * // Asynchronously drop the namespace
-     * client.dropKeyspaceAsync(keyspace);
-     *
-     * // The keyspace 'asyncTargetKeyspace' is now being deleted in the background, along with all its contained data
-     * }
-     * </pre>
      *
      * This example illustrates the non-blocking nature of dropping a keyspace. It demonstrates the method's utility in
      * maintaining application responsiveness, even when performing potentially long-running database operations.

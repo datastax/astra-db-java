@@ -21,19 +21,20 @@ package com.datastax.astra.client.tables.exceptions;
  */
 
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.exception.ClientErrorCodes;
-import com.datastax.astra.client.exception.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIClientException;
+
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.INVALID_VALUE;
 
 /**
  * Error when too many documents in the collection
  */
-public class TooManyRowsToCountException extends DataAPIException {
+public class TooManyRowsToCountException extends DataAPIClientException {
 
     /**
      * Default constructor.
      */
     public TooManyRowsToCountException() {
-        super(ClientErrorCodes.HTTP,"Rows count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
+        super(INVALID_VALUE, "Rows count exceeds '" + DataAPIClientOptions.MAX_COUNT + ", the maximum allowed by the server");
     }
 
     /**
@@ -43,6 +44,7 @@ public class TooManyRowsToCountException extends DataAPIException {
      *      what it the most the count can return
      */
     public TooManyRowsToCountException(int upperLimit) {
-        super(ClientErrorCodes.HTTP,"Rows count exceeds upper bound set in method call " + upperLimit);
+        super(INVALID_VALUE, "Rows count exceeds upper bound set in method call " + upperLimit);
     }
+
 }

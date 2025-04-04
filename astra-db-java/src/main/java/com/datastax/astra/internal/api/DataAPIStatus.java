@@ -20,8 +20,10 @@ package com.datastax.astra.internal.api;
  * #L%
  */
 
-import com.datastax.astra.client.exception.DataAPIErrorDescriptor;
-import com.datastax.astra.client.tables.columns.ColumnDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
+import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -35,6 +37,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Status of the Data API.
+ */
 @Getter @Setter
 public class DataAPIStatus {
 
@@ -44,19 +49,33 @@ public class DataAPIStatus {
     public transient Map<String, Object> payload = new HashMap<>();
 
     /**
-     * PrimaryKey Schema returned
-     */
-    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
-
-    /**
      * Returned when insertMany with flag
      */
-    private List<DataAPIDocumentResponse> documentResponses;
+    private List<Document> documentResponses;
+
+    /**
+     * Sort Vector returned if flag include sortVector is set to true
+     */
+    private DataAPIVector sortVector;
 
     /**
      * Warnings returned
      */
     private List<DataAPIErrorDescriptor> warnings;
+
+    // ----------------------
+    // Tables Specifics
+    // ----------------------
+
+    /**
+     * PrimaryKey Schema returned
+     */
+    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
+
+    /**
+     * PrimaryKey Schema returned
+     */
+    private LinkedHashMap<String, ColumnDefinition> projectionSchema;
 
     /**
      * Inserted ids.
@@ -68,6 +87,12 @@ public class DataAPIStatus {
      */
     @JsonIgnore
     private DataAPISerializer serializer;
+
+    /**
+     * Default constructor.
+     */
+    public DataAPIStatus() {
+    }
 
     /**
      * Access the insertedIds mapping.
@@ -83,16 +108,38 @@ public class DataAPIStatus {
         return insertedIds.stream().map(id -> serializer.convertValue(id, clazz)).toList();
     }
 
+
+    /**
+     * Getter for the payload.
+     * @return
+     *      the payload
+     */
     @JsonAnyGetter
     public Map<String, Object> getPayload() {
         return payload;
     }
 
+    /**
+     * Add a property to the payload.
+     *
+     * @param key
+     *    property name
+     * @param value
+     *    property value
+     */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
         payload.put(key, value);
     }
 
+    /**
+     * Check if the payload contains a key.
+     *
+     * @param key
+     *    the key
+     * @return
+     *    true if the key is present
+     */
     public boolean containsKey(final Object key) {
         return payload.containsKey(key);
     }
@@ -106,6 +153,17 @@ public class DataAPIStatus {
      */
     public Integer getInteger(final String key) {
         return (Integer) get(key);
+    }
+
+    /**
+     * Gets the value of the given key as an Integer.
+     *
+     * @param key the key
+     * @return the value as an integer, which may be null
+     * @throws ClassCastException if the value is not an integer
+     */
+    public String getString(final String key) {
+        return (String) get(key);
     }
 
     /**
@@ -134,6 +192,14 @@ public class DataAPIStatus {
         return clazz.cast(serializer.convertValue(payload.get(key), clazz));
     }
 
+    /**
+     * Gets the value of the given key.  This is useful to avoid having casts in client code, though the effect is the same.  So to get
+     * the value of a key that is of type String, you would write {@code String name = doc.get("name")} instead of {@code String name =
+     * (String) doc.get("x") }.
+     *
+     * @param key the key
+     * @return the value of the given key, or null if the instance does not contain this key.
+     */
     public Object get(final Object key) {
         return payload.get(key);
     }

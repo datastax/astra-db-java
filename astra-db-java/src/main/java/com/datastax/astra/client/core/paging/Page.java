@@ -36,6 +36,7 @@ package com.datastax.astra.client.core.paging;
  * #L%
  */
 
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import lombok.Getter;
 
 import java.util.List;
@@ -56,7 +57,7 @@ public class Page<R> {
     private final String pageState;
 
     /** Sort vector retrieved in the status. */
-    protected float[] sortVector;
+    protected DataAPIVector sortVector;
 
     /** list of results matching the request. */
     private final List< R > results;
@@ -71,7 +72,7 @@ public class Page<R> {
      * @param sortVector float[]
      *     the sort vector if asked.
      */
-    public Page(String pageState, List<R> results, float[] sortVector) {
+    public Page(String pageState, List<R> results, DataAPIVector sortVector) {
         this.pageState  = pageState;
         this.results    = results;
         this.sortVector = sortVector;
@@ -127,7 +128,7 @@ public class Page<R> {
      * @return
      *      sort vector if available
      */
-    public Optional<float[]> getSortVector() {
+    public Optional<DataAPIVector> getSortVector() {
         return Optional.ofNullable(sortVector);
     }
 }

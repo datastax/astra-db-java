@@ -20,74 +20,70 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
-import com.datastax.astra.client.collections.documents.Document;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.core.commands.BaseOptions;
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.paging.TableCursor;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Projection;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.options.ListIndexesOptions;
-import com.datastax.astra.client.exception.DataAPIException;
-import com.datastax.astra.client.tables.index.TableIndexDescriptor;
-import com.datastax.astra.client.tables.options.CountRowsOptions;
-import com.datastax.astra.client.tables.options.EstimatedCountRowsOptions;
-import com.datastax.astra.client.tables.options.TableDeleteManyOptions;
-import com.datastax.astra.client.tables.options.TableDeleteOneOptions;
-import com.datastax.astra.client.tables.options.TableFindOneOptions;
-import com.datastax.astra.client.tables.options.TableFindOptions;
-import com.datastax.astra.client.tables.options.TableInsertManyOptions;
-import com.datastax.astra.client.tables.results.TableInsertManyResult;
-import com.datastax.astra.client.tables.options.TableInsertOneOptions;
-import com.datastax.astra.client.tables.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.options.TableUpdateOneOptions;
-import com.datastax.astra.client.tables.ddl.AlterTableOperation;
-import com.datastax.astra.client.tables.ddl.AlterTableOptions;
-import com.datastax.astra.client.tables.ddl.CreateIndexOptions;
-import com.datastax.astra.client.tables.ddl.CreateVectorIndexOptions;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.tables.commands.AlterTableOperation;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
+import com.datastax.astra.client.tables.commands.options.AlterTableOptions;
+import com.datastax.astra.client.tables.commands.options.CountRowsOptions;
+import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTextIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.options.EstimatedCountRowsOptions;
+import com.datastax.astra.client.tables.commands.options.ListIndexesOptions;
+import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
+import com.datastax.astra.client.tables.commands.options.TableDeleteOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.commands.options.TableInsertOneOptions;
+import com.datastax.astra.client.tables.commands.options.TableUpdateOneOptions;
+import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
+import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
+import com.datastax.astra.client.tables.cursor.TableFindCursor;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableTextIndexDefinition;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
-import com.datastax.astra.client.tables.index.TableIndexDefinition;
-import com.datastax.astra.client.tables.index.TableVectorIndexDefinition;
-import com.datastax.astra.client.tables.mapping.EntityBeanDefinition;
-import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.client.tables.results.TableUpdateResult;
-import com.datastax.astra.client.tables.row.Row;
-import com.datastax.astra.client.tables.row.TableUpdate;
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
-import com.datastax.astra.internal.api.DataAPIStatus;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.datastax.astra.internal.serdes.tables.RowMapper;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
-import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_CHUNK_SIZE;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.MAX_COUNT;
-import static com.datastax.astra.client.core.types.DataAPIKeywords.SORT_VECTOR;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_INTERRUPTED;
-import static com.datastax.astra.client.exception.DataAPIException.ERROR_CODE_TIMEOUT;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_INTERRUPTED;
+import static com.datastax.astra.client.exceptions.DataAPIException.ERROR_CODE_TIMEOUT;
 import static com.datastax.astra.internal.utils.AnsiUtils.cyan;
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
 import static com.datastax.astra.internal.utils.AnsiUtils.magenta;
@@ -96,7 +92,12 @@ import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
 /**
- * Execute commands against tables
+ * Executes commands and operations on tables.
+ *
+ * <p>The {@code Table} class is designed to work with table entities of type {@code T}, where
+ * {@code T} represents the data model or schema associated with the table.</p>
+ *
+ * @param <T> the type of the table entity, representing the data model or schema
  */
 @Slf4j
 public class Table<T>  extends AbstractCommandRunner<TableOptions> {
@@ -161,6 +162,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         this.database  = db;
         this.rowClass  = rowClass;
         this.options.serializer(DEFAULT_TABLE_SERIALIZER);
+        if (tableOptions.getToken() == null) {
+            this.options.token(db.getOptions().getToken());
+        }
+        if (tableOptions.getDataAPIClientOptions() == null) {
+            this.options.dataAPIClientOptions(db.getOptions().getDataAPIClientOptions()).clone();
+        }
+        if (tableOptions.getKeyspace() != null) {
+            this.database.useKeyspace(tableOptions.getKeyspace());
+        }
     }
 
     // ----------------------------
@@ -245,11 +255,47 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---    alterTable     ----
     // --------------------------
 
-    public final void alter(AlterTableOperation operation) {
-        alter(operation, null);
+    /**
+     * Performs an alteration operation on the table with default options.
+     *
+     * <p>This method delegates to {@link #alter(AlterTableOperation, AlterTableOptions)}
+     * with {@code options} set to {@code null}.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @return a new {@link Table} instance representing the altered table.
+     */
+    public final Table<T> alter(AlterTableOperation operation) {
+        return alter(operation, null);
     }
 
-    public final void alter(AlterTableOperation operation, AlterTableOptions options) {
+    /**
+     * Performs an alteration operation on the table with the specified options.
+     *
+     * <p>This method delegates to {@link #alter(AlterTableOperation, AlterTableOptions, Class)}
+     * using the row class of the current table.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @param options   the options for the alteration operation; may be {@code null}.
+     * @return a new {@link Table} instance representing the altered table.
+     */
+    public final Table<T> alter(AlterTableOperation operation, AlterTableOptions options) {
+        return alter(operation, options, getRowClass());
+    }
+
+    /**
+     * Performs an alteration operation on the table with the specified options and row class.
+     *
+     * <p>This is the most granular method for altering a table. It builds and executes the command
+     * to perform the specified alteration operation, with optional parameters and custom row class.
+     *
+     * @param operation the alteration operation to be performed; must not be {@code null}.
+     * @param options   the options for the alteration operation; may be {@code null}.
+     * @param clazz     the class representing the row type for the altered table; must not be {@code null}.
+     * @param <R>       the type of the rows in the altered table.
+     * @return a new {@link Table} instance of the specified row class representing the altered table.
+     * @throws NullPointerException if {@code operation} or {@code clazz} is {@code null}.
+     */
+    public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
         notNull(operation, "operation");
         Command alterTable = Command.create("alterTable")
                 .append("operation", new Document().append(operation.getOperationName(), operation));
@@ -257,16 +303,38 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             alterTable.append("options", options);
         }
         runCommand(alterTable, this.options);
-    }
-
-    public final <R> Table<R> alter(AlterTableOperation operation, AlterTableOptions options, Class<R> clazz) {
-        alter(operation, options);
         return new Table<>(database, tableName, this.options, clazz);
     }
 
     // --------------------------
     // ---    createIndex    ----
     // --------------------------
+
+    /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
+     */
+    public void createIndex(String idxName, String columnName) {
+        createIndex(idxName, new TableRegularIndexDefinition().column(columnName), null);
+    }
+
+    /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
+     * @param idxOptions
+     *      index options
+     */
+    public void createIndex(String idxName, String columnName, CreateIndexOptions idxOptions) {
+       createIndex(idxName, new TableRegularIndexDefinition().column(columnName), idxOptions);
+    }
 
     /**
      * Create a new index with the given description.
@@ -278,7 +346,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param idxOptions
      *      index options
      */
-    public void createIndex(String idxName, TableIndexDefinition idxDefinition, CreateIndexOptions idxOptions) {
+    public void createIndex(String idxName, TableRegularIndexDefinition idxDefinition, CreateIndexOptions idxOptions) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -301,25 +369,25 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *
      * @param idxName
      *      name of the index
-     * @param idxDefinition
-     *      definition of the index
+     * @param columnName
+     *      name of the column
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition) {
-        createVectorIndex(idxName, idxDefinition, null, options);
+    public void createVectorIndex(String idxName, String columnName) {
+        Assert.hasLength(idxName, "indexName");
+        Assert.hasLength(columnName, "columnName");
+        createVectorIndex(idxName, new TableVectorIndexDefinition().column(columnName), null);
     }
 
     /**
      * Create a new index with the given description.
      *
      * @param idxName
-     *      index name
+     *      name of the index
      * @param idxDefinition
      *      definition of the index
-     * @param options
-     *      index options
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions options) {
-        createVectorIndex(idxName, idxDefinition, options, this.options);
+    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition) {
+        createVectorIndex(idxName, idxDefinition, null);
     }
 
     /**
@@ -331,10 +399,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      definition of the index
      * @param idxOptions
      *      index options
-     * @param cmd
-     *      override the default command options
      */
-    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions idxOptions, BaseOptions<?> cmd) {
+    public void createVectorIndex(String idxName, TableVectorIndexDefinition idxDefinition, CreateVectorIndexOptions idxOptions) {
         hasLength(idxName, "indexName");
         notNull(idxDefinition, "idxDefinition");
         Command createIndexCommand = Command
@@ -348,14 +414,81 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         log.info("Vector Index '" + green("{}") + "' has been created",idxName);
     }
 
+    // ------------------------------
+    // ---    createTextIndex    ----
+    // ------------------------------
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      name of the column
+     */
+    public void createTextIndex(String idxName, String columnName) {
+        Assert.hasLength(idxName, "indexName");
+        Assert.hasLength(columnName, "columnName");
+        createTextIndex(idxName, new TableTextIndexDefinition().column(columnName), null);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
+     *      definition of the index
+     */
+    public void createTextIndex(String idxName, TableTextIndexDefinition idxDefinition) {
+        createTextIndex(idxName, idxDefinition, null);
+    }
+
+    /**
+     * Create a new index with the given description.
+     *
+     * @param idxName
+     *      name of the index
+     * @param idxDefinition
+     *      definition of the index
+     * @param idxOptions
+     *      index options
+     */
+    public void createTextIndex(String idxName, TableTextIndexDefinition idxDefinition, CreateTextIndexOptions idxOptions) {
+        hasLength(idxName, "indexName");
+        notNull(idxDefinition, "idxDefinition");
+        Command createIndexCommand = Command
+                .create("createTextIndex")
+                .append("name", idxName)
+                .append("definition", idxDefinition);
+        if (idxOptions != null) {
+            createIndexCommand.append("options", idxOptions);
+        }
+        runCommand(createIndexCommand, idxOptions);
+        log.info("Index  '" + green("{}") + "' has been created", idxName);
+    }
+
     // --------------------------
     // ---   insertOne       ----
     // --------------------------
 
+    /**
+     * Inserts a single row into the table.
+     *
+     * @param row the row to be inserted; must not be {@code null}.
+     * @return a {@link TableInsertOneResult} object representing the result of the insertion operation.
+     */
     public final TableInsertOneResult insertOne(T row) {
-        return insertOneDelegate(mapAsRow(row), null);
+        return insertOneDelegate(RowMapper.mapAsRow(row), null);
     }
 
+    /**
+     * Inserts a single row into the table with the specified options.
+     *
+     * @param row the row to be inserted; must not be {@code null}.
+     * @param insertOneOptions the options for the insertion operation; may be {@code null}.
+     * @return a {@link TableInsertOneResult} object representing the result of the insertion operation.
+     */
     public final TableInsertOneResult insertOne(T row, TableInsertOneOptions insertOneOptions) {
         notNull(row, "row");
         Command insertOne = Command
@@ -365,14 +498,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return new TableInsertOneResult(result.getInsertedIds().get(0), result.getPrimaryKeySchema());
     }
 
-    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row) {
-        return CompletableFuture.supplyAsync(() -> insertOne(row));
-    }
-
-    public final CompletableFuture<TableInsertOneResult> insertOneAsync(T row, TableInsertOneOptions options) {
-        return CompletableFuture.supplyAsync(() -> insertOne(row, options));
-    }
-
+    /**
+     * Inserts a single row into the table asynchronously.
+     * @param row
+     *      row to be inserted
+     * @param insertOneOptions
+     *     options for the insertion operation
+     * @return
+     *    an  object representing the result of the insertion operation.
+     */
     private TableInsertOneResult insertOneDelegate(Row row, TableInsertOneOptions insertOneOptions) {
         notNull(row, "row");
         Command insertOne = Command
@@ -386,10 +520,23 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   insertMany      ----
     // --------------------------
 
+    /**
+     * Inserts multiple rows into the table.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     public TableInsertManyResult insertMany(List<? extends T> rows) {
         return insertMany(rows, new TableInsertManyOptions());
     }
 
+    /**
+     * Inserts multiple rows into the table with the specified options.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @param insertManyOptions the options for the insertion operation; must not be {@code null}.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     public TableInsertManyResult insertMany(List<? extends T> rows, TableInsertManyOptions insertManyOptions) {
         Assert.isTrue(rows != null && !rows.isEmpty(), "rows list cannot be null or empty");
         Assert.notNull(insertManyOptions, "insertMany options cannot be null");
@@ -446,19 +593,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return finalResult;
     }
 
+    /**
+     * Inserts multiple rows into the table.
+     *
+     * @param rows the list of rows to be inserted; must not be {@code null} or empty.
+     * @return a {@link TableInsertManyResult} object representing the result of the insertion operation.
+     */
     @SafeVarargs
     public final TableInsertManyResult insertMany(T... rows) {
         return insertMany(Arrays.asList(rows), new TableInsertManyOptions());
-    }
-
-    public CompletableFuture<TableInsertManyResult > insertManyAsync(List<? extends T> rows) {
-        return CompletableFuture.supplyAsync(() -> insertMany(rows));
-    }
-
-    public TableInsertManyOptions insertManyOptions() {
-        TableInsertManyOptions options = new TableInsertManyOptions();
-        options.dataAPIClientOptions(this.options.getDataAPIClientOptions().clone());
-        return options;
     }
 
     /**
@@ -480,8 +623,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             Command insertMany = new Command("insertMany")
                     .withDocuments(rows.subList(start, end))
                     .withOptions(new Document()
-                            .append(INPUT_ORDERED, insertManyOptions.ordered())
-                            .append(INPUT_RETURN_DOCUMENT_RESPONSES, insertManyOptions.returnDocumentResponses()));
+                            .append(OPTIONS_ORDERED, insertManyOptions.ordered())
+                            .append(OPTIONS_RETURN_DOCUMENT_RESPONSES, insertManyOptions.returnDocumentResponses()));
             return runCommand(insertMany, insertManyOptions)
                     .getStatus(TableInsertManyResult.class);
         };
@@ -491,37 +634,91 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // ---   findOne         ----
     // --------------------------
 
-    public Optional<T> findOne(Filter filter) {
-        return findOne(filter, null);
-    }
-
-    public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter the filter criteria used to select the row; may be {@code null}.
+     * @param findOneOptions options for the find one operation
+     * @param newRowClass the class representing the row type for the result; must not be {@code null}.
+     * @param <R> the type of the row in the result.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
+    public <R> Optional<R> findOne(Filter filter, TableFindOneOptions findOneOptions, Class<R> newRowClass) {
         Command findOne = Command.create("findOne").withFilter(filter);
         if (findOneOptions != null) {
             findOne.withSort(findOneOptions.getSortArray())
-                   .withProjection(findOneOptions.getProjectionArray())
+                    .withProjection(findOneOptions.getProjectionArray())
                     .withOptions(new Document()
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
-            );
+                                    .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, findOneOptions.includeSimilarity())
+                            // not exposed in FindOne
+                            //.appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, findOneOptions.includeSortVector())
+                    );
         }
+
         DataAPIData data = runCommand(findOne, findOneOptions).getData();
-        if (data.getDocument() == null) {
+
+        // No data found
+        if (data == null || data.getDocument() == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(data.getDocument().map(getRowClass()));
+
+        // Document -> Row
+        Row row = new Row();
+        row.getColumnMap().putAll(data.getDocument().getDocumentMap());
+
+        // Row -> Optional<T>
+        return Optional.ofNullable(RowMapper.mapFromRow(row, getSerializer(), newRowClass));
     }
 
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @param newRowClass
+     *      the class representing the row type for the result; must not be {@code null}.
+     * @param <R>
+     *     the type of the row in the result.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
+    public <R> Optional<R> findOne(Filter filter, Class<R> newRowClass) {
+        return findOne(filter, null, newRowClass);
+    }
+
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
+    public Optional<T> findOne(Filter filter) {
+        return findOne(filter, null, getRowClass());
+    }
+
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param filter
+     *      the filter criteria used to select the row; may be {@code null}.
+     * @param findOneOptions
+     *      options for the find one operation
+     * @return an {@link Optional} containing the row that matches the filter, or an empty {@link Optional} if no match is found.
+     */
+    public Optional<T> findOne(Filter filter, TableFindOneOptions findOneOptions) {
+        return findOne(filter, findOneOptions, getRowClass());
+    }
+
+    /**
+     * Retrieves a single row from the table that matches the specified filter criteria.
+     *
+     * @param findOneOptions
+     *      options for the find one operation
+     *  @return an {@link Optional} containing the row or an empty {@link Optional} if no match is found.
+     *
+     */
     public Optional<T> findOne(TableFindOneOptions findOneOptions) {
         return findOne(null, findOneOptions);
-    }
-
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter) {
-        return CompletableFuture.supplyAsync(() -> findOne(filter));
-    }
-
-    public CompletableFuture<Optional<T>> findOneASync(Filter filter, TableFindOneOptions findOneOptions) {
-        return CompletableFuture.supplyAsync(() -> findOne(filter, findOneOptions));
     }
 
     // -------------------------
@@ -538,8 +735,50 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      the Cursor to iterate over the results
      */
-    public TableCursor<T> find(Filter filter, TableFindOptions options) {
-        return new TableCursor<>(this, filter, options);
+    public TableFindCursor<T, T> find(Filter filter, TableFindOptions options) {
+        return new TableFindCursor<>(this, filter, options, getRowClass());
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param filter
+     *      the query filter
+     * @param options
+     *      options of find one
+     * @param newRowType
+     *      the class representing the row type for the result; must not be {@code null}.
+     * @param <R>
+     *      the type of the row in the result.
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public <R> TableFindCursor<T, R> find(Filter filter, TableFindOptions options, Class<R> newRowType) {
+        return new TableFindCursor<>(this, filter, options, newRowType);
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param filter
+     *      the query filter
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public TableFindCursor<T, T> find(Filter filter) {
+        return new TableFindCursor<>(this, filter, new TableFindOptions(), getRowClass());
+    }
+
+    /**
+     * Finds all rows in the table.
+     *
+     * @param options
+     *      options of find one
+     * @return
+     *      the Cursor to iterate over the results
+     */
+    public TableFindCursor<T, T> find(TableFindOptions options) {
+        return new TableFindCursor<>(this, null, options, getRowClass());
     }
 
     /**
@@ -549,10 +788,14 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * without applying any filters. It leverages the default {@link TableFindOptions} for query execution.
      * </p>
      *
-     * @return A {@link TableCursor} for iterating over all rows in the table.
+     * @return A {@link TableFindCursor} for iterating over all rows in the table.
      */
-    public TableCursor<T> findAll() {
+    public TableFindCursor<T, T> findAll() {
         return find(null, new TableFindOptions());
+    }
+
+    public Page<T> findPage(Filter filter, TableFindOptions options) {
+        return findPage(filter, options, getRowClass());
     }
 
     /**
@@ -577,34 +820,39 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the rows that match the query, along with pagination information.
      */
-    public Page<T> findPage(Filter filter, TableFindOptions options) {
+    public <R> Page<R> findPage(Filter filter, TableFindOptions options, Class<R> newRowType) {
         Command findCommand = Command
                 .create("find")
-                .withFilter(filter)
-                .withSort(options.getSortArray())
-                .withProjection(options.getProjectionArray())
-                .withOptions(new Document()
-                        .appendIfNotNull("skip", options.skip())
-                        .appendIfNotNull("limit", options.limit())
-                        .appendIfNotNull(INPUT_PAGE_STATE, options.pageState())
-                        .appendIfNotNull(INPUT_INCLUDE_SORT_VECTOR, options.includeSortVector())
-                        .appendIfNotNull(INPUT_INCLUDE_SIMILARITY, options.includeSimilarity()));
+                .withFilter(filter);
+        if (options != null) {
+            findCommand
+                    .withSort(options.getSortArray())
+                    .withProjection(options.getProjectionArray())
+                    .withOptions(new Document()
+                            .appendIfNotNull("skip", options.skip())
+                            .appendIfNotNull("limit", options.limit())
+                            .appendIfNotNull(OPTIONS_PAGE_STATE, options.pageState())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SCORES, options.includeSortVector())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, options.includeSimilarity()));
+        }
         DataAPIResponse apiResponse = runCommand(findCommand, options);
 
         // load sortVector if available
-        float[] sortVector = null;
-        if (options.includeSortVector() != null &&
-                apiResponse.getStatus() != null &&
-                apiResponse.getStatus().get(SORT_VECTOR.getKeyword()) != null) {
-            sortVector = apiResponse.getStatus().get(SORT_VECTOR.getKeyword(), float[].class);
+        DataAPIVector sortVector = null;
+        if (options!= null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+            sortVector = apiResponse.getStatus().getSortVector();
         }
 
         return new Page<>(
                 apiResponse.getData().getNextPageState(),
-                apiResponse.getData().getDocuments()
-                        .stream()
-                        .map(d -> d.map(getRowClass()))
-                        .collect(Collectors.toList()), sortVector);
+                apiResponse.getData().getDocuments().stream()
+                .map(doc -> {
+                    Row targetRow =  new Row();
+                    targetRow.getColumnMap().putAll(doc.getDocumentMap());
+                    return targetRow;
+                })
+                .map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))
+                .collect(Collectors.toList()), sortVector);
     }
 
     // -------------------------
@@ -612,40 +860,55 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     // -------------------------
 
     /**
-     * Gets the distinct values of the specified field name.
-     * The iteration is performed at CLIENT-SIDE and will exhaust all the table elements.
+     * Return a list of distinct values for the given field name.
      *
      * @param fieldName
-     *      the field name
+     *      name of the field
+     * @param filter
+     *      filter to apply
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param <R>
+     *     type of the result
      * @return
-     *      an iterable of distinct values
-
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Class<F> resultClass) {
-        return distinct(fieldName, null, resultClass);
+     *   list of distinct values
+     */
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass) {
+        return distinct(fieldName, filter, resultClass, null);
     }
 
     /**
-     * Gets the distinct values of the specified field name.
+     * Return a list of distinct values for the given field name.
      *
      * @param fieldName
-     *      the field name
+     *      name of the field
      * @param filter
-     *      the query filter
+     *      filter to apply
      * @param resultClass
-     *      the class to cast any distinct items into.
-     * @param <F>
-     *      the target type of the iterable.
+     *      class of the result
+     * @param options
+     *    options to apply to the operation
      * @return
-     *      an iterable of distinct values
-
-    public <F> CollectionDistinctIterable<T, F> distinct(String fieldName, Filter filter, Class<F> resultClass) {
-        return new CollectionDistinctIterable<>(this, fieldName, filter, resultClass);
+     *     list of distinct values
+     * @param <R>
+     *     type of the result
+     */
+    public <R> Set<R> distinct(String fieldName, Filter filter, Class<R> resultClass, TableDistinctOptions options) {
+        Assert.hasLength(fieldName, "fieldName");
+        Assert.notNull(resultClass, "resultClass");
+        // Building a convenient find options
+        TableFindOptions findOptions =  new TableFindOptions()
+                .projection(Projection.include(fieldName));
+        // Overriding options
+        if (options != null && options.getDataAPIClientOptions() != null) {
+            findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
+        }
+        // Exhausting the list of distinct values
+        return StreamSupport.stream(find(filter, findOptions, Row.class).spliterator(), true)
+                .map(row -> row.get(fieldName, resultClass))
+                .collect(Collectors.toSet());
     }
-*/
+
     // -------------------------
     // ---   updateOne      ----
     // -------------------------
@@ -657,11 +920,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      a row describing the query filter, which may not be null.
      * @param update
      *      a row describing the update, which may not be null. The update to apply must include at least one update operator.
-     * @return
-     *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdate update) {
-        return updateOne(filter, update, new TableUpdateOneOptions());
+    public void updateOne(Filter filter, TableUpdateOperation update) {
+        updateOne(filter, update, new TableUpdateOneOptions());
     }
 
     /**
@@ -673,46 +934,15 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      a document describing the update, which may not be null. The update to apply must include at least one update operator.
      * @param updateOptions
      *      the options to apply to the update operation
-     * @return
-     *      the result of the update one operation
      */
-    public TableUpdateResult updateOne(Filter filter, TableUpdate update, TableUpdateOneOptions updateOptions) {
+    public void updateOne(Filter filter, TableUpdateOperation update, TableUpdateOneOptions updateOptions) {
         notNull(update, ARG_UPDATE);
         notNull(updateOptions, ARG_OPTIONS);
         Command cmd = Command
                 .create("updateOne")
                 .withFilter(filter)
-                .withUpdate(update)
-                .withSort(updateOptions.getSortArray())
-                .withOptions(new Document()
-                        .appendIfNotNull(INPUT_UPSERT, updateOptions.upsert())
-                );
-        return getUpdateResult(runCommand(cmd, updateOptions));
-    }
-
-    /**
-     * Update all documents in the collection according to the specified arguments.
-     *
-     * @param apiResponse
-     *       response for the API
-     * @return
-     *      the result of the update many operation
-     */
-    private static TableUpdateResult getUpdateResult(DataAPIResponse apiResponse) {
-        TableUpdateResult result = new TableUpdateResult();
-        DataAPIStatus status = apiResponse.getStatus();
-        if (status != null) {
-            if (status.containsKey(RESULT_MATCHED_COUNT)) {
-                result.setMatchedCount(status.getInteger(RESULT_MATCHED_COUNT));
-            }
-            if (status.containsKey(RESULT_MODIFIED_COUNT)) {
-                result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
-            }
-            if (status.containsKey(RESULT_UPSERTED_ID)) {
-                result.setMatchedCount(status.getInteger(RESULT_UPSERTED_ID));
-            }
-        }
-        return result;
+                .withUpdate(update);
+         runCommand(cmd, updateOptions);
     }
 
     // -------------------------
@@ -742,14 +972,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     public void deleteOne(Filter filter, TableDeleteOneOptions deleteOneOptions) {
         Command deleteOne = Command
                 .create("deleteOne")
-                .withFilter(filter)
-                .withSort(deleteOneOptions.getSortArray());
+                .withFilter(filter);
         runCommand(deleteOne, deleteOneOptions);
-        /*
-        DataAPIResponse apiResponse = runCommand(deleteOne, deleteOneOptions);
-        int deletedCount = apiResponse.getStatus().getInteger(RESULT_DELETED_COUNT);
-        return new TableDeleteResult(deletedCount);
-         */
     }
 
     // -------------------------
@@ -786,6 +1010,13 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      */
     public void deleteAll() {
         deleteMany(new Filter());
+    }
+
+    /**
+     * Delete the current table
+     */
+    public void drop() {
+        getDatabase().dropTable(tableName);
     }
 
     // --------------------------------
@@ -880,7 +1111,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      If the number of rows counted exceeds the provided limit.
      */
     public int countRows(Filter filter, int upperBound, CountRowsOptions options)
-    throws TooManyRowsToCountException {
+            throws TooManyRowsToCountException {
         // Argument Validation
         if (upperBound < 1 || upperBound > MAX_COUNT) {
             throw new IllegalArgumentException("UpperBound limit should be in between 1 and " + MAX_COUNT);
@@ -912,46 +1143,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      If the number of rows counted exceeds the provided limit.
      */
     public int countRows(Filter filter, int upperBound)
-    throws TooManyRowsToCountException {
+            throws TooManyRowsToCountException {
         return countRows(filter, upperBound, new CountRowsOptions());
-    }
-
-    // --------------------------
-    // ---   Utilities       ----
-    // --------------------------
-
-    /**
-     * Map any object as a Row
-     *
-     * @param input
-     *      input object
-     * @return
-     *      a row
-     */
-    public Row mapAsRow(T input) {
-        if (input == null || input instanceof Row) {
-            return (Row) input;
-        }
-        EntityTable annTable = input.getClass().getAnnotation(EntityTable.class);
-        // Custom Serialization with annotations
-        if (annTable != null) {
-            if (Utils.hasLength(annTable.value()) && !annTable.value().equals(tableName)) {
-                throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + annTable.value() + "'");
-            }
-            EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
-            Row row = new Row();
-            bean.getFields().forEach((name, field) -> {
-                try {
-                    row.put(field.getColumnName(), field.getGetter().invoke(input));
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-            return row;
-        } else {
-            // Defaults mapping as a Row
-            return getSerializer().convertValue(input, Row.class);
-        }
     }
 
     // ------------------------------------------
@@ -999,25 +1192,26 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @return
      *      list of table definitions
      */
-    public List<TableIndexDefinition> listIndexes() {
+    @SuppressWarnings("unchecked")
+    public List<TableIndexDescriptor> listIndexes() {
         return listIndexes(null);
     }
 
     /**
      * Finds all the indices in the selected keyspace.
      *
+     * @param listIndexesOptions
+     *     options for the list indexes operation
      * @return
      *      list of table definitions
      */
-    public List<TableIndexDefinition> listIndexes(ListIndexesOptions listIndexesOptions) {
-        Command findTables = Command
-                .create("listIndexes")
-                .withOptions(new Document().append("explain", true));
-        return runCommand(findTables, listIndexesOptions)
-                .getStatusKeyAsList("indexes", TableIndexDescriptor.class)
-                .stream().map(TableIndexDescriptor::getDefinition)
-                .toList();
-    }
+        public List<TableIndexDescriptor> listIndexes(ListIndexesOptions listIndexesOptions) {
+            Command findTables = Command
+                    .create("listIndexes")
+                    .withOptions(new Document().append("explain", true));
+            return runCommand(findTables, listIndexesOptions)
+                    .getStatusKeyAsList("indexes", TableIndexDescriptor.class);
+        }
 
     // --------------------------
     // ---   Listeners       ----

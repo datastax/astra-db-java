@@ -20,7 +20,7 @@ package com.datastax.astra.internal.command;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.ApiResponseHttp;
 import com.datastax.astra.client.core.commands.Command;
@@ -250,10 +250,11 @@ public class ExecutionInfos implements Serializable {
          * @param httpResponse http response
          */
         public void withHttpResponse(ApiResponseHttp httpResponse) {
-            Assert.notNull(httpResponse, "httpResponse");
-            this.executionTime       = System.currentTimeMillis() - 1000 * executionDate.getEpochSecond();
-            this.responseHttpCode    = httpResponse.getCode();
-            this.responseHttpHeaders = httpResponse.getHeaders();
+            this.executionTime = System.currentTimeMillis() - 1000 * executionDate.getEpochSecond();
+            if (httpResponse != null) {
+                this.responseHttpCode = httpResponse.getCode();
+                this.responseHttpHeaders = httpResponse.getHeaders();
+            }
         }
 
         /**
@@ -266,7 +267,14 @@ public class ExecutionInfos implements Serializable {
             return new ExecutionInfos(this);
         }
 
-
+        /**
+         * Execute the command and populate the response.
+         * @return
+         *     the response
+         */
+        public long getExecutionTime() {
+            return executionTime;
+        }
     }
 
 }

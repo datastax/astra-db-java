@@ -20,12 +20,11 @@ package com.datastax.astra.client.databases;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.DatabaseSerializer;
-import com.datastax.astra.internal.utils.Assert;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -84,6 +83,8 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
     /**
      * Constructor with options and not token override.
      *
+     * @param token
+     *      authentication token
      * @param options
      *      data API client options
      */
@@ -100,10 +101,12 @@ public class DatabaseOptions extends BaseOptions<DatabaseOptions> implements Clo
         return keyspace;
     }
 
+    /** {@inheritDoc} */
     @Override
     public DatabaseOptions clone() {
         // Cloning options, token, and serializer
         DatabaseOptions cloned = (DatabaseOptions) super.clone();
+        cloned.token    = token;
         cloned.keyspace = keyspace;
         return cloned;
     }

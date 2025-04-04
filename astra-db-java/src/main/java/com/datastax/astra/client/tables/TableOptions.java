@@ -20,13 +20,8 @@ package com.datastax.astra.client.tables;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.BaseOptions;
-import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-import com.datastax.astra.internal.serdes.tables.RowSerializer;
-import com.datastax.astra.internal.utils.Assert;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -40,6 +35,14 @@ import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 @Accessors(fluent = true, chain = true)
 public class TableOptions extends BaseOptions<TableOptions> {
 
+    /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+
+    /**
+     * Default constructor nor overriding token nor options
+     */
     public TableOptions() {
         this(null, null);
     }
@@ -54,6 +57,15 @@ public class TableOptions extends BaseOptions<TableOptions> {
      */
     public TableOptions(String token, DataAPIClientOptions options) {
         super(token, TABLE_ADMIN, DEFAULT_TABLE_SERIALIZER, options);
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 
 }

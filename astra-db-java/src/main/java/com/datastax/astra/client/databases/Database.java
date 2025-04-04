@@ -4,7 +4,7 @@ package com.datastax.astra.client.databases;
  * #%L
  * Data API Java Client
  * --
- * Copyright (C) 2024 DataStax
+ * Copyright (C) 2024 DataStaxcc
  * --
  * Licensed under the Apache License, Version 2.0
  * You may not use this file except in compliance with the License.
@@ -26,40 +26,44 @@ import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.CollectionDescriptor;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.commands.BaseOptions;
+import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
+import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
+import com.datastax.astra.client.collections.commands.options.ListCollectionOptions;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.CollectionDescriptor;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
-import com.datastax.astra.client.databases.options.CreateCollectionOptions;
-import com.datastax.astra.client.databases.options.DropCollectionOptions;
-import com.datastax.astra.client.databases.options.ListCollectionOptions;
-import com.datastax.astra.client.databases.options.ListIndexesOptions;
-import com.datastax.astra.client.databases.options.ListTablesOptions;
-import com.datastax.astra.client.exception.InvalidConfigurationException;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.databases.definition.DatabaseInfo;
+import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.TableDefinition;
-import com.datastax.astra.client.tables.TableDescriptor;
 import com.datastax.astra.client.tables.TableOptions;
-import com.datastax.astra.client.tables.ddl.CreateTableOptions;
-import com.datastax.astra.client.tables.ddl.DropTableIndexOptions;
-import com.datastax.astra.client.tables.ddl.DropTableOptions;
-import com.datastax.astra.client.tables.index.TableIndexDefinition;
-import com.datastax.astra.client.tables.index.TableIndexDescriptor;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
+import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
+import com.datastax.astra.client.tables.commands.options.DropTableOptions;
+import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.TableDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.client.tables.row.Row;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
+import com.datastax.astra.internal.reflection.EntityBeanDefinition;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import static com.datastax.astra.client.tables.mapping.EntityBeanDefinition.createTableCommand;
+import static com.datastax.astra.internal.reflection.EntityBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -78,7 +82,7 @@ import static com.datastax.astra.internal.utils.Assert.notNull;
  * instance of {@code Database} ensures connectivity to a specific regional endpoint for optimal
  * performance and consistency.</p>
  *
- * <h2>Key Features:</h2>
+ * <p><strong>Key Features:</strong></p>
  * <ul>
  *   <li>Direct access to database-level operations, including collection management.</li>
  *   <li>Region-specific connectivity for multi-region database configurations.</li>
@@ -147,6 +151,10 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             case ASTRA:
             case ASTRA_TEST:
             case ASTRA_DEV:
+                // Remove Trailing Slash
+                if (rootEndpoint.endsWith("/")) {
+                    rootEndpoint = rootEndpoint.substring(0, rootEndpoint.length() - 1);
+                }
                 if (rootEndpoint.endsWith(".com")) {
                     dbApiEndPointBuilder.append("/api/json");
                 }
@@ -337,13 +345,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * {@link AdminOptions} object determines the authentication and configuration used for the client.
      * </p>
      *
-     * <p>Key behaviors:
+     * <p>Key behaviors:</p>
      * <ul>
      *   <li>If no {@code adminOptions} are provided, a default configuration is derived from the current options.</li>
      *   <li>If the deployment is Astra, an {@link AstraDBDatabaseAdmin} instance is returned.</li>
      *   <li>For non-Astra deployments, a {@link DataAPIDatabaseAdmin} instance is returned.</li>
      * </ul>
-     * </p>
      *
      * @param adminOptions The {@link AdminOptions} object containing authentication and configuration details.
      * @return A {@link DatabaseAdmin} instance tailored for the current deployment type and configured with the provided options.
@@ -403,7 +410,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * current state programmatically.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint);
@@ -413,7 +420,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      *
      * @return A {@link List} containing the names of all collections in this database.
-     * @throws com.datastax.astra.client.exception.DataAPIException if an error occurs while retrieving the collection names.
+     * @throws com.datastax.astra.client.exceptions.DataAPIException if an error occurs while retrieving the collection names.
      */
     public List<String> listCollectionNames() {
         return listCollectionNames(null);
@@ -428,13 +435,13 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * {@link ListCollectionOptions}, enabling filtering or additional configuration as needed.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code listCollectionOptions} - The options to customize the collection listing operation,
      *       such as filtering criteria or additional query parameters.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create list collection options
@@ -468,7 +475,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * convenient entry point for obtaining all collection definitions without any filtering or additional options.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint);
@@ -492,13 +499,13 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * for each collection that matches the provided options.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code listCollectionOptions} - The {@link ListCollectionOptions} to customize the listing behavior,
      *       such as filtering criteria or additional query parameters. If {@code null}, all collections are returned.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create options for listing collections with a specific prefix
@@ -530,7 +537,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * as querying, inserting, or updating data.
      * </p>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint");
@@ -564,12 +571,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * such as querying, inserting, or updating documents.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * Database database = new DataAPIClient("token").getDatabase("endpoint");
@@ -594,14 +601,14 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * allows for further operations on the collection, such as querying, inserting, or updating documents.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code collectionOptions} - The {@link CollectionOptions} to customize the collection behavior,
      *       such as setting a custom serializer or specifying additional options. If {@code null}, default options are used.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * // Create custom collection options
@@ -615,13 +622,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      *
      * @param collectionName The name of the collection to retrieve.
+     * @param documentClass The class type of the documents stored in the collection.
+     * @param <T> The type of the documents stored in the collection.
      * @return A {@link Collection} object representing the specified collection, configured with the provided options.
-     * @throws IllegalArgumentException if the collection name is {@code null} or empty.
      */
     public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {
-        return getCollection(collectionName, new CollectionOptions(
-                options.getToken(),
-                options.getDataAPIClientOptions()), documentClass);
+        return getCollection(collectionName, documentClass, defaultCollectionOptions());
     }
 
     /**
@@ -631,14 +637,14 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * the caller to specify {@link CollectionOptions} to customize the behavior of the collection.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code collectionOptions} - A {@link CollectionOptions} object that specifies custom
      *       behaviors for the collection. If {@code null}, default options will be used.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      *
@@ -658,7 +664,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @throws IllegalArgumentException if {@code collectionName} is {@code null} or empty.
      */
     public Collection<Document> getCollection(String collectionName,  CollectionOptions collectionOptions) {
-        return getCollection(collectionName, collectionOptions, Document.class);
+        return getCollection(collectionName,Document.class, collectionOptions);
     }
 
     /**
@@ -668,7 +674,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * clients to specify custom options and the type of documents in the collection.
      * </p>
      *
-     * <h2>Parameters:</h2>
+     * <p><strong>Parameters:</strong></p>
      * <ul>
      *   <li>{@code collectionName} - The name of the collection to retrieve. This must not be null or empty.</li>
      *   <li>{@code options} - The {@link CollectionOptions} to customize the collection behavior. Must not be null.</li>
@@ -676,7 +682,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *       This enables type safety when working with the collection's documents. Must not be null.</li>
      * </ul>
      *
-     * <h2>Example usage:</h2>
+     * <p><strong>Example usage:</strong></p>
      * <pre>
      * {@code
      * CollectionOptions options = new CollectionOptions()
@@ -690,10 +696,11 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param collectionName The name of the collection to retrieve.
      * @param options The {@link CollectionOptions} for customizing the collection behavior.
      * @param documentClass The class type of the documents in the collection.
+     * @param <T> The type of the documents stored in the collection.
      * @return A {@link Collection} object representing the specified collection.
      * @throws IllegalArgumentException if {@code collectionName}, {@code options}, or {@code documentClass} is {@code null}.
      */
-    public <T> Collection<T> getCollection(String collectionName, CollectionOptions options,  Class<T> documentClass) {
+    public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass, CollectionOptions options) {
         hasLength(collectionName, "collectionName");
         notNull(options, "options");
         notNull(documentClass, "documentClass");
@@ -710,7 +717,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>                 The type of the documents stored in the collection.
      * @param collectionName      The name of the collection to be created.
      * @param collectionDefinition An optional {@link CollectionDefinition} object defining the schema and other properties of the collection.
-     * @param collectionOptions   The {@link CollectionOptions} that include token, client configuration, and serializer for the collection.
      * @param createCollectionOptions Additional options for creating the collection, such as timeouts or retry policies.
      * @param documentClass       The class of the documents stored in the collection.
      * @return The created collection as a {@link Collection} of the specified document type.
@@ -733,24 +739,60 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     public <T> Collection<T> createCollection(String collectionName,
                                               CollectionDefinition collectionDefinition,
                                               Class<T> documentClass,
-                                              CreateCollectionOptions createCollectionOptions,
-                                              CollectionOptions collectionOptions) {
+                                              CreateCollectionOptions createCollectionOptions) {
 
         hasLength(collectionName, "collectionName");
-        notNull(collectionOptions, "collectionOptions");
         notNull(documentClass, "documentClass");
-        notNull(collectionOptions.getSerializer(), "serializer");
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createCollectionOptions != null && Utils.hasLength(createCollectionOptions.getKeyspace())) {
+            String otherKeyspace = createCollectionOptions.getKeyspace();
+            createCollectionOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createCollection(collectionName, collectionDefinition, documentClass, createCollectionOptions);
+        }
 
         Command createCollectionCommand = Command
                 .create("createCollection")
                 .append("name", collectionName);
         if (collectionDefinition != null) {
-            createCollectionCommand.withOptions(collectionOptions
-                    .getSerializer()
+            createCollectionCommand.withOptions(
+                    getSerializer()
                     .convertValue(collectionDefinition, Document.class));
         }
         runCommand(createCollectionCommand, createCollectionOptions);
-        return getCollection(collectionName, collectionOptions, documentClass);
+
+        // Getting ready for a collection
+        CollectionOptions collectionOptions = defaultCollectionOptions();
+        if (createCollectionOptions != null) {
+            if (createCollectionOptions.getDataAPIClientOptions() != null) {
+                collectionOptions.dataAPIClientOptions(createCollectionOptions.getDataAPIClientOptions());
+                DataAPIClientOptions options = createCollectionOptions.getDataAPIClientOptions();
+                // Merging db Headers
+                Map<String, String> dbHeaders = new HashMap<>();
+                dbHeaders.putAll(this.options.getDataAPIClientOptions().getDatabaseAdditionalHeaders());
+                dbHeaders.putAll(options.getDatabaseAdditionalHeaders());
+                options.databaseAdditionalHeaders(dbHeaders);
+                // Merging admin Headers
+                Map<String, String> adminHeaders = new HashMap<>();
+                adminHeaders.putAll(this.options.getDataAPIClientOptions().getAdminAdditionalHeaders());
+                adminHeaders.putAll(options.getAdminAdditionalHeaders());
+                options.adminAdditionalHeaders(adminHeaders);
+                collectionOptions.dataAPIClientOptions(createCollectionOptions.getDataAPIClientOptions());
+                // Merging listeners
+                Map<String, CommandObserver> listeners = new HashMap<>();
+                listeners.putAll(this.options.getDataAPIClientOptions().getObservers());
+                listeners.putAll(options.getObservers());
+                options.observers(listeners);
+
+            }
+            if (createCollectionOptions.getToken() != null) {
+                collectionOptions.token(createCollectionOptions.getToken());
+            }
+        }
+        return getCollection(collectionName, documentClass, collectionOptions);
     }
 
     /**
@@ -786,14 +828,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public <T> Collection<T> createCollection(String collectionName, Class<T> documentClass) {
-        return createCollection(collectionName,
-                // no CollectionDefinition as simple
-                null,
-                documentClass,
-                // No create collection options
-                null,
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions())
-                );
+        return createCollection(collectionName, null, documentClass, null);
     }
 
     /**
@@ -832,11 +867,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public <T>  Collection<T> createCollection(String name, CollectionDefinition def, Class<T> documentClass) {
-        return createCollection(name,
-                def,
-                documentClass,
-                null,
-                new CollectionOptions(options.getToken(), options.getDataAPIClientOptions()));
+        return createCollection(name, def, documentClass, null);
     }
 
     /**
@@ -844,7 +875,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *
      * @param collectionName       The name of the collection to be created.
      * @param collectionDefinition The {@link CollectionDefinition} specifying the schema and other properties of the collection.
-     * @param collectionOptions    The {@link CollectionOptions} that include token, client configuration, and serializer for the collection.
      * @param createCollectionOptions Additional options for creating the collection, such as timeouts or retry policies.
      * @return The created collection as a {@link Collection} of {@link Document}.
      *
@@ -862,15 +892,12 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public Collection<Document> createCollection(String collectionName,
         CollectionDefinition collectionDefinition,
-        CreateCollectionOptions createCollectionOptions,
-        CollectionOptions collectionOptions
-        ) {
+        CreateCollectionOptions createCollectionOptions) {
         return createCollection(
                 collectionName,
                 collectionDefinition,
                 Document.class,
-                createCollectionOptions,
-                collectionOptions);
+                createCollectionOptions);
     }
 
     // ------------------------------------------
@@ -947,6 +974,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public List<String> listTableNames(ListTablesOptions listTablesOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTablesOptions != null && Utils.hasLength(listTablesOptions.getKeyspace())) {
+            String otherKeyspace = listTablesOptions.getKeyspace();
+            listTablesOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTableNames(listTablesOptions);
+        }
         return runCommand(Command.create("listTables"), listTablesOptions)
                 .getStatusKeyAsStringStream("tables")
                 .toList();
@@ -983,6 +1019,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public List<TableDescriptor> listTables(ListTablesOptions listTableOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTableOptions != null && Utils.hasLength(listTableOptions.getKeyspace())) {
+            String otherKeyspace = listTableOptions.getKeyspace();
+            listTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTables(listTableOptions);
+        }
         Command findTables = Command
                 .create("listTables")
                 .withOptions(new Document().append("explain", true));
@@ -1036,10 +1081,11 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * }
      * </pre>
      */
-    public <T> Table<T> getTable(String tableName, TableOptions tableOptions, Class<T> rowClass) {
+    public <T> Table<T> getTable(String tableName, Class<T> rowClass, TableOptions tableOptions) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        return new Table<>(this, tableName, tableOptions, rowClass);
+        Database db2 = new Database(this.rootEndpoint, this.options.clone());
+        return new Table<>(db2, tableName, tableOptions, rowClass);
     }
 
     /**
@@ -1078,9 +1124,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public <T> Table<T> getTable(String tableName, Class<T> rowClass) {
-        return getTable(tableName, new TableOptions(
-                options.getToken(),
-                options.getDataAPIClientOptions()), rowClass);
+        return getTable(tableName, rowClass, defaultTableOptions());
     }
 
     /**
@@ -1100,7 +1144,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * </pre>
      */
     public Table<Row> getTable(String tableName, TableOptions tableOptions) {
-        return getTable(tableName, tableOptions, Row.class);
+        return getTable(tableName,  Row.class, tableOptions);
     }
 
     /**
@@ -1143,9 +1187,8 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>             the type of the row objects that the table will hold
      * @param tableName       the name of the table to be created; must not be null or empty
      * @param tableDefinition the schema definition of the table; must not be null
-     * @param creatTableOptions additional options for creating the table; optional, can be null
+     * @param createTableOptions additional options for creating the table; optional, can be null
      * @param rowClass        the class representing the row type; must not be null
-     * @param tableOptions    runtime options for interacting with the table; must not be null
      * @return the created table object
      * @throws IllegalArgumentException if any mandatory argument is null or invalid
      *
@@ -1167,32 +1210,65 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * CreateTableOptions createTableOptions =
      *      new CreateTableOptions().timeout(Duration.ofMillis(1000));
      *
-     * // Optional to override spawn options
-     * TableOptions tableOptions =
-     *      new TableOptions().timeout(Duration.ofMillis(1000));
-     *
      * Table<Row> tableSimple2 = db.createTable("TABLE_SIMPLE", tableDefinition,
-     *  Row.class, createTableOptions,  tableOptions);
+     *  Row.class, createTableOptions);
      * }
      * </pre>
      */
     public <T> Table<T> createTable(String tableName,
                                     TableDefinition tableDefinition,
                                     Class<T> rowClass,
-                                    CreateTableOptions creatTableOptions,
-                                    TableOptions tableOptions) {
+                                    CreateTableOptions createTableOptions) {
         hasLength(tableName, "tableName");
         notNull(tableDefinition, "tableDefinition");
         notNull(rowClass, "rowClass");
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createTableOptions != null && Utils.hasLength(createTableOptions.getKeyspace())) {
+            String otherKeyspace = createTableOptions.getKeyspace();
+            createTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createTable(tableName, tableDefinition, rowClass, createTableOptions);
+        }
+
         Command createTable = Command
                 .create("createTable")
                 .append("name", tableName)
                 .append("definition", tableDefinition);
-        if (creatTableOptions != null) {
-            createTable.append("options", creatTableOptions);
+        if (createTableOptions != null) {
+            createTable.append("options", createTableOptions);
         }
-        runCommand(createTable, tableOptions);
-        return getTable(tableName, tableOptions, rowClass);
+        runCommand(createTable, createTableOptions);
+
+        // Spawning a Table inheriting the current database options and the table options
+        TableOptions tableOptions = defaultTableOptions();
+        if (createTableOptions != null) {
+            if (createTableOptions.getDataAPIClientOptions() != null) {
+                DataAPIClientOptions options = createTableOptions.getDataAPIClientOptions();
+                // Merging db Headers
+                Map<String, String> dbHeaders = new HashMap<>();
+                dbHeaders.putAll(this.options.getDataAPIClientOptions().getDatabaseAdditionalHeaders());
+                dbHeaders.putAll(options.getDatabaseAdditionalHeaders());
+                options.databaseAdditionalHeaders(dbHeaders);
+                // Merging admin Headers
+                Map<String, String> adminHeaders = new HashMap<>();
+                adminHeaders.putAll(this.options.getDataAPIClientOptions().getAdminAdditionalHeaders());
+                adminHeaders.putAll(options.getAdminAdditionalHeaders());
+                options.adminAdditionalHeaders(adminHeaders);
+                tableOptions.dataAPIClientOptions(createTableOptions.getDataAPIClientOptions());
+                // Merging listeners
+                Map<String, CommandObserver> listeners = new HashMap<>();
+                listeners.putAll(this.options.getDataAPIClientOptions().getObservers());
+                listeners.putAll(options.getObservers());
+                options.observers(listeners);
+            }
+            if (createTableOptions.getToken() != null) {
+                tableOptions.token(createTableOptions.getToken());
+            }
+        }
+        return getTable(tableName, rowClass, tableOptions);
     }
 
     /**
@@ -1205,8 +1281,19 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass) {
-        return createTable(tableName, tableDefinition, rowClass, new CreateTableOptions(),
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
+        return createTable(tableName, tableDefinition, rowClass, null);
+    }
+
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param tableName       the name of the table to be created; must not be null or empty
+     * @param tableDefinition the schema definition of the table; must not be null
+     * @param options         the option to initialize the class.
+     * @return the created table object
+     */
+    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions options) {
+        return createTable(tableName, tableDefinition, Row.class, options);
     }
 
     /**
@@ -1221,33 +1308,6 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Creates a table using the specified row class and runtime configurations.
-     *
-     * @param <T>             the type of the row objects that the table will hold
-     * @param tableName       the name of the table to be created; must not be null or empty
-     * @param rowClass        the class representing the row type; must not be null
-     * @param tableDefinition the schema definition of the table; must not be null
-     * @param createTableOptions additional options for creating the table; optional, can be null
-     * @return the created table object
-     */
-    public <T> Table<T> createTable(String tableName, TableDefinition tableDefinition, Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(tableName, tableDefinition, rowClass, createTableOptions,
-                new TableOptions(this.options.getToken(), this.options.getDataAPIClientOptions()));
-    }
-
-    /**
-     * Creates a table using the specified row class and runtime configurations.
-     *
-     * @param tableName       the name of the table to be created; must not be null or empty
-     * @param createTableOptions additional options for creating the table; optional, can be null
-     * @param tableDefinition the schema definition of the table; must not be null
-     * @return the created table object
-     */
-    public Table<Row> createTable(String tableName, TableDefinition tableDefinition, CreateTableOptions createTableOptions) {
-        return createTable(tableName, tableDefinition, Row.class, createTableOptions);
-    }
-
-    /**
      * Creates a table using default options and the inferred table name from the row class.
      *
      * @param <T>      the type of the row objects that the table will hold
@@ -1255,7 +1315,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(Class<T> rowClass) {
-        return createTable(rowClass, new CreateTableOptions());
+        return createTable(rowClass, new CreateTableOptions().ifNotExists(true));
     }
 
     /**
@@ -1267,7 +1327,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return the created table object
      */
     public <T> Table<T> createTable(Class<T> rowClass, CreateTableOptions createTableOptions) {
-        return createTable(getTableName(rowClass), rowClass, createTableOptions, new TableOptions());
+        return createTable(getTableName(rowClass), rowClass, createTableOptions);
     }
 
     /**
@@ -1276,23 +1336,54 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @param <T>             the type of the row objects that the table will hold
      * @param rowClass        the class representing the row type; must not be null
      * @param tableName       the name of the table to be created; must not be null or empty
-     * @param tableOptions    runtime options for interacting with the table; must not be null
      * @param createTableOptions additional options for creating the table; optional, can be null
      * @return the created table object
      */
     public <T> Table<T> createTable(String tableName,
         Class<T> rowClass,
-        CreateTableOptions createTableOptions,
-        TableOptions tableOptions) {
+        CreateTableOptions createTableOptions) {
         hasLength(tableName, "tableName");
         notNull(rowClass, "rowClass");
-        // FIX ME INVESTIGATING TO CREATE A TABLE DEFINITION OBJECT
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createTableOptions != null && Utils.hasLength(createTableOptions.getKeyspace())) {
+            String otherKeyspace = createTableOptions.getKeyspace();
+            createTableOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createTable(tableName, rowClass, createTableOptions);
+        }
+
+        // Building from the command
         Command createTable = new Command("createTable", createTableCommand(tableName, rowClass));
         if (createTableOptions != null) {
             createTable.append("options", createTableOptions);
         }
         runCommand(createTable, createTableOptions);
-        return getTable(tableName, tableOptions, rowClass);
+
+        // Getting ready for a table
+        TableOptions tableOptions = defaultTableOptions();
+        if (createTableOptions != null) {
+            if (createTableOptions.getDataAPIClientOptions() != null) {
+                tableOptions.dataAPIClientOptions(createTableOptions.getDataAPIClientOptions());
+            }
+            if (createTableOptions.getToken() != null) {
+                tableOptions.token(createTableOptions.getToken());
+            }
+        }
+
+        // Table is ready
+        Table<T> table = getTable(tableName, rowClass, tableOptions);
+
+        // Creating Vector Index for each column definition
+        EntityBeanDefinition.listVectorIndexDefinitions(tableName, rowClass).forEach(index -> {
+            CreateVectorIndexOptions options = new CreateVectorIndexOptions().ifNotExists(true)
+                    .dataAPIClientOptions(createTableOptions.getDataAPIClientOptions().enableFeatureFlagTables());
+            table.createVectorIndex("vidx_" + tableName + "_" + index.getColumn().getName(), index, options);
+        });
+
+        return table;
     }
 
     /**
@@ -1312,6 +1403,30 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             throw new IllegalArgumentException("Annotation @Table on class " + rowClass.getName() + " has no name");
         }
         return ann.value();
+    }
+
+    /**
+     * Initialize a TableOption from the current database options.
+     *
+     * @return
+     *      default table options
+     */
+    private TableOptions defaultTableOptions() {
+        return new TableOptions(this.options.getToken(),
+                this.options.getDataAPIClientOptions())
+                .keyspace(getKeyspace());
+    }
+
+    /**
+     * Initialize a TableOption from the current database options.
+     *
+     * @return
+     *      default table options
+     */
+    private CollectionOptions defaultCollectionOptions() {
+        return new CollectionOptions(this.options.getToken(),
+                this.options.getDataAPIClientOptions())
+                .keyspace(getKeyspace());
     }
 
     // -------------------------------------
@@ -1359,13 +1474,25 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public void dropTable(String tableName, DropTableOptions dropTableOptions) {
         hasLength(tableName, "tableName");
-        Command dropTableCmd = Command
-                .create("dropTable")
-                .append("name", tableName);
-        if (dropTableOptions != null) {
-            dropTableCmd.withOptions(dropTableOptions);
+
+        // We are on a different keyspace, drop the table on a different keyspace
+        if (dropTableOptions != null && Utils.hasLength(dropTableOptions.getKeyspace())) {
+            String otherKeyspace = dropTableOptions.getKeyspace();
+            dropTableOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .dropTable(tableName, dropTableOptions);
+        } else {
+            // Command on current keyspace
+            Command dropTableCmd = Command
+                    .create("dropTable")
+                    .append("name", tableName);
+            if (dropTableOptions != null) {
+                dropTableCmd.withOptions(dropTableOptions);
+            }
+            runCommand(dropTableCmd, dropTableOptions);
         }
-        runCommand(dropTableCmd, dropTableOptions);
     }
     // ------------------------------------------
     // ----   Drop Indexes                    ---
@@ -1390,13 +1517,26 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *      flag to drop index
      */
     public void dropTableIndex(String indexName, DropTableIndexOptions dropIndexOptions) {
-        Command dropIndexCommand = Command
-                .create("dropIndex")
-                .append("name", indexName);
-        if (dropIndexOptions != null) {
-            dropIndexCommand.withOptions(dropIndexOptions);
+        Assert.hasLength(indexName, "indexName");
+
+        // We are on a different keyspace, drop the table on a different keyspace
+        if (dropIndexOptions != null && Utils.hasLength(dropIndexOptions.getKeyspace())) {
+            String otherKeyspace = dropIndexOptions.getKeyspace();
+            dropIndexOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .dropTableIndex(indexName, dropIndexOptions);
+        } else {
+            // Command on current keyspace
+            Command dropIndexCommand = Command
+                    .create("dropIndex")
+                    .append("name", indexName);
+            if (dropIndexOptions != null) {
+                dropIndexCommand.withOptions(dropIndexOptions);
+            }
+            runCommand(dropIndexCommand, dropIndexOptions);
         }
-        runCommand(dropIndexCommand, dropIndexOptions);
     }
 
     // ------------------------------------------

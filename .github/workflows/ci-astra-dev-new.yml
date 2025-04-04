@@ -17,7 +17,7 @@ on:
       java_version:
         description: 'JDK version to use'
         required: true
-        default: '11.0'
+        default: '17.0'
       cache_pkg_mgr_name:
         description: 'Cache package manager to be used'
         required: true
@@ -100,9 +100,9 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
-          java-version: '11.0'
-          cache: 'maven'
+          distribution: ${{ inputs.java_distribution }}
+          java-version: ${{ inputs.java_version }}
+          cache: ${{ inputs.cache_pkg_mgr_name }}
 
       - name: Run Maven Tests
         env:

@@ -1,12 +1,11 @@
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.collections.CollectionDefinition;
-import com.datastax.astra.client.collections.documents.Document;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.core.paging.FindIterable;
-import com.datastax.astra.client.collections.options.CollectionFindOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 
 import static com.datastax.astra.client.core.query.Sort.vector;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
@@ -16,7 +15,8 @@ public class Quickstart {
   public static void main(String[] args) {
     // Loading Arguments
     String astraToken = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
-    String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
+    //String astraApiEndpoint = System.getenv("ASTRA_DB_API_ENDPOINT");
+    String astraApiEndpoint = "https://e6d17fde-3555-42af-941f-16ce090d49f8-us-east1.apps.astra.datastax.com";
 
     // Initialize the client.
     DataAPIClient client = new DataAPIClient(astraToken);
@@ -57,7 +57,7 @@ public class Quickstart {
     CollectionFindOptions options = new CollectionFindOptions()
             .sort(vector(new float[]{0.15f, 0.1f, 0.1f, 0.35f, 0.55f}))
             .limit(10);
-    FindIterable<Document> resultsSet = col.find(filter,options);
+    CollectionFindCursor<Document, Document> resultsSet = col.find(filter,options);
     resultsSet.forEach(System.out::println);
 // end::search[]
 
