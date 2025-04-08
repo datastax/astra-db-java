@@ -58,7 +58,7 @@ public class AdminOptions extends BaseOptions<AdminOptions> {
      * Serializer for the collections.
      * Defaults to {@link DatabaseSerializer}.
      */
-    private static final DataAPISerializer DEFAULT_SERIALIZER = new DatabaseSerializer();
+    public static final DataAPISerializer DEFAULT_SERIALIZER = new DatabaseSerializer();
 
     /**
      * Serializer for the collections.

@@ -4,7 +4,7 @@ package com.datastax.astra.client.databases.definition.keyspaces;
  * #%L
  * Data API Java Client
  * --
- * Copyright (C) 2024 DataStax
+ * Copyright (C) 2024 - 2025 DataStax
  * --
  * Licensed under the Apache License, Version 2.0
  * You may not use this file except in compliance with the License.
@@ -20,18 +20,19 @@ package com.datastax.astra.client.databases.definition.keyspaces;
  * #L%
  */
 
-import lombok.Getter;
-import lombok.Setter;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Options to create a Namespace.
- */
-@Getter
-@Setter
-public class KeyspaceOptions {
+@Data
+public class KeyspaceDefinition {
+
+    /**
+     * The name of the keyspace.
+     */
+    private String name = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
     /**
      * The replication of the namespace.
@@ -39,10 +40,17 @@ public class KeyspaceOptions {
     private Map<String, Object> replication;
 
     /**
-     * Default Constructor.
+     * Name for the keyspace.
+     *
+     * @param name
+     *     keyspace name
+     * @return
+     *      instance of the options populated
+     *
      */
-    public KeyspaceOptions() {
-        replication = new HashMap<>();
+    public KeyspaceDefinition name(String name) {
+        this.name = name;
+        return this;
     }
 
     /**
@@ -54,11 +62,13 @@ public class KeyspaceOptions {
      *      instance of the options populated
      *
      */
-    public static KeyspaceOptions simpleStrategy(int replicationFactor) {
-        KeyspaceOptions options = new KeyspaceOptions();
-        options.replication.put("class", KeyspaceReplicationStrategy.SIMPLE_STRATEGY.getValue());
-        options.replication.put("replication_factor", replicationFactor);
-        return options;
+    public KeyspaceDefinition simpleStrategy(int replicationFactor) {
+        if (replication == null) {
+            replication = new HashMap<>();
+        }
+        replication.put("class", KeyspaceReplicationStrategy.SIMPLE_STRATEGY.getValue());
+        replication.put("replication_factor", replicationFactor);
+        return this;
     }
 
     /**
@@ -69,13 +79,13 @@ public class KeyspaceOptions {
      * @return
      *      instance of the options populated
      */
-    public static KeyspaceOptions networkTopologyStrategy(Map<String, Integer> datacenters) {
-        KeyspaceOptions options = new KeyspaceOptions();
-        options.replication.put("class", KeyspaceReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY.getValue());
-        options.replication.putAll(datacenters);
-        return options;
+    public KeyspaceDefinition networkTopologyStrategy(Map<String, Integer> datacenters) {
+        if (replication == null) {
+            replication = new HashMap<>();
+        }
+        replication.put("class", KeyspaceReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY.getValue());
+        replication.putAll(datacenters);
+        return this;
     }
-
-
 
 }

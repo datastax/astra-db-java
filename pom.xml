@@ -13,9 +13,9 @@
     <modules>
         <module>astra-db-java</module>
         <module>langchain4j-astradb</module>
-        <!--<module>cassio-cql</module>-->
-        <!--<module>astra-db-java-tools</module>-->
-         <!--<module>examples</module>-->
+        <module>cassio-cql</module>
+        <module>astra-db-java-tools</module>
+        <module>examples</module>
     </modules>
 
     <properties>
@@ -183,8 +183,11 @@
                     <execution>
                         <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
+                        <configuration>
+                            <classifier>sources</classifier>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

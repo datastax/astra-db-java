@@ -58,39 +58,6 @@ public class KeyspaceInformation {
         this.name = name;
     }
 
-    /**
-     * Replication strategies
-     */
-    @Getter
-    public enum ReplicationStrategy {
-
-        /**
-         * The simple strategy, for development environments.
-         */
-        SIMPLE_STRATEGY("SimpleStrategy"),
-
-        /**
-         * The network topology strategy, for production environments.
-         */
-        NETWORK_TOPOLOGY_STRATEGY("NetworkTopologyStrategy");
-
-        /**
-         * Enum value
-         */
-
-        private final String value;
-
-        /**
-         * Constructor.
-         *
-         * @param value
-         *      value for the replication
-         */
-        ReplicationStrategy(String value) {
-            this.value = value;
-        }
-    }
-
     /** {@inheritDoc} */
     @Override
     public String toString() {

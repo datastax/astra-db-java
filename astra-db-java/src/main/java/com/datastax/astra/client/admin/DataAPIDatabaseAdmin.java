@@ -20,20 +20,21 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.rerank.RerankProvider;
-import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
 import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
-import com.datastax.astra.internal.utils.Assert;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -139,14 +140,23 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
                 .keyspace(keyspace));
     }
 
-    /** {@inheritDoc} */
     @Override
-    public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
-        Assert.hasLength(keyspace, ARG_KEYSPACE);
-        createKeyspace(keyspace, KeyspaceOptions.simpleStrategy(1));
-        if (updateDBKeyspace) {
-            db.useKeyspace(keyspace);
+    public void createKeyspace(KeyspaceDefinition keyspace, CreateKeyspaceOptions options) {
+        notNull(keyspace, ARG_KEYSPACE);
+        hasLength(keyspace.getName(), ARG_KEYSPACE);
+        Command createKeyspace = Command
+                .create("createKeyspace")
+                .append("name", keyspace.getName());
+        if (keyspace.getReplication() != null) {
+            KeyspaceOptions keyspaceOptions = new KeyspaceOptions();
+            keyspaceOptions.setReplication(keyspace.getReplication());
+            createKeyspace.withOptions(keyspaceOptions);
         }
+        runCommand(createKeyspace);
+        if (options != null && options.isUpdateDBKeyspace()) {
+            db.useKeyspace(keyspace.getName());
+        }
+        log.info("Keyspace  '" + green("{}") + "' has been created", keyspace.getName());
     }
 
     /**
@@ -169,7 +179,7 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
     }
 
     @Override
-    public void dropKeyspace(String keyspace, BaseOptions<?> options) {
+    public void dropKeyspace(String keyspace, DropKeyspaceOptions options) {
         hasLength(keyspace, ARG_KEYSPACE);
         Command dropNamespace = Command
                 .create("dropKeyspace")
