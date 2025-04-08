@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java-parent</artifactId>
-    <name>Data API Client</name>
+    <name>AstraDB Java SDK</name>
     <version>2.0.0-PREVIEW2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <url>https://github.com/datastax/astra-db-java</url>
@@ -14,7 +14,7 @@
         <module>astra-db-java</module>
         <module>langchain4j-astradb</module>
         <!--<module>cassio-cql</module>-->
-        <module>astra-db-java-tools</module>
+        <!--<module>astra-db-java-tools</module>-->
          <!--<module>examples</module>-->
     </modules>
 
@@ -23,10 +23,10 @@
 
         <!-- Third Party Libraries -->
         <devops-sdk.version>1.2.9</devops-sdk.version>
-        <slf4j.version>2.0.16</slf4j.version>
-        <logback.version>1.5.12</logback.version>
-        <jackson.version>2.18.2</jackson.version>
-        <lombok.version>1.18.36</lombok.version>
+        <slf4j.version>2.0.17</slf4j.version>
+        <logback.version>1.5.18</logback.version>
+        <jackson.version>2.18.3</jackson.version>
+        <lombok.version>1.18.38</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
         <awaitility.version>4.2.2</awaitility.version>
         <mockwebserver.version>4.12.0</mockwebserver.version>
@@ -35,7 +35,7 @@
         <!-- Test -->
         <test.skipped>false</test.skipped>
         <assertj.version>3.26.3</assertj.version>
-        <junit-jupiter.version>5.11.3</junit-jupiter.version>
+        <junit-jupiter.version>5.12.1</junit-jupiter.version>
 
         <!-- Maven -->
         <required-maven.version>3.6.3</required-maven.version>
@@ -49,13 +49,13 @@
         <version.maven.plugin.jacoco>0.8.12</version.maven.plugin.jacoco>
         <version.maven.plugin.javadoc>3.10.0</version.maven.plugin.javadoc>
         <version.maven.plugin.jar>3.4.2</version.maven.plugin.jar>
-        <version.maven.plugin.license>2.4.0</version.maven.plugin.license>
+        <version.maven.plugin.license>2.5.0</version.maven.plugin.license>
         <version.maven.plugin.nexus>1.7.0</version.maven.plugin.nexus>
         <version.maven.plugin.release>3.1.1</version.maven.plugin.release>
         <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
         <version.maven.plugin.source>3.3.1</version.maven.plugin.source>
         <version.maven.plugin.surefire>3.5.1</version.maven.plugin.surefire>
-
+        <version.maven.plugin.central>0.7.0</version.maven.plugin.central>
     </properties>
 
     <dependencyManagement>
@@ -136,16 +136,27 @@
     <build>
         <plugins>
 
+<!-- Moving to publishing to central -->
+<!--            <plugin>-->
+<!--                <groupId>org.sonatype.plugins</groupId>-->
+<!--                <artifactId>nexus-staging-maven-plugin</artifactId>-->
+<!--                <version>${version.maven.plugin.nexus}</version>-->
+<!--                <extensions>true</extensions>-->
+<!--                <configuration>-->
+<!--                    <serverId>ossrh</serverId>-->
+<!--                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>-->
+<!--                    <autoReleaseAfterClose>false</autoReleaseAfterClose>-->
+<!--                    <skipLocalStaging>true</skipLocalStaging>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>${version.maven.plugin.nexus}</version>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${version.maven.plugin.central}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
-                    <skipLocalStaging>true</skipLocalStaging>
+                    <publishingServerId>central</publishingServerId>
                 </configuration>
             </plugin>
 
@@ -326,8 +337,8 @@
 
     <distributionManagement>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>central</id>
+            <url>https://central.sonatype.com</url>
         </repository>
     </distributionManagement>
 

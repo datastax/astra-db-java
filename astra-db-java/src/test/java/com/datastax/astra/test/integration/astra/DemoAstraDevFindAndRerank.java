@@ -36,6 +36,7 @@ import java.util.List;
 
 import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.STANDARD;
+import static com.datastax.astra.client.core.lexical.AnalyzerTypes.WHITESPACE;
 import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
 
 @Slf4j
@@ -67,7 +68,7 @@ public class DemoAstraDevFindAndRerank {
         return getDataApiClient().getAdmin()
           .createDatabase(DATABASE_DEMO_NAME, GCP, "us-central1")
           .getDatabase();
-        // return getDataApiClient().getDatabase(ASTRA_DB_ENDPOINT);
+        //return getDataApiClient().getDatabase(ASTRA_DB_ENDPOINT);
     }
 
     @Test
@@ -184,7 +185,12 @@ public class DemoAstraDevFindAndRerank {
     public void should_run_find_and_rerank() throws IOException {
         CollectionFindAndRerankOptions farrOptions = new CollectionFindAndRerankOptions()
                 .projection(Projection.include("$vectorize", "_id", "quote", "author"))
+
+
                 .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
+
+
+
                 .rerankingAuthProvider(new RerankingAPIKeyHeaderProvider(ASTRA_DB_TOKEN))
                 .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(ASTRA_DB_TOKEN))
                 .includeScores(true)
