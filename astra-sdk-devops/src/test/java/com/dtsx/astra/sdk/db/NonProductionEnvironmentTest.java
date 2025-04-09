@@ -15,12 +15,11 @@ import java.util.UUID;
 public class NonProductionEnvironmentTest extends AbstractDevopsApiTest {
 
     static String tokenDev = System.getenv("ASTRA_DB_APPLICATION_TOKEN_DEV");
-    static String tokenDev2 = "AstraCS:ZiWfNzYJtUGszRuGyyTjFIXU:2c5a21a4623c6ee688d4bca4b8e55a269aa3ee864fcd16b26b7f9a82ca57b999";
     static String tokenTest = System.getenv("ASTRA_DB_APPLICATION_TOKEN_TEST");
 
     @Test
     public void shouldListDatabasesDev() {
-        AstraDBOpsClient opsClient = new AstraDBOpsClient(tokenDev2, AstraEnvironment.DEV);
+        AstraDBOpsClient opsClient = new AstraDBOpsClient(tokenTest, AstraEnvironment.DEV);
         opsClient.findAllNonTerminated().map(Database::getInfo).map(DatabaseInfo::getName).forEach(System.out::println);
         //opsClient.databaseByName("sdk_java_test_vector").accessLists();
 
