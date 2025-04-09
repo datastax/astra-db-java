@@ -17,7 +17,7 @@ import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
@@ -36,7 +36,6 @@ import java.util.List;
 
 import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.STANDARD;
-import static com.datastax.astra.client.core.lexical.AnalyzerTypes.WHITESPACE;
 import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
 
 @Slf4j
@@ -287,7 +286,7 @@ public class DemoAstraDevFindAndRerank {
                 .hybridLimits(20);
 
         // Run the query
-        List<RerankResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
+        List<RerankedResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
         System.out.println("Result: " + result.size());

@@ -24,12 +24,14 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.internal.command.AbstractCursor;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * Implementation of a cursor across the find items

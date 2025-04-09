@@ -23,6 +23,7 @@ package com.datastax.astra.client.core.options;
 import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.headers.EmbeddingHeadersProvider;
 import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.headers.RerankingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.headers.RerankingHeadersProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.internal.command.CommandObserver;
@@ -190,6 +191,19 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
     public T embeddingApiKey(String apiKey) {
         Assert.hasLength(apiKey, "apiKey");
         return embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(apiKey));
+    }
+
+    /**
+     * Provide the reranking service API key.
+     *
+     * @param apiKey
+     *      target api key
+     * @return
+     *      service key
+     */
+    public T rerankingApiKey(String apiKey) {
+        Assert.hasLength(apiKey, "apiKey");
+        return rerankingAuthProvider(new RerankingAPIKeyHeaderProvider(apiKey));
     }
 
     /**

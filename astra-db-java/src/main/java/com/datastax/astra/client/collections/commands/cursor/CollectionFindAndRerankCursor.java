@@ -26,11 +26,13 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.command.AbstractCursor;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 
 /**
@@ -50,7 +52,7 @@ import java.util.ArrayList;
  * @param <R>
  *       working object for results, should be same as DOC if no projections
  */
-public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, RerankResult<R>> {
+public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, RerankedResult<R>> {
 
     /**
      * Input table reference
@@ -89,7 +91,7 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
      */
     @SuppressWarnings("unchecked")
     public CollectionFindAndRerankCursor(Collection<T> dataSource, Filter filter, CollectionFindAndRerankOptions options, Class<R> recordType) {
-        super((Class<RerankResult<R>>) (Class<?>) RerankResult.class);
+        super((Class<RerankedResult<R>>) (Class<?>) RerankedResult.class);
         this.dataSource = dataSource;
         this.filter = filter;
         this.options = options;

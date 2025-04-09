@@ -16,7 +16,7 @@ import com.datastax.astra.client.core.lexical.LexicalOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
@@ -227,7 +227,7 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
             .hybridLimits(20);
 
         // Run the query
-        List<RerankResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
+        List<RerankedResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
         System.out.println("Result3: " + result.size());

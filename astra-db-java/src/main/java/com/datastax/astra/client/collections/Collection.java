@@ -59,7 +59,7 @@ import com.datastax.astra.client.core.paging.Page;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
@@ -1169,7 +1169,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * @param <R>
      *      the type of the result items after mapping
      * @return
-     *      a {@link Page} of {@link RerankResult} objects containing the paginated reranked results
+     *      a {@link Page} of {@link RerankedResult} objects containing the paginated reranked results
      *
      * <p>Example usage:</p>
      * <pre>
@@ -1181,7 +1181,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * </pre>
      */
     @BetaPreview
-    public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
+    public <R> Page<RerankedResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         Command findAndRerankCommand = Command
                 .create("findAndRerank")
                 .withFilter(filter);
@@ -1208,7 +1208,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             sortVector = apiResponse.getStatus().getSortVector();
         }
 
-        List<RerankResult<R>> results = new ArrayList<>();
+        List<RerankedResult<R>> results = new ArrayList<>();
         List<Document> documents = apiResponse.getData().getDocuments();
         List<Document> documentResponses = apiResponse.getStatus().getDocumentResponses();
         if (documents == null || documentResponses == null) {
@@ -1233,7 +1233,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Document documentResponse = documentResponses.get(i);
             Map<String, Double> scores = documentResponse.getMap("scores", String.class, Double.class);
 
-            results.add(new RerankResult<>(results1, scores));
+            results.add(new RerankedResult<>(results1, scores));
         }
         // PageState is always NULL
         return new Page<>(null, results, sortVector);
