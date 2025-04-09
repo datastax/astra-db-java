@@ -32,6 +32,13 @@ import java.io.IOException;
  */
 public class VectorizeSerializer extends JsonSerializer<Vectorize> {
 
+    /**
+     * Default constructor
+     */
+    public VectorizeSerializer() {
+        super();
+    }
+
     @Override
     public void serialize(Vectorize value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (value.getSetPassage() == null || value.getSetPassage().isEmpty()) {

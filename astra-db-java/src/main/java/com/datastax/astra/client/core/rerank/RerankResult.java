@@ -24,13 +24,33 @@ import lombok.Getter;
 
 import java.util.Map;
 
+/**
+ * Wrapper for the rerank result.
+ *
+ * @param <DOC>
+ *     document result type
+ */
 @Getter
 public class RerankResult<DOC> {
 
+    /**
+     * Document result.
+     */
     private final DOC document;
 
+    /**
+     * Score map.
+     */
     private final Map<String, Double> scores;
 
+    /**
+     * Constructor.
+     *
+     * @param document
+     *      document result
+     * @param scores
+     *      score map
+     */
     public RerankResult(DOC document, Map<String, Double> scores) {
         this.document = document;
         this.scores = scores;

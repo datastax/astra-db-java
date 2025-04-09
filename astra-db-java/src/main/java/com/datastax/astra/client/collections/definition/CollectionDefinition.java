@@ -346,6 +346,12 @@ public class CollectionDefinition {
         return lexical;
     }
 
+    /**
+     * Builder pattern, disabled lexical
+     *
+     * @return
+     *      self reference
+     */
     public CollectionDefinition disableLexical() {
         if (getLexical() == null) {
             lexical(new LexicalOptions().enabled(false));
@@ -443,6 +449,11 @@ public class CollectionDefinition {
         return this;
     }
 
+    /**
+     * Builder pattern, disable reranking
+     *
+     * @return self reference
+     */
     public CollectionDefinition disableRerank() {
         if (getRerank() == null) {
             rerank = new CollectionRerankOptions().enabled(false);

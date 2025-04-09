@@ -29,6 +29,9 @@ import com.datastax.astra.internal.serdes.tables.RowSerializer;
  */
 public class TableRegularIndexDescriptor extends TableIndexDescriptor<TableRegularIndexDefinition> {
 
+    /**
+     * The default name for the index.
+     */
     public TableRegularIndexDescriptor() {
         super(TableRegularIndexDescriptor::new);
     }

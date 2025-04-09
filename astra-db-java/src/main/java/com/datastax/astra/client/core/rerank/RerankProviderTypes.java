@@ -22,19 +22,33 @@ package com.datastax.astra.client.core.rerank;
 
 import lombok.Getter;
 
+/**
+ * Rerank provider types.
+ */
 @Getter
 public enum RerankProviderTypes {
 
     /**
-     * Filters StandardTokenizer output that divides text
-     * into terms on word boundaries and then uses the LowerCaseFilter.
+     * Cohere reranker
      */
     COHERE("cohere"),
 
+    /**
+     * bm25 reranker
+     */
     BM25("bm25");
 
+    /**
+     * Rerank provider type.
+     */
     final String value;
 
+    /**
+     * Constructor.
+     *
+     * @param value
+     *      string value
+     */
     RerankProviderTypes(String value) {
         this.value = value;
     }

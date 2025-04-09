@@ -26,6 +26,9 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Keyspace definition.
+ */
 @Data
 public class KeyspaceDefinition {
 
@@ -38,6 +41,12 @@ public class KeyspaceDefinition {
      * The replication of the namespace.
      */
     private Map<String, Object> replication;
+
+    /**
+     * Default constructor
+     */
+    public KeyspaceDefinition() {
+    }
 
     /**
      * Name for the keyspace.

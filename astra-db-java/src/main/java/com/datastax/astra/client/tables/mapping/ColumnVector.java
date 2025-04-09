@@ -89,6 +89,11 @@ public @interface ColumnVector {
      */
     KeyValue[] authentication() default {};
 
+    /**
+     * Specifies the parameters for authentication
+     *
+     * @return a key value array
+     */
     KeyValue[] parameters() default {};
 
 }

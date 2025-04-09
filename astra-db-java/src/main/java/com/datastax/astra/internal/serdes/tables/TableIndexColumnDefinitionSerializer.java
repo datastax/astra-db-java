@@ -36,9 +36,13 @@ import java.io.IOException;
  */
 public class TableIndexColumnDefinitionSerializer extends JsonSerializer<TableIndexColumnDefinition> {
 
+    /**
+     * Default constructor
+     */
     public TableIndexColumnDefinitionSerializer() {
     }
 
+    /** {@inheritDoc} */
     @Override
     public void serialize(TableIndexColumnDefinition def, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (def == null) {

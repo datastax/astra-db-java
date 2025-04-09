@@ -42,6 +42,7 @@ import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.Vectorize;
 import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import com.datastax.astra.internal.utils.Assert;
@@ -444,10 +445,31 @@ public class Document implements Serializable {
      *      vector list
      */
     @JsonIgnore
+    @SuppressWarnings("unchecked")
     public Optional<DataAPIVector> getVector() {
-        return Optional
-                .ofNullable((float[]) documentMap.get(DataAPIKeywords.VECTOR.getKeyword()))
-                .map(DataAPIVector::new);
+        if (!documentMap.containsKey(DataAPIKeywords.VECTOR.getKeyword())) {
+            return Optional.empty();
+        }
+
+        Object o = documentMap.get(DataAPIKeywords.VECTOR.getKeyword());
+
+        // Get a vector from a list of doubles
+        if (o instanceof DataAPIVector) {
+            return Optional.of((DataAPIVector) o);
+        } else if (o instanceof ArrayList<?> list && !list.isEmpty() && list.get(0) instanceof Double) {
+            ArrayList<Double> a = (ArrayList<Double>) list;
+            float[] floatArray = new float[a.size()];
+            for (int i = 0; i < a.size(); i++) {
+                floatArray[i] = a.get(i).floatValue();
+            }
+            return Optional.of(new DataAPIVector(floatArray));
+        } else if (o instanceof float[] array) {
+            // Get a vector from a float array
+            return Optional.of(new DataAPIVector(array));
+        } else {
+            throw new UnexpectedDataAPIResponseException("Could not parse $vector of type " + o.getClass().getName() +
+                    " to a DataAPIVector. Expected a list of Double, a float array or binary data");
+        }
     }
 
     /**
@@ -712,6 +734,21 @@ public class Document implements Serializable {
         return constructValuesList(key, clazz, null);
     }
 
+    /**
+     * Gets the list value of the given key, casting the list elements to the given {@code Class<T>}.  This is useful to avoid having
+     * casts in client code, though the effect is the same.
+     *
+     * @param <K>
+     *        type of the key
+     * @param <V>
+     *        type of the value
+     * @param key   the key
+     * @param keyClass the non-null class to cast the list value to
+     * @param valueClass the type of the value class
+     * @return the list value of the given key, or null if the instance does not contain this key.
+     * @throws ClassCastException if the elements in the list value of the given key is not of type T or the value is not a list
+     * @since 3.10
+     */
     public <K,V> Map<K,V> getMap(@NonNull final String key, @NonNull final Class<K> keyClass, @NonNull final Class<V> valueClass) {
         return constructValuesMap(key, keyClass, valueClass, null);
     }
@@ -823,6 +860,9 @@ public class Document implements Serializable {
      * Check if the given dot-delimited path exists as a key (final segment).
      * e.g. containsKey("foo.bar") returns true if "bar" is present in the Map
      * located at "foo".
+     *
+     * @param key for key
+     * @return if the key is present
      */
     public boolean containsKey(String key) {
         Assert.hasLength(key, "Field name should not be null");
@@ -838,6 +878,14 @@ public class Document implements Serializable {
         return true;
     }
 
+    /**
+     * Check if the given dot-delimited path exists as a key (final segment).
+     * e.g. containsKey("foo.bar") returns true if "bar" is present in the Map
+     * located at "foo".
+     *
+     * @param fieldPathSegment for key
+     * @return if the key is present
+     */
     public Object get(final String[] fieldPathSegment) {
         return get(EscapeUtils.escapeFieldNames(fieldPathSegment));
     }

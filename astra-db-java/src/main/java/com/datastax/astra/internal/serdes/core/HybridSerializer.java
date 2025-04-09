@@ -34,6 +34,13 @@ import java.io.IOException;
  */
 public class HybridSerializer extends JsonSerializer<Hybrid> {
 
+    /**
+     * Default constructor
+     */
+    public HybridSerializer() {
+        super();
+    }
+
     @Override
     public void serialize(Hybrid value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         String vectorize = value.getDoc().getVectorize().orElse(null);

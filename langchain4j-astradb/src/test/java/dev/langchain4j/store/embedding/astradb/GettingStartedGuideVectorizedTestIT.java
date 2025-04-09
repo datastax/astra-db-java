@@ -1,6 +1,12 @@
 package dev.langchain4j.store.embedding.astradb;
 
+import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.langchain4j.Assistant;
@@ -9,6 +15,8 @@ import com.datastax.astra.langchain4j.rag.AstraVectorizeContentRetriever;
 import com.datastax.astra.langchain4j.rag.AstraVectorizeIngestor;
 import com.datastax.astra.langchain4j.store.embedding.AstraDbEmbeddingStore;
 import com.datastax.astra.langchain4j.store.embedding.EmbeddingSearchRequestAstra;
+import com.dtsx.astra.sdk.utils.JsonUtils;
+import com.dtsx.astra.sdk.utils.TestUtils;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
@@ -20,6 +28,7 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.filter.comparison.IsEqualTo;
+import dev.langchain4j.store.embedding.filter.comparison.IsIn;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
@@ -30,6 +39,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -160,4 +170,6 @@ public class GettingStartedGuideVectorizedTestIT {
                 .build();
         System.out.println(ai.answer("Give me the name of the HORSE"));
     }
+
+
 }

@@ -165,6 +165,14 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
         return (T) this;
     }
 
+    /**
+     * Provide the reranking service API key.
+     *
+     * @param rerankingHeadersProvider
+     *      authentication provider
+     * @return
+     *      service key
+     */
     public T rerankingAuthProvider(RerankingHeadersProvider rerankingHeadersProvider) {
         Assert.notNull(rerankingHeadersProvider, "rerankHeadersProvider");
         getDataAPIClientOptions().rerankingHeadersProvider(rerankingHeadersProvider);

@@ -28,6 +28,9 @@ import lombok.Setter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Options for the Rerank service at collection/table creation.
+ */
 @Data
 @Getter @Setter
 public class RerankServiceOptions {

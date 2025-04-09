@@ -22,6 +22,9 @@ package com.datastax.astra.client.databases.definition.keyspaces;
 
 import lombok.Getter;
 
+/**
+ * Available Keyspace replication strategy.
+ */
 @Getter
 public enum KeyspaceReplicationStrategy {
 
@@ -38,7 +41,6 @@ public enum KeyspaceReplicationStrategy {
     /**
      * Enum value
      */
-
     private final String value;
 
     /**

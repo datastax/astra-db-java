@@ -26,12 +26,24 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 import lombok.NonNull;
 
+/**
+ * Lexical data.
+ */
 @Data
 @JsonSerialize(using = LexicalSerializer.class)
 public class Lexical {
 
+    /**
+     * Lexical data.
+     */
     private String text;
 
+    /**
+     * Default constructor.
+     *
+     * @param text
+     *     lexical data
+     */
     public Lexical(@NonNull String text) {
         this.text = text;
     }

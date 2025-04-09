@@ -81,6 +81,8 @@ public class Analyzer {
      *
      * @param name
      *      the analyzer name
+     * @return
+     *      current reference
      */
     public Analyzer tokenizer(String name) {
         return tokenizer(name, null);
@@ -93,6 +95,8 @@ public class Analyzer {
      *      the analyzer name
      * @param args
      *      the arguments for the analyzer
+     * @return
+     *      current reference
      */
     public Analyzer tokenizer(String name, Map<String, String> args) {
         this.tokenizer = new LexicalFilter().name(name).args(args);;
@@ -104,6 +108,8 @@ public class Analyzer {
      *
      * @param name
      *      the name of the filter
+     * @return
+     *      current reference
      */
     public Analyzer addFilter(String name) {
         return addFilter(name, null);
@@ -116,6 +122,8 @@ public class Analyzer {
      *      the name of the filter
      * @param args
      *      the arguments for the filter
+     * @return
+     *      current reference
      */
     public Analyzer addFilter(String name, Map<String, String> args) {
         if (filters == null) {
@@ -130,6 +138,8 @@ public class Analyzer {
      *
      * @param name
      *      the name of the filter
+     * @return
+     *      current reference
      */
     public Analyzer addChartFilter(String name) {
         return addChartFilter(name, null);
@@ -142,6 +152,8 @@ public class Analyzer {
      *      the name of the filter
      * @param args
      *      the arguments for the filter
+     * @return
+     *      current reference
      */
     public Analyzer addChartFilter(String name, Map<String, String> args) {
         if (charFilters == null) {
@@ -155,7 +167,6 @@ public class Analyzer {
      * Definition of filters and tokenizers
      */
     @Getter
-    @NoArgsConstructor
     public static class LexicalFilter {
 
         /** Name of the filter */
@@ -165,10 +176,18 @@ public class Analyzer {
         Map<String, String> args;
 
         /**
+         * Default constructor.
+         */
+        public LexicalFilter() {
+        }
+
+        /**
          * Sets the name of the filter.
          *
          * @param name
          *      the name of the filter
+         * @return
+         *      current reference
          */
         public LexicalFilter name(String name) {
             this.name = name;
@@ -180,6 +199,8 @@ public class Analyzer {
          *
          * @param args
          *      the arguments for the filter
+         * @return
+         *      current reference
          */
         public LexicalFilter args(Map<String, String> args) {
             this.args = args;
@@ -193,6 +214,8 @@ public class Analyzer {
          *      the key of the argument
          * @param value
          *      the value of the argument
+         * @return
+         *      current reference
          */
         public LexicalFilter addArg(String key, String value) {
             if (args == null) {

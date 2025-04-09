@@ -1017,6 +1017,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      *      options of find one
      * @param newDocType
      *      new class for return objects if projected
+     * @param <R>
+     *      type of new class for return objects if projected
      * @return
      *      the find iterable interface
      */
@@ -1061,22 +1063,39 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return find(null, new CollectionFindOptions());
     }
 
+    /**
+     * Fine document with pagination with no projection.
+     * @param filter
+     *      filter on documents
+     * @param options
+     *      options lilke sorting
+     * @return
+     *      a page of results
+     */
     public Page<T> findPage(Filter filter, CollectionFindOptions options) {
         return findPage(filter, options, getDocumentClass());
     }
-
 
     // -----------------------------
     // ---   Find and Rerank    ----
     // -----------------------------
 
     /**
-     * Finds all documents in the collection.
+     * Finds and reranks all documents in the collection using the specified options.
+     * This is a convenience method equivalent to calling {@link #findAndRerank(Filter, CollectionFindAndRerankOptions)} with a {@code null} filter.
      *
      * @param options
-     *      options of find one
+     *      the options used to customize the find and rerank operation
      * @return
-     *      the find iterable interface
+     *      a {@link CollectionFindAndRerankCursor} to iterate over the reranked documents
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions();
+     * CollectionFindAndRerankCursor<Document, Document> cursor = collection.findAndRerank(options);
+     * }
+     * </pre>
      */
     @BetaPreview
     public CollectionFindAndRerankCursor<T,T> findAndRerank(CollectionFindAndRerankOptions options) {
@@ -1084,26 +1103,83 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
     }
 
     /**
-     * Finds all documents in the collection.
+     * Finds and reranks documents in the collection that match the given filter using the specified options.
      *
      * @param filter
-     *      the query filter
+     *      the query filter to apply to the collection
      * @param options
-     *      options of find one
+     *      the options used to customize the find and rerank operation
      * @return
-     *      the find iterable interface
+     *      a {@link CollectionFindAndRerankCursor} to iterate over the reranked documents
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Filter filter = Filters.eq("status", "active");
+     * CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions();
+     * CollectionFindAndRerankCursor<Document, Document> cursor = collection.findAndRerank(filter, options);
+     * }
+     * </pre>
      */
     @BetaPreview
     public CollectionFindAndRerankCursor<T,T> findAndRerank(Filter filter, CollectionFindAndRerankOptions options) {
         return findAndRerank(filter, options, getDocumentClass());
     }
 
+    /**
+     * Finds and reranks documents in the collection that match the given filter using the specified options,
+     * mapping the resulting documents to the specified target type.
+     *
+     * @param filter
+     *      the query filter to apply to the collection
+     * @param options
+     *      the options used to customize the find and rerank operation
+     * @param newRowType
+     *      the target class type to map the results to
+     * @param <R>
+     *      the type of the result rows after mapping
+     * @return
+     *      a {@link CollectionFindAndRerankCursor} to iterate over the reranked documents mapped to {@code R}
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Filter filter = Filters.eq("type", "book");
+     * CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions();
+     * CollectionFindAndRerankCursor<Document, Book> cursor = collection.findAndRerank(filter, options, Book.class);
+     * }
+     * </pre>
+     */
     @BetaPreview
     public <R> CollectionFindAndRerankCursor<T, R> findAndRerank(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
     }
 
 
+    /**
+     * Finds and reranks documents in the collection using the given filter and options,
+     * and returns a paginated result containing reranked items mapped to the specified result type.
+     *
+     * @param filter
+     *      the query filter to apply to the collection
+     * @param options
+     *      the options used to customize the find and rerank operation
+     * @param newRowType
+     *      the target class type to map the results to
+     * @param <R>
+     *      the type of the result items after mapping
+     * @return
+     *      a {@link Page} of {@link RerankResult} objects containing the paginated reranked results
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * Filter filter = Filters.gt("score", 50);
+     * CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions().limit(10);
+     * Page<RerankResult<Book>> page = collection.findAndRerankPage(filter, options, Book.class);
+     * }
+     * </pre>
+     */
     @BetaPreview
     public <R> Page<RerankResult<R>> findAndRerankPage(Filter filter, CollectionFindAndRerankOptions options, Class<R> newRowType) {
         Command findAndRerankCommand = Command
@@ -1181,6 +1257,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
      * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
      * </p>
      *
+     * @param <R> type of the result rows after mapping
+     * @param newRowType The class type to which the documents should be mapped.
      * @param filter The filter criteria used to select documents from the collection.
      * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
      * @return A {@link Page} object containing the documents that match the query, along with pagination information.

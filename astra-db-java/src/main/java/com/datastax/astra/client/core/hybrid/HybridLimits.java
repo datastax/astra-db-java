@@ -67,6 +67,8 @@ public class HybridLimits {
      *
      * @param limit
      *      lexical limit.
+     * @return
+     *      self reference
      */
     public HybridLimits lexical(Integer limit) {
         if (mapOfLimits == null) {
@@ -81,6 +83,8 @@ public class HybridLimits {
      *
      * @param limit
      *      vector limit.
+     * @return
+     *      self reference
      */
     public HybridLimits vector(Integer limit) {
         if (mapOfLimits == null) {

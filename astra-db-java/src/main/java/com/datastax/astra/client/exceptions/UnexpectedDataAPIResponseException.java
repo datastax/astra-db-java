@@ -75,5 +75,17 @@ public class UnexpectedDataAPIResponseException extends DataAPIException {
         this.command = cmd;
         this.response = res;
     }
+
+    /**
+     * Constructs a new exception with the specified command that triggered the error,
+     * the API response received, and a custom error message.
+     *
+     * @param msg The detailed error message explaining the nature of the fault.
+     */
+    public UnexpectedDataAPIResponseException(String msg) {
+        super(DEFAULT_ERROR_CODE, msg);
+        this.command = null;
+        this.response = null;
+    }
 }
 

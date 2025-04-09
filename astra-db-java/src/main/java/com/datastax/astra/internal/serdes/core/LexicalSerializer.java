@@ -34,6 +34,13 @@ import java.io.IOException;
  */
 public class LexicalSerializer extends JsonSerializer<Lexical> {
 
+    /**
+     * Default constructor
+     */
+    public LexicalSerializer() {
+        super();
+    }
+
     @Override
     public void serialize(Lexical value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (value.getText() != null) {

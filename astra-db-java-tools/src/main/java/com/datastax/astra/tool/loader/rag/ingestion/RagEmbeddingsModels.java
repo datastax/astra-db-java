@@ -1,6 +1,7 @@
 package com.datastax.astra.tool.loader.rag.ingestion;
 
 public enum RagEmbeddingsModels {
+    /** Embedding models */
     NVIDIA_NEMO("nvidia", "NV-Embed-QA", 1024),
     OPENAI_ADA002("open-ai", "text-embedding-ada-002", 1536),
     OPENAI_3_SMALL("open-ai", "text-embedding-3-small", 1536),
