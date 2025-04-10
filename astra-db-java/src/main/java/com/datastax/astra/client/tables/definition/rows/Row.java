@@ -24,6 +24,7 @@ import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
@@ -44,12 +45,14 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -233,6 +236,8 @@ public class Row implements Serializable {
      *
      * @param hybrid
      *      hybrid object to be added
+     * @return
+     *      self reference
      */
     @BetaPreview
     public Row addHybrid(Hybrid hybrid) {
@@ -758,8 +763,25 @@ public class Row implements Serializable {
      * @return the value as a DataAPIVector, which may be null
      * @throws ClassCastException if the value is not a DataAPIVector
      */
+    @SuppressWarnings("unchecked")
     public DataAPIVector getVector(final String key) {
-        return get(key, DataAPIVector.class);
+        Object o = get(key);
+        // Get a vector from a list of doubles
+        if (o instanceof DataAPIVector) {
+            return ((DataAPIVector) o);
+        } else if (o instanceof ArrayList<?> list && !list.isEmpty() && list.get(0) instanceof Double) {
+            ArrayList<Double> a = (ArrayList<Double>) list;
+            float[] floatArray = new float[a.size()];
+            for (int i = 0; i < a.size(); i++) {
+                floatArray[i] = a.get(i).floatValue();
+            }
+            return new DataAPIVector(floatArray);
+        } else if (o instanceof float[] array) {
+            // Get a vector from a float array
+            return new DataAPIVector(array);
+        }
+        throw new UnexpectedDataAPIResponseException("Could not parse " + key + " of type " + o.getClass().getName() +
+                    " to a DataAPIVector. Expected a list of Double, a float array or binary data");
     }
 
     /**

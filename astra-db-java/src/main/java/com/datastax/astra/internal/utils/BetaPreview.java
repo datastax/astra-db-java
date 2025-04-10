@@ -33,5 +33,12 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD})
 @Deprecated
 public @interface BetaPreview {
+
+    /**
+     * Message to be displayed when the feature is used.
+     *
+     * @return message
+     *      current depracation message
+     */
     String value() default "This feature is in beta and might undergo signature or behaviour changes in the future.";
 }

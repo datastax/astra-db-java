@@ -2,14 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>astra-db-java</artifactId>
-    <name>Java Client Library for Data API</name>
+    <name>Data API Client Java</name>
+    <packaging>jar</packaging>
     <description>Implementation of a client to the Astra/Stargate Data API written in Java</description>
 
     <!-- Reference to parent -->
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
-        <version>2.0.0-PREVIEW2-SNAPSHOT</version>
+        <version>2.0.0-PREVIEW3</version>
     </parent>
 
     <properties>
@@ -22,6 +23,7 @@
         <dependency>
             <groupId>com.datastax.astra</groupId>
             <artifactId>astra-sdk-devops</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.uuid</groupId>

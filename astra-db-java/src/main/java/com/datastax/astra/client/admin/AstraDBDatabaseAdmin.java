@@ -23,13 +23,17 @@ package com.datastax.astra.client.admin;
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
+import com.dtsx.astra.sdk.db.DbKeyspacesClient;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
@@ -203,26 +207,36 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
 
     /** {@inheritDoc} */
     @Override
-    public void createKeyspace(String keyspace, boolean updateDBKeyspace) {
-        log.debug("createKeyspace");
-        devopsDbClient.database(databaseId.toString()).keyspaces().create(keyspace);
+    public void createKeyspace(String keyspace) {
+        createKeyspace(
+                new KeyspaceDefinition().name(keyspace),
+                new CreateKeyspaceOptions().ifNotExists(true));
+    }
+
+    @Override
+    public void createKeyspace(KeyspaceDefinition keyspace, CreateKeyspaceOptions options) {
+        String keyspaceName  = keyspace.getName();
+        DbKeyspacesClient ks = devopsDbClient.database(databaseId.toString()).keyspaces();
+        if (!ks.exist(keyspaceName) && options.isIfNotExists()) {
+            ks.create(keyspaceName);
+        }
     }
 
     /** {@inheritDoc} */
     @Override
     public void dropKeyspace(String keyspace) {
         log.debug("dropKeyspace");
-        try {
-            devopsDbClient.database(databaseId.toString()).keyspaces().delete(keyspace);
-        } catch(NullPointerException e) {
-            // Left blank to parse output from a delete
-        }
+        dropKeyspace(keyspace, new DropKeyspaceOptions().ifExists(true));
     }
 
+    /** {@inheritDoc} */
     @Override
-    public void dropKeyspace(String keyspace, BaseOptions<?> options) {
+    public void dropKeyspace(String keyspace, DropKeyspaceOptions options) {
         log.warn("CommandOptions are not supported for dropKeyspace in Astra MODE");
-        dropKeyspace(keyspace);
+        DbKeyspacesClient ks = devopsDbClient.database(databaseId.toString()).keyspaces();
+        if (ks.exist(keyspace) && options.isIfExists()) {
+            ks.delete(keyspace);
+        }
     }
 
     /** {@inheritDoc} */

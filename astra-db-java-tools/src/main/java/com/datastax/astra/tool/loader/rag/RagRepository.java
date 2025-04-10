@@ -7,12 +7,13 @@ import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
-import com.datastax.astra.internal.utils.Utils;
 import com.datastax.astra.tool.loader.rag.ingestion.RagEmbeddingsModels;
 import com.datastax.astra.tool.loader.rag.ingestion.RagIngestionConfig;
 import com.datastax.astra.tool.loader.rag.ingestion.RagIngestionJob;
@@ -23,6 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.UUID;
+
+import static com.datastax.astra.internal.utils.Assert.notNull;
 
 @Slf4j
 public class RagRepository {
@@ -53,7 +56,9 @@ public class RagRepository {
                 log.info("Database {} does not exists and will be created.", tenantId.toString());
                 DatabaseAdmin dbAdmin = astraDBAdmin
                         .createDatabase(tenantId.toString(), cloudProvider, cloudRegion);
-                dbAdmin.createKeyspace(keyspace, true);
+                dbAdmin.createKeyspace(
+                        new KeyspaceDefinition().name(keyspace),
+                        new CreateKeyspaceOptions().updateDBKeyspace(true));
                 return dbAdmin.getDatabase(keyspace);
             }
             log.info("Database {} already exists.", tenantId);
@@ -128,8 +133,7 @@ public class RagRepository {
     }
 
     public Table<RagStore> getTableRagStore(Database db, String provider, String model, int dimension, VectorServiceOptions options) {
-        Utils.hasLength(provider);
-        Utils.hasLength(model);
+        notNull(provider, "provider");
         String tableName = RagStore.getTableName(provider, model);
         db.useKeyspace(keyspace);
 

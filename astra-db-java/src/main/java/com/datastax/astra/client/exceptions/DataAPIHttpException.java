@@ -44,6 +44,8 @@ public class DataAPIHttpException extends DataAPIException {
      *
      * @param errorMessage
      *      error message
+     * @param code
+     *      error code
      */
     public DataAPIHttpException(String code, String errorMessage) {
         super(code, errorMessage);

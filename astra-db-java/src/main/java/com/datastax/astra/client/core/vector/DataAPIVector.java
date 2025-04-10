@@ -24,6 +24,7 @@ package com.datastax.astra.client.core.vector;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * DataAPIVector is a vector of embeddings.

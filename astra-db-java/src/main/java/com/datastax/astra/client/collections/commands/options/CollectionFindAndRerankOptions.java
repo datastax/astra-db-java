@@ -113,6 +113,12 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
         return this;
     }
 
+    /**
+     * Return the sort clause as an arryr
+     *
+     * @return
+     *    Sort clause
+     */
     public Sort[] getSortArray() {
         return this.sort;
     }
@@ -189,9 +195,14 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
         return this;
     }
 
-
-    public CollectionFindAndRerankOptions rerankQuery(String $lexical) {
-        this.rerankQuery = rerankOn;
+    /**
+     * Add a rerankQuery clause in the find block
+     *
+     * @param rerankQuery value for rerankQuery options
+     * @return current command
+     */
+    public CollectionFindAndRerankOptions rerankQuery(String rerankQuery) {
+        this.rerankQuery = rerankQuery;
         return this;
     }
 }

@@ -30,6 +30,12 @@ import lombok.Setter;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Represents a descriptor for a table index, including the table's name and associated index options.
+ *
+ * @param <DEF>
+ *     the type of index definition.
+ */
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
     include = JsonTypeInfo.As.EXISTING_PROPERTY,
@@ -64,10 +70,10 @@ public abstract class TableIndexDescriptor<DEF extends TableIndexDefinition<?>> 
     protected final Function<DEF, ? extends TableIndexDescriptor<DEF>> constructor;
 
     /**
-     * Default constructor for serialization/deserialization.
-     */
-    /**
      * Constructor that accepts a function for instance creation.
+     *
+     * @param constructor
+     *     the function to create a new instance of the subclass.
      */
     protected TableIndexDescriptor(Function<DEF, ? extends TableIndexDescriptor<DEF>> constructor) {
         this.constructor = constructor;

@@ -48,8 +48,7 @@ public class CreateCollection {
             "collection_vectorize_header",
             // Create collection with a Service in vectorize (No API KEY)
             new CollectionDefinition()
-                    .vectorDimension(1536)
-                    .vectorSimilarity(SimilarityMetric.DOT_PRODUCT)
+                    .vector(1536, SimilarityMetric.DOT_PRODUCT)
                     .vectorize("openai", "text-embedding-ada-002"));
 
     // Create a collection for the db

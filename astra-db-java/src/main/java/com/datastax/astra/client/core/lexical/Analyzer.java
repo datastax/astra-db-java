@@ -23,43 +23,108 @@ package com.datastax.astra.client.core.lexical;
 import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Analyzer used for indexing and searching 'lexical' data.
+ */
 @Data
 @JsonSerialize(using = AnalyzerSerializer.class)
 public class Analyzer {
 
-    /** In the case of String analyzer */
+    /** Analyzer definition as a string like 'standard' */
     String strAnalyzer;
 
-    /** In the case of Document analyzer, free structure */
+    /**
+     * Represents the tokenizer used by the analyzer.
+     */
     LexicalFilter tokenizer;
 
+    /** Represents the filters for a text analyzer */
     List<LexicalFilter> filters;
 
+    /** Represents the char filters for a text analyzer */
     List<LexicalFilter> charFilters;
 
+    /**
+     * Default constructor.
+     */
     public Analyzer() {
     }
 
+    /**
+     * Constructor with analyzer definition.
+     *
+     * @param strAnalyzer
+     *      the analyzer definition
+     */
     public Analyzer(String strAnalyzer) {
         this.strAnalyzer = strAnalyzer;
     }
 
+    /**
+     * Constructor with analyzer type.
+     *
+     * @param strAnalyzer
+     *      the analyzer type
+     */
+    public Analyzer(AnalyzerTypes strAnalyzer) {
+       this(strAnalyzer.getValue());
+    }
+
+    /**
+     * Define a tokenizer by its name.
+     *
+     * @param name
+     *      the analyzer name
+     * @return
+     *      current reference
+     */
     public Analyzer tokenizer(String name) {
         return tokenizer(name, null);
     }
+
+    /**
+     * Define a tokenizer by its name and arguments.
+     *
+     * @param name
+     *      the analyzer name
+     * @param args
+     *      the arguments for the analyzer
+     * @return
+     *      current reference
+     */
     public Analyzer tokenizer(String name, Map<String, String> args) {
         this.tokenizer = new LexicalFilter().name(name).args(args);;
         return this;
     }
 
+    /**
+     * Adds a filter to the analyzer.
+     *
+     * @param name
+     *      the name of the filter
+     * @return
+     *      current reference
+     */
     public Analyzer addFilter(String name) {
         return addFilter(name, null);
     }
+
+    /**
+     * Adds a filter to the analyzer.
+     *
+     * @param name
+     *      the name of the filter
+     * @param args
+     *      the arguments for the filter
+     * @return
+     *      current reference
+     */
     public Analyzer addFilter(String name, Map<String, String> args) {
         if (filters == null) {
             filters = new java.util.ArrayList<>();
@@ -68,9 +133,28 @@ public class Analyzer {
         return this;
     }
 
+    /**
+     * Adds a char filter to the analyzer.
+     *
+     * @param name
+     *      the name of the filter
+     * @return
+     *      current reference
+     */
     public Analyzer addChartFilter(String name) {
         return addChartFilter(name, null);
     }
+
+    /**
+     * Adds a char filter to the analyzer.
+     *
+     * @param name
+     *      the name of the filter
+     * @param args
+     *      the arguments for the filter
+     * @return
+     *      current reference
+     */
     public Analyzer addChartFilter(String name, Map<String, String> args) {
         if (charFilters == null) {
             charFilters = new java.util.ArrayList<>();
@@ -79,44 +163,67 @@ public class Analyzer {
         return this;
     }
 
-    public Analyzer(AnalyzerTypes strAnalyzer) {
-        this.strAnalyzer = strAnalyzer.getValue();
-    }
-
-    @NoArgsConstructor
+    /**
+     * Definition of filters and tokenizers
+     */
+    @Getter
     public static class LexicalFilter {
 
+        /** Name of the filter */
         String name;
 
+        /** Arguments for the filter */
         Map<String, String> args;
 
+        /**
+         * Default constructor.
+         */
+        public LexicalFilter() {
+        }
+
+        /**
+         * Sets the name of the filter.
+         *
+         * @param name
+         *      the name of the filter
+         * @return
+         *      current reference
+         */
         public LexicalFilter name(String name) {
             this.name = name;
             return this;
         }
 
+        /**
+         * Sets the arguments for the filter.
+         *
+         * @param args
+         *      the arguments for the filter
+         * @return
+         *      current reference
+         */
         public LexicalFilter args(Map<String, String> args) {
             this.args = args;
             return this;
         }
 
-        public LexicalFilter arg(String key, String value) {
+        /**
+         * Adds an argument to the filter.
+         *
+         * @param key
+         *      the key of the argument
+         * @param value
+         *      the value of the argument
+         * @return
+         *      current reference
+         */
+        public LexicalFilter addArg(String key, String value) {
             if (args == null) {
                 args = new java.util.HashMap<>();
             }
             args.put(key, value);
             return this;
         }
-
-        public String getName() {
-            return name;
-        }
-
-        public Map<String, String> getArgs() {
-            return args;
-        }
     }
-
-
 
 }

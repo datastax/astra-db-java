@@ -58,21 +58,48 @@ public class TableTextIndexDefinition extends TableIndexDefinition<TableTextInde
         this.options = options;
     }
 
+    /**
+     * Setter for the column name
+     *
+     * @param column the name of the column to index.
+     * @return self reference
+     */
     @Override
     public TableTextIndexDefinition column(String column) {
         return (TableTextIndexDefinition) super.column(column);
     }
 
+    /**
+     * Setter for the column name
+     *
+     * @param column the name of the column to index.
+     * @param type   the type of the index.
+     * @return self reference
+     */
     @Override
     public TableTextIndexDefinition column(String column, TableIndexMapTypes type) {
         return (TableTextIndexDefinition) super.column(column, type);
     }
 
+    /**
+     * Setter for the options
+     *
+     * @param options the options of the  index.
+     * @return self reference
+     */
     @Override
     public TableTextIndexDefinition options(TableTextIndexDefinitionOptions options) {
         return (TableTextIndexDefinition) super.options(options);
     }
 
+    /**
+     * Setter for the analyzer
+     *
+     * @param analyzer
+     *      Value for analyzer
+     * @return
+     *      Self reference
+     */
     public TableTextIndexDefinition analyzer(Analyzer analyzer) {
         if (options == null) {
             this.options = new TableTextIndexDefinitionOptions();
@@ -81,6 +108,14 @@ public class TableTextIndexDefinition extends TableIndexDefinition<TableTextInde
         return this;
     }
 
+    /**
+     * Setter for the analyzer with a type
+     *
+     * @param analyzerTypes
+     *      Type of the analyzer
+     * @return
+     *      Self reference
+     */
     public TableTextIndexDefinition analyzer(AnalyzerTypes analyzerTypes) {
         if (options == null) {
             this.options = new TableTextIndexDefinitionOptions();

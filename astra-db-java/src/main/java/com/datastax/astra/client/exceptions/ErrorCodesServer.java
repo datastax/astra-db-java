@@ -22,6 +22,9 @@ package com.datastax.astra.client.exceptions;
 
 import lombok.Getter;
 
+/**
+ * Error codes for server-side errors.
+ */
 @Getter
 public enum ErrorCodesServer {
 

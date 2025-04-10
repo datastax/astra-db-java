@@ -27,6 +27,9 @@ package com.datastax.astra.client.tables.definition.indexes;
  */
 public class TableTextIndexDescriptor extends TableIndexDescriptor<TableTextIndexDefinition> {
 
+    /**
+     * The default name for the index.
+     */
     public TableTextIndexDescriptor() {
         super(TableTextIndexDescriptor::new);
     }
@@ -41,11 +44,27 @@ public class TableTextIndexDescriptor extends TableIndexDescriptor<TableTextInde
         this.definition = definition;
     }
 
+    /**
+     * Adds a name to the index.
+     *
+     * @param name
+     *      the name of the table.
+     * @return
+     *      the current instance of {@link TableTextIndexDescriptor}.
+     */
     @Override
     public TableTextIndexDescriptor name(String name) {
         return (TableTextIndexDescriptor) super.name(name);
     }
 
+    /**
+     * Adds a definitions to the index.
+     *
+     * @param def
+     *      the definition of the index.
+     * @return
+     *      the current instance of {@link TableTextIndexDescriptor}.
+     */
     @Override
     public TableTextIndexDescriptor definition(TableTextIndexDefinition def) {
         return (TableTextIndexDescriptor) super.definition(def);

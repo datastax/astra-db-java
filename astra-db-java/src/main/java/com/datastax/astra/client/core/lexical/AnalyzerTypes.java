@@ -22,6 +22,10 @@ package com.datastax.astra.client.core.lexical;
 
 import lombok.Getter;
 
+/**
+ * Enum representing different types of analyzers.
+ * Each enum constant corresponds to a specific analyzer type.
+ */
 @Getter
 public enum AnalyzerTypes {
 
@@ -31,20 +35,53 @@ public enum AnalyzerTypes {
      */
     STANDARD("standard"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     LETTER("letter"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     LOWERCASE("lowercase"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     WHITESPACE("whitespace"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     N_GRAM("n-gram"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     EDGE_N_GRAM("edge_n-gram"),
 
+    /**
+     * Filters StandardTokenizer output that divides text
+     * into terms on word boundaries and then uses the LowerCaseFilter.
+     */
     KEYWORD("keyword");
 
+    /**
+     * The string value of the analyzer type.
+     */
     final String value;
 
+    /**
+     * Constructor for the enum.
+     *
+     * @param value
+     *      string value
+     */
     AnalyzerTypes(String value) {
         this.value = value;
     }

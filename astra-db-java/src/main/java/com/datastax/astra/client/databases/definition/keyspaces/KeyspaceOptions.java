@@ -21,28 +21,27 @@ package com.datastax.astra.client.databases.definition.keyspaces;
  */
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation.ReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY;
-import static com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation.ReplicationStrategy.SIMPLE_STRATEGY;
 
 /**
  * Options to create a Namespace.
  */
 @Getter
+@Setter
 public class KeyspaceOptions {
 
     /**
      * The replication of the namespace.
      */
-    private final Map<String, Object> replication;
+    private Map<String, Object> replication;
 
     /**
      * Default Constructor.
      */
-    private KeyspaceOptions() {
+    public KeyspaceOptions() {
         replication = new HashMap<>();
     }
 
@@ -57,7 +56,7 @@ public class KeyspaceOptions {
      */
     public static KeyspaceOptions simpleStrategy(int replicationFactor) {
         KeyspaceOptions options = new KeyspaceOptions();
-        options.replication.put("class", SIMPLE_STRATEGY.getValue());
+        options.replication.put("class", KeyspaceReplicationStrategy.SIMPLE_STRATEGY.getValue());
         options.replication.put("replication_factor", replicationFactor);
         return options;
     }
@@ -72,9 +71,11 @@ public class KeyspaceOptions {
      */
     public static KeyspaceOptions networkTopologyStrategy(Map<String, Integer> datacenters) {
         KeyspaceOptions options = new KeyspaceOptions();
-        options.replication.put("class", NETWORK_TOPOLOGY_STRATEGY.getValue());
+        options.replication.put("class", KeyspaceReplicationStrategy.NETWORK_TOPOLOGY_STRATEGY.getValue());
         options.replication.putAll(datacenters);
         return options;
     }
+
+
 
 }

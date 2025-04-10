@@ -37,6 +37,13 @@ import java.util.Map;
  */
 public class AnalyzerSerializer extends JsonSerializer<Analyzer> {
 
+    /**
+     * Default constructor
+     */
+    public AnalyzerSerializer() {
+        super();
+    }
+
     @Override
     public void serialize(Analyzer analyzer, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (analyzer == null) {

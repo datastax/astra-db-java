@@ -16,7 +16,7 @@ import com.datastax.astra.client.core.lexical.LexicalOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vector.VectorOptions;
@@ -120,6 +120,27 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
                 .rerank(rerankOptions);
 
         getDatabase().createCollection("c_find_rerank",def);
+
+
+//        getDatabase().createCollection("c_find_rerank", new CollectionDefinition()
+//
+//                .vector(new VectorOptions()
+//                        .dimension(1536)
+//                        .metric(SimilarityMetric.COSINE.getValue())
+//                        .service(new VectorServiceOptions()
+//                                .provider( "openai")
+//                                .modelName("text-embedding-3-small")))
+//
+//                .lexical(new LexicalOptions()
+//                        .enabled(true)
+//                        .analyzer(new Analyzer(STANDARD)))
+//
+//                .rerank(new CollectionRerankOptions()
+//                        .enabled(true)
+//                        .service(new RerankServiceOptions()
+//                                .modelName("nvidia/llama-3.2-nv-rerankqa-1b-v2")
+//                                .provider("nvidia"))));
+
     }
 
     @Test
@@ -132,6 +153,7 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
         // Ingest the CSV
         EmbeddingHeadersProvider authEmbedding =
                 new EmbeddingAPIKeyHeaderProvider(System.getenv("OPENAI_API_KEY"));
+
         List<Document> docs = Files.readAllLines(Paths.get("src/test/resources/philosopher-quotes.csv"))
                 .stream().map(line -> {
                     String[] chunks = line.split(",");
@@ -205,7 +227,7 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
             .hybridLimits(20);
 
         // Run the query
-        List<RerankResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
+        List<RerankedResult<Document>> result = myCol.findAndRerank(farrOptions).toList();
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
         System.out.println("Result3: " + result.size());

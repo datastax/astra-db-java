@@ -25,8 +25,12 @@ import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
@@ -240,7 +244,28 @@ public interface DatabaseAdmin {
      *                  keyspace does not exist, ensuring consistent behavior.
      * @param options The options to use for the operation.
      */
-    void dropKeyspace(String keyspace, BaseOptions<?> options);
+    void dropKeyspace(String keyspace, DropKeyspaceOptions options);
+
+    /**
+     * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning
+     * it will not produce an error if the keyspace does not exist. Performing this operation asynchronously ensures
+     * that the calling thread remains responsive, and can be particularly useful for applications that require high
+     * availability and cannot afford to block on potentially long-running operations. Just like its synchronous counterpart,
+     * this method should be used with caution as dropping a keyspace will remove all associated data, collections,
+     * or tables, and this action is irreversible.
+     *
+     * This example illustrates the non-blocking nature of dropping a keyspace. It demonstrates the method's utility in
+     * maintaining application responsiveness, even when performing potentially long-running database operations.
+     *
+     * @param keyspace The name of the keyspace to be dropped. This is the target keyspace that will be deleted.
+     *                  The asynchronous nature of this method means that it will execute without blocking the calling
+     *                  thread, regardless of whether the keyspace exists or not, ensuring a consistent and responsive
+     *                  application behavior.
+     * @param options The options to use for the operation to drop the keyspace like a timeout or if exists.
+     */
+    default void dropKeyspaceAsync(String keyspace, DropKeyspaceOptions options) {
+        CompletableFuture.runAsync(() -> dropKeyspace(keyspace, options));
+    }
 
     /**
      * Asynchronously drops (deletes) the specified keyspace from the database. This operation is idempotent, meaning
@@ -263,14 +288,14 @@ public interface DatabaseAdmin {
     }
 
     /**
-     * Create a Keyspace providing a name.
+     * Syntax Sugar, retro compatible.
      *
      * @param keyspace
-     *      current keyspace.
-     * @param updateDBKeyspace
-     *      if the keyspace should be updated in the database.
-     */
-    void createKeyspace(String keyspace, boolean updateDBKeyspace);
+     *      current namespace.
+     **/
+    default void createKeyspace(String keyspace) {
+        createKeyspace(new KeyspaceDefinition().name(keyspace), new CreateKeyspaceOptions());
+    }
 
     /**
      * Syntax Sugar, retro compatible.
@@ -278,9 +303,19 @@ public interface DatabaseAdmin {
      * @param keyspace
      *      current namespace.
      **/
-    default void createKeyspace(String keyspace) {
-        createKeyspace(keyspace, false);
+    default void createKeyspace(KeyspaceDefinition keyspace) {
+        createKeyspace(keyspace, new CreateKeyspaceOptions());
     }
+
+    /**
+     * Create a Keyspace providing a name.
+     *
+     * @param keyspace
+     *      keyspace definition
+     * @param options
+     *      options to create the keyspace
+     */
+    void createKeyspace(KeyspaceDefinition keyspace, CreateKeyspaceOptions options);
 
     /**
      * Create a keyspace providing a name.

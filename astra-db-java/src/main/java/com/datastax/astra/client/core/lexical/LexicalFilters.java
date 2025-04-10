@@ -20,9 +20,11 @@ package com.datastax.astra.client.core.lexical;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.SimilarityMetric;
 import lombok.Getter;
 
+/**
+ * Lexical filters used for indexing and searching 'lexical' data.
+ */
 @Getter
 public enum LexicalFilters {
 
@@ -32,33 +34,34 @@ public enum LexicalFilters {
      */
     LOWERCASE("lowercase"),
 
+    /**
+     * Filter with stop words
+     */
     STOP("stop"),
 
+    /**
+     * Filter with synonyms
+     */
     SYNONYM("synonym"),
 
+    /**
+     * Filter with synonyms and graph
+     */
     SYNONYM_GRAPH("synonym_graph");
 
+    /**
+     * The value of the filter.
+     */
     final String value;
 
-    LexicalFilters(String value) {
-        this.value = value;
-    }
-
     /**
-     * Build from the key.
+     * Constructor.
      *
      * @param value
-     *      string value
-     * @return
-     *      enum value
+     *      the value of the filter.
      */
-    public static LexicalFilters fromValue(String value) {
-        for (LexicalFilters filter : LexicalFilters.values()) {
-            if (filter.getValue().equalsIgnoreCase(value)) {
-                return filter;
-            }
-        }
-        throw new IllegalArgumentException("Unknown LexicalFilters: " + value);
+    LexicalFilters(String value) {
+        this.value = value;
     }
 
 }

@@ -43,4 +43,11 @@ cd ~/.ssh
 ssh-add githubff4j
 ```
 
+- [x] Deploy
+
+```console
+mvn versions:set -DnewVersion=2.0.0-PREVIEW3 -DgenerateBackupPoms=false
+git tag 2.0.1 && git push origin 2.0.1
+```
+
 

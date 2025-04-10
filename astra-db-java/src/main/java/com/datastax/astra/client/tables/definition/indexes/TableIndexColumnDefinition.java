@@ -25,15 +25,32 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a column definition for a table index, including the column's name and type.
+ * This class is designed for use in scenarios such as serialization/deserialization with libraries
+ * like Jackson and for method chaining in fluent-style APIs.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class TableIndexColumnDefinition {
 
+    /**
+     * The name of the column.
+     */
     String name;
 
+    /**
+     * The type of the column.
+     */
     TableIndexMapTypes type;
 
+    /**
+     * Constructor that accepts a column name.
+     *
+     * @param name
+     *      the name of the column.
+     */
     public TableIndexColumnDefinition(String name) {
         this.name = name;
     }

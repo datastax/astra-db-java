@@ -23,8 +23,23 @@ package com.datastax.astra.client.tables.mapping;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+/**
+ * Key value annotation.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeyValue {
+
+    /**
+     * Key.
+     *
+     * @return key
+     */
     String key();
+
+    /**
+     * Value.
+     *
+     * @return value
+     */
     String value();
 }

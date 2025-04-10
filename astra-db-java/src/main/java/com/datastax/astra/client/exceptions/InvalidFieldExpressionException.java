@@ -43,6 +43,8 @@ public class InvalidFieldExpressionException extends DataAPIClientException {
      *
      * @param path
      *      current field expression
+     * @param cause
+     *      cause of the error
      */
     public static void throwInvalidField(String path, String cause) {
         throw new InvalidFieldExpressionException(INVALID_EXPRESSION,

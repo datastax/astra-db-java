@@ -240,6 +240,16 @@ public class EntityBeanDefinition<T> {
         return cc;
     }
 
+    /**
+     * List all vector index definitions for the given table name and class.
+     *
+     * @param tableName
+     *      the table name
+     * @param clazz
+     *      the class
+     * @return
+     *      a list of vector index definitions
+     */
     public static List<TableVectorIndexDefinition> listVectorIndexDefinitions(String tableName, Class<?> clazz) {
         EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
         if (Utils.hasLength(bean.getName()) && !bean.getName().equals(tableName)) {

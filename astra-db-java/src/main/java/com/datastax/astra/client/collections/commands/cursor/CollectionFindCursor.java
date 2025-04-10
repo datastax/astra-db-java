@@ -27,6 +27,7 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.command.AbstractCursor;
 import com.datastax.astra.internal.serdes.tables.RowMapper;

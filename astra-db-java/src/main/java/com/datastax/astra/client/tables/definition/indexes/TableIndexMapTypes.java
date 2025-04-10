@@ -22,6 +22,11 @@ package com.datastax.astra.client.tables.definition.indexes;
 
 import lombok.Getter;
 
+/**
+ * Enum representing the types of map indexes in a table.
+ * This enum is designed for use in scenarios such as serialization/deserialization with libraries
+ * like Jackson and for method chaining in fluent-style APIs.
+ */
 @Getter
 public enum TableIndexMapTypes {
 

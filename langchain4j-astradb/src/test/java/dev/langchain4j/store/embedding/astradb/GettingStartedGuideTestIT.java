@@ -127,7 +127,7 @@ public class GettingStartedGuideTestIT {
                 .apiKey(AstraDBTestSupport.OPENAI_API_KEY)
                 .modelName(OpenAiChatModelName.GPT_4_O)
                 .build()
-                .generate(prompt.toUserMessage()).content().text());
+                .chat(prompt.toUserMessage()).toString());
     }
 
     @Test

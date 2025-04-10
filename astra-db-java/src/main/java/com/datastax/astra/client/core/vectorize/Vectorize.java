@@ -32,25 +32,36 @@ import lombok.NonNull;
 @JsonSerialize(using = VectorizeSerializer.class)
 public class Vectorize {
 
+    /**
+     * The passage to vectorize
+     */
     final String passage;
 
+    /**
+     * The passage to set
+     */
     final String setPassage;
 
+    /**
+     * Default constructor.
+     *
+     * @param passage
+     *     the passage to vectorize
+     */
     public Vectorize(String passage) {
        this(passage, null);
     }
 
+    /**
+     * Constructor with passage and setPassage
+     *
+     * @param passage
+     *     the passage to vectorize
+     * @param setPassage
+     *     the passage to set
+     */
     public Vectorize(@NonNull String passage, String setPassage) {
         this.passage = passage;
         this.setPassage = setPassage;
     }
-
-    public static Vectorize of(String passage) {
-        return new Vectorize(passage);
-    }
-
-    public static Vectorize of(String passage, String setPassage) {
-        return new Vectorize(passage, setPassage);
-    }
-
 }

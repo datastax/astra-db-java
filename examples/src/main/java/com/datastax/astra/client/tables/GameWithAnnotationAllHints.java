@@ -29,26 +29,26 @@ import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.VE
 public class GameWithAnnotationAllHints {
 
     @PartitionBy(0)
-    @Column(value="match_id", type=TEXT )
+    @Column(name="match_id", type=TEXT )
     private String matchId;
 
     @PartitionSort(position = 0, order= SortOrder.ASCENDING)
-    @Column(value ="round", type=INT)
+    @Column(name ="round", type=INT)
     private Integer round;
 
-    @Column(value ="score", type=INT)
+    @Column(name ="score", type=INT)
     private Integer score;
 
-    @Column(value ="when", type=TIMESTAMP)
+    @Column(name ="when", type=TIMESTAMP)
     private Instant when;
 
-    @Column(value ="winner", type=TEXT)
+    @Column(name ="winner", type=TEXT)
     private String winner;
 
-    @Column(value ="fighters", type=SET, valueType = UUID)
+    @Column(name ="fighters", type=SET, valueType = UUID)
     private Set<java.util.UUID> fighters;
 
-    @ColumnVector(value ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
+    @ColumnVector(name ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
     private DataAPIVector vector;
     
 }

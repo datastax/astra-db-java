@@ -26,21 +26,50 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents the limits for lexical and vector data.
+ */
 @Data
 public class HybridLimits {
 
+    /**
+     * The limit for the hybrid data when vectorize and lexical are used.
+     */
     Integer limit;
 
+    /**
+     * The limit for the lexical data.
+     */
     Map<String, Integer> mapOfLimits;
 
+    /**
+     * Constructor.
+     *
+     * @param limit
+     *      the limit for the hybrid data.
+     */
     public HybridLimits(Integer limit) {
         this.limit = limit;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param mapOfLimits
+     *      the map of limits for the hybrid data.
+     */
     public HybridLimits(Map<String, Integer> mapOfLimits) {
         this.mapOfLimits = mapOfLimits;
     }
 
+    /**
+     * Add a limit for the lexical data.
+     *
+     * @param limit
+     *      lexical limit.
+     * @return
+     *      self reference
+     */
     public HybridLimits lexical(Integer limit) {
         if (mapOfLimits == null) {
             mapOfLimits = new HashMap<>();
@@ -49,6 +78,14 @@ public class HybridLimits {
         return this;
     }
 
+    /**
+     * Add a limit for the vector data.
+     *
+     * @param limit
+     *      vector limit.
+     * @return
+     *      self reference
+     */
     public HybridLimits vector(Integer limit) {
         if (mapOfLimits == null) {
             mapOfLimits = new HashMap<>();

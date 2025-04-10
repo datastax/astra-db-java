@@ -32,15 +32,16 @@ import java.util.Map;
 
 /**
  * Serializer for TableIndexColumnDefinition.
- *
- * {"column": "name"}
- *
  */
 public class HybridLimitsSerializer extends JsonSerializer<HybridLimits> {
 
+    /**
+     * Default constructor
+     */
     public HybridLimitsSerializer() {
     }
 
+    /** {@inheritDoc} */
     @Override
     public void serialize(HybridLimits def, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         if (def == null) {

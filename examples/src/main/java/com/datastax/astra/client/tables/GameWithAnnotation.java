@@ -23,7 +23,7 @@ import java.util.UUID;
 public class GameWithAnnotation {
 
     @PartitionBy(0)
-    @Column(value ="match_id")
+    @Column(name ="match_id")
     private String matchId;
 
     @PartitionSort(position = 0, order = SortOrder.ASCENDING)
@@ -37,7 +37,7 @@ public class GameWithAnnotation {
 
     private Set<UUID> fighters;
 
-    @ColumnVector(value ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
+    @ColumnVector(name ="m_vector", dimension = 3, metric = SimilarityMetric.COSINE)
     private DataAPIVector vector;
     
 }

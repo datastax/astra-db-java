@@ -30,6 +30,9 @@ import lombok.Setter;
 @Getter @Setter
 public class TableVectorIndexDescriptor extends TableIndexDescriptor<TableVectorIndexDefinition> {
 
+    /**
+     * The default name for the index.
+     */
     public TableVectorIndexDescriptor() {
         super(TableVectorIndexDescriptor::new);
     }
@@ -43,6 +46,7 @@ public class TableVectorIndexDescriptor extends TableIndexDescriptor<TableVector
         super(TableVectorIndexDescriptor::new);
         this.definition = definition;
     }
+
 
     @Override
     public TableVectorIndexDescriptor name(String name) {

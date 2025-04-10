@@ -3,7 +3,9 @@ package com.datastax.astra.test.integration;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
+import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -90,7 +92,8 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
                 .getKeyspace()).isEqualTo("nsx");
 
         if (!getDatabaseAdmin().keyspaceExists("nsx2")) {
-            getDatabaseAdmin().createKeyspace("nsx2", true);
+
+            getDatabaseAdmin().createKeyspace(new KeyspaceDefinition().name("nsx2"), new CreateKeyspaceOptions().updateDBKeyspace(true));
             while (!getDatabaseAdmin().keyspaceExists("nsx2")) {
                 Thread.sleep(1000);
             }
@@ -100,7 +103,7 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
         // Surface
         final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
         assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> dbAdmin2.createKeyspace(null))
+                .isThrownBy(() -> dbAdmin2.createKeyspace((String) null))
                 .withMessage("Parameter 'keyspaceName' should be null nor empty");
         assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> dbAdmin2.createKeyspace(""))

@@ -45,9 +45,6 @@ public class EJsonDateDeserializer extends JsonDeserializer<Date> {
     public Date deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        if (null == node.get("$date")) {
-            throw new IllegalArgumentException("Cannot convert the expression as an Date " + node);
-        }
         long timestamp = node.get("$date").asLong();
         return new Date(timestamp);
     }

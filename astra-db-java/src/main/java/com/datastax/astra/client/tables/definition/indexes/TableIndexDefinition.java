@@ -34,6 +34,8 @@ import java.util.function.Function;
  * <p>
  * Subclasses should extend this abstract class to implement specific types of index definitions.
  * </p>
+ *
+ * @param <OPTIONS> the type of options (vector, normal) for index definition.
  */
 @Getter
 public abstract class TableIndexDefinition<OPTIONS> {
@@ -60,16 +62,19 @@ public abstract class TableIndexDefinition<OPTIONS> {
     protected final Function<OPTIONS, ? extends TableIndexDefinition<OPTIONS>> constructor;
 
     /**
-     * Constructor.
+     * Constructs a new instance of {@code TableIndexDefinition} with the specified constructor function.
+     *
+     * @param constructor the constructor function for creating new instances of the subclass.
      */
     protected TableIndexDefinition(Function<OPTIONS, ? extends TableIndexDefinition<OPTIONS>> constructor) {
         this.constructor = constructor;
     }
 
     /**
-     * Invoke the constructor function to create a new instance of the subclass.
-     * @param updater
-     * @return
+     * Maps the current instance to a new instance with updated properties.
+     *
+     * @param updater a consumer function that updates the properties of the new instance.
+     * @return a new instance with the updated properties.
      */
     protected TableIndexDefinition<OPTIONS> mapImpl(Consumer<TableIndexDefinition<OPTIONS>> updater) {
         TableIndexDefinition<OPTIONS> newInstance = constructor.apply(this.options);

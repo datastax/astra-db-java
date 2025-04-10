@@ -45,9 +45,6 @@ public class EJsonCalendarDeserializer extends JsonDeserializer<Calendar> {
     public Calendar deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        if (null == node.get("$date")) {
-            throw new IllegalArgumentException("Cannot convert the expression as an Calendar " + node);
-        }
         long timestamp = node.get("$date").asLong();
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(timestamp);

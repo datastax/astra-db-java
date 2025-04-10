@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Game {
 
-    @Column("match_id")
+    @Column(name = "match_id")
     private String matchId;
 
     private Integer round;
@@ -28,7 +28,7 @@ public class Game {
 
     private Set<java.util.UUID> fighters;
 
-    @Column("m_vector")
+    @Column(name = "m_vector")
     private DataAPIVector vector;
 
     /**

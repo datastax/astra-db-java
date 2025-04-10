@@ -794,6 +794,16 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         return find(null, new TableFindOptions());
     }
 
+    /**
+     * Search for a Page with no projection.
+     *
+     * @param filter
+     *     the query filter
+     * @param options
+     *    options of find one
+     * @return
+     *     the Page to iterate over the results
+     */
     public Page<T> findPage(Filter filter, TableFindOptions options) {
         return findPage(filter, options, getRowClass());
     }
@@ -816,9 +826,16 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * This list, along with the maximum page size and the next page state, is used to construct the {@link Page} object returned by the method.
      * </p>
      *
-     * @param filter The filter criteria used to select rows from the table.
-     * @param options The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
-     * @return A {@link Page} object containing the rows that match the query, along with pagination information.
+     * @param <R>
+     *     projection for the new type
+     * @param newRowType
+     *     the class representing the row type for the result; must not be {@code null}.
+     * @param filter
+     *      The filter criteria used to select rows from the table.
+     * @param options
+     *      The {@link CollectionFindOptions} providing additional query parameters, such as sorting and pagination.
+     * @return
+     *      A {@link Page} object containing the rows that match the query, along with pagination information.
      */
     public <R> Page<R> findPage(Filter filter, TableFindOptions options, Class<R> newRowType) {
         Command findCommand = Command

@@ -26,11 +26,13 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.core.rerank.RerankResult;
+import com.datastax.astra.client.core.rerank.RerankedResult;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.command.AbstractCursor;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 
 /**
@@ -50,7 +52,7 @@ import java.util.ArrayList;
  * @param <R>
  *       working object for results, should be same as DOC if no projections
  */
-public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, RerankResult<R>> {
+public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, RerankedResult<R>> {
 
     /**
      * Input table reference
@@ -68,8 +70,11 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
      * Input Find options. Where will change the different options.
      * Immutable as not setter is provided.
      */
-    private CollectionFindAndRerankOptions options;
+    private final CollectionFindAndRerankOptions options;
 
+    /**
+     * Type of results (different from inputs when projection is used)
+     */
     private Class<R> newRowType;
 
     /**
@@ -81,10 +86,12 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
      *      current filter
      * @param options
      *      options of the find operation
+     * @param recordType
+     *      the type of the record
      */
     @SuppressWarnings("unchecked")
     public CollectionFindAndRerankCursor(Collection<T> dataSource, Filter filter, CollectionFindAndRerankOptions options, Class<R> recordType) {
-        super((Class<RerankResult<R>>) (Class<?>) RerankResult.class);
+        super((Class<RerankedResult<R>>) (Class<?>) RerankedResult.class);
         this.dataSource = dataSource;
         this.filter = filter;
         this.options = options;
@@ -136,7 +143,8 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     /**
      * Creates a new {@link CollectionFindAndRerankCursor} with an updated projection.
      *
-     * @param newProjection the new projection to apply
+     * @param newProjection
+     *      the new projection to apply
      * @return a new {@link CollectionFindAndRerankCursor} instance with the specified projection
      */
     public CollectionFindAndRerankCursor<T, R> project(Projection... newProjection) {
@@ -149,7 +157,8 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     /**
      * Creates a new {@link CollectionFindAndRerankCursor} with a specified sort order.
      *
-     * @param sort the sort criteria to apply
+     * @param sort
+     *      the sort criteria to apply
      * @return a new {@link CollectionFindAndRerankCursor} instance with the specified sort order
      */
     public CollectionFindAndRerankCursor<T, R> sort(Sort... sort) {
