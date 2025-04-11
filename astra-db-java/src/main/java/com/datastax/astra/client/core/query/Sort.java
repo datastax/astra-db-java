@@ -251,4 +251,22 @@ public class Sort {
                 .build();
     }
 
+    /**
+     * Build a sort clause with vectorize.
+     *
+     * @param vectorize
+     *      vectorize information
+     * @param lexical
+     *      lexical information
+     *
+     * @return
+     *       sort instance.
+     */
+    public static Sort hybrid(String vectorize, String lexical) {
+        return internalBuilder()
+                .field(DataAPIKeywords.HYBRID.getKeyword())
+                .hybrid(new Hybrid().vectorize(vectorize).lexical(lexical))
+                .build();
+    }
+
 }

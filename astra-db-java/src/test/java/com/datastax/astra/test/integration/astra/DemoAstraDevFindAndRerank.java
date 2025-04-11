@@ -36,15 +36,14 @@ import java.util.List;
 
 import static com.datastax.astra.client.DataAPIDestination.ASTRA_DEV;
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.STANDARD;
+import static com.dtsx.astra.sdk.db.domain.CloudProviderType.AWS;
 import static com.dtsx.astra.sdk.db.domain.CloudProviderType.GCP;
 
 @Slf4j
 public class DemoAstraDevFindAndRerank {
 
-    public static final String ASTRA_DB_TOKEN     = System.getenv("ASTRA_DB_APPLICATION_TOKEN_DEV");
-    public static final String DATABASE_DEMO_NAME = "demo_charter";
-
-    public static final String ASTRA_DB_ENDPOINT = "https://9e0ff165-666d-4a69-b5b7-727d6cd77092-us-central1.apps.astra-dev.datastax.com";
+    public static final String ASTRA_DB_TOKEN     = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
+    public static final String DATABASE_DEMO_NAME = "test_farr";
     public static final String OPEN_API_KEY      = System.getenv("OPENAI_API_KEY");
 
     /**
@@ -52,8 +51,8 @@ public class DemoAstraDevFindAndRerank {
      */
     private DataAPIClient getDataApiClient() {
         DataAPIClientOptions options = new DataAPIClientOptions()
-                .destination(ASTRA_DEV)
-                .rerankAPIKey(ASTRA_DB_TOKEN)
+                //.destination(ASTRA_DEV)
+                //.rerankAPIKey(ASTRA_DB_TOKEN)
                 .embeddingAPIKey(OPEN_API_KEY)
                 .logRequests();
         return new DataAPIClient(ASTRA_DB_TOKEN, options);
@@ -65,7 +64,7 @@ public class DemoAstraDevFindAndRerank {
     private Database getDatabase() {
         // Alternatively, you can use the following code to get the database:
         return getDataApiClient().getAdmin()
-          .createDatabase(DATABASE_DEMO_NAME, GCP, "us-central1")
+          .createDatabase(DATABASE_DEMO_NAME, AWS, "us-east-2")
           .getDatabase();
         //return getDataApiClient().getDatabase(ASTRA_DB_ENDPOINT);
     }
@@ -184,12 +183,7 @@ public class DemoAstraDevFindAndRerank {
     public void should_run_find_and_rerank() throws IOException {
         CollectionFindAndRerankOptions farrOptions = new CollectionFindAndRerankOptions()
                 .projection(Projection.include("$vectorize", "_id", "quote", "author"))
-
-
                 .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
-
-
-
                 .rerankingAuthProvider(new RerankingAPIKeyHeaderProvider(ASTRA_DB_TOKEN))
                 .embeddingAuthProvider(new EmbeddingAPIKeyHeaderProvider(ASTRA_DB_TOKEN))
                 .includeScores(true)
