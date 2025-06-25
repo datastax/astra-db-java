@@ -83,6 +83,16 @@ public class TableDefinition {
     }
 
     /**
+     * Adds a UUID column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnUuid(String name) {
+        return addColumn(name, ColumnTypes.UUID);
+    }
+
+    /**
      * Adds a text column to the table.
      *
      * @param name the name of the column

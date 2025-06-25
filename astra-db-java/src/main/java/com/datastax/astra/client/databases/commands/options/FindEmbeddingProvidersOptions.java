@@ -4,7 +4,7 @@ package com.datastax.astra.client.databases.commands.options;
  * #%L
  * Data API Java Client
  * --
- * Copyright (C) 2024 DataStax
+ * Copyright (C) 2024 - 2025 DataStax
  * --
  * Licensed under the Apache License, Version 2.0
  * You may not use this file except in compliance with the License.
@@ -23,51 +23,34 @@ package com.datastax.astra.client.databases.commands.options;
 import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
-/**
- * Set of options used when creating a table
- */
 @Setter
 @Accessors(fluent = true, chain = true)
-public class CreateKeyspaceOptions extends BaseOptions<CreateKeyspaceOptions> {
-
-    /** Improve syntax. */
-    public static final CreateKeyspaceOptions IF_NOT_EXISTS = new CreateKeyspaceOptions().ifNotExists(true);
+public class FindEmbeddingProvidersOptions extends BaseOptions<FindEmbeddingProvidersOptions> {
 
     /**
      * Condition to upsert the table.
      */
-    boolean ifNotExists = true;
-
-    /**
-     * Change the keyspace in the database.
-     */
-    boolean updateDBKeyspace = false;
+    SupportModelStatus filterModelStatus = null;
 
     /**
      * Default constructor
      */
-    public CreateKeyspaceOptions() {
+    public FindEmbeddingProvidersOptions() {
         super(null, CommandType.DATABASE_ADMIN, AdminOptions.DEFAULT_SERIALIZER, null);
     }
 
     /**
-     * Gets ifNotExists
+     * Accessor for serialization.
      *
-     * @return value of ifNotExists
+     * @return
+     *      accessor for serialization
      */
-    public boolean isIfNotExists() {
-        return ifNotExists;
+    public SupportModelStatus getFilterModelStatus() {
+        return this.filterModelStatus;
     }
 
-    /**
-     * Gets updateDBKeyspace
-     *
-     * @return value of updateDBKeyspace
-     */
-    public boolean isUpdateDBKeyspace() {
-        return updateDBKeyspace;
-    }
 }

@@ -91,6 +91,9 @@ public class EmbeddingProvider {
         /** Model name */
         private String name;
 
+        /** Supported model or not */
+        private Map<String, SupportModelStatus> apiModelSupport;
+
         /** Model dimension. */
         private Integer vectorDimension;
 

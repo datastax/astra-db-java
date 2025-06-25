@@ -206,7 +206,7 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
      * Fetches the next batch of documents into the buffer.
      * This method handles paging, using the page state from the previous batch to fetch the next one.
      */
-    public void fetchNextBatch() {
+    public void fetchNextPage() {
         if (currentPage == null) {
             // Searching First Page
             currentPage = dataSource.findPage(filter, tableFindOptions, getRecordType());
@@ -216,6 +216,8 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
             tableFindOptions.pageState(currentPage.getPageState().get());
             currentPage = dataSource.findPage(filter, tableFindOptions, getRecordType());
             buffer.addAll(currentPage.getResults());
+        } else {
+            // Error ?
         }
     }
 

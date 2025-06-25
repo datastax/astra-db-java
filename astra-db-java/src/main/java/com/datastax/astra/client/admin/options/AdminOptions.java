@@ -1,4 +1,4 @@
-package com.datastax.astra.client.admin;
+package com.datastax.astra.client.admin.options;
 
 /*-
  * #%L

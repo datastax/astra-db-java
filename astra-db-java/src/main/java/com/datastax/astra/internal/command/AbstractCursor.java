@@ -26,7 +26,6 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.CursorException;
 import lombok.Getter;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -149,7 +148,7 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
      * Fetches the next batch of documents into the buffer.
      * This method handles paging, using the page state from the previous batch to fetch the next one.
      */
-    protected abstract void fetchNextBatch();
+    protected abstract void fetchNextPage();
 
     /**
      * Checks if there are more elements in the cursor.
@@ -219,7 +218,7 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
      */
     public Optional<DataAPIVector> getSortVector() {
         if (currentPage == null && state == CursorState.IDLE) {
-            fetchNextBatch();
+            fetchNextPage();
         }
         if (currentPage == null) {
             return Optional.empty();
@@ -251,7 +250,7 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
                 return true;
             }
             // Fetch next batch of documents into buffer (if buffer is empty)
-            fetchNextBatch();
+            fetchNextPage();
             return !buffer.isEmpty();
         }
 

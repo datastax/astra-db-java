@@ -208,7 +208,7 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     /**
      * {PageState is always null, all is returned here }
      */
-    public void fetchNextBatch() {
+    public void fetchNextPage() {
         // Only the first time
         if (currentPage == null) {
             currentPage = dataSource.findAndRerankPage(filter, options, newRowType);

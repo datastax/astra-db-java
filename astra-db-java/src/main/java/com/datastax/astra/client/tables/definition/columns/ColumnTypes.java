@@ -61,6 +61,11 @@ public enum ColumnTypes {
     BOOLEAN("boolean"),
 
     /**
+     * Counter.
+     */
+    COUNTER("counter"),
+
+    /**
      * Date type, storing only the date part without a time zone.
      */
     DATE("date"),
@@ -129,6 +134,11 @@ public enum ColumnTypes {
      * Timestamp type, representing a specific date and time.
      */
     TIMESTAMP("timestamp"),
+
+    /**
+     * TimeUUID.
+     */
+    TIMEUUID("timeuuid"),
 
     /**
      * 8-bit signed integer.

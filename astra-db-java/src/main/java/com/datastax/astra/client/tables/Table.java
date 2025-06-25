@@ -54,6 +54,7 @@ import com.datastax.astra.client.tables.cursor.TableFindCursor;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
+import com.datastax.astra.client.tables.definition.indexes.TableIndexMapTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableTextIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
@@ -329,11 +330,39 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      name of the index
      * @param columnName
      *      column on which is the index
+     * @param type
+     *      column type for the index, used for Map columns
+     */
+    public void createIndex(String idxName, String columnName, TableIndexMapTypes type) {
+        createIndex(idxName, new TableRegularIndexDefinition().column(columnName, type), null);
+    }
+
+    /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
      * @param idxOptions
      *      index options
      */
     public void createIndex(String idxName, String columnName, CreateIndexOptions idxOptions) {
        createIndex(idxName, new TableRegularIndexDefinition().column(columnName), idxOptions);
+    }
+
+    /**
+     * Create a simple index on the given column with no special options
+     *
+     * @param idxName
+     *      name of the index
+     * @param columnName
+     *      column on which is the index
+     * @param type
+     *      column type for the index, used for Map columns
+     */
+    public void createIndex(String idxName, String columnName, TableIndexMapTypes type, CreateIndexOptions idxOptions) {
+        createIndex(idxName, new TableRegularIndexDefinition().column(columnName, type), idxOptions);
     }
 
     /**

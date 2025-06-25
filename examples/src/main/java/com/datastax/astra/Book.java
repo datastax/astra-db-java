@@ -6,8 +6,6 @@ import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 
 import java.util.Date;

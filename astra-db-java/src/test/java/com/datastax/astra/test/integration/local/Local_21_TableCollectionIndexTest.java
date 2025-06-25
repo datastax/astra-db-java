@@ -1,6 +1,10 @@
 package com.datastax.astra.test.integration.local;
 
+import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
+import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
@@ -18,6 +22,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

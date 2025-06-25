@@ -21,10 +21,12 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
+import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
@@ -191,18 +193,18 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
 
     /** {@inheritDoc} */
     @Override
-    public FindEmbeddingProvidersResult findEmbeddingProviders() {
+    public FindEmbeddingProvidersResult findEmbeddingProviders(FindEmbeddingProvidersOptions options) {
         log.debug("findEmbeddingProviders");
         DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
-        return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders().getEmbeddingProviders());
+        return new FindEmbeddingProvidersResult(admin.findEmbeddingProviders(options).getEmbeddingProviders());
     }
 
     /** {@inheritDoc} */
     @Override
-    public FindRerankingProvidersResult findRerankingProviders() {
+    public FindRerankingProvidersResult findRerankingProviders(FindRerankingProvidersOptions options) {
         log.debug("findRerankingProviders");
         DataAPIDatabaseAdmin admin = new DataAPIDatabaseAdmin(db, this.options);
-        return new FindRerankingProvidersResult(admin.findRerankingProviders().getRerankingProviders());
+        return new FindRerankingProvidersResult(admin.findRerankingProviders(options).getRerankingProviders());
     }
 
     /** {@inheritDoc} */

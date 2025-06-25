@@ -20,6 +20,7 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.rerank.RerankProvider;
@@ -27,6 +28,8 @@ import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
+import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
@@ -105,16 +108,26 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
 
     /** {@inheritDoc} */
     @Override
-    public FindEmbeddingProvidersResult findEmbeddingProviders() {
-        DataAPIResponse res = runCommand(Command.create("findEmbeddingProviders"));
+    public FindEmbeddingProvidersResult findEmbeddingProviders(FindEmbeddingProvidersOptions options) {
+        DataAPIResponse res = runCommand(Command
+                .create("findEmbeddingProviders")
+                .withOptions(options));
         return new FindEmbeddingProvidersResult(
                 res.getStatusKeyAsMap("embeddingProviders",
-                EmbeddingProvider.class));
+                        EmbeddingProvider.class));
     }
 
+//    @Override
+//    public FindRerankingProvidersResult findRerankingProviders() {
+//        DataAPIResponse res = runCommand(Command.create("findRerankingProviders"));
+//        return new FindRerankingProvidersResult(
+//                res.getStatusKeyAsMap("rerankingProviders",
+//                        RerankProvider.class));
+//    }
+
     @Override
-    public FindRerankingProvidersResult findRerankingProviders() {
-        DataAPIResponse res = runCommand(Command.create("findRerankingProviders"));
+    public FindRerankingProvidersResult findRerankingProviders(FindRerankingProvidersOptions options) {
+        DataAPIResponse res = runCommand(Command.create("findRerankingProviders").withOptions(options));
         return new FindRerankingProvidersResult(
                 res.getStatusKeyAsMap("rerankingProviders",
                         RerankProvider.class));

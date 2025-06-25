@@ -22,11 +22,14 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.rerank.RerankProvider;
+import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
+import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
+import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
@@ -35,6 +38,8 @@ import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
+import static com.datastax.astra.client.core.vectorize.SupportModelStatus.SUPPORTED;
 
 /**
  * Defines the core client interface for interacting with the Data API, focusing on CRUD (Create, Read, Update, Delete)
@@ -85,7 +90,17 @@ public interface DatabaseAdmin {
      * @return
      *      list of available providers
      */
-    FindEmbeddingProvidersResult findEmbeddingProviders();
+    FindEmbeddingProvidersResult findEmbeddingProviders(FindEmbeddingProvidersOptions options);
+
+    /**
+     * Backward compatible method to retrieve the list of embedding providers available in the current database.
+     *
+     * @return
+     *     list of available providers with default options
+     */
+    default FindEmbeddingProvidersResult findEmbeddingProviders() {
+        return findEmbeddingProviders(null);
+    }
 
     /**
      * Retrieve the list of reranking providers available in the current database. Reranking providers are services
@@ -103,7 +118,12 @@ public interface DatabaseAdmin {
      * @return
      *      list of available providers
      */
-    FindRerankingProvidersResult findRerankingProviders();
+    FindRerankingProvidersResult findRerankingProviders(FindRerankingProvidersOptions options);
+
+    default FindRerankingProvidersResult findRerankingProviders() {
+        return findRerankingProviders(null);
+    }
+
 
     /**
      * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates

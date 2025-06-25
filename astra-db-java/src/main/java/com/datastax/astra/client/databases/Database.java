@@ -20,7 +20,7 @@ package com.datastax.astra.client.databases;
  * #L%
  */
 
-import com.datastax.astra.client.admin.AdminOptions;
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
@@ -35,7 +35,6 @@ import com.datastax.astra.client.collections.definition.CollectionDescriptor;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
@@ -47,7 +46,6 @@ import com.datastax.astra.client.tables.commands.options.DropTableOptions;
 import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
-import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.internal.api.AstraApiEndpoint;

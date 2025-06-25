@@ -21,7 +21,9 @@ package com.datastax.astra.client.collections.definition.documents.types;
  */
 
 import com.fasterxml.uuid.Generators;
+import com.fasterxml.uuid.impl.UUIDUtil;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -52,6 +54,16 @@ public class UUIDv6 {
     }
 
     /**
+     * Constructor.
+     *
+     * @param strUUID
+     *      uuid
+     */
+    public UUIDv6(String strUUID) {
+        this(UUID.fromString(strUUID));
+    }
+
+    /**
      * Return the Java Utils UUID.
      *
      * @return
@@ -59,6 +71,25 @@ public class UUIDv6 {
      */
     public UUID toUUID() {
         return uuid;
+    }
+
+    /**
+     * Extract the hidden timestamp (100-nanosecond units since UUID epoch).
+     *
+     * @return the raw 60-bit timestamp value embedded in this UUIDv6
+     */
+    public long getTimeStamp() {
+        return UUIDUtil.extractTimestamp(uuid);
+    }
+
+    /**
+     * Get the timestamp as an {@link Instant}.
+     *
+     * @return
+     *      the timestamp as an Instant
+     */
+    public Instant getInstant() {
+        return Instant.ofEpochMilli(getTimeStamp());
     }
 
     /** {@inheritDoc} */
@@ -76,7 +107,7 @@ public class UUIDv6 {
      *      an instance of UUIDv6
      */
     public static UUIDv6 fromString(String strUUID) {
-        return new UUIDv6(UUID.fromString(strUUID));
+        return new UUIDv6(strUUID);
     }
 
 }

@@ -20,6 +20,9 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
+import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
+import com.datastax.astra.client.admin.options.AdminOptions;
+import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.databases.DatabaseOptions;
@@ -32,6 +35,8 @@ import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.DatabaseCreationRequest;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
+import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
+import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
@@ -41,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +124,27 @@ public class AstraDBAdmin {
         httpClientBuilder.version(dataAPIClientOptions.getHttpClientOptions().getHttpVersion());
         httpClientBuilder.connectTimeout(Duration.ofMillis(dataAPIClientOptions.getTimeoutOptions().getConnectTimeoutMillis()));
         this.httpClient = httpClientBuilder.build();
+    }
+
+    // --------------------
+    // -- Regions       ---
+    // --------------------
+
+    public List<AstraAvailableRegionInfo> findAvailableRegions(AstraFindAvailableRegionsOptions options) {
+        FilterByOrgType filterByOrgType = FilterByOrgType.ENABLED;
+        /*
+         * This parameter would be a direct wrapper over the filter-by-org query parameter, where:
+         *  - onlyOrgEnabledRegions: true or unset → filter-by-org=enabled
+         *  - onlyOrgEnabledRegions: false → filter-by-org=disabled
+         */
+        if (options !=null && !options.isOnlyOrgEnabledRegions()) {
+            filterByOrgType = FilterByOrgType.DISABLED;
+        }
+        return devopsDbClient
+                .regions()
+                .findAllServerless(RegionType.VECTOR,filterByOrgType)
+                .map(AstraAvailableRegionInfo::new)
+                .toList();
     }
 
     // --------------------

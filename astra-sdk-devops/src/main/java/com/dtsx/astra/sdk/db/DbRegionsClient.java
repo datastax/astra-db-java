@@ -1,6 +1,7 @@
 package com.dtsx.astra.sdk.db;
 
 import com.dtsx.astra.sdk.AbstractApiClient;
+import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
 import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.HttpClientWrapper;
@@ -81,9 +82,10 @@ public class DbRegionsClient extends AbstractApiClient {
      * @return
      *      serverless region
      */
-    public Stream<DatabaseRegionServerless> findAllServerless(RegionType regionType) {
+    public Stream<DatabaseRegionServerless> findAllServerless(RegionType regionType, FilterByOrgType filterByOrg) {
         // Build Path
         String url = ApiLocator.getApiDevopsEndpoint(environment) + PATH_REGIONS_SERVERLESS;
+
         switch (regionType) {
             case ALL:
                 url += "?region-type=all";
@@ -92,13 +94,34 @@ public class DbRegionsClient extends AbstractApiClient {
                 url += "?region-type=vector";
                 break;
             case SERVERLESS:
-            default:
                 break;
         }
+
+        switch (filterByOrg) {
+            case ENABLED ->  {
+                url += "&filter-by-org=enabled";
+            }
+            case DISABLED -> {
+                url += "&filter-by-org=disabled";
+            }
+        }
+
         // Invoke endpoint
         ApiResponseHttp res = GET(url, getOperationName("findServerless"));
         // Marshall response
         return JsonUtils.unmarshallType(res.getBody(), new TypeReference<List<DatabaseRegionServerless>>(){}).stream();
+    }
+
+    /**
+     * List serverless regions.
+     *
+     * @param regionType
+     *      provide the filter you want
+     * @return
+     *      serverless region
+     */
+    public Stream<DatabaseRegionServerless> findAllServerless(RegionType regionType) {
+        return findAllServerless(regionType, FilterByOrgType.DISABLED);
     }
 
     /**

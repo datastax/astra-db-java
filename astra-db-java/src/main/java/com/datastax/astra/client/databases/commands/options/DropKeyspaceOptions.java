@@ -20,13 +20,11 @@ package com.datastax.astra.client.databases.commands.options;
  * #L%
  */
 
-import com.datastax.astra.client.admin.AdminOptions;
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.options.BaseOptions;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * Set of options used when creating a table

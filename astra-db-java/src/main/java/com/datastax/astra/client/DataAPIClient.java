@@ -21,7 +21,7 @@ package com.datastax.astra.client;
  */
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
-import com.datastax.astra.client.admin.AdminOptions;
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;

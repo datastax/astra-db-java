@@ -21,6 +21,7 @@ package com.datastax.astra.client.core.rerank;
  */
 
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import lombok.Data;
 
 import java.util.List;
@@ -105,6 +106,9 @@ public class RerankProvider {
         private String url;
 
         private Boolean isDefault;
+
+        /** Supported model or not */
+        private Map<String, SupportModelStatus> apiModelSupport;
 
         /** Parameters for the model. */
         private List<Parameter> parameters;

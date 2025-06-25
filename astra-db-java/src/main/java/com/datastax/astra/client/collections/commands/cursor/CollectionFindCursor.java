@@ -214,7 +214,7 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
      * Fetches the next batch of documents into the buffer.
      * This method handles paging, using the page state from the previous batch to fetch the next one.
      */
-    public void fetchNextBatch() {
+    public void fetchNextPage() {
         if (currentPage == null) {
             // Searching First Page
             currentPage = dataSource.findPage(filter, collectionFindOptions, getRecordType());
