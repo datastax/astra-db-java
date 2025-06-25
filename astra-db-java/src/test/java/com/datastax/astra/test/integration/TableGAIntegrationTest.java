@@ -45,7 +45,7 @@ import static com.datastax.astra.client.tables.commands.options.CreateTableOptio
 public class TableGAIntegrationTest {
 
     public static final String ASTRA_DB_TOKEN =
-            "AstraCS:PNfjXcyImIviUnrquSdiwlGq:8fa09440482105a921acf86d1ae6e70ebcae9ff2c5e42be62a1b0d451680d055";
+            "1";
     public static final String DB_URL_NON_VECTOR =
             "https://f9754177-52e2-4b66-935e-78cfd0be0042-us-west-2.apps.astra-dev.datastax.com";
     public static final String DB_URL_VECTOR =
