@@ -22,13 +22,8 @@ You can build it locally and install it in your local repository.
    2. [Create a Database](#22-create-a-database)
    3. [Get your credentials](#23-get-your-credentials)
    4. [Create a new project and add the dependency](#24-create-a-new-project-and-add-the-dependency)
-3. [QuickStart with Local Instances]()
-    1. [Start Data Api with DSE](#31-start-data-api-with-dse)
-    2. [Start Data Api with HCD](#32-start-data-api-with-hcd)
-    3. [Data Api Information](#33-datq-api-information) 
-    4. [Using Java client with Local Instance](#34-using-java-client-with-local-instance) 
+3. [QuickStart with Local Instances](#3-quickstart-with-local-instances)
 4. [What's Next](#4-whats-next)
-
    
 ## 1. Installation
 
@@ -219,7 +214,7 @@ mvn quarkus:dev -Dstargate.data-store.ignore-bridge=true -Dstargate.jsonapi.oper
 | **Data API Endpoint** | `/v1/{namespace}`              | Interact with collections of a namespace |
 | **Token Header Key**  | `/v1/{namespace}/{collection}` |Interact with documents of a collection  |
 
-- Create a keyspace call `default_keyspace`
+- Create a keyspace called `default_keyspace`
 
 ```console
 curl --location 'http://localhost:8181//v1' \
@@ -228,38 +223,136 @@ curl --location 'http://localhost:8181//v1' \
 --data '{"createKeyspace":{"name":"default_keyspace"}}'
 ```
 
-- Create a collection with CURL
+- Create a collection `person` with CURL (indexing)
 
-```
+```console
 curl --location 'http://localhost:8181//v1/default_keyspace' \
 --header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
 --header 'Content-Type: application/json' \
 --data '{
   "createCollection": {
-    "name": "collection_jeremy",
+    "name": "collection_person",
     "options": {
     "indexing": {
         "allow": [
-          "property1",
-          "property2"
+          "firstname",
+          "lastname"
         ]
-      },
-      "vector": {
-        "dimension": 5,
-        "metric": "cosine"
       }
     }
   }
 }'
 ```
 
+- List my collection it should be there
+
+```console
+curl --location 'http://localhost:8181//v1/default_keyspace' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data '{
+  "findCollections": {}
+}'
+```
+- Inserts a few documents
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "insertMany": {
+        "documents": [
+            {
+                "_id": 1,
+                "firstname": "Lucas",
+                "lastname": "Hernandez",
+                "age": 22
+            },
+            {
+                "_id": 2,
+                "firstname": "Antoine",
+                "lastname": "Griezmann",
+                "age": 25
+            },
+            {
+                "_id": 3,
+                "firstname": "N'\''Golo",
+                "lastname": "Kanté",
+                "age": 29
+            },
+            {
+                "_id": 4,
+                "firstname": "Tanguy",
+                "lastname": "Ndombele",
+                "age": 24
+            },
+            {
+                "_id": 5,
+                "firstname": "Raphaël",
+                "lastname": "Varane",
+                "age": 10
+            },
+            {
+                "_id": 6,
+                "firstname": "Hugo",
+                "lastname": "Lloris",
+                "age": 41
+            },
+            {
+                "_id": 7,
+                "firstname": "Olivier",
+                "lastname": "Giroud",
+                "age": 36
+            }
+        ]
+    }
+}'
+
+```
+
+- Search on Valid property
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "find": {
+         "filter": {
+           "lastname": "Varane"
+        },
+        "projection": {
+            "lastname": true,
+            "firstname": true
+        },
+        "sort": {"lastname":-1}
+    }
+}'
+```
+
+- Search on inValid property (exception expected)
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "find": {
+         "filter": {
+           "age": 24
+        },
+        "projection": {
+            "lastname": true,
+            "firstname": true
+        },
+        "sort": {"lastname":-1}
+    }
+}'
+```
 
 
-
-
-
-
-### 3.4. Using Java client with Local Instance
+### Using Java client with Local Instance
 
 ```java
 public class QuickStartLocal {
