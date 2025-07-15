@@ -9,9 +9,9 @@ import lombok.Builder;
 import lombok.Data;
 
 import static com.datastax.astra.client.core.query.SortOrder.ASCENDING;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.BOOLEAN;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.BOOLEAN;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.INT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
 
 @Data
 @Builder

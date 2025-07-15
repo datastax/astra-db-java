@@ -22,11 +22,26 @@ package com.datastax.astra.client.admin.options;
 
 import lombok.Data;
 
+/**
+ * Options for finding available regions in Astra.
+ * This class allows users to specify whether to filter regions
+ * based on organization enabled status.
+ */
 @Data
 public class AstraFindAvailableRegionsOptions {
 
+    /**
+     * Flag to indicate whether to return only regions enabled for the organization.
+     * Default is true, meaning only organization enabled regions will be returned.
+     */
     private boolean onlyOrgEnabledRegions = true;
 
+    /**
+     * Constructs an instance of AstraFindAvailableRegionsOptions with default settings.
+     *
+     * @param onlyOrgEnabledRegions
+     *        If true, only regions enabled for the organization will be returned.
+     */
     public AstraFindAvailableRegionsOptions onlyOrgEnabledRegions(boolean onlyOrgEnabledRegions) {
         this.onlyOrgEnabledRegions = onlyOrgEnabledRegions;
         return this;

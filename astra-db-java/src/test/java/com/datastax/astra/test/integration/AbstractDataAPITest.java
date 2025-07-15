@@ -182,6 +182,11 @@ public abstract class AbstractDataAPITest {
         log.info("Table {} dropped", name);
     }
 
+    protected void dropType(String name) {
+        getDatabase().dropType(name);
+        log.info("Table {} dropped", name);
+    }
+
     protected void dropAllCollections() {
         Database db = getDatabase();
         db.listCollectionNames().forEach(db::dropCollection);

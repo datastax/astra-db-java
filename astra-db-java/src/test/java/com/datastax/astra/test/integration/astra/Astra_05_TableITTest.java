@@ -6,7 +6,7 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
@@ -32,7 +32,7 @@ public class Astra_05_TableITTest extends AbstractTableITTest {
         Table<Row> table =  getDatabase().createTable(TABLE_NAME, new TableDefinition()
                 .addColumnText("email")
                 .addColumnText("name")
-                .addColumnVector("vector", new ColumnDefinitionVector()
+                .addColumnVector("vector", new TableColumnDefinitionVector()
                         .dimension(1024)
                         .service( new VectorServiceOptions()
                                 .provider("nvidia")

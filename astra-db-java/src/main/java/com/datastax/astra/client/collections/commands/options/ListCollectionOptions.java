@@ -21,19 +21,38 @@ package com.datastax.astra.client.collections.commands.options;
  */
 
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import static com.datastax.astra.client.core.commands.CommandType.COLLECTION_ADMIN;
 
 /**
  * Options for the listCollection operation.
  */
+@Setter
+@Accessors(fluent = true, chain = true)
 public class ListCollectionOptions extends BaseOptions<ListCollectionOptions> {
+
+    /**
+     * The keyspace to use for the database.
+     */
+    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
 
     /**
      * Default constructor.
      */
     public ListCollectionOptions() {
         super(null, COLLECTION_ADMIN, new DocumentSerializer(), null);
+    }
+
+    /**
+     * Gets keyspace
+     *
+     * @return value of keyspace
+     */
+    public String getKeyspace() {
+        return keyspace;
     }
 }

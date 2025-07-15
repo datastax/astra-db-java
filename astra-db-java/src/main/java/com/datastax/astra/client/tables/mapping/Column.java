@@ -20,15 +20,12 @@ package com.datastax.astra.client.tables.mapping;
  * #L%
  */
 
-import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Annotation to define properties for a database column. This annotation can be used on fields
@@ -51,24 +48,24 @@ public @interface Column {
     /**
      * Specifies the type of the column. If not provided, the field's type will be used.
      *
-     * @return the column type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the column type or {@link TableColumnTypes#UNDEFINED} if not set
      */
-    ColumnTypes type() default ColumnTypes.UNDEFINED;
+    TableColumnTypes type() default TableColumnTypes.UNDEFINED;
 
     /**
      * Specifies the value type of the column, typically used for complex data structures.
-     * If not provided, defaults to {@link ColumnTypes#UNDEFINED}.
+     * If not provided, defaults to {@link TableColumnTypes#UNDEFINED}.
      *
-     * @return the value type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the value type or {@link TableColumnTypes#UNDEFINED} if not set
      */
-    ColumnTypes valueType() default ColumnTypes.UNDEFINED;
+    TableColumnTypes valueType() default TableColumnTypes.UNDEFINED;
 
     /**
      * Specifies the key type of the column, typically used for mapping keys in key-value pairs.
-     * If not provided, defaults to {@link ColumnTypes#UNDEFINED}.
+     * If not provided, defaults to {@link TableColumnTypes#UNDEFINED}.
      *
-     * @return the key type or {@link ColumnTypes#UNDEFINED} if not set
+     * @return the key type or {@link TableColumnTypes#UNDEFINED} if not set
      */
-    ColumnTypes keyType() default ColumnTypes.UNDEFINED;
+    TableColumnTypes keyType() default TableColumnTypes.UNDEFINED;
 
 }

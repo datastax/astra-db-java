@@ -23,7 +23,7 @@ package com.datastax.astra.internal.api;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.DataAPIErrorDescriptor;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -70,12 +70,12 @@ public class DataAPIStatus {
     /**
      * PrimaryKey Schema returned
      */
-    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
+    private LinkedHashMap<String, TableColumnDefinition> primaryKeySchema;
 
     /**
      * PrimaryKey Schema returned
      */
-    private LinkedHashMap<String, ColumnDefinition> projectionSchema;
+    private LinkedHashMap<String, TableColumnDefinition> projectionSchema;
 
     /**
      * Inserted ids.

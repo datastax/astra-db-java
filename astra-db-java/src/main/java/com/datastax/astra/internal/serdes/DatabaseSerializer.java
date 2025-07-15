@@ -40,7 +40,7 @@ import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes
 import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeDeserializer;
 import com.datastax.astra.internal.serdes.collections.CollectionDefaultIdTypeSerializer;
 import com.datastax.astra.internal.serdes.core.AnalyzerSerializer;
@@ -104,8 +104,8 @@ public class DatabaseSerializer implements DataAPISerializer {
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
-            module.addSerializer(ColumnTypes.class, new ColumnTypeSerializer());
-            module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());
+            module.addSerializer(TableColumnTypes.class, new ColumnTypeSerializer());
+            module.addDeserializer(TableColumnTypes.class, new ColumnTypeDeserializer());
             // DefaultId
             module.addSerializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeSerializer());
             module.addDeserializer(CollectionDefaultIdTypes.class, new CollectionDefaultIdTypeDeserializer());

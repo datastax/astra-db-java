@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
@@ -31,7 +31,7 @@ import java.io.IOException;
  * Object Id Could be
  * objectId|uuid|uuidv6|uuidv7
  */
-public class ColumnTypeSerializer extends StdSerializer<ColumnTypes> {
+public class ColumnTypeSerializer extends StdSerializer<TableColumnTypes> {
 
     /**
      * Default constructor.
@@ -45,13 +45,13 @@ public class ColumnTypeSerializer extends StdSerializer<ColumnTypes> {
      * @param t
      *      type
      */
-    public ColumnTypeSerializer(Class<ColumnTypes> t) {
+    public ColumnTypeSerializer(Class<TableColumnTypes> t) {
         super(t);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void serialize(ColumnTypes columnType, JsonGenerator gen, SerializerProvider provider)
+    public void serialize(TableColumnTypes columnType, JsonGenerator gen, SerializerProvider provider)
     throws IOException {
         gen.writeString(columnType.getValue());
     }

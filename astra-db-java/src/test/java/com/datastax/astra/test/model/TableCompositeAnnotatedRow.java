@@ -7,8 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.INT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
 
 @Data
 @EntityTable("table_composite_pk_annotated")

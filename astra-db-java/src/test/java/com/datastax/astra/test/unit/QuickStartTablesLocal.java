@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.INT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
 import static com.datastax.astra.client.tables.commands.options.CreateTableOptions.IF_NOT_EXISTS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 

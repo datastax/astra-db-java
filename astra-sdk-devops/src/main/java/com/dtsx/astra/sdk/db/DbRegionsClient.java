@@ -1,15 +1,14 @@
 package com.dtsx.astra.sdk.db;
 
 import com.dtsx.astra.sdk.AbstractApiClient;
-import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
-import com.dtsx.astra.sdk.db.domain.RegionType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
-import com.dtsx.astra.sdk.utils.HttpClientWrapper;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.dtsx.astra.sdk.db.domain.DatabaseRegion;
 import com.dtsx.astra.sdk.db.domain.DatabaseRegionServerless;
+import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
+import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.ApiResponseHttp;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 
@@ -79,6 +78,8 @@ public class DbRegionsClient extends AbstractApiClient {
      * List serverless regions.
      * @param regionType
      *      provide the filter you want
+     * @param filterByOrg
+     *      define if you want to filter by org enabled or disabled
      * @return
      *      serverless region
      */

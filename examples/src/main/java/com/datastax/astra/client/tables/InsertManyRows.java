@@ -1,23 +1,15 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
-import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
-import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 

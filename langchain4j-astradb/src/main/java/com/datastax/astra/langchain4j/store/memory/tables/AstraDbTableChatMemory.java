@@ -26,7 +26,7 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.ChatMemory;
@@ -71,15 +71,15 @@ public class AstraDbTableChatMemory implements ChatMemory {
         this.filter = eq(AstraDbChatMessage.PROP_CHAT_ID, id);
         if (!db.tableExists(tableName)) {
             TableDefinition definition = new TableDefinition()
-                    .addColumn("chat_id", ColumnTypes.UUID)
-                    .addColumn("message_id", ColumnTypes.UUID)
-                    .addColumn("message_type", ColumnTypes.TEXT)
-                    .addColumn("message_time", ColumnTypes.TIMESTAMP)
-                    .addColumn("text", ColumnTypes.TEXT)
-                    .addColumn("name", ColumnTypes.TEXT)
-                    .addColumnMap("contents",  ColumnTypes.TEXT,  ColumnTypes.TEXT)
-                    .addColumnMap("tools_arguments", ColumnTypes.TEXT,  ColumnTypes.TEXT)
-                    .addColumnMap("tools_name",  ColumnTypes.TEXT,  ColumnTypes.TEXT)
+                    .addColumn("chat_id", TableColumnTypes.UUID)
+                    .addColumn("message_id", TableColumnTypes.UUID)
+                    .addColumn("message_type", TableColumnTypes.TEXT)
+                    .addColumn("message_time", TableColumnTypes.TIMESTAMP)
+                    .addColumn("text", TableColumnTypes.TEXT)
+                    .addColumn("name", TableColumnTypes.TEXT)
+                    .addColumnMap("contents",  TableColumnTypes.TEXT,  TableColumnTypes.TEXT)
+                    .addColumnMap("tools_arguments", TableColumnTypes.TEXT,  TableColumnTypes.TEXT)
+                    .addColumnMap("tools_name",  TableColumnTypes.TEXT,  TableColumnTypes.TEXT)
                     .partitionKey("chat_id")
                     .addPartitionSort(Sort.descending("message_time"))
                     .addPartitionSort(Sort.ascending("message_id"));

@@ -80,6 +80,9 @@ public interface DatabaseAdmin {
      * that provide embeddings for text, images, or other data types. This method returns a map of provider names to
      * {@link EmbeddingProvider} instances, allowing applications to access and utilize the embedding services.
      *
+     * @param options
+     *      Defines options for the operation, such as filtering by model status or other criteria.
+     *
      * <p>Example usage:</p>
      * <pre>
      * {@code
@@ -120,10 +123,15 @@ public interface DatabaseAdmin {
      */
     FindRerankingProvidersResult findRerankingProviders(FindRerankingProvidersOptions options);
 
+    /**
+     * Backward compatible method to retrieve the list of reranking providers available in the current database.
+     *
+     * @return
+     *     list of available providers with default options
+     */
     default FindRerankingProvidersResult findRerankingProviders() {
         return findRerankingProviders(null);
     }
-
 
     /**
      * Asynchronously retrieves a stream of keyspaces names available in the current database. This method facilitates

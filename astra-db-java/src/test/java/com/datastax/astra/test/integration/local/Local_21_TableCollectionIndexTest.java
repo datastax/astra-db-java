@@ -1,17 +1,13 @@
 package com.datastax.astra.test.integration.local;
 
-import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
-import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexMapTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
@@ -19,11 +15,9 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "xxx")
@@ -50,7 +44,7 @@ public class Local_21_TableCollectionIndexTest {
                 .addColumnMap("mapcolumn", TEXT, TEXT)
                 .addColumnSet("setcolumn", TEXT)
                 .addColumnList("listcolumn", TEXT)
-                        .addColumnVector("vectorcolumn", new ColumnDefinitionVector()
+                        .addColumnVector("vectorcolumn", new TableColumnDefinitionVector()
                                 .dimension(1536).metric(SimilarityMetric.DOT_PRODUCT))
                 .partitionKey("name"));
 

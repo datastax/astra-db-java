@@ -20,7 +20,7 @@ package com.datastax.astra.client.tables.commands.results;
  * #L%
  */
 
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -46,9 +46,9 @@ public class TableInsertOneResult {
 
     /**
      * The schema of the primary key as a map, where keys are column names and values are
-     * {@link ColumnDefinition} objects describing the column details.
+     * {@link TableColumnDefinition} objects describing the column details.
      */
-    private LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
+    private LinkedHashMap<String, TableColumnDefinition> primaryKeySchema;
 
     /**
      * No-argument constructor that initializes {@code insertedId} to an empty {@link ArrayList}

@@ -1,3 +1,58 @@
+## Work with local HCD
+
+### Installation
+
+1. Prerequisites: 
+
+- Docker
+- Docker Compose
+- Java 17+
+- Maven
+
+2. Make sure you have the `DATA_API_FOLDER` environment variable set to the root of your local Data API project. 
+ 
+```
+export DATA_API_FOLDER=/Users/cedricklunven/dev/datastax/JAVA/data-api
+```
+
+### Start  
+
+- Start HCD
+
+Locate the `docker-compose` folder and start with `-d`, you do not need the API
+
+```bash
+cd $DATA_API_FOLDER/docker-compose` && start_hcd.sh -d
+```
+
+- Start the Data API
+
+```bash
+cd $DATA_API_FOLDER
+STARGATE_DATA_STORE_SAI_ENABLED=true \
+STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true \
+STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true \
+STARGATE_DATA_STORE_IGNORE_BRIDGE=true \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1 \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost \
+QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE \
+QUARKUS_LOG_LEVEL=INFO \
+JAVA_MAX_MEM_RATIO=75 \
+JAVA_INITIAL_MEM_RATIO=50 \
+GC_CONTAINER_OPTIONS="-XX:+UseG1GC" \
+JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager" \
+mvn quarkus:dev -Dstargate.data-store.ignore-bridge=true -Dstargate.jsonapi.operations.vectorize-enabled=true -Dstargate.jsonapi.operations.database-config.local-datacenter=dc1 -Dquarkus.log.console.darken=2 -Dstargate.feature.flags.tables=true -Dstargate.jsonapi.operations.extend-error=true -Dstargate.feature.flags.reranking=true
+```
+
+- Access HCD with cqlh 
+
+```asciidoc
+docker run -it --rm --network container:$(docker ps | grep hcd | cut -b 1-12) cassandra:latest cqlsh -u cassandra -p cassandra
+```
+
+```asciidoc
+podman exec -it $(podman ps | grep hcd | cut -b 1-12) cqlsh -u cassandra -p cassandra
+```
 
 ## Run against Local HCD Instance 
 (_to run locally your must have the data api running locally on op of HCD or DSE_)

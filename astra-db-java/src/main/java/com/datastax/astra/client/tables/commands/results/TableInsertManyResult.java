@@ -22,7 +22,7 @@ package com.datastax.astra.client.tables.commands.results;
 
 
 import com.datastax.astra.client.collections.definition.documents.Document;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +43,7 @@ public class TableInsertManyResult {
     ArrayList<ArrayList<Object>> insertedIds;
 
     /** Schema on the response. */
-    LinkedHashMap<String, ColumnDefinition> primaryKeySchema;
+    LinkedHashMap<String, TableColumnDefinition> primaryKeySchema;
 
     /** Document Response with flag is there. */
     List<Document> documentResponses;

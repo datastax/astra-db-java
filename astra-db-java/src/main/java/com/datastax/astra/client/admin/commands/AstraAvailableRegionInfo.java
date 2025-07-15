@@ -23,6 +23,14 @@ package com.datastax.astra.client.admin.commands;
 import com.dtsx.astra.sdk.db.domain.DatabaseRegionServerless;
 import lombok.Data;
 
+/**
+ * Information about an available region for Astra DB.
+ * <p>
+ * This class encapsulates details about a specific region where Astra DB can be deployed,
+ * including the region name, cloud provider, display name, zone, classification, and whether
+ * the region is enabled or reserved for qualified users.
+ * </p>
+ */
 @Data
 public class AstraAvailableRegionInfo {
 

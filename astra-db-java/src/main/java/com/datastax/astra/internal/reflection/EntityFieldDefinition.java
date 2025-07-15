@@ -22,7 +22,8 @@ package com.datastax.astra.internal.reflection;
 
 import com.datastax.astra.client.core.query.SortOrder;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldTypes;
 import com.datastax.astra.client.tables.mapping.KeyValue;
 import com.fasterxml.jackson.databind.JavaType;
 import lombok.Data;
@@ -51,9 +52,16 @@ public class EntityFieldDefinition {
 
     // @Column
     private String      columnName;
-    private ColumnTypes columnType;
-    private ColumnTypes valueType;
-    private ColumnTypes keyType;
+    private TableColumnTypes columnType;
+    private TableColumnTypes valueType;
+    private TableColumnTypes keyType;
+
+    // @UdtField
+    private String        udtName;
+    private String        udtFieldName;
+    private TableUserDefinedTypeFieldTypes udtFieldType;
+    private TableUserDefinedTypeFieldTypes udtFieldValueType;
+    private TableUserDefinedTypeFieldTypes udtFieldKeyType;
 
     // @ColumnVector
     private Integer             vectorDimension;

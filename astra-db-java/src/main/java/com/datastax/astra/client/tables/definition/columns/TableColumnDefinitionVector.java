@@ -27,7 +27,7 @@ import lombok.Setter;
 
 /**
  * Represents a column definition for vector-based data.
- * Extends {@link ColumnDefinition} to include properties and methods
+ * Extends {@link TableColumnDefinition} to include properties and methods
  * specific to vector data such as dimension, similarity metric, and vectorization service.
  * <p>
  * This class facilitates the configuration of vector columns in a data schema.
@@ -44,7 +44,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ColumnDefinitionVector extends ColumnDefinition {
+public class TableColumnDefinitionVector extends TableColumnDefinition {
 
     /**
      * The dimension of the vector.
@@ -66,10 +66,10 @@ public class ColumnDefinitionVector extends ColumnDefinition {
 
     /**
      * Constructs a new {@code ColumnDefinitionVector} instance
-     * with the column type set to {@link ColumnTypes#VECTOR}.
+     * with the column type set to {@link TableColumnTypes#VECTOR}.
      */
-    public ColumnDefinitionVector() {
-        super(ColumnTypes.VECTOR);
+    public TableColumnDefinitionVector() {
+        super(TableColumnTypes.VECTOR);
     }
 
     /**
@@ -78,7 +78,7 @@ public class ColumnDefinitionVector extends ColumnDefinition {
      * @param dimension the dimension of the vector
      * @return this {@code ColumnDefinitionVector} instance
      */
-    public ColumnDefinitionVector dimension(int dimension) {
+    public TableColumnDefinitionVector dimension(int dimension) {
         this.dimension = dimension;
         return this;
     }
@@ -89,7 +89,7 @@ public class ColumnDefinitionVector extends ColumnDefinition {
      * @param m the similarity metric
      * @return this {@code ColumnDefinitionVector} instance
      */
-    public ColumnDefinitionVector metric(SimilarityMetric m) {
+    public TableColumnDefinitionVector metric(SimilarityMetric m) {
         this.metric = m;
         return this;
     }
@@ -100,7 +100,7 @@ public class ColumnDefinitionVector extends ColumnDefinition {
      * @param service the vectorization service options
      * @return this {@code ColumnDefinitionVector} instance
      */
-    public ColumnDefinitionVector service(VectorServiceOptions service) {
+    public TableColumnDefinitionVector service(VectorServiceOptions service) {
         this.service = service;
         return this;
     }

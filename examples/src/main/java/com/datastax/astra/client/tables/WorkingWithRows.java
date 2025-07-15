@@ -1,11 +1,10 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 
@@ -24,7 +23,7 @@ public class WorkingWithRows {
     public static void workingWithList() {
         Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
-                .addColumnSet("set_column", ColumnTypes.INT);
+                .addColumnSet("set_column", TableColumnTypes.INT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
         table.insertOne(new Row().addSet("set_column", Set.of(9,8,7)));
     }
@@ -32,7 +31,7 @@ public class WorkingWithRows {
     public static void workingWithSet() {
         Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
-                .addColumnList("list_column", ColumnTypes.TEXT);
+                .addColumnList("list_column", TableColumnTypes.TEXT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
         table.insertOne(new Row().addList("list_column", List.of("Hello", "World")));
     }
@@ -40,7 +39,7 @@ public class WorkingWithRows {
     public static void workingWithMap() {
         Database db = new DataAPIClient("token").getDatabase("endpoint");
         TableDefinition def = new TableDefinition()
-                .addColumnMap("map_column", ColumnTypes.TEXT, ColumnTypes.INT);
+                .addColumnMap("map_column", TableColumnTypes.TEXT, TableColumnTypes.INT);
         Table<Row> table = db.createTable("TABLE_NAME", def);
         table.insertOne(new Row().addMap("map_column", Map.of("key1", 1)));
     }

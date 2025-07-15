@@ -20,11 +20,11 @@ package com.datastax.astra.client.databases;
  * #L%
  */
 
-import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.datastax.astra.client.admin.DataAPIDatabaseAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.CollectionOptions;
 import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
@@ -39,14 +39,22 @@ import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.exceptions.InvalidConfigurationException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.commands.AlterTypeOperation;
+import com.datastax.astra.client.tables.commands.options.AlterTypeOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTypeOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
 import com.datastax.astra.client.tables.commands.options.DropTableOptions;
+import com.datastax.astra.client.tables.commands.options.DropTypeOptions;
 import com.datastax.astra.client.tables.commands.options.ListTablesOptions;
+import com.datastax.astra.client.tables.commands.options.ListTypesOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDescriptor;
 import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedType;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDefinition;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDescriptor;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
@@ -460,6 +468,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      *         according to the provided options.
      */
     public List<String> listCollectionNames(ListCollectionOptions listCollectionOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listCollectionOptions != null && Utils.hasLength(listCollectionOptions.getKeyspace())) {
+            String otherKeyspace = listCollectionOptions.getKeyspace();
+            listCollectionOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listCollectionNames(listCollectionOptions);
+        }
         return runCommand(Command.create("findCollections"), listCollectionOptions)
                 .getStatusKeyAsStringStream("collections")
                 .toList();
@@ -521,6 +538,15 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return A {@link List} of {@link CollectionDescriptor} objects representing the collections that match the criteria.
      */
     public List<CollectionDescriptor> listCollections(ListCollectionOptions listCollectionOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listCollectionOptions != null && Utils.hasLength(listCollectionOptions.getKeyspace())) {
+            String otherKeyspace = listCollectionOptions.getKeyspace();
+            listCollectionOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listCollections(listCollectionOptions);
+        }
         Command findCollections = Command.create("findCollections")
                 .withOptions(new Document().append("explain", true));
         return runCommand(findCollections, listCollectionOptions)
@@ -1176,6 +1202,248 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     // -------------------------------------
+    // ----   Type and Object Mapping    ---
+    // -------------------------------------
+
+    public <T> TableUserDefinedTypeDefinition getType(Class<T> rowClass) {
+        TableUserDefinedType ann = rowClass.getAnnotation(TableUserDefinedType.class);
+        if (ann == null) {
+            InvalidConfigurationException.throwErrorMissingAnnotation(
+                    TableUserDefinedType.class.getSimpleName(),
+                    rowClass.getName(),
+                    "getType(rowClass)");
+        }
+
+        //FIX Es
+        return null;
+    }
+
+    /**
+     * Creates a table using default options and runtime configurations.
+     *
+     * @param <T>       the type of the row objects that the table will hold
+     * @param rowClass  the class representing the row type; must not be null
+     * @return the created table object
+     */
+    public <T> String getTypeName(Class<T> rowClass) {
+        notNull(rowClass, "typeClass");
+        TableUserDefinedType ann = rowClass.getAnnotation(TableUserDefinedType.class);
+        if (ann == null) {
+            throw new IllegalArgumentException("Class " + rowClass.getName() +
+                    " is not annotated with @" + TableUserDefinedType.class.getName());
+        }
+        if (!Utils.hasLength(ann.value())) {
+            throw new IllegalArgumentException("Annotation @Udt on class " + rowClass.getName() + " has no name");
+        }
+        return ann.value();
+    }
+
+    // -------------------------------------
+    // ----       List Types           ----
+    // -------------------------------------
+
+    /**
+     * Retrieves the details of all tables in the database with default options.
+     *
+     * @return A list of {@link TableUserDefinedTypeDescriptor} objects representing all tables in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<TableUserDefinedTypeDescriptor> types = listTypes();
+     * }
+     * </pre>
+     */
+    public List<TableUserDefinedTypeDescriptor> listTypes() {
+        return listTypes(null);
+    }
+
+    /**
+     * Retrieves the details of all types in the database.
+     *
+     * @param listTypesOptions Options for filtering or configuring the types listing operation.
+     * @return A list of {@link TableUserDefinedTypeDescriptor} objects representing all tables in the database.
+     */
+    public List<TableUserDefinedTypeDescriptor> listTypes(ListTypesOptions listTypesOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTypesOptions != null && Utils.hasLength(listTypesOptions.getKeyspace())) {
+            String otherKeyspace = listTypesOptions.getKeyspace();
+            listTypesOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTypes(listTypesOptions);
+        }
+        Command listTypes = Command
+                .create("listTypes")
+                .withOptions(new Document().append("explain", true));
+        return runCommand(listTypes, listTypesOptions)
+                .getStatusKeyAsList("types", TableUserDefinedTypeDescriptor.class);
+    }
+
+    // -------------------------------------
+    // ----       Create Type           ----
+    // -------------------------------------
+
+    /**
+     * Creates a user defined type in the system with the specified parameters.
+     *
+     * @param typeName        the name of the type to be created; must not be null or empty
+     * @param typeDefinition  the schema definition of the type; must not be null
+     * @param createTypeOptions additional options for creating the type; optional, can be null
+     * @throws IllegalArgumentException if any mandatory argument is null or invalid
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * TypeDefinition typeDefinition = new TypeDefinition()
+     *  .addField("field1", FieldTypes.TEXT)
+     *  .addField("field2", FieldTypes.INT);
+     *
+     * db.createType("MyType", typeDefinition, new CreateTypeOptions());
+     * }
+     * </pre>
+     */
+    public void createType(String typeName, TableUserDefinedTypeDefinition typeDefinition, CreateTypeOptions createTypeOptions) {
+        hasLength(typeName, "typeName");
+        notNull(typeDefinition, "typeDefinition");
+
+        // We are on a different keyspace, create the table on that keyspace
+        if (createTypeOptions != null && Utils.hasLength(createTypeOptions.getKeyspace())) {
+            String otherKeyspace = createTypeOptions.getKeyspace();
+            createTypeOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .createType(typeName, typeDefinition, createTypeOptions);
+        }
+
+        Command createType = Command
+                .create("createType")
+                .append("name", typeName)
+                .append("definition", typeDefinition);
+        if (createTypeOptions != null) {
+            createType.append("options", createTypeOptions);
+        }
+        runCommand(createType, createTypeOptions);
+
+    }
+
+    /**
+     * Creates a table with a default row type of {@code Row}.
+     *
+     * @param typeName       the name of the table to be created; must not be null or empty
+     * @param tableUserDefinedTypeDefinition the schema definition of the type; must not be null
+     *
+     */
+    public void createType(String typeName, TableUserDefinedTypeDefinition tableUserDefinedTypeDefinition) {
+        createType(typeName, tableUserDefinedTypeDefinition, new CreateTypeOptions().ifNotExists(true));
+    }
+
+    public <T> void createType(Class<T> UdtBean, CreateTypeOptions createTypeOptions) {
+        notNull(UdtBean, "udtDefinition");
+        TableUserDefinedType ann = UdtBean.getAnnotation(TableUserDefinedType.class);
+        Command createTypeCmd = new Command("createType", EntityBeanDefinition.createTypeCommand(UdtBean));
+        if (createTypeOptions != null) {
+            createTypeCmd.append("options", createTypeOptions);
+        }
+        runCommand(createTypeCmd);
+    }
+
+    // -------------------------------------
+    // ----       Drop Type             ----
+    // -------------------------------------
+
+    /**
+     * Deletes a type from the database.
+     * This method delegates to {@link #dropType(String, DropTypeOptions)}
+     * with default options.
+     *
+     * @param udtName
+     *        the name of the type to be deleted; must not be null or empty.
+     * @throws IllegalArgumentException
+     *         if {@code udtName} is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * database.dropType("exampleUdt");
+     * }
+     * </pre>
+     */
+    public void dropType(String udtName) {
+        dropType(udtName, null);
+    }
+
+    /**
+     * Deletes a type (UDT) from the database with specific options.
+     *
+     * @param udtName
+     *        the name of the user defined type to be deleted; must not be null or empty.
+     * @param dropTypeOptions
+     *        the options to configure the type deletion operation; can be null.
+     * @throws IllegalArgumentException
+     *         if {@code udtName} is null or empty.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * DropTypeOptions options = new DropTypeOptions();
+     * database.dropType("exampleUdt", options);
+     * }
+     * </pre>
+     */
+    public void dropType(String udtName, DropTypeOptions dropTypeOptions) {
+        hasLength(udtName, "udtName");
+
+        // We are on a different keyspace, drop the table on a different keyspace
+        if (dropTypeOptions != null && Utils.hasLength(dropTypeOptions.getKeyspace())) {
+            String otherKeyspace = dropTypeOptions.getKeyspace();
+            dropTypeOptions.keyspace(null);
+            new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .dropType(udtName, dropTypeOptions);
+        } else {
+            // Command on current keyspace
+            Command dropTypeCmd = Command
+                    .create("dropType")
+                    .append("name", udtName);
+            if (dropTypeOptions != null) {
+                dropTypeCmd.withOptions(dropTypeOptions);
+            }
+            runCommand(dropTypeCmd, dropTypeOptions);
+        }
+    }
+
+    // -------------------------------------
+    // ----       Alter Type             ----
+    // -------------------------------------
+
+    /**
+     * Performs an alteration operation on the table with default options.
+     *
+     * <p>This method delegates to {@link #alterType(String, AlterTypeOperation, AlterTypeOptions)}
+     * with {@code options} set to {@code null}.
+     *
+     * @param udtName
+     *      name of the user defined type to be altered; must not be null or empty.
+     * @param operation
+     *      the alteration operation to be performed; must not be {@code null}.
+     */
+    public final void alterType(String udtName, AlterTypeOperation<?,?> operation) {
+        alterType(udtName, operation, null);
+    }
+
+    public final void alterType(String udtName, AlterTypeOperation<?,?> operation, AlterTypeOptions alterTypeOptions) {
+        notNull(operation, "operation");
+        Command alterType = Command.create("alterType")
+                .append("name", udtName)
+                .append(operation.getOperationName(), Map.of("fields", operation.getFields()));
+        runCommand(alterType, alterTypeOptions);
+    }
+
+    // -------------------------------------
     // ----      Create Table           ----
     // -------------------------------------
 
@@ -1395,7 +1663,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         notNull(rowClass, "rowClass");
         EntityTable ann = rowClass.getAnnotation(EntityTable.class);
         if (ann == null) {
-            throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with @Table");
+            throw new IllegalArgumentException("Class " + rowClass.getName() + " is not annotated with  "+ EntityTable.class.getName());
         }
         if (!Utils.hasLength(ann.value())) {
             throw new IllegalArgumentException("Annotation @Table on class " + rowClass.getName() + " has no name");
@@ -1432,7 +1700,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // -------------------------------------
 
     /**
-     * Deletes a collection (table) from the database.
+     * Deletes a table from the database.
      * This method delegates to {@link #dropTable(String, DropTableOptions)}
      * with default options.
      *
@@ -1492,6 +1760,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             runCommand(dropTableCmd, dropTableOptions);
         }
     }
+
     // ------------------------------------------
     // ----   Drop Indexes                    ---
     // ------------------------------------------

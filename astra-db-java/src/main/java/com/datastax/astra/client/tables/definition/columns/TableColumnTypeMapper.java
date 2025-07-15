@@ -21,6 +21,7 @@ package com.datastax.astra.client.tables.definition.columns;
  */
 
 import com.datastax.astra.client.core.vector.DataAPIVector;
+import com.datastax.astra.client.tables.definition.types.TableDataAPIUserDefinedType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -58,68 +59,71 @@ import java.util.UUID;
  *     <li>Default fallback for unsupported types: {@code UNSUPPORTED}</li>
  * </ul>
  */
-public class ColumnTypeMapper {
+public class TableColumnTypeMapper {
 
     /**
-     * A static mapping of Java classes to their corresponding {@link ColumnTypes}.
+     * A static mapping of Java classes to their corresponding {@link TableColumnTypes}.
      */
-    private static final Map<Class<?>, ColumnTypes> typeMapping = new HashMap<>();
+    private static final Map<Class<?>, TableColumnTypes> typeMapping = new HashMap<>();
 
     /**
      * Static initializer block that populates the type mapping.
      */
     static {
         // Primitive and wrapper types
-        typeMapping.put(Integer.class, ColumnTypes.INT);
-        typeMapping.put(int.class, ColumnTypes.INT);
-        typeMapping.put(Long.class, ColumnTypes.BIGINT);
-        typeMapping.put(long.class, ColumnTypes.BIGINT);
-        typeMapping.put(Double.class, ColumnTypes.DOUBLE);
-        typeMapping.put(double.class, ColumnTypes.DOUBLE);
-        typeMapping.put(Float.class, ColumnTypes.FLOAT);
-        typeMapping.put(float.class, ColumnTypes.FLOAT);
-        typeMapping.put(Boolean.class, ColumnTypes.BOOLEAN);
-        typeMapping.put(boolean.class, ColumnTypes.BOOLEAN);
-        typeMapping.put(Byte.class, ColumnTypes.TINYINT);
-        typeMapping.put(byte.class, ColumnTypes.TINYINT);
-        typeMapping.put(Short.class, ColumnTypes.SMALLINT);
-        typeMapping.put(short.class, ColumnTypes.SMALLINT);
+        typeMapping.put(Integer.class, TableColumnTypes.INT);
+        typeMapping.put(int.class, TableColumnTypes.INT);
+        typeMapping.put(Long.class, TableColumnTypes.BIGINT);
+        typeMapping.put(long.class, TableColumnTypes.BIGINT);
+        typeMapping.put(Double.class, TableColumnTypes.DOUBLE);
+        typeMapping.put(double.class, TableColumnTypes.DOUBLE);
+        typeMapping.put(Float.class, TableColumnTypes.FLOAT);
+        typeMapping.put(float.class, TableColumnTypes.FLOAT);
+        typeMapping.put(Boolean.class, TableColumnTypes.BOOLEAN);
+        typeMapping.put(boolean.class, TableColumnTypes.BOOLEAN);
+        typeMapping.put(Byte.class, TableColumnTypes.TINYINT);
+        typeMapping.put(byte.class, TableColumnTypes.TINYINT);
+        typeMapping.put(Short.class, TableColumnTypes.SMALLINT);
+        typeMapping.put(short.class, TableColumnTypes.SMALLINT);
 
         // Commonly used Java types
-        typeMapping.put(String.class, ColumnTypes.TEXT);
-        typeMapping.put(UUID.class, ColumnTypes.UUID);
-        typeMapping.put(BigDecimal.class, ColumnTypes.DECIMAL);
-        typeMapping.put(BigInteger.class, ColumnTypes.VARINT);
-        typeMapping.put(InetAddress.class, ColumnTypes.INET);
+        typeMapping.put(String.class, TableColumnTypes.TEXT);
+        typeMapping.put(UUID.class, TableColumnTypes.UUID);
+        typeMapping.put(BigDecimal.class, TableColumnTypes.DECIMAL);
+        typeMapping.put(BigInteger.class, TableColumnTypes.VARINT);
+        typeMapping.put(InetAddress.class, TableColumnTypes.INET);
 
         // Date and time types
-        typeMapping.put(Instant.class, ColumnTypes.TIMESTAMP);
-        typeMapping.put(LocalDate.class, ColumnTypes.DATE);
-        typeMapping.put(LocalTime.class, ColumnTypes.TIME);
+        typeMapping.put(Instant.class, TableColumnTypes.TIMESTAMP);
+        typeMapping.put(LocalDate.class, TableColumnTypes.DATE);
+        typeMapping.put(LocalTime.class, TableColumnTypes.TIME);
 
         // Collection types
-        typeMapping.put(List.class, ColumnTypes.LIST);
-        typeMapping.put(Set.class, ColumnTypes.SET);
-        typeMapping.put(Map.class, ColumnTypes.MAP);
-        typeMapping.put(DataAPIVector.class, ColumnTypes.VECTOR);
+        typeMapping.put(List.class, TableColumnTypes.LIST);
+        typeMapping.put(Set.class, TableColumnTypes.SET);
+        typeMapping.put(Map.class, TableColumnTypes.MAP);
+        typeMapping.put(DataAPIVector.class, TableColumnTypes.VECTOR);
+
+        // Generic User Defined Types (UDTs)
+        typeMapping.put(TableDataAPIUserDefinedType.class, TableColumnTypes.USER_DEFINED);
 
         // Unsupported or undefined types
-        typeMapping.put(Object.class, ColumnTypes.UNSUPPORTED);
+        typeMapping.put(Object.class, TableColumnTypes.UNSUPPORTED);
     }
 
     /**
      * Private constructor to prevent instantiation.
      */
-    private ColumnTypeMapper() {}
+    private TableColumnTypeMapper() {}
 
     /**
      * Retrieves the Cassandra column type corresponding to the given Java class.
      * If the type is not explicitly mapped, {@code ColumnTypes.UNSUPPORTED} is returned.
      *
      * @param clazz the Java class to map
-     * @return the corresponding {@link ColumnTypes}, or {@code UNSUPPORTED} if the type is not mapped
+     * @return the corresponding {@link TableColumnTypes}, or {@code UNSUPPORTED} if the type is not mapped
      */
-    public static ColumnTypes getColumnType(Class<?> clazz) {
-        return typeMapping.getOrDefault(clazz, ColumnTypes.UNSUPPORTED);
+    public static TableColumnTypes getColumnType(Class<?> clazz) {
+        return typeMapping.getOrDefault(clazz, TableColumnTypes.UNSUPPORTED);
     }
 }

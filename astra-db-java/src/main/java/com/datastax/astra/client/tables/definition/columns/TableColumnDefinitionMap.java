@@ -25,7 +25,7 @@ import lombok.Setter;
 
 /**
  * Represents a column definition for a map type in a database schema.
- * Extends {@link ColumnDefinition} to include specific details about the key and value types
+ * Extends {@link TableColumnDefinition} to include specific details about the key and value types
  * for map columns.
  * <p>
  * This class facilitates the configuration of map columns, allowing specification of
@@ -43,23 +43,23 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ColumnDefinitionMap extends ColumnDefinition {
+public class TableColumnDefinitionMap extends TableColumnDefinition {
 
     /**
      * The data type of the keys in the map.
      */
-    private ColumnTypes keyType;
+    private TableColumnTypes keyType;
 
     /**
      * The data type of the values in the map.
      */
-    private ColumnTypes valueType;
+    private TableColumnTypes valueType;
 
     /**
-     * Constructs a new {@code ColumnDefinitionMap} instance with the column type set to {@link ColumnTypes#MAP}.
+     * Constructs a new {@code ColumnDefinitionMap} instance with the column type set to {@link TableColumnTypes#MAP}.
      */
-    public ColumnDefinitionMap() {
-        super(ColumnTypes.MAP);
+    public TableColumnDefinitionMap() {
+        super(TableColumnTypes.MAP);
     }
 
     /**
@@ -68,7 +68,7 @@ public class ColumnDefinitionMap extends ColumnDefinition {
      * @param keyType   the data type of the keys in the map
      * @param valueType the data type of the values in the map
      */
-    public ColumnDefinitionMap(ColumnTypes keyType, ColumnTypes valueType) {
+    public TableColumnDefinitionMap(TableColumnTypes keyType, TableColumnTypes valueType) {
         this();
         this.keyType = keyType;
         this.valueType = valueType;

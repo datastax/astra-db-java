@@ -22,7 +22,6 @@ package com.datastax.astra.client.tables.definition.columns;
 
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Represents the API support configuration for a column definition.
@@ -58,7 +57,7 @@ import lombok.NoArgsConstructor;
  * </pre>
  */
 @Data
-public class ColumnDefinitionApiSupport {
+public class TableColumnDefinitionApiSupport {
 
     /**
      * Specifies whether the column is included in table creation.
@@ -83,7 +82,7 @@ public class ColumnDefinitionApiSupport {
     /**
      * Default constructor.
      */
-    public ColumnDefinitionApiSupport() {
+    public TableColumnDefinitionApiSupport() {
     }
 
     /**

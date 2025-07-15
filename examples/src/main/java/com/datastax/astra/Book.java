@@ -1,7 +1,7 @@
 package com.datastax.astra;
 
 import com.datastax.astra.client.core.vector.DataAPIVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
@@ -40,7 +40,7 @@ public class Book {
 
     boolean checkedOut;
 
-    @Column(name = "dueDate", type = ColumnTypes.DATE)
+    @Column(name = "dueDate", type = TableColumnTypes.DATE)
     Date dueDate;
 
     @ColumnVector(

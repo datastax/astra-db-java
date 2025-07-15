@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.definition.columns;
+package com.datastax.astra.client.tables.definition.types;
 
 /*-
  * #%L
@@ -20,14 +20,16 @@ package com.datastax.astra.client.tables.definition.columns;
  * #L%
  */
 
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * Represents a column definition for a list type in a database schema.
- * Extends {@link ColumnDefinition} to include details about the type of elements stored in the list.
+ * Extends {@link TableColumnDefinition} to include details about the type of elements stored in the list.
  * <p>
- * This class is used to configure columns of type {@link ColumnTypes#LIST}, allowing the specification
+ * This class is used to configure columns of type {@link TableColumnTypes#LIST}, allowing the specification
  * of the data type for the values stored in the list.
  * </p>
  *
@@ -41,18 +43,18 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ColumnDefinitionList extends ColumnDefinition {
+public class TableUserDefinedTypeFieldDefinitionList extends TableUserDefinedTypeFieldDefinition {
 
     /**
      * The data type of the values stored in the list.
      */
-    private ColumnTypes valueType;
+    private TableUserDefinedTypeFieldTypes valueType;
 
     /**
-     * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link ColumnTypes#LIST}.
+     * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link TableColumnTypes#LIST}.
      */
-    public ColumnDefinitionList() {
-        super(ColumnTypes.LIST);
+    public TableUserDefinedTypeFieldDefinitionList() {
+        super(TableUserDefinedTypeFieldTypes.UNSUPPORTED);
     }
 
     /**
@@ -60,7 +62,7 @@ public class ColumnDefinitionList extends ColumnDefinition {
      *
      * @param valueType the data type of the values in the list
      */
-    public ColumnDefinitionList(ColumnTypes valueType) {
+    public TableUserDefinedTypeFieldDefinitionList(TableUserDefinedTypeFieldTypes valueType) {
         this();
         this.valueType = valueType;
     }

@@ -20,6 +20,8 @@ package com.datastax.astra.client.collections.definition.documents.types;
  * #L%
  */
 
+import com.datastax.astra.internal.serdes.collections.UUID6Serializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.uuid.Generators;
 import com.fasterxml.uuid.impl.UUIDUtil;
 
@@ -29,6 +31,7 @@ import java.util.UUID;
 /**
  * Materializing the UUIDv6 as a specialization class to drive serialization and deserialization.
  */
+@JsonSerialize(using = UUID6Serializer.class)
 public class UUIDv6 {
 
     /**
@@ -78,7 +81,7 @@ public class UUIDv6 {
      *
      * @return the raw 60-bit timestamp value embedded in this UUIDv6
      */
-    public long getTimeStamp() {
+    public long readTimeStamp() {
         return UUIDUtil.extractTimestamp(uuid);
     }
 
@@ -88,8 +91,8 @@ public class UUIDv6 {
      * @return
      *      the timestamp as an Instant
      */
-    public Instant getInstant() {
-        return Instant.ofEpochMilli(getTimeStamp());
+    public Instant readInstant() {
+        return Instant.ofEpochMilli(readTimeStamp());
     }
 
     /** {@inheritDoc} */

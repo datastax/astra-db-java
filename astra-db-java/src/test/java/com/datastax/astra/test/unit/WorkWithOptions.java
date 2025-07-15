@@ -13,8 +13,8 @@ import com.datastax.astra.client.collections.commands.options.ListCollectionOpti
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.TableOptions;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import org.junit.jupiter.api.Test;
@@ -48,11 +48,11 @@ public class WorkWithOptions {
         TableDefinition tableDefinition = new TableDefinition()
                 .addColumnText("match_id")
                 .addColumnInt("round")
-                .addColumnVector("m_vector", new ColumnDefinitionVector().dimension(3).metric(COSINE))
-                .addColumn("score", ColumnTypes.INT)
-                .addColumn("when",  ColumnTypes.TIMESTAMP)
-                .addColumn("winner",  ColumnTypes.TEXT)
-                .addColumnSet("fighters", ColumnTypes.UUID)
+                .addColumnVector("m_vector", new TableColumnDefinitionVector().dimension(3).metric(COSINE))
+                .addColumn("score", TableColumnTypes.INT)
+                .addColumn("when",  TableColumnTypes.TIMESTAMP)
+                .addColumn("winner",  TableColumnTypes.TEXT)
+                .addColumnSet("fighters", TableColumnTypes.UUID)
                 .addPartitionBy("match_id")
                 .addPartitionSort(Sort.ascending("round"));
 

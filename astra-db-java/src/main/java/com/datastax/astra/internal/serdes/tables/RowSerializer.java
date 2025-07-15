@@ -41,7 +41,7 @@ import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.tables.definition.TableDuration;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexColumnDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.HybridLimitsSerializer;
@@ -115,7 +115,7 @@ public class RowSerializer implements DataAPISerializer {
             SimpleModule module = new SimpleModule();
 
             // Serialization
-            module.addSerializer(ColumnTypes.class, new ColumnTypeSerializer());
+            module.addSerializer(TableColumnTypes.class, new ColumnTypeSerializer());
             module.addSerializer(Float.class, new FloatSerializer());
             module.addSerializer(float.class, new FloatSerializer());
             module.addSerializer(Double.class, new DoubleSerializer());
@@ -137,7 +137,7 @@ public class RowSerializer implements DataAPISerializer {
             module.addDeserializer(TableIndexColumnDefinition.class, new TableIndexColumnDefinitionDeserializer());
 
             // De-Serialization
-            module.addDeserializer(ColumnTypes.class, new ColumnTypeDeserializer());
+            module.addDeserializer(TableColumnTypes.class, new ColumnTypeDeserializer());
             module.addDeserializer(Float.class, new FloatDeserializer());
             module.addDeserializer(float.class, new FloatDeserializer());
             module.addDeserializer(Double.class, new DoubleDeserializer());

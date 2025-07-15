@@ -1,6 +1,6 @@
 package com.datastax.astra.tool.loader.rag.sources;
 
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
@@ -12,9 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.BOOLEAN;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.MAP;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.BOOLEAN;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.MAP;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
 
 @Data
 @NoArgsConstructor
@@ -26,10 +26,10 @@ public class RagSource {
     @PartitionBy(0)
     UUID uid = java.util.UUID.randomUUID();
 
-    @Column(name ="created_at", type= ColumnTypes.TIMESTAMP)
+    @Column(name ="created_at", type= TableColumnTypes.TIMESTAMP)
     Instant createdAt = Instant.now();
 
-    @Column(name ="created_by", type=ColumnTypes.UUID)
+    @Column(name ="created_by", type= TableColumnTypes.UUID)
     UUID createdBy;
 
     @Column(name ="name", type= TEXT)
@@ -58,22 +58,22 @@ public class RagSource {
     @Column(name ="error_message", type= TEXT)
     String errorMessage;
 
-    @Column(name ="last_loaded", type=ColumnTypes.TIMESTAMP)
+    @Column(name ="last_loaded", type= TableColumnTypes.TIMESTAMP)
     Instant lastLoaded;
 
-    @Column(name ="expiration_date", type=ColumnTypes.TIMESTAMP)
+    @Column(name ="expiration_date", type= TableColumnTypes.TIMESTAMP)
     Instant expirationDate;
 
     @Column(name ="metadata", type= MAP, keyType = TEXT, valueType = TEXT)
     Map<String, String> metadata = new HashMap<>();
 
-    @Column(name ="binary_data", type=ColumnTypes.BLOB)
+    @Column(name ="binary_data", type= TableColumnTypes.BLOB)
     byte[] binaryData;
 
     @Column(name ="binary_data_md5", type= TEXT)
     String binaryDataMD5;
 
-    @Column(name ="binary_data_size", type=ColumnTypes.BIGINT)
+    @Column(name ="binary_data_size", type= TableColumnTypes.BIGINT)
     Long binaryDataSize;
 
     @Column(name ="is_text", type= BOOLEAN)

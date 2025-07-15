@@ -28,5 +28,19 @@ package com.datastax.astra.client.core.vectorize;
  * - END_OF_LIFE: The provider has reached its end of life and is no longer supported.
  */
 public enum SupportModelStatus {
-    SUPPORTED,DEPRECATED, END_OF_LIFE
+
+    /**
+     * The provider is currently supported and available for use.
+     */
+    SUPPORTED,
+
+    /**
+     * The provider is deprecated and may be removed in future versions.
+     */
+    DEPRECATED,
+
+    /**
+     * The provider has reached its end of life and is no longer supported.
+     */
+    END_OF_LIFE
 }

@@ -22,9 +22,6 @@ package com.datastax.astra.client.tables.definition.columns;
 
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * Represents a column definition in a database schema.
@@ -39,8 +36,8 @@ import lombok.Setter;
  *
  * <p>Fields:</p>
  * <ul>
- *   <li>{@code type} - Specifies the type of the column, represented by {@link ColumnTypes}.</li>
- *   <li>{@code apiSupport} - Provides API support details for the column, defined by {@link ColumnDefinitionApiSupport}.</li>
+ *   <li>{@code type} - Specifies the type of the column, represented by {@link TableColumnTypes}.</li>
+ *   <li>{@code apiSupport} - Provides API support details for the column, defined by {@link TableColumnDefinitionApiSupport}.</li>
  * </ul>
  *
  * <p>Constructors:</p>
@@ -64,16 +61,22 @@ import lombok.Setter;
  * </pre>
  */
 @Data
-public class ColumnDefinition {
+public class TableColumnDefinition {
 
-    private ColumnTypes type;
+    /**
+     * The type of the column.
+     */
+    private TableColumnTypes type;
 
-    private ColumnDefinitionApiSupport apiSupport;
+    /**
+     * API support details for the column when not fully supported by the Data API.
+     */
+    private TableColumnDefinitionApiSupport apiSupport;
 
     /**
      * Default constructor.
      */
-    public ColumnDefinition() {
+    public TableColumnDefinition() {
     }
 
     /**
@@ -81,7 +84,7 @@ public class ColumnDefinition {
      *
      * @param type the column type
      */
-    public ColumnDefinition(ColumnTypes type) {
+    public TableColumnDefinition(TableColumnTypes type) {
         this.type = type;
     }
 

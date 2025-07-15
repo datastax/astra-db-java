@@ -16,8 +16,8 @@ import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -69,17 +69,17 @@ public class UpdateOneExample {
                             .addColumnText("title")
                             .addColumnText("author")
                             .addColumnInt("numberOfPages")
-                            .addColumn("rating", ColumnTypes.FLOAT)
+                            .addColumn("rating", TableColumnTypes.FLOAT)
                             .addColumnInt("publicationYear")
                             .addColumnText("summary")
-                            .addColumnSet("genres", ColumnTypes.TEXT)
-                            .addColumnMap("metadata", ColumnTypes.TEXT, ColumnTypes.TEXT)
+                            .addColumnSet("genres", TableColumnTypes.TEXT)
+                            .addColumnMap("metadata", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
                             .addColumnBoolean("isCheckedOut")
                             .addColumnText("borrower")
-                            .addColumn("dueDate", ColumnTypes.DATE)
+                            .addColumn("dueDate", TableColumnTypes.DATE)
                             .addColumnVector(
                                     "summaryGenresVector",
-                                    new ColumnDefinitionVector()
+                                    new TableColumnDefinitionVector()
                                             .dimension(1024)
                                             .metric(SimilarityMetric.COSINE)
                                             .service(new VectorServiceOptions().provider("nvidia").modelName("NV-Embed-QA")))

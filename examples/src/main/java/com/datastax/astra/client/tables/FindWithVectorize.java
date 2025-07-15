@@ -1,7 +1,6 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Sort;
@@ -13,7 +12,7 @@ import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOption
 import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
@@ -29,7 +28,7 @@ public class FindWithVectorize {
         VectorServiceOptions openAI = new VectorServiceOptions()
                 .provider("openai")
                 .modelName("text-embedding-3-small");
-        ColumnDefinitionVector vectorDef = new ColumnDefinitionVector()
+        TableColumnDefinitionVector vectorDef = new TableColumnDefinitionVector()
                 .dimension(512)
                 .metric(DOT_PRODUCT)
                 .service(openAI); // no provider key we use the header

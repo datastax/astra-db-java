@@ -23,10 +23,13 @@ package com.datastax.astra.internal.reflection;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.exceptions.DataAPIClientException;
 import com.datastax.astra.client.exceptions.ErrorCodesClient;
-import com.datastax.astra.client.exceptions.InvalidConfigurationException;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypeMapper;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedType;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypeMapper;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeField;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldTypeMapper;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldTypes;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
@@ -92,11 +95,13 @@ public class EntityBeanDefinition<T> {
     public EntityBeanDefinition(Class<T> clazz) {
         this.clazz  = clazz;
         this.fields = new HashMap<>();
-
         // Table Name
         EntityTable tableAnn = clazz.getAnnotation(EntityTable.class);
+        TableUserDefinedType tableUserDefinedTypeAnn = clazz.getAnnotation(TableUserDefinedType.class);
         if (tableAnn != null) {
             this.name = tableAnn.value();
+        } else if (tableUserDefinedTypeAnn !=null) {
+            this.name = tableUserDefinedTypeAnn.value();
         } else {
             this.name = clazz.getSimpleName().toLowerCase();
         }
@@ -142,25 +147,42 @@ public class EntityBeanDefinition<T> {
                         .getAnnotation(Column.class);
                 ColumnVector columnVector = annfield.getAnnotated()
                         .getAnnotation(ColumnVector.class);
+                TableUserDefinedTypeField tableUserDefinedTypeField = annfield.getAnnotated()
+                        .getAnnotation(TableUserDefinedTypeField.class);
+
                 if (column != null && columnVector != null) {
                     throw new IllegalArgumentException(String.format("Field '%s' in class '%s' cannot be annotated " +
                             "with both @Column or @ColumnVector", field.getName(), clazz.getName()));
                 }
+                if (tableUserDefinedTypeField != null && (column != null || columnVector != null)) {
+                    throw new IllegalArgumentException(String.format("Field '%s' in class '%s' cannot be annotated " +
+                            "with both @UdtField and @Column or @ColumnVector", field.getName(), clazz.getName()));
+                }
+                if ((column!=null || columnVector!=null) && tableUserDefinedTypeAnn != null) {
+                    throw new IllegalArgumentException(String.format("Field '%s' in class '%s' cannot be annotated " +
+                            "with @Column or @ColumnVector as it is markerd as @Udt, please use @UdtField instead", field.getName(), clazz.getName()));
+                }
+                if (tableUserDefinedTypeField != null && tableAnn != null) {
+                    throw new IllegalArgumentException(String.format("Field '%s' in class '%s' cannot be annotated " +
+                            "with @UdtField as it is marked as @EntityTable, please use @Column/@ColumnVector instead", field.getName(), clazz.getName()));
+                }
+
                 if (column != null) {
                     if (Utils.hasLength(column.name())) {
                         field.setColumnName(column.name());
                     }
-                    if (column.type() != ColumnTypes.UNDEFINED) {
+                    if (column.type() != TableColumnTypes.UNDEFINED) {
                         field.setColumnType(column.type());
                     }
-                    if (column.valueType() != ColumnTypes.UNDEFINED) {
+                    if (column.valueType() != TableColumnTypes.UNDEFINED) {
                         field.setValueType(column.valueType());
                     }
-                    if (column.keyType() != ColumnTypes.UNDEFINED) {
+                    if (column.keyType() != TableColumnTypes.UNDEFINED) {
                         field.setKeyType(column.keyType());
                     }
                 } else if (columnVector != null) {
-                    field.setColumnType(ColumnTypes.VECTOR);
+
+                    field.setColumnType(TableColumnTypes.VECTOR);
                     field.setSimilarityMetric(columnVector.metric());
                     field.setVectorDimension(columnVector.dimension());
                     if (Utils.hasLength(columnVector.name())) {
@@ -181,6 +203,27 @@ public class EntityBeanDefinition<T> {
                     if (columnVector.parameters().length > 0) {
                         field.setVectorParameters(EntityFieldDefinition.toMap(columnVector.parameters()));
                     }
+                } else if (tableUserDefinedTypeField != null) {
+                    if (tableUserDefinedTypeAnn != null) {
+                        field.setUdtName(tableUserDefinedTypeAnn.value());
+                    }
+                    if (Utils.hasLength(tableUserDefinedTypeField.name())) {
+                        field.setUdtFieldName(tableUserDefinedTypeField.name());
+                    } else {
+                        field.setUdtFieldName(field.getName());
+                    }
+                    field.setUdtFieldType(tableUserDefinedTypeField.type());
+                    if (tableUserDefinedTypeField.valueType() != TableUserDefinedTypeFieldTypes.UNDEFINED) {
+                        field.setUdtFieldValueType(tableUserDefinedTypeField.valueType());
+                    }
+                    if (tableUserDefinedTypeField.keyType() != TableUserDefinedTypeFieldTypes.UNDEFINED) {
+                        field.setUdtFieldKeyType(tableUserDefinedTypeField.keyType());
+                    }
+                } else {
+                    // No annotation, using the name as column name
+                    field.setColumnName(field.getName());
+                    // No @UdtField, using the name as UDT field name
+                    field.setUdtFieldName(field.getName());
                 }
 
                 PartitionBy partitionBy = annfield.getAnnotated().getAnnotation(PartitionBy.class);
@@ -257,8 +300,8 @@ public class EntityBeanDefinition<T> {
         }
         List<TableVectorIndexDefinition> idxList = new ArrayList<>();
         bean.getFields().forEach((name, field) -> {
-            ColumnTypes colType = field.getColumnType();
-            if (colType == ColumnTypes.VECTOR) {
+            TableColumnTypes colType = field.getColumnType();
+            if (colType == TableColumnTypes.VECTOR) {
                 TableVectorIndexDefinition idx = new TableVectorIndexDefinition();
                 if (Utils.hasLength(field.getColumnName())) {
                     idx = idx.column(field.getColumnName());
@@ -271,6 +314,37 @@ public class EntityBeanDefinition<T> {
             }
         });
         return idxList;
+    }
+
+    /**
+     * Create a Type command based on the annotated fields.
+     *
+     * @param clazz
+     *      the class
+     * @return
+     *      a document representing the table command
+     */
+    public static Document createTypeCommand(Class<?> clazz) {
+        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
+        Document doc = new Document();
+        doc.append("name", bean.getName());
+        Document definition = new Document();
+        doc.append("definition", definition);
+        Document fields = new Document();
+        bean.getFields().forEach((name, field) -> {
+            Document udtfield = new Document();
+            TableUserDefinedTypeFieldTypes fieldType = field.getUdtFieldType();
+            // No types has been provided, trying to map from Java types
+            if (fieldType == null) {
+                fieldType = TableUserDefinedTypeFieldTypeMapper.getUdtFieldType(field.getType());
+                if (fieldType == TableUserDefinedTypeFieldTypes.UNSUPPORTED) {
+                    throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for field '" + field.getName() + "'");
+                }
+            }
+            udtfield.append(field.getUdtFieldName(), fieldType.getValue());
+        });
+
+        return doc;
     }
 
     /**
@@ -296,18 +370,18 @@ public class EntityBeanDefinition<T> {
         Document columns = new Document();
         bean.getFields().forEach((name, field) -> {
             Document column = new Document();
-            ColumnTypes colType = field.getColumnType();
+            TableColumnTypes colType = field.getColumnType();
             // No types has been provided, trying to map from Java types
             if (colType == null) {
-                colType = ColumnTypeMapper.getColumnType(field.getType());
-                if (colType == ColumnTypes.UNSUPPORTED) {
+                colType = TableColumnTypeMapper.getColumnType(field.getType());
+                if (colType == TableColumnTypes.UNSUPPORTED) {
                     throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for field '" + field.getName() + "'");
                 }
             }
             column.append("type", colType.getValue());
 
             // Vector: Dimension and Metric
-            if (colType == ColumnTypes.VECTOR) {
+            if (colType == TableColumnTypes.VECTOR) {
                 if (field.getVectorDimension() <= 0 || field.getVectorDimension() > 8192 ) {
                     throw new DataAPIClientException(ErrorCodesClient.INVALID_ANNOTATION, "ColumnVector", field.getName(), "dimension is required and must be in between 1 amd 8192");
                 }
@@ -329,11 +403,11 @@ public class EntityBeanDefinition<T> {
             }
 
             // KeyType with MAPS
-            if (colType == ColumnTypes.MAP) {
-                ColumnTypes keyType = field.getKeyType();
+            if (colType == TableColumnTypes.MAP) {
+                TableColumnTypes keyType = field.getKeyType();
                 if (keyType == null) {
-                    keyType = ColumnTypeMapper.getColumnType(field.getGenericKeyType());
-                    if (keyType == ColumnTypes.UNSUPPORTED) {
+                    keyType = TableColumnTypeMapper.getColumnType(field.getGenericKeyType());
+                    if (keyType == TableColumnTypes.UNSUPPORTED) {
                         throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for key in field '" + field.getName() + "'");
                     }
                 }
@@ -341,13 +415,13 @@ public class EntityBeanDefinition<T> {
             }
 
             // ValueType with MAPS, LISTS and SETS
-            if (colType == ColumnTypes.MAP ||
-                colType == ColumnTypes.LIST ||
-                colType == ColumnTypes.SET) {
-                ColumnTypes valueType = field.getValueType();
+            if (colType == TableColumnTypes.MAP ||
+                colType == TableColumnTypes.LIST ||
+                colType == TableColumnTypes.SET) {
+                TableColumnTypes valueType = field.getValueType();
                 if (valueType == null) {
-                    valueType = ColumnTypeMapper.getColumnType(field.getGenericValueType());
-                    if (valueType == ColumnTypes.UNSUPPORTED) {
+                    valueType = TableColumnTypeMapper.getColumnType(field.getGenericValueType());
+                    if (valueType == TableColumnTypes.UNSUPPORTED) {
                         throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for value in field '" + field.getName() + "'");
                     }
                 }

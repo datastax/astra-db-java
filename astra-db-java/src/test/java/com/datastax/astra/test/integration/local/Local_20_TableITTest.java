@@ -1,7 +1,6 @@
 package com.datastax.astra.test.integration.local;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
 import com.datastax.astra.client.core.http.HttpClientOptions;
@@ -33,8 +32,8 @@ import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDuration;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
 import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
@@ -45,11 +44,8 @@ import com.datastax.astra.test.integration.AbstractTableITTest;
 import com.datastax.astra.test.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.model.TableCompositeRow;
 import com.datastax.astra.test.model.TableCompositeRowGenerator;
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.math.BigDecimal;
@@ -157,37 +153,37 @@ public class Local_20_TableITTest extends AbstractTableITTest {
     @Order(4)
     public void shouldCreateTableAllReturns() {
         com.datastax.astra.client.tables.Table<Row> tableAllReturns = getDatabase().createTable(TABLE_ALL_RETURNS, new TableDefinition()
-                .addColumn("p_ascii", ColumnTypes.ASCII)
-                .addColumn("p_bigint", ColumnTypes.BIGINT)
-                .addColumn("p_blob", ColumnTypes.BLOB)
-                .addColumn("p_boolean", ColumnTypes.BOOLEAN)
-                .addColumn("p_date", ColumnTypes.DATE)
-                .addColumn("p_decimal", ColumnTypes.DECIMAL)
-                .addColumn("p_tinyint", ColumnTypes.TINYINT)
-                .addColumn("p_double", ColumnTypes.DOUBLE)
-                .addColumn("p_duration", ColumnTypes.DURATION)
-                .addColumn("p_duration2", ColumnTypes.DURATION)
-                .addColumn("p_float", ColumnTypes.FLOAT)
-                .addColumn("p_int", ColumnTypes.INT)
-                .addColumn("p_inet", ColumnTypes.INET)
-                .addColumn("p_smallint", ColumnTypes.SMALLINT)
-                .addColumn("p_text", ColumnTypes.TEXT)
-                .addColumn("p_text_nulled", ColumnTypes.TEXT)
-                .addColumn("p_text_omitted", ColumnTypes.TEXT)
-                .addColumn("p_time", ColumnTypes.TIME)
-                .addColumn("p_timestamp", ColumnTypes.TIMESTAMP)
-                .addColumn("p_tinyint", ColumnTypes.TINYINT)
-                .addColumn("p_uuid", ColumnTypes.UUID)
-                .addColumn("p_varint", ColumnTypes.VARINT)
-                .addColumnVector("p_vector", new ColumnDefinitionVector()
+                .addColumn("p_ascii", TableColumnTypes.ASCII)
+                .addColumn("p_bigint", TableColumnTypes.BIGINT)
+                .addColumn("p_blob", TableColumnTypes.BLOB)
+                .addColumn("p_boolean", TableColumnTypes.BOOLEAN)
+                .addColumn("p_date", TableColumnTypes.DATE)
+                .addColumn("p_decimal", TableColumnTypes.DECIMAL)
+                .addColumn("p_tinyint", TableColumnTypes.TINYINT)
+                .addColumn("p_double", TableColumnTypes.DOUBLE)
+                .addColumn("p_duration", TableColumnTypes.DURATION)
+                .addColumn("p_duration2", TableColumnTypes.DURATION)
+                .addColumn("p_float", TableColumnTypes.FLOAT)
+                .addColumn("p_int", TableColumnTypes.INT)
+                .addColumn("p_inet", TableColumnTypes.INET)
+                .addColumn("p_smallint", TableColumnTypes.SMALLINT)
+                .addColumn("p_text", TableColumnTypes.TEXT)
+                .addColumn("p_text_nulled", TableColumnTypes.TEXT)
+                .addColumn("p_text_omitted", TableColumnTypes.TEXT)
+                .addColumn("p_time", TableColumnTypes.TIME)
+                .addColumn("p_timestamp", TableColumnTypes.TIMESTAMP)
+                .addColumn("p_tinyint", TableColumnTypes.TINYINT)
+                .addColumn("p_uuid", TableColumnTypes.UUID)
+                .addColumn("p_varint", TableColumnTypes.VARINT)
+                .addColumnVector("p_vector", new TableColumnDefinitionVector()
                         .dimension(3)
                         .metric(COSINE))
-                .addColumnList("p_list_int", ColumnTypes.INT)
-                .addColumnSet("p_set_int", ColumnTypes.INT)
-                .addColumnMap("p_map_text_text", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                .addColumn("p_double_minf", ColumnTypes.DOUBLE)
-                .addColumn("p_double_pinf", ColumnTypes.DOUBLE)
-                .addColumn("p_float_nan", ColumnTypes.FLOAT)
+                .addColumnList("p_list_int", TableColumnTypes.INT)
+                .addColumnSet("p_set_int", TableColumnTypes.INT)
+                .addColumnMap("p_map_text_text", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                .addColumn("p_double_minf", TableColumnTypes.DOUBLE)
+                .addColumn("p_double_pinf", TableColumnTypes.DOUBLE)
+                .addColumn("p_float_nan", TableColumnTypes.FLOAT)
                 .partitionKey("p_ascii", "p_bigint")
                 .clusteringColumns(ascending("p_int"), descending("p_boolean")),
                 new CreateTableOptions().ifNotExists(true));
@@ -214,12 +210,12 @@ public class Local_20_TableITTest extends AbstractTableITTest {
     public void shouldCreateTableAllCassio() {
         assertThat(getDatabase().tableExists(TABLE_CASSIO)).isFalse();
         getDatabase().createTable(TABLE_CASSIO, new TableDefinition()
-                        .addColumn("partition_id", ColumnTypes.TEXT)
-                        .addColumn("attributes_blob", ColumnTypes.TEXT)
-                        .addColumn("body_blob", ColumnTypes.TEXT)
-                        .addColumn("row_id", ColumnTypes.UUID)
-                        .addColumnMap("metadata_s", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                        .addColumnVector("vector", new ColumnDefinitionVector()
+                        .addColumn("partition_id", TableColumnTypes.TEXT)
+                        .addColumn("attributes_blob", TableColumnTypes.TEXT)
+                        .addColumn("body_blob", TableColumnTypes.TEXT)
+                        .addColumn("row_id", TableColumnTypes.UUID)
+                        .addColumnMap("metadata_s", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                        .addColumnVector("vector", new TableColumnDefinitionVector()
                                 .dimension(1536).metric(COSINE))
                         .partitionKey("partition_id")
                         .clusteringColumns(Sort.descending("row_id")));
@@ -414,7 +410,7 @@ public class Local_20_TableITTest extends AbstractTableITTest {
         // Add Column (Vector)
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
         t.alter(new AlterTableAddColumns().addColumnVector("vv",
-                new ColumnDefinitionVector().dimension(1024).metric(COSINE)));
+                new TableColumnDefinitionVector().dimension(1024).metric(COSINE)));
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isTrue();
 
         // Add Vectorize

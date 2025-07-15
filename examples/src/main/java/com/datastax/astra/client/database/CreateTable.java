@@ -6,8 +6,8 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.Game;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
@@ -26,11 +26,11 @@ public class CreateTable {
    .addColumnText("match_id")
    .addColumnInt("round")
    .addColumnVector("m_vector", 
-     new ColumnDefinitionVector().dimension(3).metric(COSINE))
-   .addColumn("score", ColumnTypes.INT)
-   .addColumn("when",  ColumnTypes.TIMESTAMP)
-   .addColumn("winner",  ColumnTypes.TEXT)
-   .addColumnSet("fighters", ColumnTypes.UUID)
+     new TableColumnDefinitionVector().dimension(3).metric(COSINE))
+   .addColumn("score", TableColumnTypes.INT)
+   .addColumn("when",  TableColumnTypes.TIMESTAMP)
+   .addColumn("winner",  TableColumnTypes.TEXT)
+   .addColumnSet("fighters", TableColumnTypes.UUID)
    .addPartitionBy("match_id")
    .addPartitionSort(ascending("round"));
 

@@ -1,4 +1,4 @@
-package com.datastax.astra.client.tables.definition.columns;
+package com.datastax.astra.client.tables.definition.types;
 
 /*-
  * #%L
@@ -20,7 +20,12 @@ package com.datastax.astra.client.tables.definition.columns;
  * #L%
  */
 
+import com.datastax.astra.internal.serdes.tables.UdtFieldTypeDeserializer;
+import com.datastax.astra.internal.serdes.tables.UdtFieldTypeSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Getter;
+
 /**
  * Represents the various column types supported in a database schema.
  * Each column type is associated with a string representation.
@@ -38,7 +43,9 @@ import lombok.Getter;
  * </pre>
  */
 @Getter
-public enum ColumnTypes {
+@JsonSerialize(using = UdtFieldTypeSerializer.class)
+@JsonDeserialize(using = UdtFieldTypeDeserializer.class)
+public enum TableUserDefinedTypeFieldTypes {
 
     /**
      * ASCII string type.
@@ -59,11 +66,6 @@ public enum ColumnTypes {
      * Boolean type, representing true or false values.
      */
     BOOLEAN("boolean"),
-
-    /**
-     * Counter.
-     */
-    COUNTER("counter"),
 
     /**
      * Date type, storing only the date part without a time zone.
@@ -100,20 +102,20 @@ public enum ColumnTypes {
      */
     INT("int"),
 
-    /**
-     * List collection type.
-     */
-    LIST("list"),
-
-    /**
-     * Map collection type, storing key-value pairs.
-     */
-    MAP("map"),
-
-    /**
-     * Set collection type, storing unique elements.
-     */
-    SET("set"),
+//    /**
+//     * List collection type.
+//     */
+//    LIST("list"),
+//
+//    /**
+//     * Map collection type, storing key-value pairs.
+//     */
+//    MAP("map"),
+//
+//    /**
+//     * Set collection type, storing unique elements.
+//     */
+//    SET("set"),
 
     /**
      * 16-bit signed integer.
@@ -163,12 +165,7 @@ public enum ColumnTypes {
     /**
      * Represents an undefined column type.
      */
-    UNDEFINED("undefined"),
-
-    /**
-     * Vector data type, typically used for machine learning or specialized computations.
-     */
-    VECTOR("vector");
+    UNDEFINED("undefined");
 
     /**
      * The string representation of the column type.
@@ -180,7 +177,7 @@ public enum ColumnTypes {
      *
      * @param value the string representation of the column type
      */
-    ColumnTypes(String value) {
+    TableUserDefinedTypeFieldTypes(String value) {
         this.value = value;
     }
 }

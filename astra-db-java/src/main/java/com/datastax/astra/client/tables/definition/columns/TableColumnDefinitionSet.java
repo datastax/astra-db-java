@@ -25,9 +25,9 @@ import lombok.Setter;
 
 /**
  * Represents a column definition for a set type in a database schema.
- * Extends {@link ColumnDefinition} to include details about the type of elements stored in the set.
+ * Extends {@link TableColumnDefinition} to include details about the type of elements stored in the set.
  * <p>
- * This class is used to configure columns of type {@link ColumnTypes#SET}, allowing the specification
+ * This class is used to configure columns of type {@link TableColumnTypes#SET}, allowing the specification
  * of the data type for the values stored in the set.
  * </p>
  *
@@ -40,18 +40,18 @@ import lombok.Setter;
  * </pre>
  */
 @Getter @Setter
-public class ColumnDefinitionSet extends ColumnDefinition {
+public class TableColumnDefinitionSet extends TableColumnDefinition {
 
     /**
      * The data type of the values stored in the set.
      */
-    private ColumnTypes valueType;
+    private TableColumnTypes valueType;
 
     /**
-     * Constructs a new {@code ColumnDefinitionSet} instance with the column type set to {@link ColumnTypes#SET}.
+     * Constructs a new {@code ColumnDefinitionSet} instance with the column type set to {@link TableColumnTypes#SET}.
      */
-    public ColumnDefinitionSet() {
-        super(ColumnTypes.SET);
+    public TableColumnDefinitionSet() {
+        super(TableColumnTypes.SET);
     }
 
     /**
@@ -59,7 +59,7 @@ public class ColumnDefinitionSet extends ColumnDefinition {
      *
      * @param valueType the data type of the values in the set
      */
-    public ColumnDefinitionSet(ColumnTypes valueType) {
+    public TableColumnDefinitionSet(TableColumnTypes valueType) {
         this();
         this.valueType = valueType;
     }

@@ -15,12 +15,11 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.Set;
 
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.INT;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.SET;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TEXT;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.TIMESTAMP;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.UUID;
-import static com.datastax.astra.client.tables.definition.columns.ColumnTypes.VECTOR;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.INT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.SET;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TEXT;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.TIMESTAMP;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.UUID;
 
 @Data
 @EntityTable("game_ann1")

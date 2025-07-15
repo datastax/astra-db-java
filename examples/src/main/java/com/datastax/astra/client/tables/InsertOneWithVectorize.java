@@ -1,14 +1,13 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
@@ -23,7 +22,7 @@ public class InsertOneWithVectorize {
         VectorServiceOptions openAI = new VectorServiceOptions()
                 .provider("openai")
                 .modelName("text-embedding-3-small");
-        ColumnDefinitionVector vectorDef = new ColumnDefinitionVector()
+        TableColumnDefinitionVector vectorDef = new TableColumnDefinitionVector()
                 .dimension(512)
                 .metric(DOT_PRODUCT)
                 .service(openAI); // no provider key we use the header

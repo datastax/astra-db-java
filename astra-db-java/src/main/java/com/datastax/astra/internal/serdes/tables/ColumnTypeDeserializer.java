@@ -20,7 +20,7 @@ package com.datastax.astra.internal.serdes.tables;
  * #L%
  */
 
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * Custom deserializer for EJson Date type.
  */
-public class ColumnTypeDeserializer extends JsonDeserializer<ColumnTypes> {
+public class ColumnTypeDeserializer extends JsonDeserializer<TableColumnTypes> {
 
     /**
      * Default constructor.
@@ -42,10 +42,10 @@ public class ColumnTypeDeserializer extends JsonDeserializer<ColumnTypes> {
 
     /** {@inheritDoc} */
     @Override
-    public ColumnTypes deserialize(JsonParser jp, DeserializationContext ctxt)
+    public TableColumnTypes deserialize(JsonParser jp, DeserializationContext ctxt)
     throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        return ColumnTypes.valueOf(node.asText().toUpperCase());
+        return TableColumnTypes.valueOf(node.asText().toUpperCase());
     }
 
 }

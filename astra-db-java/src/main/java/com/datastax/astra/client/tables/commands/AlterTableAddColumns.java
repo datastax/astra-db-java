@@ -20,19 +20,16 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionList;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionMap;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionSet;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionList;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionMap;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionSet;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.LinkedHashMap;
-
-import static com.datastax.astra.client.tables.Table.DEFAULT_TABLE_SERIALIZER;
 
 /**
  * Represents an operation to add columns to an existing table in a database schema.
@@ -64,7 +61,7 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * A map of column names to their definitions.
      * The map preserves the order of added columns.
      */
-    LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
+    LinkedHashMap<String, TableColumnDefinition> columns = new LinkedHashMap<>();
 
     /**
      * Constructs a new {@code AlterTableAddColumns} instance.
@@ -90,19 +87,19 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @param type the type of the column.
      * @return the current instance for chaining.
      */
-    public AlterTableAddColumns addColumn(String name, ColumnTypes type) {
-        columns.put(name, new ColumnDefinition(type));
+    public AlterTableAddColumns addColumn(String name, TableColumnTypes type) {
+        columns.put(name, new TableColumnDefinition(type));
         return this;
     }
 
     /**
-     * Adds a column defined by a {@link ColumnDefinitionVector}.
+     * Adds a column defined by a {@link TableColumnDefinitionVector}.
      *
      * @param name the name of the column.
      * @param cdv  the column definition vector.
      * @return the current instance for chaining.
      */
-    public AlterTableAddColumns addColumnVector(String name, ColumnDefinitionVector cdv) {
+    public AlterTableAddColumns addColumnVector(String name, TableColumnDefinitionVector cdv) {
         columns.put(name, cdv);
         return this;
     }
@@ -114,7 +111,7 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @return the current instance for chaining.
      */
     public AlterTableAddColumns addColumnText(String name) {
-        return addColumn(name, ColumnTypes.TEXT);
+        return addColumn(name, TableColumnTypes.TEXT);
     }
 
     /**
@@ -124,7 +121,7 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @return the current instance for chaining.
      */
     public AlterTableAddColumns addColumnInt(String name) {
-        return addColumn(name, ColumnTypes.INT);
+        return addColumn(name, TableColumnTypes.INT);
     }
 
     /**
@@ -134,7 +131,7 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @return the current instance for chaining.
      */
     public AlterTableAddColumns addColumnBoolean(String name) {
-        return addColumn(name, ColumnTypes.BOOLEAN);
+        return addColumn(name, TableColumnTypes.BOOLEAN);
     }
 
     /**
@@ -144,8 +141,8 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @param valueType the type of the values in the list.
      * @return the current instance for chaining.
      */
-    public AlterTableAddColumns addColumnList(String name, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionList(valueType));
+    public AlterTableAddColumns addColumnList(String name, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionList(valueType));
         return this;
     }
 
@@ -156,8 +153,8 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @param valueType the type of the values in the set.
      * @return the current instance for chaining.
      */
-    public AlterTableAddColumns addColumnSet(String name, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionSet(valueType));
+    public AlterTableAddColumns addColumnSet(String name, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionSet(valueType));
         return this;
     }
 
@@ -169,8 +166,8 @@ public final class AlterTableAddColumns implements AlterTableOperation {
      * @param valueType the type of the values in the map.
      * @return the current instance for chaining.
      */
-    public AlterTableAddColumns addColumnMap(String name, ColumnTypes keyType, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionMap(keyType, valueType));
+    public AlterTableAddColumns addColumnMap(String name, TableColumnTypes keyType, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionMap(keyType, valueType));
         return this;
     }
 }

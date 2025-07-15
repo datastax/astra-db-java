@@ -5,8 +5,8 @@ import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.tool.loader.rag.ingestion.RagEmbeddingsModels;
@@ -26,59 +26,59 @@ public class RagStore {
 
     public static final String INDEX_NAME_PREFIX = "idx_embeddings_";
 
-    @Column(name ="source_id", type=ColumnTypes.UUID)
+    @Column(name ="source_id", type= TableColumnTypes.UUID)
     UUID sourceId;
 
-    @Column(name ="job_id", type=ColumnTypes.UUID)
+    @Column(name ="job_id", type= TableColumnTypes.UUID)
     UUID jobId;
 
     // Could be a metadata later on
-    @Column(name ="contact°id", type=ColumnTypes.UUID)
+    @Column(name ="contact°id", type= TableColumnTypes.UUID)
     UUID contactId;
 
-    @Column(name ="created_at", type= ColumnTypes.TIMESTAMP)
+    @Column(name ="created_at", type= TableColumnTypes.TIMESTAMP)
     Instant createdAt = Instant.now();
 
-    @Column(name ="chunk_idx", type= ColumnTypes.INT)
+    @Column(name ="chunk_idx", type= TableColumnTypes.INT)
     Integer chunkIdx = 0;
 
-    @Column(name ="chunk_md5", type= ColumnTypes.TEXT)
+    @Column(name ="chunk_md5", type= TableColumnTypes.TEXT)
     String chunkMd5;
 
-    @Column(name ="embedded", type= ColumnTypes.TEXT)
+    @Column(name ="embedded", type= TableColumnTypes.TEXT)
     String embedded;
 
-    @Column(name ="language", type= ColumnTypes.TEXT)
+    @Column(name ="language", type= TableColumnTypes.TEXT)
     String language;
 
-    @Column(name ="embeddings", type= ColumnTypes.VECTOR)
+    @Column(name ="embeddings", type= TableColumnTypes.VECTOR)
     DataAPIVector embeddings;
 
-    @Column(name ="context", type= ColumnTypes.TEXT)
+    @Column(name ="context", type= TableColumnTypes.TEXT)
     String context;
 
-    @Column(name ="questions", type= ColumnTypes.SET, valueType = ColumnTypes.TEXT)
+    @Column(name ="questions", type= TableColumnTypes.SET, valueType = TableColumnTypes.TEXT)
     Set<String> questions;
 
-    @Column(name ="metadata", type= ColumnTypes.SET, valueType = ColumnTypes.TEXT)
+    @Column(name ="metadata", type= TableColumnTypes.SET, valueType = TableColumnTypes.TEXT)
     Map<String, String> metadata;
 
-    @Column(name ="tags", type= ColumnTypes.SET, valueType = ColumnTypes.TEXT)
+    @Column(name ="tags", type= TableColumnTypes.SET, valueType = TableColumnTypes.TEXT)
     Set<String> tags;
     public static TableDefinition getTableDefinition(int dimension, VectorServiceOptions vso) {
         return new TableDefinition()
-                .addColumn("source_id", ColumnTypes.UUID)
-                .addColumn("job_id", ColumnTypes.UUID)
+                .addColumn("source_id", TableColumnTypes.UUID)
+                .addColumn("job_id", TableColumnTypes.UUID)
                 .addColumnTimestamp("created_at")
                 .addColumnInt("chunk_idx")
                 .addColumnText("chunk_md5")
                 .addColumnText("embedded")
                 .addColumnText("context")
                 .addColumnText("language")
-                .addColumnSet("questions", ColumnTypes.TEXT)
-                .addColumnMap("metadata", ColumnTypes.TEXT, ColumnTypes.TEXT)
-                .addColumnSet("tags", ColumnTypes.TEXT)
-                .addColumnVector("embeddings", new ColumnDefinitionVector()
+                .addColumnSet("questions", TableColumnTypes.TEXT)
+                .addColumnMap("metadata", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                .addColumnSet("tags", TableColumnTypes.TEXT)
+                .addColumnVector("embeddings", new TableColumnDefinitionVector()
                         .dimension(dimension)
                         .metric(SimilarityMetric.COSINE)
                         .service(vso)) // nullable

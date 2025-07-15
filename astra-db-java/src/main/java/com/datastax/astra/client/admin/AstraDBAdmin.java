@@ -130,6 +130,16 @@ public class AstraDBAdmin {
     // -- Regions       ---
     // --------------------
 
+    /**
+     * Find all available regions for vector databases.
+     * This method will return all regions, including the ones that are not enabled for the current organization.
+     *
+     * @param options
+     *     options to filter the regions, such as onlyOrgEnabledRegions
+     *
+     * @return
+     *      list of available regions
+     */
     public List<AstraAvailableRegionInfo> findAvailableRegions(AstraFindAvailableRegionsOptions options) {
         FilterByOrgType filterByOrgType = FilterByOrgType.ENABLED;
         /*

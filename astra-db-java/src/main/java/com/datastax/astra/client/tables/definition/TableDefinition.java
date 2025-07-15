@@ -21,12 +21,12 @@ package com.datastax.astra.client.tables.definition;
  */
 
 import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionList;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionMap;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionSet;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinitionVector;
-import com.datastax.astra.client.tables.definition.columns.ColumnTypes;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionList;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionMap;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionSet;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import com.datastax.astra.internal.utils.Assert;
 import lombok.Data;
@@ -43,7 +43,7 @@ public class TableDefinition {
     /**
      * The columns of the table.
      */
-    private LinkedHashMap<String, ColumnDefinition> columns = new LinkedHashMap<>();
+    private LinkedHashMap<String, TableColumnDefinition> columns = new LinkedHashMap<>();
 
     /**
      * The primary key of the table.
@@ -64,7 +64,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      * @throws IllegalArgumentException if {@code columnName} is null
      */
-    public TableDefinition addColumn(String columnName, ColumnDefinition columnDefinition) {
+    public TableDefinition addColumn(String columnName, TableColumnDefinition columnDefinition) {
         Assert.notNull(columnName, "Column columnName");
         columns.put(columnName, columnDefinition);
         return this;
@@ -77,8 +77,8 @@ public class TableDefinition {
      * @param type the type of the column
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumn(String name, ColumnTypes type) {
-        columns.put(name, new ColumnDefinition(type));
+    public TableDefinition addColumn(String name, TableColumnTypes type) {
+        columns.put(name, new TableColumnDefinition(type));
         return this;
     }
 
@@ -89,7 +89,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnUuid(String name) {
-        return addColumn(name, ColumnTypes.UUID);
+        return addColumn(name, TableColumnTypes.UUID);
     }
 
     /**
@@ -99,7 +99,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnText(String name) {
-        return addColumn(name, ColumnTypes.TEXT);
+        return addColumn(name, TableColumnTypes.TEXT);
     }
 
     /**
@@ -109,7 +109,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnAscii(String name) {
-        return addColumn(name, ColumnTypes.ASCII);
+        return addColumn(name, TableColumnTypes.ASCII);
     }
 
     /**
@@ -119,7 +119,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnInt(String name) {
-        return addColumn(name, ColumnTypes.INT);
+        return addColumn(name, TableColumnTypes.INT);
     }
 
     /**
@@ -129,7 +129,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnTimestamp(String name) {
-        return addColumn(name, ColumnTypes.TIMESTAMP);
+        return addColumn(name, TableColumnTypes.TIMESTAMP);
     }
 
     /**
@@ -139,7 +139,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnBoolean(String name) {
-        return addColumn(name, ColumnTypes.BOOLEAN);
+        return addColumn(name, TableColumnTypes.BOOLEAN);
     }
 
     /**
@@ -149,7 +149,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnBigInt(String name) {
-        return addColumn(name, ColumnTypes.BIGINT);
+        return addColumn(name, TableColumnTypes.BIGINT);
     }
 
     /**
@@ -159,7 +159,7 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumnBlob(String name) {
-        return addColumn(name, ColumnTypes.BLOB);
+        return addColumn(name, TableColumnTypes.BLOB);
     }
 
     /**
@@ -169,8 +169,8 @@ public class TableDefinition {
      * @param valueType the type of the elements in the list
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumnList(String name, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionList(valueType));
+    public TableDefinition addColumnList(String name, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionList(valueType));
         return this;
     }
 
@@ -181,8 +181,8 @@ public class TableDefinition {
      * @param valueType the type of the elements in the set
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumnSet(String name, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionSet(valueType));
+    public TableDefinition addColumnSet(String name, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionSet(valueType));
         return this;
     }
 
@@ -194,8 +194,8 @@ public class TableDefinition {
      * @param valueType the type of the values in the map
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumnMap(String name, ColumnTypes keyType, ColumnTypes valueType) {
-        columns.put(name, new ColumnDefinitionMap(keyType, valueType));
+    public TableDefinition addColumnMap(String name, TableColumnTypes keyType, TableColumnTypes valueType) {
+        columns.put(name, new TableColumnDefinitionMap(keyType, valueType));
         return this;
     }
 
@@ -206,7 +206,7 @@ public class TableDefinition {
      * @param colDefVector the definition of the vector column
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumnVector(String name, ColumnDefinitionVector colDefVector) {
+    public TableDefinition addColumnVector(String name, TableColumnDefinitionVector colDefVector) {
         columns.put(name, colDefVector);
         return this;
     }

@@ -1,11 +1,10 @@
 package com.datastax.astra.client.tables;
 
 import com.datastax.astra.client.DataAPIClient;
-import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
-import com.datastax.astra.client.tables.definition.columns.ColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.time.Instant;
@@ -28,7 +27,7 @@ public class InsertRow {
      .addSet("fighters", Set.of(UUID.fromString("0193539a-2770-8c09-a32a-111111111111"))));
 
    List<Object> youPk = result.getInsertedId();
-   Map<String, ColumnDefinition> yourPkSchema = result.getPrimaryKeySchema();
+   Map<String, TableColumnDefinition> yourPkSchema = result.getPrimaryKeySchema();
 
    // Leveraging object mapping
    Game match1 = new Game()
