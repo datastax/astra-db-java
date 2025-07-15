@@ -4,18 +4,6 @@
 [![License Apache2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/com.datastax.astra/astra-db-java)](https://search.maven.org/artifact/com.datastax.astra/astra-db-java)
 
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=clun_db-java)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=sqale_rating)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=bugs)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=vulnerabilities)](https://sonarcloud.io/summary/overall?id=clun_astra-db-java)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=clun_astra-db-java&metric=coverage)](https://sonarcloud.io/summary/new_code?id=clun_astra-db-java)
-
-
 This client library provides a simplified way to interact with Data API for AstraDB or local instances. For detailed documentation, each operation comes with a detailed description and examples.
 
 - [`astra-db-ts`](https://github.com/datastax/astra-db-ts) is the equivalent for typescript
@@ -34,13 +22,8 @@ You can build it locally and install it in your local repository.
    2. [Create a Database](#22-create-a-database)
    3. [Get your credentials](#23-get-your-credentials)
    4. [Create a new project and add the dependency](#24-create-a-new-project-and-add-the-dependency)
-3. [QuickStart with Local Instances]()
-    1. [Start Data Api with DSE](#31-start-data-api-with-dse)
-    2. [Start Data Api with HCD](#32-start-data-api-with-hcd)
-    3. [Datq Api Information](#33-datq-api-information) 
-    4. [Using Java client with Local Instance](#34-using-java-client-with-local-instance) 
+3. [QuickStart with Local Instances](#3-quickstart-with-local-instances)
 4. [What's Next](#4-whats-next)
-
    
 ## 1. Installation
 
@@ -184,36 +167,36 @@ public class GettingStarted {
 
 ## 3. QuickStart with Local Instances
 
-### 3.1. Start Data Api with DSE
+> Prequisite. You need HCD, DSE or CASSANDRA running on your machine and listening on `9042`. One good way is to run HCD as a docker image following the instruction [here](https://github.com/stargate/data-api/tree/main/docker-compose).
 
-- Start the 2 containers with the following command:
+### 3.1 Start Data API
 
-```console
-docker-compose up -d
+- Clone the repository
+```
+git clone git@github.com:stargate/data-api.git
 ```
 
-### 3.2. Start Data Api with HCD
+- Access the folder and start the data API. Note that we position cassandra endpoint to `localhost` and datacenter to `dc1`.
 
 ```
-docker-compose -f docker-compose-hcd.yml up -d
+cd data-api
+
+STARGATE_DATA_STORE_SAI_ENABLED=true \
+STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true \
+STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true \
+STARGATE_DATA_STORE_IGNORE_BRIDGE=true \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1 \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost \
+QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE \
+QUARKUS_LOG_LEVEL=INFO \
+JAVA_MAX_MEM_RATIO=75 \
+JAVA_INITIAL_MEM_RATIO=50 \
+GC_CONTAINER_OPTIONS="-XX:+UseG1GC" \
+JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager" \
+mvn quarkus:dev -Dstargate.data-store.ignore-bridge=true -Dstargate.jsonapi.operations.vectorize-enabled=true -Dstargate.jsonapi.operations.database-config.local-datacenter=dc1 -Dquarkus.log.console.darken=2 -Dstargate.feature.flags.tables=true -Dstargate.jsonapi.operations.extend-error=true -Dstargate.feature.flags.reranking=true
 ```
 
-- Check the status of the containers with the following command:
-
-```console
-docker-compose ps
-```
-
-### 3.3. Datq Api Information
-
-> _Output_
-> ```console
-> NAME                          IMAGE                                           COMMAND                
-> astra-db-java-coordinator-1   stargateio/coordinator-dse-next:v2.1.0-BETA-9   "./starctl"             
-> astra-db-java-jsonapi-1       stargateio/jsonapi:v1.0.6         
-> ```
-
-- Here are the information to connect to the local instance:
+- To check the Data API is running
 
 | Field                                      | Description                                                                             |
 |--------------------------------------------|-----------------------------------------------------------------------------------------|
@@ -231,22 +214,145 @@ docker-compose ps
 | **Data API Endpoint** | `/v1/{namespace}`              | Interact with collections of a namespace |
 | **Token Header Key**  | `/v1/{namespace}/{collection}` |Interact with documents of a collection  |
 
-- Sample curl to create a namespace:
+- Create a keyspace called `default_keyspace`
 
 ```console
-curl -X 'POST' \
-  'http://localhost:8181/v1' \
-  -H 'accept: application/json' \
-  -H 'Token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "createNamespace": {
-    "name": "default_keyspace"
+curl --location 'http://localhost:8181//v1' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data '{"createKeyspace":{"name":"default_keyspace"}}'
+```
+
+- Create a collection `person` with CURL (indexing)
+
+```console
+curl --location 'http://localhost:8181//v1/default_keyspace' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data '{
+  "createCollection": {
+    "name": "collection_person",
+    "options": {
+    "indexing": {
+        "allow": [
+          "firstname",
+          "lastname"
+        ]
+      }
+    }
   }
 }'
 ```
 
-### 3.4. Using Java client with Local Instance
+- List my collection it should be there
+
+```console
+curl --location 'http://localhost:8181//v1/default_keyspace' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data '{
+  "findCollections": {}
+}'
+```
+- Inserts a few documents
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "insertMany": {
+        "documents": [
+            {
+                "_id": 1,
+                "firstname": "Lucas",
+                "lastname": "Hernandez",
+                "age": 22
+            },
+            {
+                "_id": 2,
+                "firstname": "Antoine",
+                "lastname": "Griezmann",
+                "age": 25
+            },
+            {
+                "_id": 3,
+                "firstname": "N'\''Golo",
+                "lastname": "Kanté",
+                "age": 29
+            },
+            {
+                "_id": 4,
+                "firstname": "Tanguy",
+                "lastname": "Ndombele",
+                "age": 24
+            },
+            {
+                "_id": 5,
+                "firstname": "Raphaël",
+                "lastname": "Varane",
+                "age": 10
+            },
+            {
+                "_id": 6,
+                "firstname": "Hugo",
+                "lastname": "Lloris",
+                "age": 41
+            },
+            {
+                "_id": 7,
+                "firstname": "Olivier",
+                "lastname": "Giroud",
+                "age": 36
+            }
+        ]
+    }
+}'
+
+```
+
+- Search on Valid property
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "find": {
+         "filter": {
+           "lastname": "Varane"
+        },
+        "projection": {
+            "lastname": true,
+            "firstname": true
+        },
+        "sort": {"lastname":-1}
+    }
+}'
+```
+
+- Search on inValid property (exception expected)
+
+```console
+curl --location 'http://localhost:8181/v1/default_keyspace/collection_person' \
+--header 'token: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "find": {
+         "filter": {
+           "age": 24
+        },
+        "projection": {
+            "lastname": true,
+            "firstname": true
+        },
+        "sort": {"lastname":-1}
+    }
+}'
+```
+
+
+### Using Java client with Local Instance
 
 ```java
 public class QuickStartLocal {
