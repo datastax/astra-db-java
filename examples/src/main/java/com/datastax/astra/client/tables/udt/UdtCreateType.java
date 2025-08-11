@@ -21,23 +21,18 @@ public class UdtCreateType {
         return client.getDatabase(url, keyspace);
     }
 
-    public static Database getAstraDatabase(String apiEndpoint, String astraToken, String keyspace) {
-        return new DataAPIClient(astraToken).getDatabase(apiEndpoint, keyspace);
-    }
-
     public static void main(String[] args) {
+        // Create a UDT
+        TableUserDefinedTypeDefinition typeDefinition = new TableUserDefinedTypeDefinition()
+                .addFieldText("name")
+                .addFieldBoolean("is_active")
+                .addFieldDate("date_joined");
 
         Database database = getHCDDatabase(
                 "http://localhost:8181",
                 "cassandra",
                 "cassandra",
                 "quickstart_keyspace");
-
-        // Create a UDT
-        TableUserDefinedTypeDefinition typeDefinition = new TableUserDefinedTypeDefinition()
-                .addFieldText("name")
-                .addFieldBoolean("is_active")
-                .addFieldDate("date_joined");
 
         database.createType("member", typeDefinition,  CreateTypeOptions.IF_NOT_EXISTS);
     }

@@ -29,12 +29,6 @@ public class UdtDropType {
                 "cassandra",
                 "quickstart_keyspace");
 
-        // Create a UDT
-        TableUserDefinedTypeDefinition typeDefinition = new TableUserDefinedTypeDefinition()
-                .addFieldText("name")
-                .addFieldBoolean("is_active")
-                .addFieldDate("date_joined");
-
         database.dropType("member",  DropTypeOptions.IF_EXISTS);
     }
 }

@@ -5,6 +5,8 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
+import com.datastax.astra.client.tables.commands.AlterTableOperation;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 
@@ -31,16 +33,10 @@ public class UdtAlterTable {
                 "cassandra",
                 "quickstart_keyspace");
 
-        TableDefinition tableDefinition = new TableDefinition()
-          .addColumnText("email")
-          .addColumnText("name")
-          // Given an Existing type 'member'
-          .addColumnUserDefinedType("my_member", "member")
-          .addColumnListUserDefinedType("my_member_list", "member")
-          .addColumnSetUserDefinedType("my_member_set", "member")
-          .addColumnMapUserDefinedType("my_member_map", "member", TableColumnTypes.TEXT)
-          .partitionKey("email");
-
-        database.createTable("members_table",tableDefinition, IF_NOT_EXISTS);
+        database.getTable("members_table")
+                .alter(new AlterTableAddColumns()
+                        .addColumnUserDefinedType("member_x", "member")
+                        .addColumnListUserDefinedType("my_member_list_x", "member")
+                );
     }
 }

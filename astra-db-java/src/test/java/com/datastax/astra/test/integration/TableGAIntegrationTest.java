@@ -329,8 +329,12 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_alter_table_with_udts() {
-        //getQuickStartDatabase().getTable("demo_table_with_udts_3").alter(new
-        //    AlterTableAddColumns()
+        getQuickStartDatabase()
+                .getTable("demo_table_with_udts_3")
+                .alter(new AlterTableAddColumns()
+                        .addColumnUserDefinedType("member_x", "member")
+                        .addColumnListUserDefinedType("my_member_list_x", "member")
+                );
     }
 
 }
