@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 public class DemoAstraDevVectorize {
 
     // TEST
-    public static final String ASTRA_DB_TOKEN_TEST =
-            "AstraCS:vbXZLnoLCHytxRMZcTuvSURj:c86f2db8cddbe8d616d3f5f89fe47447b77ae5bbd4a42821dc6e40661183fe7c"; // Replace with your actual Astra DB token for testing
+    public static final String ASTRA_DB_TOKEN_TEST = System.getenv("ASTRA_DB_APPLICATION_TOKEN_TEST");
+
     public static final String ASTRA_URL =
             "https://71589bc7-a75f-4153-ab16-9fce04ddf573-westus2.apps.astra-test.datastax.com";
 
