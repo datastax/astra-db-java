@@ -103,7 +103,7 @@ public enum TableColumnTypes {
     /**
      * JSON type, storing JSON formatted data.
      */
-    USER_DEFINED("userDefined"),
+    USERDEFINED("userDefined"),
 
     /**
      * List collection type.

@@ -62,7 +62,7 @@ public class TableColumnDefinitionMapUserDefined extends TableColumnDefinition {
     public TableColumnDefinitionMapUserDefined(String udtName, TableColumnTypes keyType) {
         super(TableColumnTypes.MAP);
         this.keyType = keyType;
-        valueType.put("type", TableColumnTypes.USER_DEFINED.getValue());
+        valueType.put("type", TableColumnTypes.USERDEFINED.getValue());
         valueType.put("udtName", udtName);
     }
 

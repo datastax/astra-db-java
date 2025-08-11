@@ -56,7 +56,7 @@ public class TableColumnDefinitionSetUserDefined extends TableColumnDefinition {
      */
     public TableColumnDefinitionSetUserDefined(String udtName) {
         super(TableColumnTypes.SET);
-        valueType.put("type", TableColumnTypes.USER_DEFINED.getValue());
+        valueType.put("type", TableColumnTypes.USERDEFINED.getValue());
         valueType.put("udtName", udtName);
     }
 

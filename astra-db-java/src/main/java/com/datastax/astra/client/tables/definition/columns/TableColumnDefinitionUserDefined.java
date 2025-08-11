@@ -27,7 +27,7 @@ import lombok.Setter;
  * Represents a column definition for a user Defined Type (UDT) in a database schema.
  * Extends {@link TableColumnDefinition} to include details about the type of elements stored in the list.
  * <p>
- * This class is used to configure columns of type {@link TableColumnTypes#USER_DEFINED}, allowing the specification
+ * This class is used to configure columns of type {@link TableColumnTypes#USERDEFINED}, allowing the specification
  * of the data type for user defined values stored in the column.
  * </p>
  */
@@ -44,7 +44,7 @@ public class TableColumnDefinitionUserDefined extends TableColumnDefinition {
      * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link TableColumnTypes#LIST}.
      */
     public TableColumnDefinitionUserDefined() {
-        super(TableColumnTypes.USER_DEFINED);
+        super(TableColumnTypes.USERDEFINED);
     }
 
     /**

@@ -105,7 +105,7 @@ public class TableColumnTypeMapper {
         typeMapping.put(DataAPIVector.class, TableColumnTypes.VECTOR);
 
         // Generic User Defined Types (UDTs)
-        typeMapping.put(TableDataAPIUserDefinedType.class, TableColumnTypes.USER_DEFINED);
+        typeMapping.put(TableDataAPIUserDefinedType.class, TableColumnTypes.USERDEFINED);
 
         // Unsupported or undefined types
         typeMapping.put(Object.class, TableColumnTypes.UNSUPPORTED);

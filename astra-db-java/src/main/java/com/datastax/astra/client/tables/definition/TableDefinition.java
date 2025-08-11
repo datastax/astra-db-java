@@ -37,7 +37,7 @@ import lombok.Data;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
-import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.USER_DEFINED;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.USERDEFINED;
 
 /**
  * Definition of a table.
@@ -99,7 +99,7 @@ public class TableDefinition {
     public TableDefinition addColumnUserDefinedType(String name, String udtName) {
         Assert.hasLength(name, "name");
         Assert.hasLength(udtName, "udtName");
-        TableColumnDefinition udtDef = new TableColumnDefinition(USER_DEFINED);
+        TableColumnDefinition udtDef = new TableColumnDefinition(USERDEFINED);
         udtDef.setUdtName(udtName);
         columns.put(name, udtDef);
         return this;

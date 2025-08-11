@@ -56,7 +56,7 @@ public class TableColumnDefinitionListUserDefined extends TableColumnDefinition 
      */
     public TableColumnDefinitionListUserDefined(String udtName) {
         super(TableColumnTypes.LIST);
-        valueType.put("type", TableColumnTypes.USER_DEFINED.getValue());
+        valueType.put("type", TableColumnTypes.USERDEFINED.getValue());
         valueType.put("udtName", udtName);
     }
 

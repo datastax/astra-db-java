@@ -16,6 +16,7 @@ import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
 import com.datastax.astra.client.tables.commands.AlterTypeAddFields;
 import com.datastax.astra.client.tables.commands.AlterTypeRenameFields;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTypeOptions;
 import com.datastax.astra.client.tables.commands.options.DropTypeOptions;
 import com.datastax.astra.client.tables.definition.TableDefinition;
@@ -28,10 +29,17 @@ import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFie
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.test.model.SampleUdtAddress;
+import com.datastax.astra.test.unit.QuickStartTablesLocal;
 import com.dtsx.astra.sdk.utils.JsonUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import okhttp3.Address;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -335,6 +343,76 @@ public class TableGAIntegrationTest {
                         .addColumnUserDefinedType("member_x", "member")
                         .addColumnListUserDefinedType("my_member_list_x", "member")
                 );
+    }
+
+    @Test
+    public void should_list_tables_with_udt() {
+        getQuickStartDatabase().listTables().forEach(System.out::println);
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PersonBean{
+        private String name;
+        private PersonAddress address;
+        @JsonProperty("address_list")
+        private List<PersonAddress> addressList;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PersonAddress{
+        private String city;
+        private int zipcode;
+    }
+
+    @Test
+    public void should_insert_table_with_udts() {
+        getQuickStartDatabase().createType("udt_address", new TableUserDefinedTypeDefinition()
+                .addFieldText("city")
+                .addFieldInt("zipcode"), CreateTypeOptions.IF_NOT_EXISTS);
+
+        getQuickStartDatabase().createTable("person", new TableDefinition()
+                .addColumnText("name")
+                .addColumnUserDefinedType("address", "udt_address")
+                .addColumnListUserDefinedType("address_list", "udt_address")
+                .addPartitionBy("name"), IF_NOT_EXISTS);
+
+        getQuickStartDatabase()
+                .getTable("person")
+                .insertOne(new Row()
+                        .add("name", "cedrick")
+                        .add("address", Map.of("zipcode", 12345, "city", "Paris")));
+
+        PersonBean sara =
+          new PersonBean("sara", new PersonAddress("Paris", 75018), null);
+
+        getQuickStartDatabase()
+                .getTable("person")
+                .insertOne(new Row()
+                        .add("name", "cedrick")
+                        .add("address", Map.of("zipcode", 12345, "city", "Paris")));
+
+        getQuickStartDatabase()
+                .getTable("person", PersonBean.class)
+                .insertOne(sara);
+    }
+
+    @Test
+    public void should_update_table_with_udts() {
+
+    }
+
+    @Test
+    public void should_read_table_with_udts() {
+
+    }
+
+    @Test
+    public void should_filter_table_with_udts() {
+
     }
 
 }

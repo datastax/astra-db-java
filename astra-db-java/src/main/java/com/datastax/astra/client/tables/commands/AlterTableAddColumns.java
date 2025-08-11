@@ -36,7 +36,7 @@ import lombok.Setter;
 
 import java.util.LinkedHashMap;
 
-import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.USER_DEFINED;
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.USERDEFINED;
 
 /**
  * Represents an operation to add columns to an existing table in a database schema.
@@ -109,7 +109,7 @@ public final class AlterTableAddColumns implements AlterTableOperation {
     public AlterTableAddColumns addColumnUserDefinedType(String name, String udtName) {
         Assert.hasLength(name, "name");
         Assert.hasLength(udtName, "udtName");
-        TableColumnDefinition udtDef = new TableColumnDefinition(USER_DEFINED);
+        TableColumnDefinition udtDef = new TableColumnDefinition(USERDEFINED);
         udtDef.setUdtName(udtName);
         columns.put(name, udtDef);
         return this;

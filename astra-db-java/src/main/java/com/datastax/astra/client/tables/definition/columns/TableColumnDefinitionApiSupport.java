@@ -75,6 +75,11 @@ public class TableColumnDefinitionApiSupport {
     private boolean read;
 
     /**
+     * Indicates if the column supports in filters.
+     */
+    private boolean filter;
+
+    /**
      * Defines the CQL expression associated with the column.
      */
     private String cqlDefinition;
