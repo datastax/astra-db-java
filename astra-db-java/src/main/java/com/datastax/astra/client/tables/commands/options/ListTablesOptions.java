@@ -38,7 +38,7 @@ public class ListTablesOptions extends BaseOptions<ListTablesOptions> {
     /**
      * The keyspace to use for the database.
      */
-    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+    String keyspace;
 
     /**
      * Default constructor

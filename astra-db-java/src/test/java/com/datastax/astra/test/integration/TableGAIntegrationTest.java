@@ -5,12 +5,14 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
 import com.datastax.astra.client.collections.definition.documents.types.TimeUUID;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
 import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
 import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
 import com.datastax.astra.client.tables.commands.AlterTypeAddFields;
 import com.datastax.astra.client.tables.commands.AlterTypeRenameFields;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
@@ -23,7 +25,6 @@ import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefi
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDefinition;
 import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldDefinition;
-import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldDefinitionList;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.test.model.SampleUdtAddress;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import java.util.UUID;
 
+import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.tables.commands.options.CreateTableOptions.IF_NOT_EXISTS;
 import static com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldTypes.BIGINT;
@@ -73,6 +75,25 @@ public class TableGAIntegrationTest {
     }
     private Database getLocalDatabase() {
         return DataAPIClients.localDbWithDefaultKeyspace();
+    }
+    private Database getQuickStartDatabase() {
+        return getLocalDatabase("http://localhost:8181", "cassandra", "cassandra", "quickstart_keyspace");
+    }
+
+    private Database getLocalDatabase(String url, String username, String password, String keyspace) {
+        String authToken = new UsernamePasswordTokenProvider(username, password)
+                .getToken();
+        DataAPIClientOptions options = new DataAPIClientOptions()
+                .destination(DataAPIDestination.HCD)
+                .enableFeatureFlagTables()
+                .logRequests();
+        DataAPIClient client = new DataAPIClient(authToken,options);
+        return client.getDatabase(url, keyspace);
+    }
+
+    @Test
+    public void should_get_database_different_keyspace() {
+        getQuickStartDatabase().listTableNames().stream().forEach(System.out::println);
     }
 
     /**
@@ -289,18 +310,27 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_create_type_bean() {
-        getLocalDatabase().createType(SampleUdtAddress.class, null);
+        getQuickStartDatabase().createType(SampleUdtAddress.class, null);
     }
 
     @Test
-    public void should_create_table_withudts() {
-//        getLocalDatabase().createTable("demo_table_with_udts",)
-//                new TableDefinition()
-//                        .addColumnText("email")
-//                        .addColumnText("name")
-//                        //.addColumnUserDefinedType("address", "udt_one")
-//                        .partitionKey("email"), IF_NOT_EXISTS);
+    public void should_create_table_with_udts() {
+        getQuickStartDatabase().createTable("demo_table_with_udts_3",
+                new TableDefinition()
+                        .addColumnText("email")
+                        .addColumnText("name")
+                        .addColumnUserDefinedType("my_member", "member")
+                        .addColumnListUserDefinedType("my_member_list", "member")
+                        .addColumnSetUserDefinedType("my_member_set", "member")
+                        .addColumnMapUserDefinedType("my_member_set", "member", TableColumnTypes.TEXT)
+                        .partitionKey("email"), IF_NOT_EXISTS);
+
     }
 
+    @Test
+    public void should_alter_table_with_udts() {
+        //getQuickStartDatabase().getTable("demo_table_with_udts_3").alter(new
+        //    AlterTableAddColumns()
+    }
 
 }

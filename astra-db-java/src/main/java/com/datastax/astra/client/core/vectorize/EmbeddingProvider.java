@@ -92,7 +92,7 @@ public class EmbeddingProvider {
         private String name;
 
         /** Supported model or not */
-        private Map<String, SupportModelStatus> apiModelSupport;
+        private ApiModelSupport apiModelSupport;
 
         /** Model dimension. */
         private Integer vectorDimension;
@@ -104,6 +104,19 @@ public class EmbeddingProvider {
          * Default constructor.
          */
         public Model() {}
+    }
+
+    /**
+     * Model support status.
+     */
+    @Data
+    public static class ApiModelSupport {
+
+        /** If the model is supported or not. */
+        private SupportModelStatus status;
+
+        /** If the model is supported or not. */
+        private String message;
     }
 
     /**

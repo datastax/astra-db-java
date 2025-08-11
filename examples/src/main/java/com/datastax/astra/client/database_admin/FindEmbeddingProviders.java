@@ -19,7 +19,6 @@ public class FindEmbeddingProviders {
         Database db1 = dbAdmin.getDatabase();
         Database db2 = dbAdmin.getDatabase("keyspace2");
 
-
         FindEmbeddingProvidersResult fepr = db.getDatabaseAdmin().findEmbeddingProviders();
 
         Map<String, EmbeddingProvider> providers = fepr.getEmbeddingProviders();

@@ -103,6 +103,16 @@ public class TableUserDefinedTypeDefinition {
     }
 
     /**
+     * Adds an date column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public TableUserDefinedTypeDefinition addFieldDate(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.DATE);
+    }
+
+    /**
      * Adds an integer column to the table.
      *
      * @param name the name of the column

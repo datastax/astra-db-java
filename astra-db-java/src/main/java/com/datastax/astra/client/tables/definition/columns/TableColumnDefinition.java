@@ -69,6 +69,11 @@ public class TableColumnDefinition {
     private TableColumnTypes type;
 
     /**
+     * In case of user Defined type a name is required.
+     */
+    private String udtName;
+
+    /**
      * API support details for the column when not fully supported by the Data API.
      */
     private TableColumnDefinitionApiSupport apiSupport;

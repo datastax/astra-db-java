@@ -2,20 +2,26 @@ package com.datastax.astra.test.integration.astra;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;
-import com.datastax.astra.client.collections.Collection;
-import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.test.integration.EmbeddingModelType;
 import org.junit.jupiter.api.Test;
 
 public class DemoAstraDevVectorize {
 
+    // TEST
     public static final String ASTRA_DB_TOKEN_TEST =
-            "REDACTED"; // Replace with your actual Astra DB token for testing
-
+            "AstraCS:vbXZLnoLCHytxRMZcTuvSURj:c86f2db8cddbe8d616d3f5f89fe47447b77ae5bbd4a42821dc6e40661183fe7c"; // Replace with your actual Astra DB token for testing
     public static final String ASTRA_URL =
             "https://71589bc7-a75f-4153-ab16-9fce04ddf573-westus2.apps.astra-test.datastax.com";
-            //"https://b527003e-aefb-43fe-a1e9-92eef7ba4f2b-us-east-1.apps.astra-test.datastax.com";
+
+    //PROD
+//    public static final String ASTRA_DB_TOKEN_TEST =
+//            "AstraCS:JFnexmAARqMfLtmBHHLinlsY:d12d79a9c0bd49be240b2ce346f3d9e276cb25ce12f37fb4e9a6ff0783f333fe"; // Replace with your actual Astra DB token for testing
+//    public static final String ASTRA_URL =
+//            "https://4d3d14ac-5e95-4121-a38f-de3f1491f1ea-us-east-2.apps.astra.datastax.com";
 
     private DataAPIClient getAstraDevDataApiClient() {
         DataAPIClientOptions options = new DataAPIClientOptions()
@@ -35,12 +41,21 @@ public class DemoAstraDevVectorize {
 
     @Test
     public void should_insert_vectorized_documents() {
-        Collection<Document> collec = getDatabase()
-                .getCollection("collectiion_openai");
-//
-//        collec.insertOne(new Document().id("doc1")
-//                .vectorize("IT IS WORKING")
-//                .append("model", "cedrick"));
+        // Create a collection with Vectorize KMS
+        String KMS_KEY_NAME = "KEY_KMS";
+
+        CollectionDefinition collectionDefinition = new CollectionDefinition()
+                .vectorDimension(EmbeddingModelType.OPENAI_3_SMALL.getDimension())
+                .vectorSimilarity(SimilarityMetric.COSINE)
+                .vectorize(EmbeddingModelType.OPENAI_3_SMALL.getProvider(),
+                        EmbeddingModelType.OPENAI_3_SMALL.getName(),
+                        KMS_KEY_NAME);
+
+        getDatabase()
+                .createCollection("collection_kms", collectionDefinition);
+
+
+
     }
 
 

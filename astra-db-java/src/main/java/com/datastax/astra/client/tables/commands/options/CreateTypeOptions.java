@@ -41,7 +41,7 @@ public class CreateTypeOptions extends BaseOptions<CreateTypeOptions> {
     /**
      * The keyspace to use for the database.
      */
-    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+    String keyspace;
 
     /**
      * Condition to upsert the table.

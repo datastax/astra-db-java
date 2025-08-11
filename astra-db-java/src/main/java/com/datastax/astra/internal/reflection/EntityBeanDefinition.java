@@ -341,9 +341,10 @@ public class EntityBeanDefinition<T> {
                     throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for field '" + field.getName() + "'");
                 }
             }
-            udtfield.append(field.getUdtFieldName(), fieldType.getValue());
+            udtfield.append("type", fieldType.getValue());
+            fields.append(field.getName(), udtfield);
         });
-
+        definition.append("fields", fields);
         return doc;
     }
 

@@ -49,7 +49,8 @@ mvn quarkus:dev -Dstargate.data-store.ignore-bridge=true -Dstargate.jsonapi.oper
 ```asciidoc
 docker run -it --rm --network container:$(docker ps | grep hcd | cut -b 1-12) cassandra:latest cqlsh -u cassandra -p cassandra
 ```
-
+- 
+- with podman
 ```asciidoc
 podman exec -it $(podman ps | grep hcd | cut -b 1-12) cqlsh -u cassandra -p cassandra
 ```

@@ -38,7 +38,7 @@ public class CollectionOptions extends BaseOptions<CollectionOptions> {
     /**
      * The keyspace to use for the database.
      */
-    String keyspace = DataAPIClientOptions.DEFAULT_KEYSPACE;
+    String keyspace;
 
     /**
      * Default constructor nor overriding token nor options

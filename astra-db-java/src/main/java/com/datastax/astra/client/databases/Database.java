@@ -1243,6 +1243,51 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // -------------------------------------
 
     /**
+     * Retrieves the names of all tables in the database with default options.
+     *
+     * @return A list of all table names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * List<String> tableNames = listTypeNames();
+     * }
+     * </pre>
+     */
+    public List<String> listTypeNames() {
+        return listTypeNames(null);
+    }
+
+    /**
+     * Retrieves the names of all tables in the database.
+     *
+     * @param listTypesOptions Options for filtering or configuring the types listing operation.
+     * @return A list of all table names in the database.
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * ListTablesOptions options = new ListTablesOptions();
+     * List<String> tableNames = listTableNames(options);
+     * }
+     * </pre>
+     */
+    public List<String> listTypeNames(ListTypesOptions listTypesOptions) {
+        // Keyspace is part of the database, a new temporary database object is required.
+        if (listTypesOptions != null && Utils.hasLength(listTypesOptions.getKeyspace())) {
+            String otherKeyspace = listTypesOptions.getKeyspace();
+            listTypesOptions.keyspace(null);
+            return new Database(
+                    this.rootEndpoint,
+                    this.options.clone().keyspace(otherKeyspace))
+                    .listTypeNames(listTypesOptions);
+        }
+        return runCommand(Command.create("listTypes"), listTypesOptions)
+                .getStatusKeyAsStringStream("types")
+                .toList();
+    }
+
+    /**
      * Retrieves the details of all tables in the database with default options.
      *
      * @return A list of {@link TableUserDefinedTypeDescriptor} objects representing all tables in the database.

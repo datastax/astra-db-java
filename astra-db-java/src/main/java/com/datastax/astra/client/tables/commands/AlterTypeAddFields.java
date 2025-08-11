@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDefinition;
 import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldDefinition;
 import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldTypes;
 import lombok.Getter;
@@ -53,6 +54,108 @@ public final class AlterTypeAddFields extends AlterTypeOperation<TableUserDefine
      */
     public AlterTypeAddFields() {
         super("add");
+    }
+
+    /**
+     * Adds a column to the table with a specific type.
+     *
+     * @param name the name of the column
+     * @param type the type of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addField(String name, TableUserDefinedTypeFieldTypes type) {
+        super.addField(name, new TableUserDefinedTypeFieldDefinition(type));
+        return this;
+    }
+
+    /**
+     * Adds a UUID column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldUuid(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.UUID);
+    }
+
+    /**
+     * Adds a text column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldText(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.TEXT);
+    }
+
+    /**
+     * Adds an ascii column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldAscii(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.ASCII);
+    }
+
+    /**
+     * Adds an date column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldDate(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.DATE);
+    }
+
+    /**
+     * Adds an integer column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldInt(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.INT);
+    }
+
+    /**
+     * Adds a timestamp column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldTimestamp(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.TIMESTAMP);
+    }
+
+    /**
+     * Adds a boolean column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldBoolean(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.BOOLEAN);
+    }
+
+    /**
+     * Adds a boolean column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldBigInt(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.BIGINT);
+    }
+
+    /**
+     * Adds a blob column to the table.
+     *
+     * @param name the name of the column
+     * @return the updated {@link TableUserDefinedTypeDefinition} instance
+     */
+    public AlterTypeAddFields addFieldBlob(String name) {
+        return addField(name, TableUserDefinedTypeFieldTypes.BLOB);
     }
 
 }

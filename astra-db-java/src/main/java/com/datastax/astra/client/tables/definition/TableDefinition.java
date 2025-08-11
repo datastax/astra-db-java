@@ -23,8 +23,11 @@ package com.datastax.astra.client.tables.definition;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionList;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionListUserDefined;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionMap;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionMapUserDefined;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionSet;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionSetUserDefined;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
@@ -33,6 +36,8 @@ import lombok.Data;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+
+import static com.datastax.astra.client.tables.definition.columns.TableColumnTypes.USER_DEFINED;
 
 /**
  * Definition of a table.
@@ -78,7 +83,61 @@ public class TableDefinition {
      * @return the updated {@link TableDefinition} instance
      */
     public TableDefinition addColumn(String name, TableColumnTypes type) {
+        Assert.hasLength(name, "name");
+        Assert.notNull(type, "type");
         columns.put(name, new TableColumnDefinition(type));
+        return this;
+    }
+
+    /**
+     * Adds a user defined type (udt) column.
+     *
+     * @param name the name of the column
+     * @param udtName the type of the udt
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnUserDefinedType(String name, String udtName) {
+        Assert.hasLength(name, "name");
+        Assert.hasLength(udtName, "udtName");
+        TableColumnDefinition udtDef = new TableColumnDefinition(USER_DEFINED);
+        udtDef.setUdtName(udtName);
+        columns.put(name, udtDef);
+        return this;
+    }
+
+    /**
+     * Adds a list column to the table.
+     *
+     * @param name the name of the column
+     * @param udtName the name of the Udt
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnListUserDefinedType(String name, String udtName) {
+        columns.put(name, new TableColumnDefinitionListUserDefined(udtName));
+        return this;
+    }
+
+    /**
+     * Adds a list column to the table.
+     *
+     * @param name the name of the column
+     * @param udtName the name of the Udt
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnSetUserDefinedType(String name, String udtName) {
+        columns.put(name, new TableColumnDefinitionSetUserDefined(udtName));
+        return this;
+    }
+
+    /**
+     * Adds a list column to the table.
+     *
+     * @param name the name of the column
+     * @param udtName the name of the Udt
+     * @return the updated {@link TableDefinition} instance
+     */
+    public TableDefinition addColumnMapUserDefinedType(String name, String udtName, TableColumnTypes keytype) {
+        columns.put(name, new TableColumnDefinitionMapUserDefined(udtName, keytype));
         return this;
     }
 
