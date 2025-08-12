@@ -60,6 +60,11 @@ public enum FilterOperator {
      * Less Than. 
      */
     LESS_THAN("$lt"),
+
+    /**
+     * Match
+     */
+    MATCH("$match"),
     
     /** 
      * Less Than Or Equal To. 

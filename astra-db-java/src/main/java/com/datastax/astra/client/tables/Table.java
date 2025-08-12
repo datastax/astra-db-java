@@ -324,7 +324,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
     }
 
     /**
-     * Create a simple index on the given column with no special options
+     * Create index on keys of a map.
      *
      * @param idxName
      *      name of the index

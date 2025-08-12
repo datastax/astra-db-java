@@ -7,6 +7,8 @@ import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
 import com.datastax.astra.client.collections.definition.documents.types.TimeUUID;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
@@ -401,6 +403,22 @@ public class TableGAIntegrationTest {
     }
 
     @Test
+    public void should_create_index_on_map() {
+        // Create a Table with a Map
+        TableDefinition tableDefinition = new TableDefinition()
+                .addColumnText("email")
+                .addColumnMap("example_map_column", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                .partitionKey("email");
+
+        Table<Row> table = getQuickStartDatabase()
+                .createTable("example_index_table", tableDefinition);
+
+        // Index a column
+        table.createIndex("example_index_name", "example_map_column", TableIndexMapTypes.KEYS);
+    }
+
+
+    @Test
     public void should_update_table_with_udts() {
 
     }
@@ -414,5 +432,7 @@ public class TableGAIntegrationTest {
     public void should_filter_table_with_udts() {
 
     }
+
+
 
 }

@@ -183,6 +183,18 @@ public class FilterBuilder {
     public Filter isLessThan(Object value) {
         return simpleOperator(FilterOperator.LESS_THAN, value);
     }
+
+    /**
+     * Add condition is less than.
+     *
+     * @param content
+     *      value
+     * @return
+     *      self reference
+     */
+    public Filter match(String content) {
+        return simpleOperator(FilterOperator.MATCH, content);
+    }
     
     /**
      * Add condition is less than.

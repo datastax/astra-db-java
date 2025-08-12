@@ -20,6 +20,8 @@ package com.datastax.astra.client.core.query;
  * #L%
  */
 
+import com.datastax.astra.client.core.DataAPIKeywords;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -229,6 +231,32 @@ public class Filters {
      */
     public static Filter lt(final String fieldName, final Instant value) {
         return new Filter().where(fieldName).isLessThan(value);
+    }
+
+    /**
+     * Creates a match filter for collections
+     *
+     * @param content
+     *      the string to perform some requests against
+     *
+     * @return the filter
+     */
+    public static Filter match(final String content) {
+        return match(DataAPIKeywords.LEXICAL.getKeyword(), content);
+    }
+
+    /**
+     * Creates a match filter for tables
+     *
+     * @param fieldName
+     *      the field name
+     * @param content
+     *      the value, which may be null
+     *
+     * @return the filter
+     */
+    public static Filter match(final String fieldName, final String content) {
+        return new Filter().where(fieldName).match(content);
     }
 
     /**

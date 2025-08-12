@@ -41,7 +41,7 @@ public class Sort {
     private final SortOrder order;
 
     /** sort for the field (if vectorize). */
-    private final String vectorize;
+    private final String passage;
 
     /** sort for the field (if vectorize). */
     private final DataAPIVector vector;
@@ -56,19 +56,19 @@ public class Sort {
      *      field name
      * @param order
      *      field ordering instruction
-     * @param vectorize
+     * @param passage
      *     vectorize instruction
      * @param vector
      *     vector instruction
      */
     @Builder(builderMethodName = "internalBuilder")
-    private Sort(String field, SortOrder order, String vectorize, DataAPIVector vector, Hybrid hybrid) {
+    private Sort(String field, SortOrder order, String passage, DataAPIVector vector, Hybrid hybrid) {
         this.field     = field;
         this.order     = order;
-        this.vectorize = vectorize;
+        this.passage   = passage;
         this.vector    = vector;
-        this.hybrid   = hybrid;
-        if (order == null && vectorize == null && vector == null && hybrid == null) {
+        this.hybrid    = hybrid;
+        if (order == null && passage == null && vector == null && hybrid == null) {
             throw new IllegalArgumentException("Sort must have an order, vectorize, vector or hybrid");
         }
     }
@@ -83,8 +83,8 @@ public class Sort {
         if (order != null) {
             return order.getCode();
         }
-        if (vectorize != null) {
-            return vectorize;
+        if (passage != null) {
+            return passage;
         }
         if (hybrid != null) {
             return hybrid;
@@ -217,7 +217,7 @@ public class Sort {
     public static Sort vectorize(String fieldName, String vectorize) {
         return internalBuilder()
                 .field(fieldName)
-                .vectorize(vectorize)
+                .passage(vectorize)
                 .build();
     }
 
@@ -266,6 +266,34 @@ public class Sort {
         return internalBuilder()
                 .field(DataAPIKeywords.HYBRID.getKeyword())
                 .hybrid(new Hybrid().vectorize(vectorize).lexical(lexical))
+                .build();
+    }
+
+
+    /**
+     * Build a sort clause with lexical.
+     *
+     * @param content
+     *      Content to saerh
+     * @return
+     *       sort instance.
+     */
+    public static Sort lexical(String content) {
+        return lexical(DataAPIKeywords.LEXICAL.getKeyword(), content);
+    }
+
+    /**
+     * Build a sort clause with lexical.
+     *
+     * @param content
+     *      Content to saerh
+     * @return
+     *       sort instance.
+     */
+    public static Sort lexical(String fieldName, String content) {
+        return internalBuilder()
+                .field(fieldName)
+                .passage(content)
                 .build();
     }
 

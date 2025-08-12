@@ -10,6 +10,7 @@ import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,6 +39,12 @@ class FiltersTest {
         assertThat(oid1.hashCode()).isNotZero();
         assertThat(oid1.toString()).isNotNull();
         assertThat(oid1).isNotEqualByComparingTo(oid2);
+    }
+
+    @Test
+    public void should_build_match_request() {
+        System.out.println(Filters.match("tree hill"));
+        System.out.println(new Filter(Map.of("$lexical", Map.of("$match", "tree hill"))));
     }
 
 
