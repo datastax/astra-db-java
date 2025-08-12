@@ -13,6 +13,7 @@ import com.datastax.astra.client.core.headers.RerankingHeadersProvider;
 import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.lexical.Analyzer;
 import com.datastax.astra.client.core.lexical.LexicalOptions;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
@@ -231,6 +232,37 @@ public class Local_12_Collection_FindAndRerank_ITTest extends AbstractDataAPITes
         Assertions.assertNotNull(result);
         Assertions.assertFalse(result.isEmpty());
         System.out.println("Result3: " + result.size());
+    }
+
+    @Test
+    @Order(7)
+    public void should_query_lexical_collection() throws IOException, InterruptedException {
+//        dropCollection("c_lexical");
+//        Thread.sleep(1000);
+//        Analyzer             standardAnalyzer = new Analyzer(STANDARD);
+//        LexicalOptions       lexicalOptions   = new LexicalOptions().enabled(true).analyzer(standardAnalyzer);
+//        CollectionDefinition def = new CollectionDefinition().lexical(lexicalOptions);
+//        Collection<Document> clexical = getDatabase().createCollection("c_lexical",def);
+//
+//        // Insert a Few Documents
+//        clexical
+//         .insertMany(Files.readAllLines(Paths.get("src/test/resources/philosopher-quotes.csv"))
+//         .stream().map(line -> {
+//              String[] chunks = line.split(",");
+//              String quote = chunks[1].replace("\"", "");
+//              return new Document().append("author", chunks[0]).append("quote", quote).lexical(quote);
+//         }).toList(),
+//              new CollectionInsertManyOptions().concurrency(3).chunkSize(10));
+
+        Collection<Document> clexical = getDatabase().getCollection("c_lexical");
+
+        // FindOne Match
+        clexical
+          .findOne(Filters.match("Fortune favours the bold"))
+          .ifPresent(res -> {
+            System.out.println("FOUND: " + res);
+        });
+
     }
 
 
