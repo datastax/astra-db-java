@@ -30,4 +30,9 @@ import java.io.Serializable;
  * @param <T> the type of the user-defined type
  */
 public class TableDataAPIUserDefinedType<T> implements Serializable {
+
+    /**
+     * Default Constructor.
+     */
+    public TableDataAPIUserDefinedType() {}
 }

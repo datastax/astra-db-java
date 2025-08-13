@@ -37,10 +37,17 @@ public class AstraFindAvailableRegionsOptions {
     private boolean onlyOrgEnabledRegions = true;
 
     /**
+     * Default Constructor.
+     */
+    public AstraFindAvailableRegionsOptions() {}
+
+    /**
      * Constructs an instance of AstraFindAvailableRegionsOptions with default settings.
      *
      * @param onlyOrgEnabledRegions
-     *        If true, only regions enabled for the organization will be returned.
+     *     iIf true, only regions enabled for the organization will be returned.
+     * @return
+     *      a populate bean of find available regions
      */
     public AstraFindAvailableRegionsOptions onlyOrgEnabledRegions(boolean onlyOrgEnabledRegions) {
         this.onlyOrgEnabledRegions = onlyOrgEnabledRegions;

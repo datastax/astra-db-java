@@ -53,6 +53,8 @@ public class TableColumnDefinitionListUserDefined extends TableColumnDefinition 
 
     /**
      * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link TableColumnTypes#LIST}.
+     *
+     * @param udtName name of the user defined type
      */
     public TableColumnDefinitionListUserDefined(String udtName) {
         super(TableColumnTypes.LIST);

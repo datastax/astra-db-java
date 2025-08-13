@@ -52,7 +52,14 @@ public class TableColumnDefinitionSetUserDefined extends TableColumnDefinition {
     private Map<String, String> valueType = new HashMap<>();
 
     /**
-     * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link TableColumnTypes#LIST}.
+     * Constructs a new {@code TableColumnDefinitionSetUserDefined} instance with the column type
+     * initialized to {@link TableColumnTypes#LIST}, representing a list of user-defined types (UDTs).
+     *
+     * <p>This constructor is used when defining a column that holds a list of values based on
+     * a specific user-defined type.</p>
+     *
+     * @param udtName the name of the user-defined type that defines the structure of the list elements; must not be {@code null}
+     *
      */
     public TableColumnDefinitionSetUserDefined(String udtName) {
         super(TableColumnTypes.SET);

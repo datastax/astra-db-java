@@ -27,6 +27,14 @@ import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+/**
+ * Represents the set of options available for the <code>findRerankingProviders</code> command.
+ *
+ * <p>This class allows configuration of execution parameters such as read concern, read preference,
+ * and other command-level options relevant to querying reranking providers.</p>
+ *
+ * @see BaseOptions
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class FindRerankingProvidersOptions extends BaseOptions<FindRerankingProvidersOptions> {

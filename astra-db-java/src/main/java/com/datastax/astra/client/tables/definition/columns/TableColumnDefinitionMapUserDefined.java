@@ -58,6 +58,8 @@ public class TableColumnDefinitionMapUserDefined extends TableColumnDefinition {
 
     /**
      * Constructs a new {@code ColumnDefinitionList} instance with the column type set to {@link TableColumnTypes#LIST}.
+     * @param udtName name of the user defined type
+     * @param keyType type of keys for udt map.
      */
     public TableColumnDefinitionMapUserDefined(String udtName, TableColumnTypes keyType) {
         super(TableColumnTypes.MAP);

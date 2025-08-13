@@ -285,6 +285,8 @@ public class Sort {
     /**
      * Build a sort clause with lexical.
      *
+     * @param fieldName
+     *      name of the column to sort against
      * @param content
      *      Content to saerh
      * @return

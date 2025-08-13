@@ -117,6 +117,9 @@ public class EmbeddingProvider {
 
         /** If the model is supported or not. */
         private String message;
+
+        /** Default Constructor. */
+        public ApiModelSupport() {}
     }
 
     /**

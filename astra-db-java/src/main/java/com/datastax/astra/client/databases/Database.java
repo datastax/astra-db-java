@@ -1205,6 +1205,20 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     // ----   Type and Object Mapping    ---
     // -------------------------------------
 
+    /**
+     * Retrieves the {@link TableUserDefinedTypeDefinition} associated with the specified class.
+     *
+     * <p>The class must be annotated with {@link TableUserDefinedType}, which is used to extract
+     * the metadata needed to construct a UDT (User-Defined Type) definition.
+     *
+     * <p>If the class is not annotated correctly, an {@link InvalidConfigurationException} is thrown.
+     *
+     * @param rowClass the class annotated with {@link TableUserDefinedType}
+     * @param <T> the type of the class
+     * @return the user-defined type metadata definition for the specified class
+     * @throws InvalidConfigurationException if the class is not annotated with {@link TableUserDefinedType}
+     * @throws NullPointerException if {@code rowClass} is {@code null}
+     */
     public <T> TableUserDefinedTypeDefinition getType(Class<T> rowClass) {
         TableUserDefinedType ann = rowClass.getAnnotation(TableUserDefinedType.class);
         if (ann == null) {
@@ -1385,6 +1399,24 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         createType(typeName, tableUserDefinedTypeDefinition, new CreateTypeOptions().ifNotExists(true));
     }
 
+    /**
+     * Creates a user-defined type (UDT) in the underlying database schema based on the specified
+     * annotated Java bean class.
+     *
+     * <p>The provided class must be annotated with {@link TableUserDefinedType}. The method constructs
+     * a database command to create the type definition based on the class metadata and executes it.
+     * Additional creation options can be specified via the {@link CreateTypeOptions} parameter.
+     *
+     * <p>If {@code createTypeOptions} is {@code null}, the type is created with default settings.
+     *
+     * <p>Throws an exception if {@code UdtBean} is {@code null} or does not contain the required annotation.
+     *
+     * @param UdtBean the class representing the UDT, annotated with {@link TableUserDefinedType}
+     * @param createTypeOptions additional options for type creation; may be {@code null}
+     * @param <T> the type of the UDT bean
+     * @throws NullPointerException if {@code UdtBean} is {@code null}
+     * @throws IllegalArgumentException if {@code UdtBean} is not properly annotated
+     */
     public <T> void createType(Class<T> UdtBean, CreateTypeOptions createTypeOptions) {
         notNull(UdtBean, "udtDefinition");
         TableUserDefinedType ann = UdtBean.getAnnotation(TableUserDefinedType.class);
@@ -1480,6 +1512,26 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         alterType(udtName, operation, null);
     }
 
+    /**
+     * Alters a user-defined type (UDT) in the database using the specified operation and options.
+     *
+     * <p>This method constructs and executes an <code>alterType</code> command with the given UDT name,
+     * operation type (e.g., add, rename, drop fields), and execution options.</p>
+     *
+     * @param udtName the name of the user-defined type to be altered; must not be {@code null}
+     * @param operation the operation to perform on the UDT (e.g., adding or renaming fields); must not be {@code null}
+     * @param alterTypeOptions the options controlling how the alter type command is executed (e.g., write concern, session, etc.)
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * alterType("address", new AddFieldsOperation()
+     *         .addField("zipcode", "int")
+     *         .addField("country", "string"),
+     *     new AlterTypeOptions().writeConcern(WriteConcern.MAJORITY));
+     * }
+     * </pre>
+     */
     public final void alterType(String udtName, AlterTypeOperation<?,?> operation, AlterTypeOptions alterTypeOptions) {
         notNull(operation, "operation");
         Command alterType = Command.create("alterType")

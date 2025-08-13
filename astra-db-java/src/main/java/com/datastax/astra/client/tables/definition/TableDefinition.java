@@ -134,10 +134,11 @@ public class TableDefinition {
      *
      * @param name the name of the column
      * @param udtName the name of the Udt
+     * @param keyType the type of the keys where Udt are the values
      * @return the updated {@link TableDefinition} instance
      */
-    public TableDefinition addColumnMapUserDefinedType(String name, String udtName, TableColumnTypes keytype) {
-        columns.put(name, new TableColumnDefinitionMapUserDefined(udtName, keytype));
+    public TableDefinition addColumnMapUserDefinedType(String name, String udtName, TableColumnTypes keyType) {
+        columns.put(name, new TableColumnDefinitionMapUserDefined(udtName, keyType));
         return this;
     }
 

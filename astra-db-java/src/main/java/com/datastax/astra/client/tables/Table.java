@@ -360,6 +360,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      *      column on which is the index
      * @param type
      *      column type for the index, used for Map columns
+     * @param idxOptions
+     *      options for the create index
      */
     public void createIndex(String idxName, String columnName, TableIndexMapTypes type, CreateIndexOptions idxOptions) {
         createIndex(idxName, new TableRegularIndexDefinition().column(columnName, type), idxOptions);

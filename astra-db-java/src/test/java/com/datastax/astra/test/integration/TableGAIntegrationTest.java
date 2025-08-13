@@ -352,6 +352,22 @@ public class TableGAIntegrationTest {
         getQuickStartDatabase().listTables().forEach(System.out::println);
     }
 
+
+    @Test
+    public void should_create_index_on_map() {
+        // Create a Table with a Map
+        TableDefinition tableDefinition = new TableDefinition()
+                .addColumnText("email")
+                .addColumnMap("example_map_column", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                .partitionKey("email");
+
+        Table<Row> table = getQuickStartDatabase()
+                .createTable("example_index_table", tableDefinition);
+
+        // Index a column
+        table.createIndex("example_index_name", "example_map_column", TableIndexMapTypes.KEYS);
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -401,22 +417,6 @@ public class TableGAIntegrationTest {
                 .getTable("person", PersonBean.class)
                 .insertOne(sara);
     }
-
-    @Test
-    public void should_create_index_on_map() {
-        // Create a Table with a Map
-        TableDefinition tableDefinition = new TableDefinition()
-                .addColumnText("email")
-                .addColumnMap("example_map_column", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
-                .partitionKey("email");
-
-        Table<Row> table = getQuickStartDatabase()
-                .createTable("example_index_table", tableDefinition);
-
-        // Index a column
-        table.createIndex("example_index_name", "example_map_column", TableIndexMapTypes.KEYS);
-    }
-
 
     @Test
     public void should_update_table_with_udts() {

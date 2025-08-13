@@ -118,6 +118,8 @@ public interface DatabaseAdmin {
      * Map<String, EmbeddingProvider> providers = client.findEmbeddingProvidersAsMap());
      * }
      * </pre>
+     * @param options
+     *      options to perform a reranking operation
      * @return
      *      list of available providers
      */

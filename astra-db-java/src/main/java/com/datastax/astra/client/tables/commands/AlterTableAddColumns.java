@@ -142,9 +142,14 @@ public final class AlterTableAddColumns implements AlterTableOperation {
     /**
      * Adds a list column to the table.
      *
-     * @param name the name of the column
-     * @param udtName the name of the Udt
-     * @return the updated {@link TableDefinition} instance
+     * @param name
+     *      the name of the column
+     * @param udtName
+     *      the name of the Udt
+     * @param keytype
+     *      the type for the key of a map of Udt
+     * @return
+     *      the updated {@link TableDefinition} instance
      */
     public AlterTableAddColumns addColumnMapUserDefinedType(String name, String udtName, TableColumnTypes keytype) {
         columns.put(name, new TableColumnDefinitionMapUserDefined(udtName, keytype));

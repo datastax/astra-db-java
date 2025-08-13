@@ -27,6 +27,9 @@ import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+/**
+ * Options to specialize the command FindEmbeddingProviders.
+ */
 @Setter
 @Accessors(fluent = true, chain = true)
 public class FindEmbeddingProvidersOptions extends BaseOptions<FindEmbeddingProvidersOptions> {
