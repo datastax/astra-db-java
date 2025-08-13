@@ -102,7 +102,7 @@ class AstraDbChatMemoryIT {
             // SHOW THE CHAT
             assertThat(chatMemory.messages()).size().isEqualTo(6);
             chatMemory.messages().forEach(msg -> {
-                System.out.println(msg.type() + " - " + msg.text());
+                System.out.println(msg.type() + " - " + msg.type());
             });
 
     }

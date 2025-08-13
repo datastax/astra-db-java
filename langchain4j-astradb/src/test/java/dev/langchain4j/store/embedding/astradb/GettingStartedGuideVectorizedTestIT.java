@@ -140,7 +140,7 @@ public class GettingStartedGuideVectorizedTestIT {
                         .maxResults(5)
                         .minScore(0.2)
                         .build())
-                .chatLanguageModel(
+                .chatModel(
                         openAIChatModel(OpenAiChatModelName.GPT_4_O))
                 .build();
         System.out.println(ai.answer("Give me the name of the HORSE"));
@@ -166,7 +166,7 @@ public class GettingStartedGuideVectorizedTestIT {
 
         Assistant ai = AiServices.builder(Assistant.class)
                 .retrievalAugmentor(retrievalAugmentor)
-                .chatLanguageModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
+                .chatModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
                 .build();
         System.out.println(ai.answer("Give me the name of the HORSE"));
     }

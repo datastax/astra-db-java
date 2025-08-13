@@ -144,7 +144,7 @@ public class GettingStartedGuideTestIT {
             // configuring it to use the components we've created above.
             Assistant ai = AiServices.builder(Assistant.class)
                     .contentRetriever(contentRetriever)
-                    .chatLanguageModel(AstraDBTestSupport.openAIChatModel(OpenAiChatModelName.GPT_4_O))
+                    .chatModel(AstraDBTestSupport.openAIChatModel(OpenAiChatModelName.GPT_4_O))
                     //.chatMemory(MessageWindowChatMemory.withMaxMessages(10))
                     .build();
 
@@ -162,7 +162,7 @@ public class GettingStartedGuideTestIT {
 
         Assistant assistant = AiServices.builder(Assistant.class)
                 .retrievalAugmentor(retrievalAugmentor)
-                .chatLanguageModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
+                .chatModel(openAIChatModel(OpenAiChatModelName.GPT_4_O))
                 .build();
 
         System.out.println(assistant.answer("Give me the name of the horse"));

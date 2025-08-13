@@ -5,7 +5,7 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.AstraDBDatabaseAdmin;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModelName;
@@ -49,7 +49,7 @@ public class AstraDBTestSupport {
         return databaseAdmin.getDatabase();
     }
 
-    public static ChatLanguageModel openAIChatModel(OpenAiChatModelName modelName) {
+    public static ChatModel openAIChatModel(OpenAiChatModelName modelName) {
         return OpenAiChatModel.builder()
                 .apiKey(AstraDBTestSupport.OPENAI_API_KEY)
                 .modelName(modelName)
