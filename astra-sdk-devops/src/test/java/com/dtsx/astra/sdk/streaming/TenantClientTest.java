@@ -34,7 +34,11 @@ public class TenantClientTest extends AbstractDevopsApiTest {
                 .tenantName(tmpTenant)
                 .userEmail("astra-cli@datastax.com").build());
         // Then
-        Thread.sleep(1000);
+        long timeout = System.currentTimeMillis() + 20000;
+        while (!sc.exist(tmpTenant) && System.currentTimeMillis() < timeout) {
+            LOGGER.info("Waiting for tenant creation ...");
+            Thread.sleep(1000);
+        }
         Assertions.assertTrue(sc.exist(tmpTenant));
     }
 

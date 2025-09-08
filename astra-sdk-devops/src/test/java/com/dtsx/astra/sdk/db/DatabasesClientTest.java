@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Tests Operations on Databases level.
@@ -60,9 +61,26 @@ public class DatabasesClientTest extends AbstractDevopsApiTest {
 
     @Test
     @Order(3)
-    @DisplayName("findAll() retrieve some data")
-    public void shouldFindAll() {
-        Assertions.assertTrue(getDatabasesClient().findAll().findAny().isPresent());
+    @DisplayName("find Non Terminated dbs")
+    public void shouldFindNonTerminated() {
+        Assertions.assertTrue(getDatabasesClient().findAllNonTerminated().findAny().isPresent());
+    }
+
+
+    @Test
+    public void shouldSendGoodErrorMessage() throws InterruptedException {
+        // create ephemeral db to force error
+//        String dbId = getDatabasesClient().create(DatabaseCreationRequest
+//                    .builder()
+//                    .name(SDK_TEST_DB_NAME)
+//                    .keyspace(SDK_TEST_KEYSPACE)
+//                    .cloudRegion(SDK_TEST_DB_REGION)
+//                    .build());
+//
+//        Thread.sleep(2000);
+
+        // try to delete immediately
+        getDatabasesClient().database("6aee3ef4-76ac-4848-88b8-92a01bbe2fe7").delete();
     }
 
     @Test

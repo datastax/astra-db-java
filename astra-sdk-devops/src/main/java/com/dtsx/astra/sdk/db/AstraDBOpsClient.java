@@ -112,22 +112,7 @@ public class AstraDBOpsClient extends AbstractApiClient {
     // ---------------------------------
     // ----        CRUD             ----
     // ---------------------------------
-    
-    /**
-     * Returns list of databases with default filter.
-     * (include=non terminated, provider=ALL,limit=25)
-     *
-     * @return
-     *      matching db
-     */
-    public Stream<Database> findAll() {
-        return search(DatabaseFilter.builder()
-                .include(Include.ALL)
-                .provider(CloudProviderType.ALL)
-                .limit(1000)
-                .build());
-    }
-    
+
     /**
      * Default Filter to find databases.
      *

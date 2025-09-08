@@ -1,6 +1,7 @@
 package com.dtsx.astra.sdk.org;
 
 import com.dtsx.astra.sdk.AbstractApiClient;
+import com.dtsx.astra.sdk.org.domain.CreateTokenRequest;
 import com.dtsx.astra.sdk.org.domain.CreateTokenResponse;
 import com.dtsx.astra.sdk.org.domain.DefaultRoles;
 import com.dtsx.astra.sdk.org.domain.IamToken;
@@ -12,7 +13,15 @@ import com.dtsx.astra.sdk.utils.Assert;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.JsonUtils;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -126,6 +135,59 @@ public class TokensClient extends AbstractApiClient {
         String body = "{ \"roles\": [ \"" + JsonUtils.escapeJson(roleId) + "\"]}";
         // Invoke endpoint
         ApiResponseHttp res = POST(getEndpointTokens(), body, getOperationName("create"));
+        // Marshall response
+        return JsonUtils.unmarshallBean(res.getBody(), CreateTokenResponse.class);
+    }
+
+    /**
+     * Create token
+     *
+     * @param ctr
+     *      request to create a token with all the elements
+     * @return
+     *      created token
+     */
+    public CreateTokenResponse create(CreateTokenRequest ctr) {
+
+        Assert.notNull(ctr, "request");
+        Map<String, Object> tokenCreationPayload = new HashMap<>();
+
+        // Role should exist
+
+        Map<String, String> availableRoles =
+         rolesClient.findAll().collect(Collectors.toMap(Role::getId, Role::getName));
+
+        List<String> roleIds = new ArrayList<>();
+        ctr.getRoles().forEach(role -> {
+            if (availableRoles.containsKey(role)) {
+                roleIds.add(role);
+            } else if (availableRoles.containsValue(role)) {
+                roleIds.add(availableRoles.entrySet().stream()
+                        .filter(e -> role.equalsIgnoreCase(e.getValue()))
+                        .map(Map.Entry::getKey)
+                        .findFirst()
+                        .orElse(null));
+            } else {
+                throw new IllegalArgumentException("Role '" + role + "' does not exist");
+            }
+        });
+        tokenCreationPayload.put("roles", roleIds);
+
+        if (ctr.getDescription() != null && !ctr.getDescription().isBlank()) {
+            tokenCreationPayload.put("description", ctr.getDescription());
+        }
+        if (ctr.getOrgId() != null) {
+            tokenCreationPayload.put("orgId", ctr.getOrgId());
+        }
+        if (ctr.getExpirationDate() != null) {
+            tokenCreationPayload.put("tokenExpiry", ctr.getExpirationDate().toString());
+        }
+
+        // Invoke endpoint
+        ApiResponseHttp res = POST(
+                getEndpointTokens(),
+                JsonUtils.marshall(tokenCreationPayload),
+                getOperationName("create"));
         // Marshall response
         return JsonUtils.unmarshallBean(res.getBody(), CreateTokenResponse.class);
     }

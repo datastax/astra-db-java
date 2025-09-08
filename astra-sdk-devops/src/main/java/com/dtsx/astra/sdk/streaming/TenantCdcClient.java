@@ -93,7 +93,8 @@ public class TenantCdcClient extends AbstractApiClient {
         createCdc.setKeyspace(keyspace);
         createCdc.setTableName(table);
         createCdc.setTopicPartitions(topicPartition);
-        HttpClientWrapper.getInstance(getOperationName("create")).POST_PULSAR(getEndpointTenantCdc(),
+        HttpClientWrapper.getInstance(getOperationName("create"))
+                .POST_PULSAR(getEndpointTenantCdc(),
                 tenant.getPulsarToken(),
                 JsonUtils.marshall(createCdc),
                 tenant.getClusterName(),

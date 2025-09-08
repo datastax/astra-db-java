@@ -1,6 +1,7 @@
 package com.dtsx.astra.sdk.iam;
 
 import com.dtsx.astra.sdk.AbstractDevopsApiTest;
+import com.dtsx.astra.sdk.org.domain.CreateTokenRequest;
 import com.dtsx.astra.sdk.org.domain.CreateTokenResponse;
 import com.dtsx.astra.sdk.org.domain.DefaultRoles;
 import org.junit.jupiter.api.Assertions;
@@ -8,6 +9,10 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.time.temporal.TemporalAmount;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TokensClientTest extends AbstractDevopsApiTest {
@@ -20,6 +25,21 @@ public class TokensClientTest extends AbstractDevopsApiTest {
         // When creating a token
         CreateTokenResponse res = getApiDevopsClient().tokens().create(DefaultRoles.DATABASE_ADMINISTRATOR);
         // Then it should be found
+        Assertions.assertTrue(getApiDevopsClient().tokens().exist(res.getClientId()));
+        createClientId = res.getClientId();
+        System.out.println(createClientId);
+    }
+
+    @Test
+    @Order(1)
+    public void shouldCreateTokenComposite() {
+        // When creating a token
+        CreateTokenRequest req = new CreateTokenRequest();
+        req.setDescription("Token created by Junit");
+        req.getRoles().add(DefaultRoles.DATABASE_ADMINISTRATOR.getName());
+        req.setExpirationDate(Instant.now().plus(Duration.ofDays(10)));
+
+        CreateTokenResponse res = getApiDevopsClient().tokens().create(req);
         Assertions.assertTrue(getApiDevopsClient().tokens().exist(res.getClientId()));
         createClientId = res.getClientId();
     }

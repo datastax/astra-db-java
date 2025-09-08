@@ -243,7 +243,7 @@ public class HttpClientWrapper {
      *      organization
      */
     private void updatePulsarHttpRequest(HttpUriRequestBase request, String pulsarToken, String pulsarCluster, String organizationId) {
-        request.addHeader(HEADER_AUTHORIZATION, pulsarToken);
+        request.addHeader(HEADER_AUTHORIZATION, "Bearer " + pulsarToken);
         request.addHeader(HEADER_CURRENT_ORG, organizationId);
         request.addHeader(HEADER_CURRENT_PULSAR_CLUSTER, pulsarCluster);
     }
@@ -372,7 +372,6 @@ public class HttpClientWrapper {
                 .withHttpRequest(req);
 
         try(CloseableHttpResponse response = httpClient.execute(req)) {
-
             ApiResponseHttp res;
             if (response == null) {
                 res = new ApiResponseHttp("Response is empty, please check url",
@@ -404,7 +403,6 @@ public class HttpClientWrapper {
               processErrors(res, mandatory);
               LOGGER.error("An HTTP Error occurred. The HTTP CODE Return is {}", res.getCode());
             }
-
             executionInfo.withHttpResponse(res);
             return res;
             // do not swallow the exception
@@ -485,7 +483,7 @@ public class HttpClientWrapper {
                 break;
                 // 409
                 case HttpURLConnection.HTTP_CONFLICT:
-                    throw new AuthenticationException("HTTP_CONFLICT (code=" + res.getCode() +
+                    throw new IllegalStateException("HTTP_CONFLICT (code=" + res.getCode() +
                             "): Object may already exist with same name or id " +
                             body);
                 case 422:
