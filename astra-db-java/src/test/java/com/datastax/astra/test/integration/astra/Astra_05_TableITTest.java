@@ -21,8 +21,8 @@ import java.util.List;
 import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 import static com.datastax.astra.client.tables.commands.options.CreateTableOptions.IF_NOT_EXISTS;
 
-@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "astra_prod")
-@DisabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "(?!astra_prod)")
+//@EnabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "astra_prod")
+//@DisabledIfSystemProperty(named = "ASTRA_DB_JAVA_TEST_ENV", matches = "(?!astra_prod)")
 public class Astra_05_TableITTest extends AbstractTableITTest {
 
     public static final String TABLE_NAME = "astra_table";

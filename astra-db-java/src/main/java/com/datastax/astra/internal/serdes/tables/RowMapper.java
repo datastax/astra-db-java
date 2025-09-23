@@ -24,10 +24,15 @@ import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.internal.reflection.EntityBeanDefinition;
 import com.datastax.astra.internal.reflection.EntityFieldDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JavaType;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Pivot class to interact with Table is a Row. User can wirj POJO that will be converted to Row.
@@ -58,8 +63,19 @@ public class RowMapper {
         Row row = new Row();
         bean.getFields().forEach((name, field) -> {
             try {
-                row.put(field.getColumnName() != null ? field.getColumnName() : name,
-                        field.getGetter().invoke(input));
+                Object value = field.getGetter().invoke(input);
+
+                // Check if map and key is not String
+                if (value instanceof Map<?, ?> map &&
+                        field.getGenericKeyType() != null &&
+                        !String.class.equals(field.getGenericKeyType())) {
+
+                    List<List<Object>> pairs = new ArrayList<>();
+                    map.forEach((k, v) -> pairs.add(List.of(k, v)));
+                    row.put(field.getColumnName() != null ? field.getColumnName() : name, pairs);
+                } else {
+                    row.put(field.getColumnName() != null ? field.getColumnName() : name, value);
+                }
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
@@ -89,25 +105,55 @@ public class RowMapper {
             if (row == null) {
                 return null;
             }
+
             EntityBeanDefinition<T> beanDef = new EntityBeanDefinition<>(inputRowClass);
             T input = inputRowClass.getDeclaredConstructor().newInstance();
 
             for (EntityFieldDefinition fieldDef : beanDef.getFields().values()) {
-                String columnName = fieldDef.getColumnName() != null ?
-                        fieldDef.getColumnName() :
-                        fieldDef.getName();
+                String columnName = fieldDef.getColumnName() != null ? fieldDef.getColumnName() : fieldDef.getName();
                 Object columnValue = row.columnMap.get(columnName);
-                if (columnValue == null) {
-                    continue; // Handle nulls as needed
-                }
+                if (columnValue == null) continue;
 
-                // Use the JavaType directly
                 JavaType javaType = fieldDef.getJavaType();
+                Object value;
 
-                // Convert the column value to the field's type
-                Object value = serializer
-                        .getMapper()
-                        .convertValue(columnValue, javaType);
+                // If target is a Map and the source is a List (array-of-pairs),
+                // only apply the special pair-array deserialization when the target key type is NOT String.
+                if (Map.class.isAssignableFrom(javaType.getRawClass()) && columnValue instanceof java.util.List) {
+                    JavaType keyType = javaType.getKeyType();
+                    JavaType valueType = javaType.getContentType();
+                    // defensive defaults
+                    if (keyType == null) keyType = serializer.getMapper().getTypeFactory().constructType(Object.class);
+                    if (valueType == null) valueType = serializer.getMapper().getTypeFactory().constructType(Object.class);
+
+                    // If key type is String, let Jackson handle it normally (stringified-object form)
+                    if (keyType.getRawClass() == String.class) {
+                        // convertValue will correctly handle List->Map when keys are strings (or object form)
+                        value = serializer.getMapper().convertValue(columnValue, javaType);
+                    } else {
+                        // Use your contextual generic deserializer instance (uses the discovered key/value types)
+                        DataAPIPairArrayDeserializerToMap<Object, Object> deser =
+                                new DataAPIPairArrayDeserializerToMap<>(keyType, valueType);
+
+                        // create a JsonParser from the tree and call the deserializer
+                        JsonParser treeParser = serializer.getMapper()
+                                .treeAsTokens(serializer.getMapper().valueToTree(columnValue));
+                        // ensure parser has current token set properly
+                        if (treeParser.currentToken() == null) treeParser.nextToken();
+
+                        // Provide a DeserializationContext - obtain from ObjectMapper
+                        DeserializationContext ctxt = serializer.getMapper().getDeserializationContext();
+                        @SuppressWarnings("unchecked")
+                        Map<Object, Object> map = (Map<Object, Object>) deser.deserialize(treeParser, ctxt);
+
+                        // If the target map implementation expects specific concrete types, convert again
+                        // (e.g. to LinkedHashMap<K,V> with proper generic types)
+                        value = serializer.getMapper().convertValue(map, javaType);
+                    }
+                } else {
+                    // Default conversion for other fields
+                    value = serializer.getMapper().convertValue(columnValue, javaType);
+                }
 
                 // Set the value to the bean
                 if (fieldDef.getSetter() != null) {

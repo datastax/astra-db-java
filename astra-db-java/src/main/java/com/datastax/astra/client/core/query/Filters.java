@@ -26,6 +26,9 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Helper to create Filter
@@ -386,6 +389,12 @@ public class Filters {
         return new Filter().where(fieldName).isInArray(values);
     }
 
+    public static <V> Filter in(final V... values) {
+        Filter f = new Filter();
+        f.documentMap.put(FilterOperator.IN.getOperator(), values);
+        return f;
+    }
+
     /**
      * Creates a filter that matches all documents where the value of a field equals any value in the list of specified values.
      *
@@ -524,5 +533,17 @@ public class Filters {
         andFilter.documentMap.put("$not", filter);
         return andFilter;
     }
+
+    public static Filter values(String fieldName, Map<String, Object> values) {
+        Filter valuesFilter = new Filter();
+        Map<String, Map<String, Object>> map = new HashMap<>();
+        map.put("$values", values);
+        valuesFilter.documentMap.put(fieldName, map);
+        return valuesFilter;
+    }
+
+
+
+
 
 }

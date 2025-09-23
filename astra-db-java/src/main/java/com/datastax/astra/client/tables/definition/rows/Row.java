@@ -25,6 +25,7 @@ import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
+import com.datastax.astra.client.tables.DataAPIPair;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
@@ -682,6 +683,18 @@ public class Row implements Serializable {
      * </pre>
      */
     public <K, V> Row addMap(String key, Map<K, V> myMap) {
+        if (!myMap.isEmpty()) {
+            Object firstKey = myMap.keySet().iterator().next();
+            if (firstKey instanceof String) {
+                return add(key, myMap);
+            } else {
+                // Convert to a list of pairs
+                return add(key, myMap.entrySet()
+                        .stream()
+                        .map(e -> new DataAPIPair<>(e.getKey(), e.getValue()))
+                        .toList());
+            }
+        }
         return add(key, myMap);
     }
 

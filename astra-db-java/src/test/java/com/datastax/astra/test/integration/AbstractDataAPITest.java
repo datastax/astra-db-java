@@ -68,7 +68,7 @@ public abstract class AbstractDataAPITest {
         if (destination == null) {
             String targetEnv = readEnvVariable(ENV_VAR_DESTINATION);
             if (targetEnv == null) {
-                throw new IllegalArgumentException("Environment variable '" + ENV_VAR_DESTINATION + "' is not set");
+                targetEnv = ENV_VAR_DESTINATION_ASTRA_PROD;
             }
             switch (targetEnv) {
                 case ENV_VAR_DESTINATION_ASTRA_DEV :
@@ -96,11 +96,12 @@ public abstract class AbstractDataAPITest {
 
     protected CloudProviderType getCloudProvider() {
         String cloudProvider = readEnvVariable(ENV_VAR_CLOUD_PROVIDER);
-        return cloudProvider == null ? null : CloudProviderType.valueOf(cloudProvider);
+        return cloudProvider == null ? CloudProviderType.GCP : CloudProviderType.valueOf(cloudProvider);
     }
 
     protected String getCloudRegion() {
-        return System.getProperty(ENV_VAR_CLOUD_REGION);
+        String cloudRegion = readEnvVariable(ENV_VAR_CLOUD_REGION);
+        return cloudRegion == null ? "us-east1" : cloudRegion;
     }
 
     protected DataAPIClient getDataApiClient() {
@@ -137,7 +138,7 @@ public abstract class AbstractDataAPITest {
         return astraDbAdmin;
     }
 
-    protected Database getDatabase() {
+    protected synchronized Database getDatabase() {
         if (database == null) {
             log.info("Initializing Database in {}", getDataApiDestination().name());
             final DataAPIDestination env = getDataApiDestination();
@@ -158,6 +159,7 @@ public abstract class AbstractDataAPITest {
                     database = getAstraDBAdmin()
                             .createDatabase(databaseName, getCloudProvider(), getCloudRegion())
                             .getDatabase();
+                break;
                 default:
                     throw new IllegalArgumentException("Invalid Environment");
             }

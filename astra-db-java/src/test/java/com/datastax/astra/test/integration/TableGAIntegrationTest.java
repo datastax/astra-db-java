@@ -9,18 +9,23 @@ import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
 import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
+import com.datastax.astra.client.tables.DataAPIPair;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
 import com.datastax.astra.client.tables.commands.AlterTypeAddFields;
 import com.datastax.astra.client.tables.commands.AlterTypeRenameFields;
+import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTypeOptions;
 import com.datastax.astra.client.tables.commands.options.DropTypeOptions;
+import com.datastax.astra.client.tables.commands.options.TableFindOptions;
+import com.datastax.astra.client.tables.cursor.TableFindCursor;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableIndexMapTypes;
@@ -30,16 +35,23 @@ import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDef
 import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeFieldDefinition;
 import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.EntityTable;
+import com.datastax.astra.internal.serdes.tables.DataAPIPairArrayDeserializerToMap;
+import com.datastax.astra.internal.serdes.tables.MapToDataApiPairArraySerializer;
 import com.datastax.astra.test.model.SampleUdtAddress;
 import com.datastax.astra.test.unit.QuickStartTablesLocal;
 import com.dtsx.astra.sdk.utils.JsonUtils;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import okhttp3.Address;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,12 +74,12 @@ import static com.datastax.astra.client.tables.definition.types.TableUserDefined
  */
 public class TableGAIntegrationTest {
 
-    public static final String ASTRA_DB_TOKEN =
-            "REDACTED";
+    public static final String ASTRA_DB_TOKEN = System.getenv("ASTRA_DB_APPLICATION_TOKEN");
+
     public static final String DB_URL_NON_VECTOR =
             "https://f9754177-52e2-4b66-935e-78cfd0be0042-us-west-2.apps.astra-dev.datastax.com";
     public static final String DB_URL_VECTOR =
-            "https://853cb027-ae65-4bfa-94a3-5e1931268372-us-west-2.apps.astra-dev.datastax.com";
+            "https://b70fa426-5288-4437-aa82-32f9f1a169cc-us-east1.apps.astra.datastax.com";
 
     private DataAPIClient getAstraDevDataApiClient() {
         DataAPIClientOptions options = new DataAPIClientOptions()
@@ -283,7 +295,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_create_type() {
-        getLocalDatabase().createType("udt_one", new TableUserDefinedTypeDefinition()
+        getDatabaseVector().createType("udt_one", new TableUserDefinedTypeDefinition()
                 .addFieldUuid("f_uuid")
                 .addFieldText("f_text")
                 .addFieldAscii("f_ascii")
@@ -388,51 +400,208 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_insert_table_with_udts() {
-        getQuickStartDatabase().createType("udt_address", new TableUserDefinedTypeDefinition()
+
+        Database db = getDatabaseVector();
+
+        db.createType("udt_address", new TableUserDefinedTypeDefinition()
                 .addFieldText("city")
                 .addFieldInt("zipcode"), CreateTypeOptions.IF_NOT_EXISTS);
 
-        getQuickStartDatabase().createTable("person", new TableDefinition()
+        Table<Row> table = db.createTable("person", new TableDefinition()
                 .addColumnText("name")
                 .addColumnUserDefinedType("address", "udt_address")
                 .addColumnListUserDefinedType("address_list", "udt_address")
+                .addColumnSetUserDefinedType("address_set", "udt_address")
+                .addColumnMapUserDefinedType("address_map", "udt_address", TableColumnTypes.TEXT)
                 .addPartitionBy("name"), IF_NOT_EXISTS);
 
-        getQuickStartDatabase()
-                .getTable("person")
-                .insertOne(new Row()
+        table.insertOne(new Row()
                         .add("name", "cedrick")
                         .add("address", Map.of("zipcode", 12345, "city", "Paris")));
 
         PersonBean sara =
           new PersonBean("sara", new PersonAddress("Paris", 75018), null);
 
-        getQuickStartDatabase()
-                .getTable("person")
-                .insertOne(new Row()
+        table.insertOne(new Row()
                         .add("name", "cedrick")
                         .add("address", Map.of("zipcode", 12345, "city", "Paris")));
 
-        getQuickStartDatabase()
-                .getTable("person", PersonBean.class)
-                .insertOne(sara);
+        db.getTable("person", PersonBean.class).insertOne(sara);
     }
 
     @Test
     public void should_update_table_with_udts() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        table.updateOne(eq("name", "sara"),
+          new TableUpdateOperation().set("address", Map.of("city","Marseille")));
+    }
 
+    @Test
+    public void should_update_table_with_udts_2() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        table.updateOne(eq("name", "sara"),
+                new TableUpdateOperation().set("address", Map
+                        .of("city","Marseille",
+                                "zipcode",13000)));
+    }
+
+    @Test
+    public void should_update_table_with_udts_list_3() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        Map<?,?> updated = Map.of("city","Marseille","zipcode",13000);
+        Map<?,?> updated2 = Map.of("city","Paris","zipcode",1111);
+        Map<?,?> updated3 = Map.of();
+
+        table.updateOne(eq("name", "sara"),
+           new TableUpdateOperation()
+                   .set("address_list", List.of(updated, updated2, updated3))
+                   .set("address_map", Map.of("key1", updated))
+        );
     }
 
     @Test
     public void should_read_table_with_udts() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        table.findAll().forEach(row -> {
+            System.out.println("Row: " + row);
+        });
+
+        db.getTable("person", PersonBean.class).findAll().forEach(p -> {
+            System.out.println("Person: " + p.getAddress().getCity());
+        });
+    }
+
+    @Test
+    public void should_projection_table_with_udts() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        TableFindCursor<Row, Row> r = table.find(new TableFindOptions().projection(
+                Projection.include("address_list", "address_map")));
+        r.forEach(row -> {
+            System.out.println("Row: " + row);
+        });
 
     }
 
     @Test
-    public void should_filter_table_with_udts() {
+    public void should_projection_table_with_sub_udt() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        TableFindCursor<Row, Row> r = table.find(new TableFindOptions().projection(
+                Projection.include("address.country")));
+        r.forEach(row -> {
+            System.out.println("Row: " + row);
+        });
 
     }
 
+    @Test
+    public void should_filter_all_udt() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        TableFindCursor<Row, Row> r = table.find(Filters
+                        .all("address_list", Map.of("city","Marseille","zipcode",13000)));
+        r.forEach(row -> {
+            System.out.println("Row: " + row);
+        });
+
+    }
+
+    @Test
+    public void should_filter_keys_udtmap() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+
+//        Filter filter1 = new Filter();
+//        Map values = new HashMap();
+//        values.put("$values",
+//          Map.of("$in",
+//            List.of(Map.of("city","Marseille","zipcode",13000))
+//          )
+//        );
+//        filter1.put("address_map", values);
+//        table.find(filter1).forEach(row -> {
+//            System.out.println("Row: " + row);
+//        });
+
+        Map<?,?> innerConditions = Map.of("city","Marseille","zipcode",13000);
+        Filter filterValues = Filters.values("address_map", Filters.in(innerConditions).documentMap);
+        table.find(filterValues).forEach(row -> {
+            System.out.println("Row: " + row);
+        });
+
+
+    }
+
+    @Test
+    public void should_filter_all() {
+        Database db = getDatabaseVector();
+        Table<Row> table = db.getTable("person");
+        table.findAll().forEach(row -> {
+            System.out.println("Row: " + row);
+        });
+    }
+
+    @Test
+    public void should_non_string_keys() {
+        Database db = getDatabaseVector();
+
+        Table<Row> tableExo = db.createTable("exotic", new TableDefinition()
+                .addColumnText("name")
+                .addColumnMap("exotic_map_1", TableColumnTypes.INT, TableColumnTypes.TEXT)
+                .addColumnMap("normal_map", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
+                .addPartitionBy("name"), IF_NOT_EXISTS);
+
+        Row entry1 = new Row().addText("name", "entry1")
+                .addMap("exotic_map_1", Map.of(1, "one", 2, "two"))
+//                .add("exotic_map_2", Map.of(new BigInteger("1"), "one", new BigInteger("2"), "two"))
+//                .add("exotic_map_3", Map.of(true, "yes", false, "no"))
+//                .add("exotic_map_4", Map.of(UUID.fromString("6f9619ff-8b86-d011-b42d-00cf4fc964ff"), "uuid1",
+//                                            UUID.fromString("7f9619ff-8b86-d011-b42d-00cf4fc964ff"), "uuid2"))
+                .add("normal_map", Map.of("k1", "v1", "k2", "v2"));
+        tableExo.insertOne(entry1);
+
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static final class ExoticTableRow {
+        String name;
+        @JsonProperty("normal_map")
+        Map<String, String> normalMap;
+        @JsonProperty("exotic_map_1")
+        Map<Integer, String> exoticMap;
+    }
+
+    @Test
+    public void should_add1() {
+        ExoticTableRow row1 = new ExoticTableRow("demo",
+                Map.of("k2","v2"),
+                Map.of(1,"one", 2,"two"));
+        getDatabaseVector()
+          .getTable("exotic", ExoticTableRow.class)
+          .insertOne(row1);
+    }
+
+    @Test
+    public void should_filter_all1() {
+        getDatabaseVector().getTable("exotic").findAll().forEach(System.out::println);
+    }
+
+    @Test
+    public void should_filter_all2() {
+        Database db = getDatabaseVector();
+        Table<ExoticTableRow> table = db.getTable("exotic", ExoticTableRow.class);
+        table.findAll().forEach(row -> {
+            System.out.println(row);
+            System.out.println("Row: " + row.getExoticMap());
+            System.out.println("Row: " + row.getNormalMap());
+        });
+    }
 
 
 }

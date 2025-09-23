@@ -880,7 +880,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                             .appendIfNotNull("skip", options.skip())
                             .appendIfNotNull("limit", options.limit())
                             .appendIfNotNull(OPTIONS_PAGE_STATE, options.pageState())
-                            .appendIfNotNull(OPTIONS_INCLUDE_SCORES, options.includeSortVector())
+                            .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())
                             .appendIfNotNull(OPTIONS_INCLUDE_SIMILARITY, options.includeSimilarity()));
         }
         DataAPIResponse apiResponse = runCommand(findCommand, options);

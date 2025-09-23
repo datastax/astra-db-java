@@ -25,11 +25,11 @@
         <devops-sdk.version>1.2.9</devops-sdk.version>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.18</logback.version>
-        <jackson.version>2.18.3</jackson.version>
-        <lombok.version>1.18.38</lombok.version>
+        <jackson.version>2.20.0</jackson.version>
+        <lombok.version>1.18.40</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
         <awaitility.version>4.2.2</awaitility.version>
-        <mockwebserver.version>4.12.0</mockwebserver.version>
+        <mockwebserver.version>5.1.0</mockwebserver.version>
         <uuid-generator.version>5.1.0</uuid-generator.version>
         <httpclient.version>5.3</httpclient.version>
 

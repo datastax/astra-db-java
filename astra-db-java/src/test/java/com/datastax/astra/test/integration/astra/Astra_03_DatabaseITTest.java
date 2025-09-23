@@ -11,9 +11,9 @@ import static com.datastax.astra.test.integration.AbstractDataAPITest.ENV_VAR_DE
 /**
  * Integration tests against a Local Instance of Stargate.
  */
-@EnabledIfSystemProperty(named = ENV_VAR_ASTRA_TOKEN,     matches = ".*")
-@EnabledIfSystemProperty(named = ENV_VAR_CLOUD_PROVIDER,  matches = ".*")
-@EnabledIfSystemProperty(named = ENV_VAR_CLOUD_REGION,    matches = ".*")
-@EnabledIfSystemProperty(named = ENV_VAR_DESTINATION, matches = "astra_(dev|prod|test)")
+//@EnabledIfSystemProperty(named = ENV_VAR_ASTRA_TOKEN,     matches = ".*")
+//@EnabledIfSystemProperty(named = ENV_VAR_CLOUD_PROVIDER,  matches = ".*")
+//@EnabledIfSystemProperty(named = ENV_VAR_CLOUD_REGION,    matches = ".*")
+//@EnabledIfSystemProperty(named = ENV_VAR_DESTINATION, matches = "astra_(dev|prod|test)")
 class Astra_03_DatabaseITTest extends AbstractDatabaseTest {
 }

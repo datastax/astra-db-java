@@ -199,12 +199,11 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
         // Should we override the client to use a different one
         long requestTimeout = this.options.getRequestTimeout();
         if (overridingOptions != null && overridingOptions.getDataAPIClientOptions() != null) {
-            DataAPIClientOptions overClientOptions = overridingOptions.getDataAPIClientOptions();
+            DataAPIClientOptions overClientOptions  = overridingOptions.getDataAPIClientOptions();
             HttpClientOptions overHttpClientOptions = overClientOptions.getHttpClientOptions();
             TimeoutOptions    overTimeoutOptions    = overClientOptions.getTimeoutOptions();
             // User provided specific parameters for the client
             if (overHttpClientOptions != null || overTimeoutOptions != null) {
-                log.debug("Overriding Http Client");
                 // overTimeoutOptions used only for connection timeout
                 requestHttpClient = new RetryHttpClient(
                         overHttpClientOptions != null ? overHttpClientOptions : options.getHttpClientOptions(),
@@ -216,7 +215,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             // =======================
             if (overTimeoutOptions != null) {
                 requestTimeout = overridingOptions.getRequestTimeout();
-                log.debug("Overriding Timeouts to {}", requestTimeout);
             }
         }
 

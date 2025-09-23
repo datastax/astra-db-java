@@ -144,7 +144,6 @@ public class RetryHttpClient {
      */
     public ApiResponseHttp parseHttpResponse(HttpResponse<String> response) {
         if (response == null) return null;
-
         ApiResponseHttp res = new ApiResponseHttp(response.body(), response.statusCode(),
                     response.headers().map().entrySet()
                             .stream()
@@ -178,7 +177,7 @@ public class RetryHttpClient {
                 .afterFailedTryListener(s -> {
                     log.error("Failure on attempt {}/{} ", s.getTotalTries(), retryConfig.getMaxNumberOfTries());
                     log.error("Failed request {} on {}", req.method() , req.uri().toString() );
-                    log.error("+ Exception was ", s.getLastExceptionThatCausedRetry());
+                    log.error("Exception was ", s.getLastExceptionThatCausedRetry());
                 })
                 .build()
                 .execute(executeRequest);
