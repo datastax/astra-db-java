@@ -143,7 +143,6 @@ public class RowMapper {
 
                         // Provide a DeserializationContext - obtain from ObjectMapper
                         DeserializationContext ctxt = serializer.getMapper().getDeserializationContext();
-                        @SuppressWarnings("unchecked")
                         Map<Object, Object> map = (Map<Object, Object>) deser.deserialize(treeParser, ctxt);
 
                         // If the target map implementation expects specific concrete types, convert again

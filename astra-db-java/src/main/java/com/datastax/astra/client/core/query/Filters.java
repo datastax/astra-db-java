@@ -389,6 +389,15 @@ public class Filters {
         return new Filter().where(fieldName).isInArray(values);
     }
 
+    /**
+     * Creates a filter that matches all documents where the value of a field equals any value in the list of specified values.
+     *
+     * @param values
+     *      the list of values
+     * @param <V>
+     *       the type of the values
+     * @return the filter
+     */
     public static <V> Filter in(final V... values) {
         Filter f = new Filter();
         f.documentMap.put(FilterOperator.IN.getOperator(), values);
@@ -534,6 +543,15 @@ public class Filters {
         return andFilter;
     }
 
+    /**
+     * Creates a filter that matches all documents where the value of a field contains all the specified values.
+     *
+     * @param fieldName
+     *      the field name
+     * @param values
+     *      the map of values
+     * @return the filter
+     */
     public static Filter values(String fieldName, Map<String, Object> values) {
         Filter valuesFilter = new Filter();
         Map<String, Map<String, Object>> map = new HashMap<>();
