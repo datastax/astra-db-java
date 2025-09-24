@@ -47,6 +47,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import okhttp3.Address;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -101,6 +102,11 @@ public class TableGAIntegrationTest {
     private Database getQuickStartDatabase() {
         return getLocalDatabase("http://localhost:8181", "cassandra", "cassandra", "quickstart_keyspace");
     }
+    private Database getDatabase() {
+        return getDatabaseVector();
+        //return getDatabaseVector();
+        //return getLocalDatabase();
+    }
 
     private Database getLocalDatabase(String url, String username, String password, String keyspace) {
         String authToken = new UsernamePasswordTokenProvider(username, password)
@@ -115,7 +121,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_get_database_different_keyspace() {
-        getQuickStartDatabase().listTableNames().stream().forEach(System.out::println);
+        getDatabase().listTableNames().stream().forEach(System.out::println);
     }
 
     /**
@@ -123,7 +129,7 @@ public class TableGAIntegrationTest {
      */
     @Test
     public void should_backwardCompatible_findEmbeddingProviders() {
-        getDatabaseVector().getDatabaseAdmin()
+        getDatabase().getDatabaseAdmin()
                 .findEmbeddingProviders()
                 .getEmbeddingProviders()
                 .forEach((k,v) -> {
@@ -136,7 +142,7 @@ public class TableGAIntegrationTest {
     @Test
     public void should_findEmbeddingProviders() {
         // No Model Status will return all models
-        getLocalDatabase()
+        getDatabase()
          .getDatabaseAdmin()
          .findEmbeddingProviders()
          .getEmbeddingProviders()
@@ -150,7 +156,7 @@ public class TableGAIntegrationTest {
         // filter on SUPPORTED
         FindEmbeddingProvidersOptions options = new FindEmbeddingProvidersOptions()
                 .filterModelStatus(SupportModelStatus.SUPPORTED);
-        getLocalDatabase()
+        getDatabase()
                 .getDatabaseAdmin()
                 .findEmbeddingProviders(options)
                 .getEmbeddingProviders()
@@ -167,7 +173,7 @@ public class TableGAIntegrationTest {
      */
     @Test
     public void should_backwardCompatible_findRerankingProviders() {
-        getLocalDatabase().getDatabaseAdmin()
+        getDatabase().getDatabaseAdmin()
                 .findRerankingProviders(new FindRerankingProvidersOptions()
                         .filterModelStatus(SupportModelStatus.SUPPORTED))
                 .getRerankingProviders()
@@ -180,7 +186,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_findAvailableRegions() {
-        getDatabaseVector()
+        getDatabase()
                 .getAdmin()
                 .findAvailableRegions(new AstraFindAvailableRegionsOptions().onlyOrgEnabledRegions(false))
                 .forEach(region -> System.out.println(JsonUtils.marshall(region)));
@@ -188,7 +194,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void shouldCreateTableIndex() {
-        Table<Row> table = getLocalDatabase()
+        Table<Row> table = getDatabase()
                 .createTable("demo_table_index", new TableDefinition()
                 .addColumnText("email")
                 .addColumnText("name")
@@ -252,8 +258,9 @@ public class TableGAIntegrationTest {
      */
 
     @Test
+    @Ignore("You need to have a table sample_table first")
     public void should_read_table_with_timeuuid() {
-        Table<SampleTable> table3 = getLocalDatabase().getTable(SampleTable.class);
+        Table<SampleTable> table3 = getDatabase().getTable(SampleTable.class);
 
         // Read
         table3.findAll().forEach(row -> {
@@ -269,6 +276,7 @@ public class TableGAIntegrationTest {
     }
 
     @Test
+    @Ignore("You need to have a table video_ratings first")
     public void should_read_table_with_counters() {
 
         Table<VideoRatingTableEntity> table2 = getLocalDatabase()
@@ -295,7 +303,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_create_type() {
-        getDatabaseVector().createType("udt_one", new TableUserDefinedTypeDefinition()
+        getDatabase().createType("udt_one", new TableUserDefinedTypeDefinition()
                 .addFieldUuid("f_uuid")
                 .addFieldText("f_text")
                 .addFieldAscii("f_ascii")
@@ -308,19 +316,14 @@ public class TableGAIntegrationTest {
     }
 
     @Test
-    public void should_drop_type() {
-        getLocalDatabase().dropType("udt_one",DropTypeOptions.IF_EXISTS);
-    }
-
-    @Test
     public void should_alter_type_rename_fields() {
-        getLocalDatabase().alterType("udt_one",
+        getDatabase().alterType("udt_one",
             new AlterTypeRenameFields().addField("f_bigint", "f_bigint2"));
     }
 
     @Test
     public void should_alter_type_add_fields() {
-        getLocalDatabase().alterType("udt_one",
+        getDatabase().alterType("udt_one",
                 new AlterTypeAddFields()
                         .addField("x_bigint2",     new TableUserDefinedTypeFieldDefinition(BIGINT))
                         .addField("x_text2",       new TableUserDefinedTypeFieldDefinition(TEXT))
@@ -331,13 +334,18 @@ public class TableGAIntegrationTest {
     }
 
     @Test
+    public void should_drop_type() {
+        getDatabase().dropType("udt_one",DropTypeOptions.IF_EXISTS);
+    }
+
+    @Test
     public void should_create_type_bean() {
-        getQuickStartDatabase().createType(SampleUdtAddress.class, null);
+        getDatabase().createType(SampleUdtAddress.class, null);
     }
 
     @Test
     public void should_create_table_with_udts() {
-        getQuickStartDatabase().createTable("demo_table_with_udts_3",
+        getDatabase().createTable("demo_table_with_udts_3",
                 new TableDefinition()
                         .addColumnText("email")
                         .addColumnText("name")
@@ -351,7 +359,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_alter_table_with_udts() {
-        getQuickStartDatabase()
+        getDatabase()
                 .getTable("demo_table_with_udts_3")
                 .alter(new AlterTableAddColumns()
                         .addColumnUserDefinedType("member_x", "member")
@@ -361,9 +369,8 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_list_tables_with_udt() {
-        getQuickStartDatabase().listTables().forEach(System.out::println);
+        getDatabase().listTables().forEach(System.out::println);
     }
-
 
     @Test
     public void should_create_index_on_map() {
@@ -373,7 +380,7 @@ public class TableGAIntegrationTest {
                 .addColumnMap("example_map_column", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
                 .partitionKey("email");
 
-        Table<Row> table = getQuickStartDatabase()
+        Table<Row> table = getDatabase()
                 .createTable("example_index_table", tableDefinition);
 
         // Index a column
@@ -401,7 +408,7 @@ public class TableGAIntegrationTest {
     @Test
     public void should_insert_table_with_udts() {
 
-        Database db = getDatabaseVector();
+        Database db = getDatabase();
 
         db.createType("udt_address", new TableUserDefinedTypeDefinition()
                 .addFieldText("city")
@@ -431,7 +438,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_update_table_with_udts() {
-        Database db = getDatabaseVector();
+        Database db = getDatabase();
         Table<Row> table = db.getTable("person");
         table.updateOne(eq("name", "sara"),
           new TableUpdateOperation().set("address", Map.of("city","Marseille")));
@@ -439,7 +446,7 @@ public class TableGAIntegrationTest {
 
     @Test
     public void should_update_table_with_udts_2() {
-        Database db = getDatabaseVector();
+        Database db = getDatabase();
         Table<Row> table = db.getTable("person");
         table.updateOne(eq("name", "sara"),
                 new TableUpdateOperation().set("address", Map
@@ -488,18 +495,6 @@ public class TableGAIntegrationTest {
     }
 
     @Test
-    public void should_projection_table_with_sub_udt() {
-        Database db = getDatabaseVector();
-        Table<Row> table = db.getTable("person");
-        TableFindCursor<Row, Row> r = table.find(new TableFindOptions().projection(
-                Projection.include("address.country")));
-        r.forEach(row -> {
-            System.out.println("Row: " + row);
-        });
-
-    }
-
-    @Test
     public void should_filter_all_udt() {
         Database db = getDatabaseVector();
         Table<Row> table = db.getTable("person");
@@ -516,25 +511,24 @@ public class TableGAIntegrationTest {
         Database db = getDatabaseVector();
         Table<Row> table = db.getTable("person");
 
-//        Filter filter1 = new Filter();
-//        Map values = new HashMap();
-//        values.put("$values",
-//          Map.of("$in",
-//            List.of(Map.of("city","Marseille","zipcode",13000))
-//          )
-//        );
-//        filter1.put("address_map", values);
-//        table.find(filter1).forEach(row -> {
-//            System.out.println("Row: " + row);
-//        });
+        // Manual Filters
+        Filter filter1 = new Filter();
+        Map values = new HashMap();
+        values.put("$values",
+          Map.of("$in",
+            List.of(Map.of("city","Marseille","zipcode",13000))
+          )
+        );
+        filter1.put("address_map", values);
+        table.find(filter1).forEach(row -> {
+            System.out.println("Row: " + row);
+        });
 
         Map<?,?> innerConditions = Map.of("city","Marseille","zipcode",13000);
         Filter filterValues = Filters.values("address_map", Filters.in(innerConditions).documentMap);
         table.find(filterValues).forEach(row -> {
             System.out.println("Row: " + row);
         });
-
-
     }
 
     @Test
@@ -565,6 +559,9 @@ public class TableGAIntegrationTest {
                 .add("normal_map", Map.of("k1", "v1", "k2", "v2"));
         tableExo.insertOne(entry1);
 
+        tableExo.insertOne(new Row()
+                .addText("name", "entry2")
+                .addMap("exotic_map_1", Map.of()));
     }
 
     @Data

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 
 
 @Data
-@TableUserDefinedType("udt_address")
+@TableUserDefinedType("member")
 @NoArgsConstructor
 public class SampleUdtAddress {
 
