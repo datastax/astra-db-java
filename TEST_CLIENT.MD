@@ -11,7 +11,7 @@
 
 ```
 mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -Dtest="com.datastax.astra.test.integration.astra.astra_admin.*Test" \
  -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
  -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
  -DASTRA_CLOUD_PROVIDER=GCP \
@@ -23,7 +23,7 @@ mvn test \
 
 ```
 mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -Dtest="com.datastax.astra.test.integration.astra.astra_admin.*Test" \
  -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
  -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
  -DASTRA_CLOUD_PROVIDER=AWS \

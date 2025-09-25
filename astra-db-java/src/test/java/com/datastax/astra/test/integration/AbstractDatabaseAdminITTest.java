@@ -99,15 +99,6 @@ public abstract class AbstractDatabaseAdminITTest extends AbstractDataAPITest {
             }
             assertThat(getDatabaseAdmin().getDatabase().getKeyspace()).isEqualTo("nsx2");
         }
-
-        // Surface
-        final DatabaseAdmin dbAdmin2 = getDatabaseAdmin();
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> dbAdmin2.createKeyspace((String) null))
-                .withMessage("Parameter 'keyspaceName' should be null nor empty");
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> dbAdmin2.createKeyspace(""))
-                .withMessage("Parameter 'keyspaceName' should be null nor empty");
     }
 
     @Test

@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.astra.collection;
+package com.datastax.astra.test.integration.astra.collections;
 
 import com.datastax.astra.test.integration.AbstractCollectionITTest;
 

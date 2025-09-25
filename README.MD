@@ -23,7 +23,9 @@ You can build it locally and install it in your local repository.
    3. [Get your credentials](#23-get-your-credentials)
    4. [Create a new project and add the dependency](#24-create-a-new-project-and-add-the-dependency)
 3. [QuickStart with Local Instances](#3-quickstart-with-local-instances)
-4. [What's Next](#4-whats-next)
+4. [Running Integration Tests](#4-running-integration-tests)
+   1. [Running Against AstraDB](#41-astra-db)
+   2. [Running Against HCD](#42-hcd)
    
 ## 1. Installation
 
@@ -395,31 +397,64 @@ public class QuickStartLocal {
 
 ### 4.1 ASTRA DB
 
+#### Overview
+
 The clients can target a distribution of Data API installed locally or Astra DB. 
 In case of Astra DB they can also target different environments (DEV, TEST, PROD).
 When we run a test suite we can specify the target with the following properties:
 
 
-| Property                        | Description                                                                 |
-|---------------------------------|-----------------------------------------------------------------------------|
-| `ASTRA_DB_JAVA_TEST_ENV`        | local, hcd, astra_dev, astra_prod                                          |
-| `ASTRA_DB_APPLICATION_TOKEN`    | the token to use for authentication                                        |
-| `ASTRA_CLOUD_PROVIDER`          | AWS, GCP, AZURE                                                            |
-| `ASTRA_CLOUD_REGION`            | us-east-1, us-east-2
+| Property                        | Description                                                          |
+|---------------------------------|----------------------------------------------------------------------|
+| `ASTRA_DB_JAVA_TEST_ENV`        | `astra_dev`, `astra_test` or `astra_prod` (default)                  |
+| `ASTRA_DB_APPLICATION_TOKEN`    | the token to use for authentication leverage an env var like `${var}` |
+| `ASTRA_CLOUD_PROVIDER`          | `AWS`, `GCP` or  `AZURE`                                               |
+| `ASTRA_CLOUD_REGION`            | A valid region is selected provider us-east-1, us-east-2           
+
+> [!INFOS]
+> No database is required, the test suite will create and delete databases as needed.
+> To Know a valid region for a provider you can use the `[Astra CLI]`    
+> ```
+> $ astra db list-regions-vector
+> +-----------------+-------------------------+------------------------------------+
+> | Cloud Provider  | Region                  | Full Name                          |
+> +-----------------+-------------------------+------------------------------------+
+> | aws             | ap-south-1              | Asia Pacific (Mumbai)              |
+> | aws             | ap-southeast-2          | Asia Pacific (Sydney)              |
+> | aws             | eu-west-1               | Europe (Ireland)                   |
+> | aws             | us-east-1               | US East (N. Virginia)              |
+> | aws             | us-east-2               | US East (Ohio)                     |
+> | azure           | australiaeast           | Australia East                     |
+> | azure           | centralindia            | Central India (Pune)               |
+> | azure           | southcentralus          | South Central US                   |
+> | azure           | westeurope              | West Europe                        |
+> | azure           | westus3                 | US West 3                          |
+> | gcp             | europe-west2            | West Europe2 (London, England, UK) |
+> | gcp             | northamerica-northeast1 | Montreal, Quebec                   |
+> | gcp (free-tier) | us-east1                | Moncks Corner, South Carolina      |
+> | gcp             | us-east4                | Ashburn, Virginia                  |
+> +-----------------+-------------------------+------------------------------------+
+> ```
+
+#### Pre-Requisites
 
 > [!IMPORTANT]
-> No database is required, the test suite will create and delete databases as needed.
+> - To run the maven command you need to have build the project first
+> ```
+> mvn clean install -Dtest.skipped=true
+> ```
+> - You also need to position yourself in folder `astra-db-java`
+> ```
+> cd astra-db-java
+> ```
 
-### 4.2 HCD
+#### Astra DB Admin 
 
-- Values for TEST_ENV are:
-  `local`, `astra_dev`, `astra_test`, `astra_prod`
-
-- Create a DB `astra_gcp_us_east1` in a environment PROD
+- Test operation to create/delete databases we need to use an Organization Administrator token.
 
 ```
 mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -Dtest="com.datastax.astra.test.integration.astra.astra_admin.*Test" \
  -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
  -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
  -DASTRA_CLOUD_PROVIDER=GCP \
@@ -427,18 +462,50 @@ mvn test \
  -Dtest.skipped=false
 ```
 
-- Will Create db `astra_aws_us_east_2` in a environment PROD
+#### DatabaseAdmin
 
 ```
 mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -Dtest="com.datastax.astra.test.integration.astra.database_admin.*Test" \
  -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
  -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
- -DASTRA_CLOUD_PROVIDER=AWS \
- -DASTRA_CLOUD_REGION=us-east-2  \
+ -DASTRA_CLOUD_PROVIDER=GCP \
+ -DASTRA_CLOUD_REGION=us-east1 \
  -Dtest.skipped=false
 ```
 
+
+#### Database
+
+```
+mvn test \
+ -Dtest="com.datastax.astra.test.integration.astra.database.*Test" \
+ -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
+ -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
+ -DASTRA_CLOUD_PROVIDER=GCP \
+ -DASTRA_CLOUD_REGION=us-east1 \
+ -Dtest.skipped=false
+```
+
+
+#### Collections
+
+
+#### Multiple in one go
+
+```
+mvn test \
+ -Dtest="com.datastax.astra.test.integration.astra.astra_admin.AstraDBAdmin_01_DatabaseDDL_ITTest,com.datastax.astra.test.integration.astra.database_admin.DatabaseAdminITTest" \
+ -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
+ -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
+ -DASTRA_CLOUD_PROVIDER=GCP \
+ -DASTRA_CLOUD_REGION=us-east1 \
+ -Dtest.skipped=false
+```
+
+### 4.2 HCD
+
+WIP
 
 
 

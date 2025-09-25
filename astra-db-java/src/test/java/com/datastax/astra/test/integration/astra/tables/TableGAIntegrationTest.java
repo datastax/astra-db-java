@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.astra.table;
+package com.datastax.astra.test.integration.astra.tables;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIClients;
@@ -20,7 +20,6 @@ import com.datastax.astra.client.tables.commands.AlterTypeAddFields;
 import com.datastax.astra.client.tables.commands.AlterTypeRenameFields;
 import com.datastax.astra.client.tables.commands.TableUpdateOperation;
 import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
-import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import com.datastax.astra.client.tables.commands.options.CreateTypeOptions;
 import com.datastax.astra.client.tables.commands.options.TableFindOptions;
 import com.datastax.astra.client.tables.cursor.TableFindCursor;

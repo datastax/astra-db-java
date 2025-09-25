@@ -1,4 +1,4 @@
-package com.datastax.astra.test.integration.astra.table;
+package com.datastax.astra.test.integration.astra.tables;
 
 import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
