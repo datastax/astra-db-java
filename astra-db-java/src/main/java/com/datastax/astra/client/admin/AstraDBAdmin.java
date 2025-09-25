@@ -324,7 +324,9 @@ public class AstraDBAdmin {
     public boolean dropDatabase(@NonNull String databaseName) {
         Assert.hasLength(databaseName, "database");
         Assert.hasLength(databaseName, "Database ");
-        Optional<DatabaseInfo> db = listDatabases().stream().filter(d -> d.getName().equals(databaseName)).findFirst();
+        Optional<DatabaseInfo> db = listDatabases()
+                .stream()
+                .filter(d -> d.getName().equals(databaseName)).findFirst();
         if (db.isPresent()) {
             devopsDbClient.database(db.get().getId().toString()).delete();
             return true;

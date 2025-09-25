@@ -46,6 +46,13 @@ public @interface Column {
     String name();
 
     /**
+     * Specifies the name of the column. If not provided, the field's name will be used.
+     *
+     * @return the custom column name or an empty string if not set
+     */
+    String udtName() default "";
+
+    /**
      * Specifies the type of the column. If not provided, the field's type will be used.
      *
      * @return the column type or {@link TableColumnTypes#UNDEFINED} if not set

@@ -180,6 +180,9 @@ public class EntityBeanDefinition<T> {
                     if (column.keyType() != TableColumnTypes.UNDEFINED) {
                         field.setKeyType(column.keyType());
                     }
+                    if (Utils.hasLength(column.udtName())) {
+                        field.setUdtName(column.udtName());
+                    }
                 } else if (columnVector != null) {
 
                     field.setColumnType(TableColumnTypes.VECTOR);
@@ -381,6 +384,14 @@ public class EntityBeanDefinition<T> {
             }
             column.append("type", colType.getValue());
 
+            // UDT: Name
+            if (colType == TableColumnTypes.USERDEFINED) {
+                if (!Utils.hasLength(field.getUdtName())) {
+                    throw new IllegalArgumentException("Field '" + field.getName() + "' is missing UDT name");
+                }
+                column.append("udtName", field.getUdtName());
+            }
+
             // Vector: Dimension and Metric
             if (colType == TableColumnTypes.VECTOR) {
                 if (field.getVectorDimension() <= 0 || field.getVectorDimension() > 8192 ) {
@@ -425,8 +436,21 @@ public class EntityBeanDefinition<T> {
                     if (valueType == TableColumnTypes.UNSUPPORTED) {
                         throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for value in field '" + field.getName() + "'");
                     }
+                } else if (valueType == TableColumnTypes.USERDEFINED) {
+                    // Special Document for UDT
+                    Document valueTypeDoc = new Document();
+                    if (!Utils.hasLength(field.getUdtName())) {
+                        throw new IllegalArgumentException("Field '" + field.getName() + "' is missing UDT name");
+                    }
+                    valueTypeDoc.append("type", valueType.getValue());
+                    valueTypeDoc.append("udtName", field.getUdtName());
+                    column.append("valueType", valueTypeDoc);
+
+
+
+                } else {
+                    column.append("valueType", valueType.getValue());
                 }
-                column.append("valueType", valueType.getValue());
             }
 
             // Column Name, using the field Name if nothing provided

@@ -29,7 +29,7 @@ You can build it locally and install it in your local repository.
 
 ### 1.1 Prerequisites
 
-#### 📦 Java Development Kit (JDK) 11
+#### 📦 Java Development Kit (JDK) 17
 - Use the [reference documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) to install a **Java Development Kit**
 - Validate your installation with
 
@@ -391,12 +391,57 @@ public class QuickStartLocal {
 }
 ```
 
-## 4. What's Next
+## 4. Running Integration tests
 
-This is an the organization of the different classes of the framework.
+### 4.1 ASTRA DB
 
-![overview](https://datastaxdevs.github.io/astra-db-java/overview.png)
+The clients can target a distribution of Data API installed locally or Astra DB. 
+In case of Astra DB they can also target different environments (DEV, TEST, PROD).
+When we run a test suite we can specify the target with the following properties:
 
-- For more information use the [JAVADOC  documentation](https://datastaxdevs.github.io/astra-db-java/latest/)
 
-- The `examples` directory contains more examples on how to use the library.
+| Property                        | Description                                                                 |
+|---------------------------------|-----------------------------------------------------------------------------|
+| `ASTRA_DB_JAVA_TEST_ENV`        | local, hcd, astra_dev, astra_prod                                          |
+| `ASTRA_DB_APPLICATION_TOKEN`    | the token to use for authentication                                        |
+| `ASTRA_CLOUD_PROVIDER`          | AWS, GCP, AZURE                                                            |
+| `ASTRA_CLOUD_REGION`            | us-east-1, us-east-2
+
+> [!IMPORTANT]
+> No database is required, the test suite will create and delete databases as needed.
+
+### 4.2 HCD
+
+- Values for TEST_ENV are:
+  `local`, `astra_dev`, `astra_test`, `astra_prod`
+
+- Create a DB `astra_gcp_us_east1` in a environment PROD
+
+```
+mvn test \
+ -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
+ -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
+ -DASTRA_CLOUD_PROVIDER=GCP \
+ -DASTRA_CLOUD_REGION=us-east1 \
+ -Dtest.skipped=false
+```
+
+- Will Create db `astra_aws_us_east_2` in a environment PROD
+
+```
+mvn test \
+ -Dtest="com.datastax.astra.test.integration.astra.admin.*Test" \
+ -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
+ -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
+ -DASTRA_CLOUD_PROVIDER=AWS \
+ -DASTRA_CLOUD_REGION=us-east-2  \
+ -Dtest.skipped=false
+```
+
+
+
+
+
+
+

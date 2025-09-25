@@ -43,7 +43,8 @@ import java.util.function.Function;
 )
 @JsonSubTypes({
     @JsonSubTypes.Type(value = TableRegularIndexDescriptor.class, name = "regular"),
-    @JsonSubTypes.Type(value = TableVectorIndexDescriptor.class, name = "vector")
+    @JsonSubTypes.Type(value = TableVectorIndexDescriptor.class, name = "vector"),
+    @JsonSubTypes.Type(value = TableTextIndexDescriptor.class, name = "text")
 })
 @Getter @Setter
 public abstract class TableIndexDescriptor<DEF extends TableIndexDefinition<?>> {
@@ -54,7 +55,7 @@ public abstract class TableIndexDescriptor<DEF extends TableIndexDefinition<?>> 
     protected String name;
 
     /**
-     * The type of index (vector, regular)
+     * The type of index (vector, regular, text)
      */
     protected String indexType;
 

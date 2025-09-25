@@ -4,7 +4,7 @@ import com.datastax.astra.client.tables.mapping.Column;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
 import com.datastax.astra.client.tables.mapping.PartitionSort;
 import com.datastax.astra.client.tables.mapping.EntityTable;
-import com.datastax.astra.test.integration.local.Local_20_TableITTest;
+import com.datastax.astra.test.integration.hcd.Local_20_TableITTest;
 import lombok.Builder;
 import lombok.Data;
 

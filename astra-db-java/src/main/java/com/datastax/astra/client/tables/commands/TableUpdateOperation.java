@@ -20,6 +20,7 @@ package com.datastax.astra.client.tables.commands;
  * #L%
  */
 
+import com.datastax.astra.client.tables.DataAPIPair;
 import com.datastax.astra.client.tables.definition.rows.Row;
 
 import java.util.LinkedHashMap;
@@ -133,6 +134,14 @@ public class TableUpdateOperation extends Row {
     @SuppressWarnings("unchecked")
     private TableUpdateOperation update(String operation, String key, Object value) {
         columnMap.computeIfAbsent(operation, k -> new LinkedHashMap<>());
+
+        // If the value is a map and the key is not a string we need to convert to an array of pairs
+        if (value instanceof Map<?, ?> map && !(map.keySet().stream().allMatch(k -> k instanceof String))) {
+            value = map.entrySet().stream()
+                    .map(e -> new DataAPIPair<>(e.getKey(), e.getValue()))
+                    .toArray(DataAPIPair[]::new);
+        }
+
         ((Map<String, Object>) columnMap.get(operation)).put(key, value);
         return this;
     }
