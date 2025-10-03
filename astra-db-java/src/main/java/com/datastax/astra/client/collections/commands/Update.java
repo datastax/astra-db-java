@@ -151,6 +151,20 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
+    public Update max(String key, Object value) {
+        return update("$max", key, value);
+    }
+
+    /**
+     * Builder pattern
+     *
+     * @param key
+     *      field name
+     * @param value
+     *      filed value
+     * @return
+     *      reference to self
+     */
     public Update push(String key, Object value) {
         return update("$push", key, value);
     }
@@ -227,7 +241,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update updateCurrentDate(String... fields) {
+    public Update currentDate(String... fields) {
         Arrays.stream(fields).forEach(key -> update("$currentDate", key, true));
         return this;
     }
@@ -240,7 +254,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update updateMul(Map<String, Double> fields) {
+    public Update mul(Map<String, Double> fields) {
         fields.forEach((key, value) -> update("$mul", key, value));
         return this;
     }
@@ -253,7 +267,7 @@ public class Update extends Document {
      * @return
      *      reference to self
      */
-    public Update updateSetOnInsert(Map<String, Object> fields) {
+    public Update setOnInsert(Map<String, Object> fields) {
         fields.forEach((key, value) -> update("$setOnInsert", key, value));
         return this;
     }

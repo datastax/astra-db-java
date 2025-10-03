@@ -106,7 +106,7 @@ public class Updates {
      *      update object
      */
     public static Update updateSetOnInsert( Map<String, Object> fields) {
-        return new Update().updateSetOnInsert(fields);
+        return new Update().setOnInsert(fields);
     }
 
     /**
@@ -118,7 +118,7 @@ public class Updates {
      *      update object
      */
     public static Update updateCurrentDate(String... fields) {
-        return new Update().updateCurrentDate(fields);
+        return new Update().currentDate(fields);
     }
 
     /**

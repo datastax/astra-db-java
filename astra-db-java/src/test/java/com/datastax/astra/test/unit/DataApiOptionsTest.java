@@ -229,8 +229,8 @@ class DataApiOptionsTest {
         assertThat(u1.toJson()).isEqualTo(u2.toJson());
         Update u3 =  new Update()
                 .rename("test", "test2")
-                .updateSetOnInsert(Map.of("test", 1d))
-                .updateCurrentDate("test")
+                .setOnInsert(Map.of("test", 1d))
+                .currentDate("test")
                 .addToSet("test", "OK")
                 .push("test", "OK")
                 .pushEach("list", List.of("OK"), 1)

@@ -496,7 +496,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                 .set(Document.create().append("name", "doe"))
                 .inc("test", 1d)
                 .rename("field1", "field2")
-                .updateMul(Map.of("price", 1.1d)));
+                .mul(Map.of("price", 1.1d)));
         assertThat(res.getMatchedCount()).isEqualTo(1);
         assertThat(res.getModifiedCount()).isEqualTo(1);
     }
@@ -583,7 +583,7 @@ public abstract class AbstractCollectionITTest extends AbstractDataAPITest {
                         .set(Document.create().append("name", "doe"))
                         .inc("test", 1d)
                         .rename("field1", "field2")
-                        .updateMul(Map.of("price", 1.1d)),
+                        .mul(Map.of("price", 1.1d)),
                 new CollectionFindOneAndUpdateOptions().returnDocument(AFTER));
         assertThat(doc).isPresent();
         assertThat(doc.get().getDouble("test")).isEqualTo(11.1d);
