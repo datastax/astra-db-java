@@ -488,8 +488,8 @@
 
     <!-- Organization -->
     <organization>
-        <name>DataStax</name>
-        <url>https://www.datastax.com</url>
+        <name>DataStax, an IBM Company</name>
+        <url>https://www.ibm.com/products/datastax</url>
     </organization>
 
     <!-- Release the client with Apache License -->
