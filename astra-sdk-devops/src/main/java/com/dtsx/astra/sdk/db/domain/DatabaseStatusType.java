@@ -26,6 +26,8 @@ public enum DatabaseStatusType {
     /** status. */
     ACTIVE,
     /** status. */
+    ASSOCIATING,
+    /** status. */
     ERROR,
     /** status. */
     DECOMMISSIONING,
@@ -45,6 +47,8 @@ public enum DatabaseStatusType {
     PARKING,
     /** status. */
     PENDING,
+    /** status. */
+    PLACING,
     /** status. */
     PREPARED,
     /** status. */
