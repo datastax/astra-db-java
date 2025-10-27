@@ -17,25 +17,25 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @Slf4j
-public class PcuGroupDbAssociationsClient extends AbstractApiClient {
+public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
     private static final TypeReference<List<PcuGroupDbAssociation>> PCU_GROUP_DB_ASSOCIATIONS =
         new TypeReference<>() {};
 
     @Getter
     private final String pcuGroupId;
 
-    public PcuGroupDbAssociationsClient(String token, String pcuGroupId) {
+    public PcuGroupDatacenterAssociationsClient(String token, String pcuGroupId) {
         this(token, AstraEnvironment.PROD, pcuGroupId);
     }
 
-    public PcuGroupDbAssociationsClient(String token, AstraEnvironment env, String pcuGroupId) {
+    public PcuGroupDatacenterAssociationsClient(String token, AstraEnvironment env, String pcuGroupId) {
         super(token, env);
         this.pcuGroupId = pcuGroupId;
     }
 
     @Override
     public String getServiceName() {
-        return "pcu.group.associations.db";
+        return "pcu.group.associations.datacenter";
     }
 
     // ---------------------------------

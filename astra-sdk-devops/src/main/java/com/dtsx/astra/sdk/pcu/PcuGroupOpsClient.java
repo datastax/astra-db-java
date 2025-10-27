@@ -3,9 +3,11 @@ package com.dtsx.astra.sdk.pcu;
 import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupStatusType;
+import com.dtsx.astra.sdk.pcu.domain.PcuGroupUpdateRequest;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import com.dtsx.astra.sdk.utils.JsonUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -31,6 +33,10 @@ public class PcuGroupOpsClient extends AbstractApiClient {
         return "pcu.group";
     }
 
+    // ---------------------------------
+    // ----       READ              ----
+    // ---------------------------------
+
     public Optional<PcuGroup> find() {
         try {
             return Optional.of(get());
@@ -53,6 +59,15 @@ public class PcuGroupOpsClient extends AbstractApiClient {
 
     public boolean isCreatedOrActive() {
         return PcuGroupStatusType.CREATED == get().getStatus() || isActive();
+    }
+
+    // ---------------------------------
+    // ----       UPDATE            ----
+    // ---------------------------------
+
+    public void update(PcuGroupUpdateRequest req) {
+        val base = get();
+        PATCH(getEndpointPcus() + "/" + pcuGroupId, JsonUtils.marshall(req.withDefaultsAndValidations(base)), getOperationName("update"));
     }
 
     // ---------------------------------
@@ -80,8 +95,8 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     // ----       Utilities         ----
     // ---------------------------------
 
-    public PcuGroupDbAssociationsClient dbAssociations() {
-        return new PcuGroupDbAssociationsClient(token, environment, pcuGroupId);
+    public PcuGroupDatacenterAssociationsClient datacenterAssociations() {
+        return new PcuGroupDatacenterAssociationsClient(token, environment, pcuGroupId);
     }
 
     public String getEndpointPcus() {

@@ -2,6 +2,7 @@ package com.dtsx.astra.sdk.pcu;
 
 import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
+import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreateUpdateRequest;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreationRequest;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupsNotFoundException;
@@ -37,7 +38,7 @@ public class PcuGroupsClient extends AbstractApiClient {
     // ---------------------------------
 
     public PcuGroup create(PcuGroupCreationRequest req) {
-        val res = POST(getEndpointPcus(), JsonUtils.marshall(req), getOperationName("create"));
+        val res = POST(getEndpointPcus(), JsonUtils.marshall(req.withDefaultsAndValidations()), getOperationName("create"));
 
         if (HttpURLConnection.HTTP_CREATED != res.getCode()) {
             throw new IllegalStateException("Expected code 201 to create db but got " + res.getCode() + "body=" + res.getBody());
