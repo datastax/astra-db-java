@@ -1,36 +1,26 @@
 package com.dtsx.astra.sdk.pcu.domain;
 
-import com.dtsx.astra.sdk.db.domain.CloudProviderType;
-import lombok.Value;
+import lombok.experimental.SuperBuilder;
 
-@Value
-public class PcuGroupCreationRequest {
-    String title;
-    String description;
+@SuperBuilder
+public final class PcuGroupCreationRequest extends PcuGroupCreateUpdateRequest {
+    private String instanceType;
+    private PcuProvisionType provisionType;
 
-    CloudProviderType cloudProvider;
-    String region;
+    public PcuGroupCreationRequest withDefaultsAndValidations() {
+        if (this.provisionType == null) {
+            this.provisionType = PcuProvisionType.SHARED;
+        }
 
-    String instanceType;
-    PcuProvisionType provisionType;
+        // TODO do we really want a default for this? (since pcu instance types are changing)
+        if (this.instanceType == null || this.instanceType.isBlank()) {
+            this.instanceType = "standard";
+        }
 
-    int min;
-    int max;
-    int reserved;
+        if (this.reserved == null) {
+            this.reserved = 0;
+        }
 
-    public PcuGroupCreationRequest(PcuGroupCreationBuilder builder) {
-        this.title = builder.title;
-        this.description = builder.description;
-        this.cloudProvider = builder.cloudProvider;
-        this.region = builder.cloudRegion;
-        this.instanceType = builder.instanceType;
-        this.provisionType = builder.provisionType;
-        this.min = builder.minCapacity;
-        this.max = builder.maxCapacity;
-        this.reserved = builder.reservedCapacity;
-    }
-
-    public static PcuGroupCreationBuilder builder() {
-        return new PcuGroupCreationBuilder();
+        return this;
     }
 }
