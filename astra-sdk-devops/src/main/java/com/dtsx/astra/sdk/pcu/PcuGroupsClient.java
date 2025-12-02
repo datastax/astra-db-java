@@ -1,11 +1,10 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
-import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreateUpdateRequest;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreationRequest;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupsNotFoundException;
+import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.utils.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,7 @@ import lombok.val;
 
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -38,24 +38,29 @@ public class PcuGroupsClient extends AbstractApiClient {
     // ---------------------------------
 
     public PcuGroup create(PcuGroupCreationRequest req) {
-        val res = POST(getEndpointPcus(), JsonUtils.marshall(req.withDefaultsAndValidations()), getOperationName("create"));
+        val res = POST(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations())), getOperationName("create"));
 
         if (HttpURLConnection.HTTP_CREATED != res.getCode()) {
-            throw new IllegalStateException("Expected code 201 to create db but got " + res.getCode() + "body=" + res.getBody());
+            throw new IllegalStateException("Expected code 201 to create pcu group but got " + res.getCode() + "body=" + res.getBody());
         }
 
-        return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).getFirst();
+        return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).get(0);
     }
 
-    public PcuGroup findById(String id) {
-        return findAllImpl(List.of(id), "id", (_e) -> PcuGroupNotFoundException.forId(id)).findFirst().orElseThrow(); // it can never throw unless the API itself is broken
+    public Optional<PcuGroup> findById(String id) {
+        try {
+            return findAllImpl(List.of(id), "id", (_e) -> PcuGroupNotFoundException.forId(id)).findFirst();
+        } catch (PcuGroupNotFoundException e) {
+            return Optional.empty();
+        }
     }
 
-    public PcuGroup findByTitle(String title) {
-        return findAll()
-                .filter(pg -> pg.getTitle().equals(title))
-                .findFirst()
-                .orElseThrow(() -> PcuGroupNotFoundException.forTitle(title));
+    public Stream<PcuGroup> findByTitle(String title) {
+        return findAll().filter(pg -> title.equals(pg.getTitle())); // order is important here since pg.title is nullable
+    }
+
+    public Optional<PcuGroup> findFirstByTitle(String title) {
+        return findByTitle(title).findFirst();
     }
 
     public Stream<PcuGroup> findAll() {
@@ -63,7 +68,7 @@ public class PcuGroupsClient extends AbstractApiClient {
     }
 
     public Stream<PcuGroup> findAll(List<String> ids) {
-        return findAllImpl(ids, "ids[%d]", (e) -> new PcuGroupsNotFoundException(e.getErrors().getFirst().getMessage()));
+        return findAllImpl(ids, "ids[%d]", (e) -> new PcuGroupsNotFoundException(e.getErrors().get(0).getMessage()));
     }
 
     protected interface FindAll404Handler {
@@ -101,7 +106,7 @@ public class PcuGroupsClient extends AbstractApiClient {
             }
 
             if (responseError != null && responseError.getErrors() != null && !responseError.getErrors().isEmpty()) {
-                if (responseError.getErrors().getFirst().getId() == 340018) { // TODO is this the right error code? also why does find all get special treatment for auth errors?
+                if (responseError.getErrors().get(0).getId() == 340018) { // TODO is this the right error code? also why does find all get special treatment for auth errors?
                     throw new IllegalArgumentException("You have provided an invalid token, please check", e);
                 }
             }

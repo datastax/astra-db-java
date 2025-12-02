@@ -177,7 +177,7 @@ public class AstraOpsClient extends AbstractApiClient {
      * @return
      *      pcu groups client
      */
-    public PcuGroupsClient pcuGroups() {
+    public PcuGroupsClient pcuGroups() { // TODO `pcu()` or `pcuGroups()`?
         return new PcuGroupsClient(token, environment);
     }
 }

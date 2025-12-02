@@ -1,8 +1,7 @@
 package com.dtsx.astra.sdk.pcu.domain;
 
-import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Setter;
-import lombok.With;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 import lombok.val;
@@ -25,12 +24,13 @@ public non-sealed class PcuGroupUpdateRequest extends PcuGroupCreateUpdateReques
         internalRep.validate();
 
         return internalRep
-            .setPcuGroupUUID(base.getUuid())
+            .setPcuGroupUUID(base.getId())
             .setInstanceType(base.getInstanceType())
             .setProvisionType(base.getProvisionType());
     }
 
     @Setter
+    @Getter
     @Accessors(chain = true)
     public static class InternalRep extends PcuGroupUpdateRequest {
         private String pcuGroupUUID;

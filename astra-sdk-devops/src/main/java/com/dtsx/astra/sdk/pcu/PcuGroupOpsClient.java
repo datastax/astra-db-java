@@ -1,10 +1,10 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupStatusType;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupUpdateRequest;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
+import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import com.dtsx.astra.sdk.utils.JsonUtils;
@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -46,7 +47,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     }
 
     public PcuGroup get() {
-        return new PcuGroupsClient(token, environment).findById(pcuGroupId);
+        return new PcuGroupsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
     }
 
     public boolean exist() {
@@ -67,7 +68,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
 
     public void update(PcuGroupUpdateRequest req) {
         val base = get();
-        PATCH(getEndpointPcus() + "/" + pcuGroupId, JsonUtils.marshall(req.withDefaultsAndValidations(base)), getOperationName("update"));
+        PUT(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations(base))), getOperationName("update"));
     }
 
     // ---------------------------------
@@ -76,12 +77,18 @@ public class PcuGroupOpsClient extends AbstractApiClient {
 
     public void park() {
         val res = POST(getEndpointPcus() + "/park/" + pcuGroupId, getOperationName("park"));
-        assertHttpCodeAccepted(res, "park", pcuGroupId);
+
+        if (res.getCode() >= 300) {
+            throw new IllegalStateException("Expected code 200 to park pcu group but got " + res.getCode() + "body=" + res.getBody());
+        }
     }
 
     public void unpark() {
         val res = POST(getEndpointPcus() + "/unpark/" + pcuGroupId, getOperationName("unpark"));
-        assertHttpCodeAccepted(res, "unpark", pcuGroupId);
+
+        if (res.getCode() >= 300) {
+            throw new IllegalStateException("Expected code 200 to unpark pcu group but got " + res.getCode() + "body=" + res.getBody());
+        }
     }
 
     public void delete() {

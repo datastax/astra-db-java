@@ -1,6 +1,5 @@
 package com.dtsx.astra.sdk.pcu.domain;
 
-// TODO should this be a sealed interface with an 'OTHER(<status>)' (or UNKNOWN) implementation to future-proof?
 public enum PcuGroupStatusType {
     CREATED,
     PLACING,
@@ -8,5 +7,6 @@ public enum PcuGroupStatusType {
     ACTIVE,
     PARKED,
     PARKING,
-    UNPARKING
+    UNPARKING,
+    OTHER // TODO make this work with Jackson
 }

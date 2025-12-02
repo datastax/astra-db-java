@@ -2,6 +2,7 @@ package com.dtsx.astra.sdk.pcu.domain;
 
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,11 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PcuGroup {
-    private String uuid; // TODO should we call it 'id' for consistency? w/ @JsonProperty("uuid") + should this be a UUID?
+    @JsonProperty("uuid")
+    private String id;
     private String orgId;
 
     private String title;
-    private String description; // TODO should we use Optional<...>s?
+    private String description;
 
     private CloudProviderType cloudProvider;
     private String region;
@@ -25,7 +27,7 @@ public class PcuGroup {
     private int max;
     private int reserved;
 
-    private String createdAt; // TODO should these be DateTimes/Instants instead?
+    private String createdAt;
     private String updatedAt;
     private String createdBy;
     private String updatedBy;
