@@ -37,6 +37,7 @@ public class QuickStartOpenAI {
         // Create the Client, option is provided at top level and will be available
         DataAPIClient localDataAPI = new DataAPIClient(dataAPICassandraToken, new DataAPIClientOptions()
               .destination(CASSANDRA)
+
               .embeddingAPIKey(embeddingApiKey)
               .logRequests());
 

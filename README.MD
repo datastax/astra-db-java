@@ -505,7 +505,9 @@ mvn test \
 
 ### 4.2 HCD
 
-WIP
+Authenticate to serve
+
+
 
 
 

@@ -12,8 +12,8 @@
     </parent>
 
     <properties>
-        <langchain4j.version>1.6.0</langchain4j.version>
-        <langchain4j-beta.version>1.6.0-beta12</langchain4j-beta.version>
+        <langchain4j.version>1.9.1</langchain4j.version>
+        <langchain4j-beta.version>1.9.1-beta17</langchain4j-beta.version>
         <awaitility.version>4.3.0</awaitility.version>
     </properties>
 
