@@ -1155,7 +1155,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         return new CollectionFindAndRerankCursor<>(this, filter, options, newRowType);
     }
 
-
     /**
      * Finds and reranks documents in the collection using the given filter and options,
      * and returns a paginated result containing reranked items mapped to the specified result type.

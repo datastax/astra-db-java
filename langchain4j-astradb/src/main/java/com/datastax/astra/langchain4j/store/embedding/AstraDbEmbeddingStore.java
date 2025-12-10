@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.datastax.astra.client.core.DataAPIKeywords.VECTORIZE;
 import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Filters.in;
 import static com.datastax.astra.client.core.query.Projection.include;
@@ -215,11 +216,30 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
                 .collect(Collectors.toList());
     }
 
-    /** {@inheritDoc}  */
+    /**
+     * Perform a search.
+     *
+     * @param referenceEmbedding
+     *      embeddings
+     * @param maxResults
+     *      max result
+     * @param minScore
+     *      min score
+     * @return
+     *      list of embeddings
+     */
     public List<EmbeddingMatch<TextSegment>> findRelevant(Embedding referenceEmbedding, int maxResults, double minScore) {
         return findRelevant(referenceEmbedding, (Filter) null, maxResults, minScore);
     }
 
+    /**
+     * Search
+     *
+     * @param request
+     *      search request
+     * @return
+     *      list of results
+     */
     public EmbeddingSearchResult<TextSegment> search(EmbeddingSearchRequest request) {
         dev.langchain4j.store.embedding.filter.Filter lc4jFilter = request.filter();
         if (lc4jFilter != null) {
@@ -379,7 +399,10 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
             embedding = Embedding.from(doc.getVector().get().getEmbeddings());
         }
         TextSegment embedded = null;
-        Object body = doc.get(KEY_ATTRIBUTES_BLOB);
+        Object body = doc.get(VECTORIZE.getKeyword());
+        if (body == null) {
+            body = doc.get(KEY_ATTRIBUTES_BLOB);
+        }
         if (body != null) {
             Metadata metadata = new Metadata(doc.getDocumentMap().entrySet().stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
@@ -388,7 +411,7 @@ public class AstraDbEmbeddingStore implements EmbeddingStore<TextSegment> {
             metadata.remove(KEY_ATTRIBUTES_BLOB);
             metadata.remove(DataAPIKeywords.ID.getKeyword());
             metadata.remove(DataAPIKeywords.VECTOR.getKeyword());
-            metadata.remove(DataAPIKeywords.VECTORIZE.getKeyword());
+            metadata.remove(VECTORIZE.getKeyword());
             metadata.remove(DataAPIKeywords.SIMILARITY.getKeyword());
             embedded = new TextSegment(body.toString(), metadata);
         }

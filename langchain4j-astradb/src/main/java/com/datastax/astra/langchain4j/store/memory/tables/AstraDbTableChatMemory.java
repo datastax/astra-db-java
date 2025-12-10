@@ -43,6 +43,7 @@ import static com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage.PRO
  */
 public class AstraDbTableChatMemory implements ChatMemory {
 
+    /** identifier. */
     final UUID id;
 
     /**

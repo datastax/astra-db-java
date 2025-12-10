@@ -456,19 +456,35 @@ public class Document implements Serializable {
         // Get a vector from a list of doubles
         if (o instanceof DataAPIVector) {
             return Optional.of((DataAPIVector) o);
-        } else if (o instanceof ArrayList<?> list && !list.isEmpty() && list.get(0) instanceof Double) {
-            ArrayList<Double> a = (ArrayList<Double>) list;
-            float[] floatArray = new float[a.size()];
-            for (int i = 0; i < a.size(); i++) {
-                floatArray[i] = a.get(i).floatValue();
+        } else if (o instanceof ArrayList<?> list && !list.isEmpty()) {
+            // Check if the list contains numbers (Integer, Double, Float, etc.)
+            Object firstElement = list.get(0);
+            if (firstElement instanceof Number) {
+                // Convert all numbers to float array
+                float[] floatArray = new float[list.size()];
+                for (int i = 0; i < list.size(); i++) {
+                    Object element = list.get(i);
+                    if (element instanceof Number) {
+                        floatArray[i] = ((Number) element).floatValue();
+                    } else {
+                        throw new UnexpectedDataAPIResponseException(
+                                "Element at index " + i + " in $vector is not a Number: " +
+                                        element.getClass().getName());
+                    }
+                }
+                return Optional.of(new DataAPIVector(floatArray));
+            } else {
+                throw new UnexpectedDataAPIResponseException(
+                        "Could not parse $vector: list elements are not Numbers, found " +
+                                firstElement.getClass().getName());
             }
-            return Optional.of(new DataAPIVector(floatArray));
         } else if (o instanceof float[] array) {
             // Get a vector from a float array
             return Optional.of(new DataAPIVector(array));
         } else {
-            throw new UnexpectedDataAPIResponseException("Could not parse $vector of type " + o.getClass().getName() +
-                    " to a DataAPIVector. Expected a list of Double, a float array or binary data");
+            throw new UnexpectedDataAPIResponseException(
+                    "Could not parse $vector of type " + o.getClass().getName() +
+                            " to a DataAPIVector. Expected a list of Numbers, a float array or binary data");
         }
     }
 

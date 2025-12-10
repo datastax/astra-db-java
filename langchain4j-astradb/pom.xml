@@ -11,12 +11,6 @@
         <version>2.1.4-SNAPSHOT</version>
     </parent>
 
-    <properties>
-        <langchain4j.version>1.9.1</langchain4j.version>
-        <langchain4j-beta.version>1.9.1-beta17</langchain4j-beta.version>
-        <awaitility.version>4.3.0</awaitility.version>
-    </properties>
-
     <dependencies>
 
         <!--LANGCHAIN4j CORE -->
@@ -74,7 +68,6 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
-            <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -63,51 +63,111 @@ public class EmbeddingSearchRequestAstra extends EmbeddingSearchRequest {
         return query;
     }
 
+    /**
+     * Builder for the Astra Request.
+     *
+     * @return
+     *      instance of the builder
+     */
     public static EmbeddingSearchRequestAstra.Builder builderAstra() {
         return new Builder();
     }
 
+    /**
+     * Builder for the class.
+     */
     public static class Builder {
+        /* vectorize. */
         private String queryVectorize;
+        /* embeddings. */
         private Embedding queryEmbedding;
+        /* results. */
         private Integer maxResults;
+        /* min scores. */
         private Double minScore;
+        /* filters. */
         private Filter filter;
 
+        /**
+         * Default constructor
+         */
         Builder() {
         }
 
+        /**
+         * Accessor for vectorize.
+         * @param queryVectorize
+         *      queryVectorize
+         * @return
+         *      current ref
+         */
         public Builder queryVectorize(String queryVectorize) {
             this.queryVectorize = queryVectorize;
             return this;
         }
 
+        /**
+         * Accessor for queryEmbedding.
+         * @param queryEmbedding
+         *      queryEmbedding
+         * @return
+         *      current ref
+         */
         public Builder queryEmbedding(Embedding queryEmbedding) {
             this.queryEmbedding = queryEmbedding;
             return this;
         }
 
+        /**
+         * Accessor for maxResults.
+         * @param maxResults
+         *      maxResults
+         * @return
+         *      current ref
+         */
         public Builder maxResults(Integer maxResults) {
             this.maxResults = maxResults;
             return this;
         }
 
+        /**
+         * Accessor for minScore.
+         * @param minScore
+         *      minScore
+         * @return
+         *      current ref
+         */
         public Builder minScore(Double minScore) {
             this.minScore = minScore;
             return this;
         }
 
+        /**
+         * Accessor for filter.
+         * @param filter
+         *      filter
+         * @return
+         *      current ref
+         */
         public Builder filter(Filter filter) {
             this.filter = filter;
             return this;
         }
 
+        /**
+         * Operation to build.
+         *
+         * @return
+         *      instance of the request.
+         */
         public EmbeddingSearchRequestAstra build() {
             return new EmbeddingSearchRequestAstra(
                     this.queryEmbedding, this.queryVectorize,
                     this.maxResults, this.minScore, this.filter);
         }
 
+
+        /** {@inheritDoc} */
         public String toString() {
             return "Search(\nqueryEmbedding=" + this.queryEmbedding
                     + "\nmaxResults=" + this.maxResults

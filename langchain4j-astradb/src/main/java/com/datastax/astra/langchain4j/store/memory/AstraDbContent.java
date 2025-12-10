@@ -35,14 +35,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AstraDbContent implements Content  {
 
+    /* text message. */
     private String text;
 
+    /* content type. */
     private ContentType type;
 
+    /* image type. */
     private Image image;
 
+    /* details level. */
     private ImageContent.DetailLevel detailLevel;
 
+    /**
+     * Default Constructor.
+     *
+     * @param c
+     *    langchain content
+     */
     public AstraDbContent(Content c) {
         switch(c.type()) {
             case TEXT:
@@ -57,15 +67,17 @@ public class AstraDbContent implements Content  {
         }
     }
 
+    /**
+     * Convert back as Langchain4j Content.
+     * @return
+     *      Lanchain4j Content
+     */
     public Content asContent() {
-        switch (type) {
-            case TEXT:
-                return new dev.langchain4j.data.message.TextContent(text);
-            case IMAGE:
-                return new ImageContent(image, detailLevel);
-            default:
-                throw new IllegalStateException("Unknown content type: " + type);
-        }
+        return switch (type) {
+            case TEXT -> new dev.langchain4j.data.message.TextContent(text);
+            case IMAGE -> new ImageContent(image, detailLevel);
+            default -> throw new IllegalStateException("Unknown content type: " + type);
+        };
     }
 
     @Override

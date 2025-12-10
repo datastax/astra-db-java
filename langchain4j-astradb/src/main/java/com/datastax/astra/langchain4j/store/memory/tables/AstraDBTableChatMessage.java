@@ -40,42 +40,49 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Table to save Chat Message for Chat memoru
+ */
 @Data
 @NoArgsConstructor
 @EntityTable
 public class AstraDBTableChatMessage {
 
+    /* chat identifier. */
     @Column(name="chat_id")
     UUID chatId;
 
+    /* message identifier. */
     @Column(name="message_id")
     UUID messageId;
 
+    /* message type. */
     @Column(name="message_type")
     String messageType;
 
+    /* message mime. */
     @Column(name="message_time")
     Instant messageTime;
 
+    /* text. */
     @Column(name="text")
     String text;
 
+    /* name. */
     @Column(name="name")
     String name;
 
+    /* contents. */
     @Column(name="contents")
     Map<String, String> contents = new HashMap<>();
 
+    /* arguments. */
     @Column(name="tools_arguments")
     Map<String, String> toolsArguments = new HashMap<>();
 
+    /* tools Name. */
     @Column(name="tools_name")
     Map<String, String> toolsName = new HashMap<>();
-
-    public AstraDBTableChatMessage chatId(UUID chatId) {
-        this.chatId = chatId;
-        return this;
-    }
 
     /**
      * Constructor using the Langchain4J abstraction
@@ -126,6 +133,18 @@ public class AstraDBTableChatMessage {
             default:
                 throw new IllegalArgumentException("Unknown message type: " + chatMessage.type());
         }
+    }
+
+    /**
+     * Fluent setter for chat id.
+     * @param chatId
+     *      chat identifier
+     * @return
+     *      current ref
+     */
+    public AstraDBTableChatMessage chatId(UUID chatId) {
+        this.chatId = chatId;
+        return this;
     }
 
     /**

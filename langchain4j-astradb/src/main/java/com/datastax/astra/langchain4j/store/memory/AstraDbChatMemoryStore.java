@@ -42,6 +42,10 @@ import static com.datastax.astra.client.core.query.Filters.eq;
 import static com.datastax.astra.client.core.query.Sort.descending;
 import static com.datastax.astra.langchain4j.store.memory.AstraDbChatMessage.PROP_MESSAGE;
 
+/**
+ * Implementation of ChatMemoryStore for Astra.
+ * Data are saved in a simple collection called chat_memory
+ */
 @Slf4j
 @Getter
 @Setter

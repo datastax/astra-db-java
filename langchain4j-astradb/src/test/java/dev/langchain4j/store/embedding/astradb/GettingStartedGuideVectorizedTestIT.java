@@ -48,7 +48,8 @@ import static com.datastax.astra.langchain4j.AstraDBTestSupport.openAIChatModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * ASTRA can now compute the embeddings for you. This is a simple example of how to use ASTRA to compute embeddings.
+ * ASTRA can now compute the embeddings for you.
+ * This is a simple example of how to use ASTRA to compute embeddings.
  */
 @Slf4j
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

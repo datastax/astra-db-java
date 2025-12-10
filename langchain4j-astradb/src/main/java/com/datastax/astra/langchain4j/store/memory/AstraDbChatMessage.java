@@ -72,27 +72,35 @@ public class AstraDbChatMessage implements ChatMessage {
     /** Public Static to help build filters if any. */
     public static final String PROP_NAME = "name";
 
+    /* chat identifier. */
     @JsonProperty(PROP_CHAT_ID)
     private String chatId;
 
+    /* message identifier. */
     @JsonProperty(PROP_MESSAGE_ID)
     private UUID messageId;
 
+    /* message type. */
     @JsonProperty(PROP_MESSAGE_TYPE)
     private ChatMessageType messageType;
 
+    /* message mime. */
     @JsonProperty(PROP_MESSAGE_TIME)
     private Instant messageTime;
 
+    /* user name. */
     @JsonProperty(PROP_NAME)
     private String name;
 
+    /* message text. */
     @JsonProperty(PROP_MESSAGE)
     private String text;
 
+    /* execution requests. */
     @JsonProperty(PROP_TOOLS)
     private List<ToolExecutionRequest> toolExecutionRequests;
 
+    /* contents. */
     @JsonProperty(PROP_CONTENTS)
     private List<AstraDbContent> contents;
 
@@ -102,16 +110,39 @@ public class AstraDbChatMessage implements ChatMessage {
         return messageType;
     }
 
+    /**
+     * Internal Tool execution Requets
+     */
     @Data @NoArgsConstructor
     public static class ToolExecutionRequest {
+
+        /* request id. */
         private String id;
+
+        /* request name. */
         private String name;
+
+        /* request arguments. */
         private String arguments;
+
+        /**
+         * Constructor.
+         *
+         * @param lc4jTER
+         *      langchain4j parent request
+         */
         public ToolExecutionRequest(dev.langchain4j.agent.tool.ToolExecutionRequest lc4jTER) {
             this.id = lc4jTER.id();
             this.name = lc4jTER.name();
             this.arguments = lc4jTER.arguments();
         }
+
+        /**
+         * Convert back as langchain4j tool request.
+         *
+         * @return
+         *      langchain4j ToolExecutionRequest
+         */
         public dev.langchain4j.agent.tool.ToolExecutionRequest asLc4j() {
             return dev.langchain4j.agent.tool.ToolExecutionRequest.builder()
                     .id(this.id)
@@ -122,7 +153,8 @@ public class AstraDbChatMessage implements ChatMessage {
     }
 
     /**
-     * Constructor using the Langchain4J abstraction
+     * Constructor using the Langchain4J abstraction.
+     *
      * @param chatMessage
      *      lc4j classes
      */
