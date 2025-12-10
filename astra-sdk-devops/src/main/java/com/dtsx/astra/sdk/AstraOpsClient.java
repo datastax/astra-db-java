@@ -6,6 +6,7 @@ import com.dtsx.astra.sdk.org.RolesClient;
 import com.dtsx.astra.sdk.org.TokensClient;
 import com.dtsx.astra.sdk.org.UsersClient;
 import com.dtsx.astra.sdk.org.domain.*;
+import com.dtsx.astra.sdk.pcu.PcuGroupsClient;
 import com.dtsx.astra.sdk.streaming.AstraStreamingClient;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.ApiResponseHttp;
@@ -166,4 +167,17 @@ public class AstraOpsClient extends AbstractApiClient {
         return new TokensClient(token, environment);
     }
 
+    // ------------------------------------------------------
+    //                 WORKING WITH PCU GROUPS
+    // ------------------------------------------------------
+
+    /**
+     * Work with PCU groups.
+     *
+     * @return
+     *      pcu groups client
+     */
+    public PcuGroupsClient pcuGroups() { // TODO `pcu()` or `pcuGroups()`?
+        return new PcuGroupsClient(token, environment);
+    }
 }
