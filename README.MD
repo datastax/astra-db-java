@@ -119,7 +119,7 @@ Add the following dependency to your `pom.xml` file:
 <dependency>
   <groupId>com.datastax.astra</groupId>
   <artifactId>astra-db-java</artifactId>
-  <version>1.3.0</version>
+  <version>2.1.4</version>
 </dependency>
 ```
 
