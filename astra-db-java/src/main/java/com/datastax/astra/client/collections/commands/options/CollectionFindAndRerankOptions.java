@@ -74,12 +74,12 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     /**
      * Options for hybrid projection
      */
-    Boolean includeScores;
+    Boolean includeScores = false;
 
     /**
      * Flag to include sortVector in the result when operating a semantic search.
      */
-    Boolean includeSortVector;
+    Boolean includeSortVector = false;
 
     /**
      * Default constructor.
@@ -166,7 +166,7 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
      * @return current command
      */
     public CollectionFindAndRerankOptions hybridLimits(int hybridLimits) {
-        if (limit < 0) {
+        if (hybridLimits < 0) {
             throw new IllegalArgumentException("HybridLimits must be positive");
         }
         this.hybridLimits = new HybridLimits(hybridLimits);

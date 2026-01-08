@@ -1209,14 +1209,14 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
 
         List<RerankedResult<R>> results = new ArrayList<>();
         List<Document> documents = apiResponse.getData().getDocuments();
-        List<Document> documentResponses = apiResponse.getStatus().getDocumentResponses();
-        if (documents == null || documentResponses == null) {
+        if (documents == null) {
             throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
-                    apiResponse, "Documents or Documents reponses are not retuned");
+                    apiResponse, "No documents retuned");
         }
-        if (documents.size() != documentResponses.size()) {
-            throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
-                    apiResponse, "Documents or Documents responses do not match");
+
+        List<Document> documentResponses = null;
+        if (apiResponse.getStatus() != null) {
+            documentResponses = apiResponse.getStatus().getDocumentResponses();
         }
 
         for(int i = 0; i < documents.size(); i++) {
@@ -1229,10 +1229,13 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             R results1 = serializer.convertValue(document, newRowType);
 
             // Getting associated document response
-            Document documentResponse = documentResponses.get(i);
-            Map<String, Double> scores = documentResponse.getMap("scores", String.class, Double.class);
-
-            results.add(new RerankedResult<>(results1, scores));
+            if (documentResponses != null && documentResponses.size() >= i+1) {
+                Document documentResponse = documentResponses.get(i);
+                Map<String, Double> scores = documentResponse.getMap("scores", String.class, Double.class);
+                results.add(new RerankedResult<>(results1, scores));
+            } else  {
+                results.add(new RerankedResult<>(results1, null));
+            }
         }
         // PageState is always NULL
         return new Page<>(null, results, sortVector);
@@ -1757,7 +1760,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withReplacement(replacement)
                 .withOptions(new Document()
                         .appendIfNotNull(OPTIONS_UPSERT, collectionReplaceOneOptions.upsert())
-                        .append(OPTIONS_RETURN_DOCUMENT, ReturnDocument.BEFORE.getKey())
+                        .append(OPTIONS_RETURN_DOCUMENT, collectionReplaceOneOptions.returnDocument().getKey())
                 );
 
         // Execute the `findOneAndReplace`
@@ -1767,11 +1770,10 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         CollectionUpdateResult result = new CollectionUpdateResult();
         result.setMatchedCount(res.getMatchedCount());
         result.setModifiedCount(res.getModifiedCount());
+        result.setUpsertedId(res.getUpsertedId());
+
         if (res.getDocument() != null) {
-            Document doc = getSerializer().convertValue(res.getDocument(), Document.class);
-            if (doc.getId(Object.class) != null) {
-                result.setUpsertedId(doc.getId(Object.class));
-            }
+            result.setDocument(getSerializer().convertValue(res.getDocument(), Document.class));
         }
         return result;
     }
@@ -1805,6 +1807,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             }
             if (status.containsKey(RESULT_MODIFIED_COUNT)) {
                 result.setModifiedCount(status.getInteger(RESULT_MODIFIED_COUNT));
+            }
+            if (status.containsKey(RESULT_UPSERTED_ID)) {
+                result.setUpsertedId(status.get(RESULT_UPSERTED_ID));
             }
         }
         return result;

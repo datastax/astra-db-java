@@ -180,6 +180,11 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
         return (T) this;
     }
 
+    public T logRequest() {
+        getDataAPIClientOptions().logRequests();
+        return (T) this;
+    }
+
     /**
      * Provide the embedding service API key.
      *

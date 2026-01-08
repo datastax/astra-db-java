@@ -232,7 +232,9 @@ public class Document implements Serializable {
     public Document append(final String key, final Object value) {
         Assert.hasLength(key, "Field name should not be null");
         // Properly split the key, considering escaped dots
-        List<String> tokens = parseKey(key);
+        //String escapedKey = EscapeUtils.escapeSingleExpression(key);
+        /*
+        List<String> tokens = parseAndUnescapeKeys(key);
         Map<String, Object> currentMap = documentMap;
         for (int i = 0; i < tokens.size() - 1; i++) {
             String token = tokens.get(i);
@@ -245,11 +247,12 @@ public class Document implements Serializable {
             currentMap = (Map<String, Object>) nested;
         }
         // Finally, put the value in the last token
-        currentMap.put(tokens.get(tokens.size() - 1), value);
+        currentMap.put(tokens.get(tokens.size() - 1), value);*/
+        documentMap.put(key, value);
         return this;
     }
 
-    private List<String> parseKey(String key) {
+    public static List<String> parseAndUnescapeKeys2(String key) {
         List<String> tokens = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
         boolean pendingAmpersand = false;
@@ -290,7 +293,7 @@ public class Document implements Serializable {
         tokens.add(sb.toString()); // Add the last token
         return tokens;
     }
-
+ 
     /**
      * Put the given key/value pair into this Document and return this only if the value is not null.
      *
@@ -882,7 +885,8 @@ public class Document implements Serializable {
      */
     public boolean containsKey(String key) {
         Assert.hasLength(key, "Field name should not be null");
-        List<String> tokens = parseKey(key); // Get the parsed key segments
+        /*
+        List<String> tokens = parseAndUnescapeKeys(key); // Get the parsed key segments
         Object current = documentMap;
         for (int i = 0; i < tokens.size(); i++) {
             if (!(current instanceof Map)) return false;
@@ -891,7 +895,8 @@ public class Document implements Serializable {
             if (!map.containsKey(fieldName)) return false;
             current = map.get(fieldName);
         }
-        return true;
+        return true;*/
+        return get(key) != null;
     }
 
     /**
@@ -915,9 +920,32 @@ public class Document implements Serializable {
     public Object get(final String key) {
         Assert.hasLength(key, "Field name should not be null");
         // Handling escaped dots
-        List<String> tokens = parseKey(key);
+        return documentMap.get(key);
+        /*
+        List<String> tokens = parseAndUnescapeKeys(key);
         Object current = documentMap;
         for (String token : tokens) {
+            if (!(current instanceof Map)) return null;
+            Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
+                    .matcher(token);
+            if (!matcher.matches()) return null;
+            String fieldName = matcher.group(1);
+            String indexStr = matcher.group(3);
+            current = ((Map<?, ?>) current).get(fieldName);
+            if (indexStr != null) {
+                if (!(current instanceof List)) return null;
+                List<?> list = (List<?>) current;
+                int idx = Integer.parseInt(indexStr);
+                if (idx < 0 || idx >= list.size()) return null;
+                current = list.get(idx);
+            }
+        }
+        return current;*/
+    }
+
+    public Object get(final List<String> fieldPathSegment) {
+        Object current = documentMap;
+        for (String token : fieldPathSegment) {
             if (!(current instanceof Map)) return null;
             /*
              * FieldName
@@ -973,20 +1001,26 @@ public class Document implements Serializable {
      */
     public Document remove(String key) {
         Assert.hasLength(key, "Field name should not be null");
-        List<String> tokens = parseKey(key);
-        if (tokens.isEmpty()) return this;
+        // in case of split
+        //remove(parseAndUnescapeKeys(key));
+        documentMap.remove(key);
+        return this;
+    }
+
+    public Document remove(final List<String> fieldPathSegment) {
+        if (fieldPathSegment.isEmpty()) return this;
 
         Object current = documentMap;
         Map<?, ?> parent = null;
         String lastKey = null;
 
-        for (int i = 0; i < tokens.size(); i++) {
+        for (int i = 0; i < fieldPathSegment.size(); i++) {
             if (!(current instanceof Map)) return this;
 
             Map<String, Object> map = (Map<String, Object>) current;
-            String fieldName = tokens.get(i);
+            String fieldName = fieldPathSegment.get(i);
 
-            if (i == tokens.size() - 1) {
+            if (i == fieldPathSegment.size() - 1) {
                 // Last segment, prepare to remove
                 parent = map;
                 lastKey = fieldName;

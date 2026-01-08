@@ -20,6 +20,7 @@ package com.datastax.astra.client.collections.commands.results;
  * #L%
  */
 
+import com.datastax.astra.client.collections.definition.documents.Document;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,11 @@ import lombok.Setter;
  */
 @Getter @Setter
 public class CollectionUpdateResult {
+
+    /**
+     * Replacement if provided
+     */
+    Document document;
 
     /**
      * Number of matched documents

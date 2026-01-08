@@ -289,6 +289,29 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     public Database useKeyspace(String keyspace) {
         Assert.hasLength(keyspace, "keyspace");
         this.options.keyspace(keyspace);
+
+        // Rebuild the apiEndpoint with the new keyspace
+        StringBuilder dbApiEndPointBuilder = new StringBuilder(rootEndpoint);
+        switch (options.getDataAPIClientOptions().getDestination()) {
+            case ASTRA:
+            case ASTRA_TEST:
+            case ASTRA_DEV:
+                String endpoint = rootEndpoint.endsWith("/")
+                        ? rootEndpoint.substring(0, rootEndpoint.length() - 1)
+                        : rootEndpoint;
+                if (endpoint.endsWith(".com")) {
+                    dbApiEndPointBuilder = new StringBuilder(endpoint).append("/api/json");
+                }
+                break;
+            default:
+                break;
+        }
+        this.apiEndpoint = dbApiEndPointBuilder
+                .append("/")
+                .append(options.getDataAPIClientOptions().getApiVersion())
+                .append("/")
+                .append(keyspace)
+                .toString();
         return this;
     }
 

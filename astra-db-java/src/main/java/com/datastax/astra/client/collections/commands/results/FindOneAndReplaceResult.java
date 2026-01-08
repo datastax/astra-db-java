@@ -52,6 +52,11 @@ public class FindOneAndReplaceResult<T> {
     Integer modifiedCount;
 
     /**
+     * Upserted Id reqd from the status first level.
+     */
+    Object upsertedId;
+
+    /**
      * Default constructor.
      */
     public FindOneAndReplaceResult() {

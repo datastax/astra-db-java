@@ -20,6 +20,7 @@ package com.datastax.astra.client.collections.commands.options;
  * #L%
  */
 
+import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.core.options.BaseOptions;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,6 +36,9 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
 
     /** If upsert is selected. */
     Boolean upsert;
+
+    /** Show information before of after. */
+    ReturnDocument returnDocument;
 
     /**
      * Default constructor.

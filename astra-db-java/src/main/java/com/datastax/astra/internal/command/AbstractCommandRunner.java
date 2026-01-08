@@ -34,6 +34,7 @@ import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
+import com.datastax.astra.internal.utils.EscapeUtils;
 import com.dtsx.astra.sdk.utils.JsonUtils;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
@@ -270,6 +271,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
+            System.out.println(jsonCommand);
 
             URI targetUri;
             try {
@@ -326,6 +328,7 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withRequestHeaders(request.headers().map());
             executionInfo.withRequestUrl(getApiEndpoint());
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
+            System.out.println(status.getResult().body());
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
 
@@ -335,6 +338,9 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
                         " but was " + executionInfo.getExecutionTime());
             }
 
+            //String dataAPIRawBody = httpRes.getBody();
+            //String escapedDataAPIRawBody = EscapeUtils.escapeRawJsonNames(dataAPIRawBody);
+            //System.out.println("escaped:" + escapedDataAPIRawBody);
             DataAPIResponse apiResponse = serializer.unMarshallBean(httpRes.getBody(), DataAPIResponse.class);
             apiResponse.setSerializer(serializer);
             if (apiResponse.getStatus() != null) {
