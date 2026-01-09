@@ -234,7 +234,6 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
     /** {@inheritDoc} */
     @Override
     public void dropKeyspace(String keyspace, DropKeyspaceOptions options) {
-        log.warn("CommandOptions are not supported for dropKeyspace in Astra MODE");
         DbKeyspacesClient ks = devopsDbClient.database(databaseId.toString()).keyspaces();
         if (ks.exist(keyspace) && options.isIfExists()) {
             ks.delete(keyspace);
