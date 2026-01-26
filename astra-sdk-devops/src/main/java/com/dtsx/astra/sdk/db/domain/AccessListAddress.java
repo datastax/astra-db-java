@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 /**
  * Nested Address
  */
-public class AccessListAddress {
+public class    AccessListAddress {
 
     /** Address. */
     private String address;
