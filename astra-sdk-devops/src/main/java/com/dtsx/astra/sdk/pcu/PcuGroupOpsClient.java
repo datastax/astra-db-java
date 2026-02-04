@@ -15,20 +15,46 @@ import lombok.val;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Operations client for managing a specific PCU (Processing Capacity Units) Group.
+ * Provides CRUD operations, maintenance actions, and datacenter association management.
+ */
 @Slf4j
 public class PcuGroupOpsClient extends AbstractApiClient {
+    /**
+     * PCU group unique identifier.
+     */
     @Getter
     private final String pcuGroupId;
 
+    /**
+     * Constructor with token and PCU group ID for production environment.
+     *
+     * @param token
+     *      authentication token
+     * @param pcuGroupId
+     *      PCU group UUID
+     */
     public PcuGroupOpsClient(String token, String pcuGroupId) {
         this(token, AstraEnvironment.PROD, pcuGroupId);
     }
 
+    /**
+     * Constructor with token, environment, and PCU group ID.
+     *
+     * @param token
+     *      authentication token
+     * @param env
+     *      target Astra environment
+     * @param pcuGroupId
+     *      PCU group UUID
+     */
     public PcuGroupOpsClient(String token, AstraEnvironment env, String pcuGroupId) {
         super(token, env);
         this.pcuGroupId = pcuGroupId;
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getServiceName() {
         return "pcu.group";
@@ -38,6 +64,12 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     // ----       READ              ----
     // ---------------------------------
 
+    /**
+     * Finds the PCU group.
+     *
+     * @return
+     *      optional containing the PCU group if found
+     */
     public Optional<PcuGroup> find() {
         try {
             return Optional.of(get());
@@ -46,18 +78,44 @@ public class PcuGroupOpsClient extends AbstractApiClient {
         }
     }
 
+    /**
+     * Retrieves the PCU group or throws an exception if not found.
+     *
+     * @return
+     *      the PCU group
+     * @throws PcuGroupNotFoundException
+     *      if the PCU group does not exist
+     */
     public PcuGroup get() {
         return new PcuGroupsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
     }
 
+    /**
+     * Checks if the PCU group exists.
+     *
+     * @return
+     *      true if the PCU group exists
+     */
     public boolean exist() {
         return find().isPresent();
     }
 
+    /**
+     * Checks if the PCU group is in ACTIVE status.
+     *
+     * @return
+     *      true if the PCU group status is ACTIVE
+     */
     public boolean isActive() {
         return PcuGroupStatusType.ACTIVE == get().getStatus();
     }
 
+    /**
+     * Checks if the PCU group is in CREATED or ACTIVE status.
+     *
+     * @return
+     *      true if the PCU group status is CREATED or ACTIVE
+     */
     public boolean isCreatedOrActive() {
         return PcuGroupStatusType.CREATED == get().getStatus() || isActive();
     }
@@ -66,6 +124,12 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     // ----       UPDATE            ----
     // ---------------------------------
 
+    /**
+     * Updates the PCU group configuration.
+     *
+     * @param req
+     *      PCU group update request with new configuration
+     */
     public void update(PcuGroupUpdateRequest req) {
         val base = get();
         PUT(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations(base))), getOperationName("update"));
@@ -75,6 +139,12 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     // ----       MAINTENANCE       ----
     // ---------------------------------
 
+    /**
+     * Parks the PCU group, reducing resource consumption.
+     *
+     * @throws IllegalStateException
+     *      if parking fails
+     */
     public void park() {
         val res = POST(getEndpointPcus() + "/park/" + pcuGroupId, getOperationName("park"));
 
@@ -83,6 +153,12 @@ public class PcuGroupOpsClient extends AbstractApiClient {
         }
     }
 
+    /**
+     * Unparks the PCU group, restoring full resource availability.
+     *
+     * @throws IllegalStateException
+     *      if unparking fails
+     */
     public void unpark() {
         val res = POST(getEndpointPcus() + "/unpark/" + pcuGroupId, getOperationName("unpark"));
 
@@ -91,6 +167,12 @@ public class PcuGroupOpsClient extends AbstractApiClient {
         }
     }
 
+    /**
+     * Deletes the PCU group.
+     *
+     * @throws PcuGroupNotFoundException
+     *      if the PCU group does not exist
+     */
     public void delete() {
         if (!exist()) {
             throw PcuGroupNotFoundException.forId(pcuGroupId);
@@ -102,10 +184,22 @@ public class PcuGroupOpsClient extends AbstractApiClient {
     // ----       Utilities         ----
     // ---------------------------------
 
+    /**
+     * Creates a client for managing datacenter associations for this PCU group.
+     *
+     * @return
+     *      datacenter associations client
+     */
     public PcuGroupDatacenterAssociationsClient datacenterAssociations() {
         return new PcuGroupDatacenterAssociationsClient(token, environment, pcuGroupId);
     }
 
+    /**
+     * Gets the PCU groups API endpoint.
+     *
+     * @return
+     *      PCU groups endpoint URL
+     */
     public String getEndpointPcus() {
         return ApiLocator.getApiDevopsEndpoint(environment) + "/pcus";
     }

@@ -5,20 +5,55 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
+/**
+ * Base class for PCU (Processing Capacity Units) Group creation and update requests.
+ * Contains common fields and validation logic shared between creation and update operations.
+ */
 @Getter
 @Setter
 @SuperBuilder
 public sealed abstract class PcuGroupCreateUpdateRequest permits PcuGroupCreationRequest, PcuGroupUpdateRequest {
+    /**
+     * Human-readable title for the PCU group.
+     */
     protected String title;
+    
+    /**
+     * Description of the PCU group.
+     */
     protected String description;
 
+    /**
+     * Cloud provider where the PCU group is deployed.
+     */
     protected CloudProviderType cloudProvider;
+    
+    /**
+     * Cloud region where the PCU group is deployed.
+     */
     protected String region;
 
+    /**
+     * Minimum number of PCUs (must be >= 1).
+     */
     protected Integer min; // Integers so they're nullable
+    
+    /**
+     * Maximum number of PCUs (must be >= min).
+     */
     protected Integer max;
+    
+    /**
+     * Number of reserved PCUs (must be non-negative and <= min).
+     */
     protected Integer reserved;
 
+    /**
+     * Validates the request fields.
+     *
+     * @throws IllegalArgumentException
+     *      if any required field is missing or invalid
+     */
     protected void validate() {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("PCU group title is required");

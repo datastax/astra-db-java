@@ -305,6 +305,11 @@
                 <configuration>
                     <source>${maven.plugin.compiler.source}</source>
                     <overview>${basedir}/src/main/java/overview.html</overview>
+                    <doclint>none</doclint>
+                    <additionalOptions>-Xdoclint:none</additionalOptions>
+                    <sourceFileExcludes>
+                        <sourceFileExclude>**/PcuGroupUpdateRequest.java</sourceFileExclude>
+                    </sourceFileExcludes>
                 </configuration>
             </plugin>
 

@@ -15,19 +15,38 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * Client for managing PCU (Processing Capacity Units) Groups in Astra.
+ * Provides operations for creating, finding, and managing PCU groups.
+ */
 @Slf4j
 public class PcuGroupsClient extends AbstractApiClient {
     private static final TypeReference<List<PcuGroup>> RESPONSE_PCU_GROUPS =
         new TypeReference<>(){};
 
+    /**
+     * Constructor with token for production environment.
+     *
+     * @param token
+     *      authentication token
+     */
     public PcuGroupsClient(String token) {
         super(token, AstraEnvironment.PROD);
     }
 
+    /**
+     * Constructor with token and environment.
+     *
+     * @param token
+     *      authentication token
+     * @param env
+     *      target Astra environment
+     */
     public PcuGroupsClient(String token, AstraEnvironment env) {
         super(token, env);
     }
 
+    /** {@inheritDoc} */
     @Override
     public String getServiceName() {
         return "pcu.groups";
@@ -37,6 +56,16 @@ public class PcuGroupsClient extends AbstractApiClient {
     // ----        CRUD             ----
     // ---------------------------------
 
+    /**
+     * Creates a new PCU group.
+     *
+     * @param req
+     *      PCU group creation request with configuration
+     * @return
+     *      created PCU group
+     * @throws IllegalStateException
+     *      if creation fails
+     */
     public PcuGroup create(PcuGroupCreationRequest req) {
         val res = POST(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations())), getOperationName("create"));
 
@@ -47,6 +76,14 @@ public class PcuGroupsClient extends AbstractApiClient {
         return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).get(0);
     }
 
+    /**
+     * Finds a PCU group by its unique identifier.
+     *
+     * @param id
+     *      PCU group UUID
+     * @return
+     *      optional containing the PCU group if found
+     */
     public Optional<PcuGroup> findById(String id) {
         try {
             return findAllImpl(List.of(id), "id", (_e) -> PcuGroupNotFoundException.forId(id)).findFirst();
@@ -55,18 +92,50 @@ public class PcuGroupsClient extends AbstractApiClient {
         }
     }
 
+    /**
+     * Finds all PCU groups with the specified title.
+     *
+     * @param title
+     *      PCU group title to search for
+     * @return
+     *      stream of matching PCU groups
+     */
     public Stream<PcuGroup> findByTitle(String title) {
         return findAll().filter(pg -> title.equals(pg.getTitle())); // order is important here since pg.title is nullable
     }
 
+    /**
+     * Finds the first PCU group with the specified title.
+     *
+     * @param title
+     *      PCU group title to search for
+     * @return
+     *      optional containing the first matching PCU group
+     */
     public Optional<PcuGroup> findFirstByTitle(String title) {
         return findByTitle(title).findFirst();
     }
 
+    /**
+     * Finds all PCU groups.
+     *
+     * @return
+     *      stream of all PCU groups
+     */
     public Stream<PcuGroup> findAll() {
         return findAll(null);
     }
 
+    /**
+     * Finds PCU groups by their identifiers.
+     *
+     * @param ids
+     *      list of PCU group UUIDs to retrieve
+     * @return
+     *      stream of matching PCU groups
+     * @throws PcuGroupsNotFoundException
+     *      if any of the specified groups are not found
+     */
     public Stream<PcuGroup> findAll(List<String> ids) {
         return findAllImpl(ids, "ids[%d]", (e) -> new PcuGroupsNotFoundException(e.getErrors().get(0).getMessage()));
     }
@@ -119,10 +188,24 @@ public class PcuGroupsClient extends AbstractApiClient {
     // ----       Utilities         ----
     // ---------------------------------
 
+    /**
+     * Creates an operations client for a specific PCU group.
+     *
+     * @param pcuGroupId
+     *      PCU group UUID
+     * @return
+     *      operations client for the specified PCU group
+     */
     public PcuGroupOpsClient group(String pcuGroupId) {
         return new PcuGroupOpsClient(getToken(), getEnvironment(), pcuGroupId);
     }
 
+    /**
+     * Gets the PCU groups API endpoint.
+     *
+     * @return
+     *      PCU groups endpoint URL
+     */
     public String getEndpointPcus() {
         return ApiLocator.getApiDevopsEndpoint(environment) + "/pcus";
     }
