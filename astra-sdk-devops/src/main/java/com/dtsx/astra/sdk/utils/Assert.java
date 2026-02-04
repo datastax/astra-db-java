@@ -16,6 +16,8 @@
 
 package com.dtsx.astra.sdk.utils;
 
+import java.util.regex.Pattern;
+
 /**
  * Syntaxic sugar for common validations.
  * 
@@ -69,4 +71,30 @@ public class Assert {
         }
     }
 
+    private static final String UUID_PATTERN_STR = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+
+    private static final Pattern UUID_PATTERN = Pattern.compile("^" + UUID_PATTERN_STR + "$");
+    private static final Pattern DATACENTER_ID_PATTERN = Pattern.compile("^" + UUID_PATTERN_STR + "-\\d+$");
+
+    public static void isUUID(String id, String name) {
+        hasLength(id, name);
+
+        if (!UUID_PATTERN.matcher(id).matches()) {
+            throw new IllegalArgumentException("Parameter '" + name + "' should be a valid UUID");
+        }
+    }
+
+    public static void isDatacenterID(String id, String name) {
+        hasLength(id, name);
+
+        if (!DATACENTER_ID_PATTERN.matcher(id).matches()) {
+            var addendum = "";
+
+            if (UUID_PATTERN.matcher(id).matches()) {
+                addendum = " (missing '-<number>' suffix; did you accidentally pass a database id instead?)";
+            }
+
+            throw new IllegalArgumentException("Parameter '" + name + "' should be a valid datacenter id of format <uuid>-<number>" + addendum);
+        }
+    }
 }
