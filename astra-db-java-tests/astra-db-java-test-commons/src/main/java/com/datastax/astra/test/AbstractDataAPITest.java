@@ -57,13 +57,6 @@ public abstract class AbstractDataAPITest {
 
     protected static EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
 
-    protected EmbeddingModel getAllMiniLmL6V2EmbeddingModel() {
-        if (embeddingModel == null) {
-            embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-        }
-        return embeddingModel;
-    }
-
     protected DataAPIDestination getDataApiDestination() {
         if (destination == null) {
             String targetEnv = readEnvVariable(ENV_VAR_DESTINATION);

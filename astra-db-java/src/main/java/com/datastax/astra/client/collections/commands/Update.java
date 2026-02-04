@@ -206,6 +206,20 @@ public class Update extends Document {
     }
 
     /**
+     * Builder pattern.
+     *
+     * @param key
+     *      field name
+     * @param values
+     *      filed list values
+     * @return
+     *      reference to self
+     */
+    public Update pushEach(String key, List<Object> values) {
+        return pushEach(key, values, null);
+    }
+
+    /**
      * Builder pattern
      *
      * @param key

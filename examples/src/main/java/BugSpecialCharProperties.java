@@ -26,19 +26,31 @@ public class BugSpecialCharProperties {
         Database db = client.getDatabase(ASTRA_ENDPOINT);
         System.out.println("Connected to Astra");
         Collection<Document> collection = db.getCollection(COL_REPLACE);
-
         collection.deleteAll();
+
+        // Client would never do substitution
         collection.insertOne(new Document()
-                .append("_id", "weirdo")
+                .append("_id", "doca")
                 .append("a.a", "a.a")
                 .append("a&a", "a&a")
                 .append("a..a", "a..a")
                 .append(new String[] {"top", "lvl1", "lvl11"}, "11")
                 .append(new String[] {"top", "lvl1", "lvl12"}, "12"));
+        collection.insertOne(new Document()
+                .append("_id", "docb")
+                .append("a.a", "b.b")
+                .append("a&a", "b&b")
+                .append("a..a", "b..b")
+                .append(new String[] {"top", "lvl1", "lvl11"}, "11")
+                .append(new String[] {"top", "lvl1", "lvl12"}, "12"));
 
+        // When Using find, no substitution
         /* Find documents */
-        Document doc = collection.findOne(Filters.eq("_id", "weirdo")).get();
-        System.out.println(doc.getString("a&a"));
+       collection
+          .findAll()
+          .forEach(d -> {
+            System.out.println(d.getString("a&a"));
+        });
         Thread.sleep(1000);
 
         /*

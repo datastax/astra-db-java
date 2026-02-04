@@ -271,7 +271,8 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
 
             // (Custom) Serialization different for Tables and Documents
             String jsonCommand = serializer.marshall(command);
-            System.out.println(jsonCommand);
+            // LOG REQUEST CONSOLE
+            //System.out.println(jsonCommand);
 
             URI targetUri;
             try {
@@ -328,7 +329,8 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withRequestHeaders(request.headers().map());
             executionInfo.withRequestUrl(getApiEndpoint());
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
-            System.out.println(status.getResult().body());
+            // LOG RESPONSES CONSOLE
+            //System.out.println(status.getResult().body());
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
 
