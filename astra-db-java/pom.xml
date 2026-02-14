@@ -17,6 +17,11 @@
         <!-- Sonar -->
         <sonar.organization>clun-datastax</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+
+        <!-- Enable tests by default for this module -->
+        <!-- Unit tests always run; integration tests auto-skip if HCD not available -->
+        <skipTests>false</skipTests>
+        <skipITs>false</skipITs>
     </properties>
 
     <dependencies>
@@ -130,7 +135,69 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Surefire configuration for tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven.plugin.surefire}</version>
+                <configuration>
+                    <skipTests>${skipTests}</skipTests>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*IT.java</include>
+                    </includes>
+                    <!-- Pass test environment to tests -->
+                    <systemPropertyVariables>
+                        <ASTRA_DB_JAVA_TEST_ENV>${test.environment}</ASTRA_DB_JAVA_TEST_ENV>
+                        <ASTRA_CLOUD_PROVIDER>${astra.cloud.provider}</ASTRA_CLOUD_PROVIDER>
+                        <ASTRA_CLOUD_REGION>${astra.cloud.region}</ASTRA_CLOUD_REGION>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- Test Profiles -->
+    <profiles>
+
+        <!-- Local HCD: Run integration tests against local HCD/DSE -->
+        <profile>
+            <id>local</id>
+            <properties>
+                <test.environment>local</test.environment>
+                <astra.cloud.provider>GCP</astra.cloud.provider>
+                <astra.cloud.region>us-east1</astra.cloud.region>
+            </properties>
+        </profile>
+
+        <!-- Astra Dev: Run integration tests against Astra DEV -->
+        <profile>
+            <id>astra-dev</id>
+            <properties>
+                <test.environment>astra_dev</test.environment>
+                <astra.cloud.provider>GCP</astra.cloud.provider>
+                <astra.cloud.region>us-central1</astra.cloud.region>
+            </properties>
+        </profile>
+
+        <!-- Astra Prod: Run integration tests against Astra PROD -->
+        <profile>
+            <id>astra-prod</id>
+            <properties>
+                <test.environment>astra_prod</test.environment>
+                <astra.cloud.provider>AWS</astra.cloud.provider>
+                <astra.cloud.region>us-east-2</astra.cloud.region>
+            </properties>
+        </profile>
+
+        <!-- Skip all tests -->
+        <profile>
+            <id>skip-tests</id>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

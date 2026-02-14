@@ -41,7 +41,6 @@ import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.hybrid.Hybrid;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.Vectorize;
-import com.datastax.astra.client.exceptions.InvalidFieldExpressionException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.serdes.collections.DocumentSerializer;
@@ -59,6 +58,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -114,7 +114,7 @@ public class Document implements Serializable {
      */
     @JsonAnySetter
     public void setProperty(String key, Object value) {
-        append(key, value);
+        put(key, value);
     }
 
     /**
@@ -231,67 +231,18 @@ public class Document implements Serializable {
     @SuppressWarnings("unchecked")
     public Document append(final String key, final Object value) {
         Assert.hasLength(key, "Field name should not be null");
-        // Properly split the key, considering escaped dots
-        //String escapedKey = EscapeUtils.escapeSingleExpression(key);
-        /*
-        List<String> tokens = parseAndUnescapeKeys(key);
+        String[] tokens = EscapeUtils.unEscapeFieldPath(key);
         Map<String, Object> currentMap = documentMap;
-        for (int i = 0; i < tokens.size() - 1; i++) {
-            String token = tokens.get(i);
-            Object nested = currentMap.get(token);
+        for (int i = 0; i < tokens.length - 1; i++) {
+            Object nested = currentMap.get(tokens[i]);
             if (!(nested instanceof Map)) {
-                nested = new HashMap<>();
-                currentMap.put(token, nested);
+                nested = new LinkedHashMap<>();
+                currentMap.put(tokens[i], nested);
             }
-            // Go deeper
             currentMap = (Map<String, Object>) nested;
         }
-        // Finally, put the value in the last token
-        currentMap.put(tokens.get(tokens.size() - 1), value);*/
-        documentMap.put(key, value);
+        currentMap.put(tokens[tokens.length - 1], value);
         return this;
-    }
-
-    public static List<String> parseAndUnescapeKeys2(String key) {
-        List<String> tokens = new ArrayList<>();
-        StringBuilder sb = new StringBuilder();
-        boolean pendingAmpersand = false;
-
-        for (int i = 0; i < key.length(); i++) {
-            char c = key.charAt(i);
-
-            if (c == '&') {
-                if (pendingAmpersand) {
-                    sb.append('&'); // Convert '&&' to a single '&'
-                    pendingAmpersand = false;
-                } else {
-                    pendingAmpersand = true;
-                }
-            } else if (c == '.') {
-                if (pendingAmpersand) {
-                    sb.append('.'); // Convert '&.' to '.'
-                    pendingAmpersand = false;
-                } else {
-                    tokens.add(sb.toString());
-                    sb.setLength(0);
-                }
-            } else {
-                if (pendingAmpersand) {
-                    InvalidFieldExpressionException.throwInvalidField(key,
-                            "Single '&' must be followed by '.' to escape a dot or another '&' to represent '&'.");
-                }
-                sb.append(c);
-            }
-        }
-
-        if (pendingAmpersand) {
-            InvalidFieldExpressionException.throwInvalidField(key,
-                    "Single '&' must be followed by '.' to escape a dot or another '&' to represent '&'."
-            );
-        }
-
-        tokens.add(sb.toString()); // Add the last token
-        return tokens;
     }
 
     /**
@@ -884,19 +835,7 @@ public class Document implements Serializable {
      * @return if the key is present
      */
     public boolean containsKey(String key) {
-        Assert.hasLength(key, "Field name should not be null");
-        /*
-        List<String> tokens = parseAndUnescapeKeys(key); // Get the parsed key segments
-        Object current = documentMap;
-        for (int i = 0; i < tokens.size(); i++) {
-            if (!(current instanceof Map)) return false;
-            Map<?, ?> map = (Map<?, ?>) current;
-            String fieldName = tokens.get(i);
-            if (!map.containsKey(fieldName)) return false;
-            current = map.get(fieldName);
-        }
-        return true;*/
-        return get(key) != null;
+        return read(key) != null;
     }
 
     /**
@@ -908,7 +847,7 @@ public class Document implements Serializable {
      * @return if the key is present
      */
     public Object get(final String[] fieldPathSegment) {
-        return get(EscapeUtils.escapeFieldNames(fieldPathSegment));
+        return get(Arrays.asList(fieldPathSegment));
     }
 
     /**
@@ -919,38 +858,14 @@ public class Document implements Serializable {
      */
     public Object get(final String key) {
         Assert.hasLength(key, "Field name should not be null");
-        // Handling escaped dots
         return documentMap.get(key);
-        /*
-        List<String> tokens = parseAndUnescapeKeys(key);
-        Object current = documentMap;
-        for (String token : tokens) {
-            if (!(current instanceof Map)) return null;
-            Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
-                    .matcher(token);
-            if (!matcher.matches()) return null;
-            String fieldName = matcher.group(1);
-            String indexStr = matcher.group(3);
-            current = ((Map<?, ?>) current).get(fieldName);
-            if (indexStr != null) {
-                if (!(current instanceof List)) return null;
-                List<?> list = (List<?>) current;
-                int idx = Integer.parseInt(indexStr);
-                if (idx < 0 || idx >= list.size()) return null;
-                current = list.get(idx);
-            }
-        }
-        return current;*/
     }
 
     public Object get(final List<String> fieldPathSegment) {
         Object current = documentMap;
         for (String token : fieldPathSegment) {
             if (!(current instanceof Map)) return null;
-            /*
-             * FieldName
-             */
-            Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.\\[-]+)(\\[(\\d+)\\])?")
+            Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.]+)(\\[(\\d+)])?$")
                     .matcher(token);
             if (!matcher.matches()) return null;
 
@@ -959,14 +874,107 @@ public class Document implements Serializable {
 
             current = ((Map<?, ?>) current).get(fieldName);
             if (indexStr != null) {
-                if (!(current instanceof List)) return null;
-                List<?> list = (List<?>) current;
+                if (!(current instanceof List<?> list)) return null;
                 int idx = Integer.parseInt(indexStr);
                 if (idx < 0 || idx >= list.size()) return null;
                 current = list.get(idx);
             }
         }
         return current;
+    }
+
+    /**
+     * Reads a value from the document using escaping-aware dot-notation navigation.
+     * Supports nested map traversal and array index access (e.g. "metadata.key1", "field2[0]").
+     * Uses {@link EscapeUtils#unEscapeFieldPath(String)} to parse the key.
+     *
+     * @param key the escaped field path (e.g. "metadata.key1", "a&amp;.b" for literal dot)
+     * @return the value at the specified path, or {@code null} if not found
+     */
+    public Object read(final String key) {
+        Assert.hasLength(key, "Field name should not be null");
+        String[] tokens = EscapeUtils.unEscapeFieldPath(key);
+        return get(Arrays.asList(tokens));
+    }
+
+    /**
+     * Reads a value from the document using escaping-aware dot-notation navigation
+     * and casts it to the specified type.
+     *
+     * @param key   the escaped field path
+     * @param clazz the class to cast the value to
+     * @param <T>   the target type
+     * @return the value at the specified path cast to T, or {@code null} if not found
+     */
+    public <T> T read(final String key, final Class<T> clazz) {
+        return clazz.cast(SERIALIZER.convertValue(read(key), clazz));
+    }
+
+    /**
+     * Reads the value at the given escaped field path as a String.
+     *
+     * @param key the escaped field path
+     * @return the value as a String, or {@code null} if not found
+     */
+    public String readString(final String key) {
+        return (String) read(key);
+    }
+
+    /**
+     * Reads the value at the given escaped field path as an Integer.
+     *
+     * @param key the escaped field path
+     * @return the value as an Integer, or {@code null} if not found
+     */
+    public Integer readInteger(final String key) {
+        return (Integer) read(key);
+    }
+
+    /**
+     * Reads the value at the given escaped field path as a Long.
+     *
+     * @param key the escaped field path
+     * @return the value as a Long, or {@code null} if not found
+     */
+    public Long readLong(final String key) {
+        Object o = read(key);
+        if (o instanceof Integer) {
+            return ((Integer) o).longValue();
+        }
+        return (Long) o;
+    }
+
+    /**
+     * Reads the value at the given escaped field path as a Double.
+     *
+     * @param key the escaped field path
+     * @return the value as a Double, or {@code null} if not found
+     */
+    public Double readDouble(final String key) {
+        return (Double) read(key);
+    }
+
+    /**
+     * Reads the value at the given escaped field path as a Boolean.
+     *
+     * @param key the escaped field path
+     * @return the value as a Boolean, or {@code null} if not found
+     */
+    public Boolean readBoolean(final String key) {
+        return (Boolean) read(key);
+    }
+
+    /**
+     * Reads the value at the given escaped field path as a typed List.
+     *
+     * @param key   the escaped field path
+     * @param clazz the class of the list elements
+     * @param <T>   the element type
+     * @return the list value, or {@code null} if not found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> List<T> readList(final String key, final Class<T> clazz) {
+        return (List<T>) read(key);
     }
 
     /**
@@ -978,7 +986,8 @@ public class Document implements Serializable {
      * @return the previous value associated with the key, or {@code null} if there was no mapping for the key
      */
     public Document put(final String key, final Object value) {
-        return append(key, value);
+        documentMap.put(key, value);
+        return this;
     }
 
     /**
@@ -1001,10 +1010,8 @@ public class Document implements Serializable {
      */
     public Document remove(String key) {
         Assert.hasLength(key, "Field name should not be null");
-        // in case of split
-        //remove(parseAndUnescapeKeys(key));
-        documentMap.remove(key);
-        return this;
+        String[] tokens = EscapeUtils.unEscapeFieldPath(key);
+        return remove(Arrays.asList(tokens));
     }
 
     public Document remove(final List<String> fieldPathSegment) {
@@ -1044,7 +1051,7 @@ public class Document implements Serializable {
      */
     public void putAll(final Map<? extends String, ?> map) {
         if (map != null) {
-            map.forEach(this::append);
+            map.forEach(this::put);
         }
     }
 

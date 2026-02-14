@@ -38,7 +38,7 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
     Boolean upsert;
 
     /** Show information before of after. */
-    ReturnDocument returnDocument;
+    ReturnDocument returnDocument = ReturnDocument.AFTER;
 
     /**
      * Default constructor.

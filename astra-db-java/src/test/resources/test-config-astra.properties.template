@@ -1,0 +1,23 @@
+# =============================================================================
+# Astra Cloud Test Configuration - TEMPLATE
+# =============================================================================
+# Copy this file to test-config-astra.properties and fill in your credentials.
+# The test-config-astra.properties file is gitignored to protect your token.
+#
+# To get your Astra token:
+#   1. Go to https://astra.datastax.com
+#   2. Navigate to your database
+#   3. Go to Connect > Generate Token
+#   4. Copy the token (starts with AstraCS:...)
+# =============================================================================
+
+test.environment=astra_prod
+
+# Your Astra application token (required)
+astra.token=AstraCS:YOUR_TOKEN_HERE
+
+# Cloud provider: GCP, AWS, or AZURE
+astra.cloud.provider=GCP
+
+# Region (must match your database's region)
+astra.cloud.region=us-east1

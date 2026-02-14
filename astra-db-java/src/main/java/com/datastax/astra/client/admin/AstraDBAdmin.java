@@ -110,6 +110,7 @@ public class AstraDBAdmin {
         if (dataAPIClientOptions.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
             if (dataAPIClientOptions.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
+                System.out.println("Logging enabled for AstraDBAdmin operations.");
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),

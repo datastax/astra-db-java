@@ -181,7 +181,7 @@ public class BaseOptions<T extends BaseOptions<T>> implements Cloneable {
     }
 
     public T logRequest() {
-        getDataAPIClientOptions().logRequests();
+        this.dataAPIClientOptions = getDataAPIClientOptions().clone().logRequests();
         return (T) this;
     }
 

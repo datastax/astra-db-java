@@ -501,7 +501,8 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                         default -> uid;
                     };
                 }
-                throw new IllegalStateException("Returned is is a UUID, but no defaultId is set in the collection definition.");
+                // Return default UUID if no defaultId is set at collection level, or if defaultId is set to uuid.
+                return uid;
             }
             if (mapId.containsKey(DataAPIKeywords.OBJECT_ID.getKeyword())) {
                 // defaultId with ObjectId
@@ -1426,9 +1427,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         if (options != null && options.getDataAPIClientOptions() != null) {
             findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
         }
-        // Exhausting the list of distinct values
+        // Exhausting the list of distinct values (fieldName is an escaped path, use read)
         return StreamSupport.stream(find(filter, findOptions, Document.class).spliterator(), true)
-                .map(doc -> doc.get(fieldName, resultClass))
+                .map(doc -> doc.read(fieldName, resultClass))
                 .collect(Collectors.toSet());
     }
 

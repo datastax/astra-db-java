@@ -20,7 +20,6 @@ package com.datastax.astra.client.tables.definition.types;
  * #L%
  */
 
-import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,7 +33,7 @@ public class TableUserDefinedTypeDescriptor {
     /**
      * Name of the table.
      */
-    private String name;
+    private String udtName;
 
     /**
      * Options for the table.
@@ -54,7 +53,7 @@ public class TableUserDefinedTypeDescriptor {
      */
     public TableUserDefinedTypeDescriptor(String name) {
         // left blank, serialization with jackson
-        this.name = name;
+        this.udtName = name;
     }
 
     /**
@@ -62,8 +61,8 @@ public class TableUserDefinedTypeDescriptor {
      * @param name the name of the table
      * @return the descriptor
      */
-    public TableUserDefinedTypeDescriptor name(String name) {
-        this.name = name;
+    public TableUserDefinedTypeDescriptor udtName(String name) {
+        this.udtName = name;
         return this;
     }
 

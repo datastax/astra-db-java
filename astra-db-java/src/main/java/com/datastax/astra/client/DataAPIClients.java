@@ -23,6 +23,7 @@ package com.datastax.astra.client;
 import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
 
@@ -128,8 +129,7 @@ public class DataAPIClients {
                 new UsernamePasswordTokenProvider(username, password).getToken(),
                 new DataAPIClientOptions()
                         .destination(DataAPIDestination.CASSANDRA)
-                        .enableFeatureFlagTables()
-                        .logRequests());
+                        .enableFeatureFlagTables());
     }
 
     /**
@@ -234,7 +234,7 @@ public class DataAPIClients {
      * </pre>
      */
     public static Database localDbWithDefaultKeyspace() {
-        Database db = clientCassandra().getDatabase(DEFAULT_ENDPOINT_LOCAL);
+        Database db = clientCassandra().getDatabase(DEFAULT_ENDPOINT_LOCAL, new DatabaseOptions().logRequest());
         db.getDatabaseAdmin().createKeyspace(DEFAULT_KEYSPACE);
         return db;
     }
@@ -261,8 +261,7 @@ public class DataAPIClients {
      */
     public static DataAPIClient astraDev(String token) {
         return new DataAPIClient(token, new DataAPIClientOptions()
-                .destination(DataAPIDestination.ASTRA_DEV)
-                .logRequests());
+                .destination(DataAPIDestination.ASTRA_DEV));
     }
 
     /**
@@ -287,8 +286,7 @@ public class DataAPIClients {
      */
     public static DataAPIClient astra(String token) {
         return new DataAPIClient(token, new DataAPIClientOptions()
-                .destination(DataAPIDestination.ASTRA)
-                .logRequests());
+                .destination(DataAPIDestination.ASTRA));
     }
 
     /**
@@ -322,8 +320,7 @@ public class DataAPIClients {
      */
     public static DataAPIClient astraTest(String token) {
         return new DataAPIClient(token, new DataAPIClientOptions()
-                .destination(DataAPIDestination.ASTRA_TEST)
-                .logRequests());
+                .destination(DataAPIDestination.ASTRA_TEST));
     }
 
 }

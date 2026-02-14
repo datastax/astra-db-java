@@ -106,7 +106,8 @@ public class DocumentSerializer implements DataAPISerializer {
                     .registerModule(new JavaTimeModule())
                     .registerModule(new Jdk8Module())
                     .setDateFormat(new SimpleDateFormat("dd/MM/yyyy"))
-                    .setSerializationInclusion(Include.NON_NULL)
+                    // Update 2.2, null fields are required to empty values
+                    //.setSerializationInclusion(Include.NON_NULL)
                     .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();

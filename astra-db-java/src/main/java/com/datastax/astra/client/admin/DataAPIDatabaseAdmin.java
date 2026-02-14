@@ -26,6 +26,7 @@ import com.datastax.astra.client.core.commands.CommandType;
 import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.databases.Database;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
@@ -145,12 +146,25 @@ public class DataAPIDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         return db.useKeyspace(keyspace);
     }
 
+    @Override
+    public Database getDatabase(String keyspace, String userToken, DatabaseOptions options) {
+        String          targetToken    = (userToken != null) ? userToken : db.getOptions().getToken();
+        DatabaseOptions targetOptions  = (options != null) ?   options :   db.getOptions();
+        String          targetKeyspace = (keyspace != null) ?  keyspace :  db.getKeyspace();
+        return new Database(db.getRootEndpoint(), targetOptions
+                .clone()
+                .token(targetToken)
+                .keyspace(targetKeyspace));
+    }
+
     /** {@inheritDoc} */
     @Override
     public Database getDatabase(String keyspace, String userToken) {
+        String          targetToken    = (userToken != null) ? userToken : db.getOptions().getToken();
+        String          targetKeyspace = (keyspace != null) ?  keyspace :  db.getKeyspace();
         return new Database(db.getRootEndpoint(), db.getOptions().clone()
-                .token(userToken)
-                .keyspace(keyspace));
+                .token(targetToken)
+                .keyspace(targetKeyspace));
     }
 
     @Override

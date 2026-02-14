@@ -436,6 +436,7 @@ public class EntityBeanDefinition<T> {
                     if (valueType == TableColumnTypes.UNSUPPORTED) {
                         throw new IllegalArgumentException("Unsupported type '" + field.getType().getName() + "' for value in field '" + field.getName() + "'");
                     }
+                    column.append("valueType", valueType);
                 } else if (valueType == TableColumnTypes.USERDEFINED) {
                     // Special Document for UDT
                     Document valueTypeDoc = new Document();
@@ -445,9 +446,6 @@ public class EntityBeanDefinition<T> {
                     valueTypeDoc.append("type", valueType.getValue());
                     valueTypeDoc.append("udtName", field.getUdtName());
                     column.append("valueType", valueTypeDoc);
-
-
-
                 } else {
                     column.append("valueType", valueType.getValue());
                 }

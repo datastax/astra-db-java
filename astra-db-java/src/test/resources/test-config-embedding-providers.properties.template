@@ -1,0 +1,67 @@
+# =============================================================================
+# Embedding Provider API Keys Configuration
+# =============================================================================
+# Copy this file to test-config-embedding-providers.properties and fill in your keys.
+# The actual config file is gitignored for security.
+#
+# Priority order for configuration values:
+#   1. Environment variables (listed in parentheses below)
+#   2. System properties
+#   3. This config file
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# OpenAI (env: OPENAI_API_KEY)
+# -----------------------------------------------------------------------------
+openai.api.key=
+
+# -----------------------------------------------------------------------------
+# HuggingFace (env: HF_API_KEY)
+# -----------------------------------------------------------------------------
+huggingface.api.key=
+
+# -----------------------------------------------------------------------------
+# MistralAI (env: MISTRAL_API_KEY)
+# -----------------------------------------------------------------------------
+mistral.api.key=
+
+# -----------------------------------------------------------------------------
+# JinaAI (env: JINA_API_KEY)
+# -----------------------------------------------------------------------------
+jina.api.key=
+
+# -----------------------------------------------------------------------------
+# VoyageAI (env: VOYAGE_API_KEY)
+# -----------------------------------------------------------------------------
+voyage.api.key=
+
+# -----------------------------------------------------------------------------
+# UpstageAI (env: UPSTAGE_API_KEY)
+# -----------------------------------------------------------------------------
+upstage.api.key=
+
+# -----------------------------------------------------------------------------
+# Nvidia (env: NVIDIA_API_KEY)
+# -----------------------------------------------------------------------------
+nvidia.api.key=
+
+# -----------------------------------------------------------------------------
+# Cohere (env: COHERE_API_KEY)
+# -----------------------------------------------------------------------------
+cohere.api.key=
+
+# -----------------------------------------------------------------------------
+# AWS Bedrock
+# -----------------------------------------------------------------------------
+# bedrock.aws.access.id=     (env: BEDROCK_HEADER_AWS_ACCESS_ID)
+# bedrock.aws.secret.id=     (env: BEDROCK_HEADER_AWS_SECRET_ID)
+# bedrock.aws.region=        (env: BEDROCK_HEADER_AWS_REGION)
+
+# -----------------------------------------------------------------------------
+# HuggingFace Dedicated Endpoint
+# -----------------------------------------------------------------------------
+# huggingface.dedicated.api.key=      (env: HUGGINGFACEDED_API_KEY)
+# huggingface.dedicated.dimension=    (env: HUGGINGFACEDED_DIMENSION)
+# huggingface.dedicated.endpoint=     (env: HUGGINGFACEDED_ENDPOINTNAME)
+# huggingface.dedicated.region=       (env: HUGGINGFACEDED_REGIONNAME)
+# huggingface.dedicated.cloud=        (env: HUGGINGFACEDED_CLOUDNAME)

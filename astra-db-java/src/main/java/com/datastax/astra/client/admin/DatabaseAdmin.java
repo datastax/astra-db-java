@@ -20,12 +20,11 @@ package com.datastax.astra.client.admin;
  * #L%
  */
 
-import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.rerank.RerankProvider;
-import com.datastax.astra.client.core.vectorize.SupportModelStatus;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.core.commands.CommandRunner;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
+import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.client.databases.commands.options.CreateKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.DropKeyspaceOptions;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
@@ -33,13 +32,10 @@ import com.datastax.astra.client.databases.commands.options.FindRerankingProvide
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceDefinition;
-import com.datastax.astra.client.databases.definition.keyspaces.KeyspaceInformation;
 import com.datastax.astra.internal.utils.Assert;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-
-import static com.datastax.astra.client.core.vectorize.SupportModelStatus.SUPPORTED;
 
 /**
  * Defines the core client interface for interacting with the Data API, focusing on CRUD (Create, Read, Update, Delete)
@@ -160,9 +156,17 @@ public interface DatabaseAdmin {
      *         of all keyspaces within the current database. This allows for the asynchronous processing of keyspace
      *         names with the flexibility and efficiency benefits of using a stream.
      */
-    default CompletableFuture<Set<String>> listKeyspacesNamesAsync() {
+    default CompletableFuture<Set<String>> listKeyspaceNamesAsync() {
         return CompletableFuture.supplyAsync(this::listKeyspaceNames);
     }
+
+    /**
+     * Access the Database associated with this admin class providing extra options
+     *
+     * @return
+     *      associated database
+     */
+    Database getDatabase(String keyspace, String userToken, DatabaseOptions options);
 
     /**
      * Retrieves a {@link Database} instance that represents a specific database (or namespace) based on the
@@ -190,7 +194,9 @@ public interface DatabaseAdmin {
      * @return A {@code DataApiNamespace} instance that encapsulates the operations and information specific to the
      *         given keyspace.
      */
-    Database getDatabase(String keyspace);
+    default Database getDatabase(String keyspace) {
+        return getDatabase(keyspace, null, null);
+    }
 
     /**
      * Access the Database associated with this admin class.
@@ -202,7 +208,9 @@ public interface DatabaseAdmin {
      * @return
      *      instance of the database
      */
-    Database getDatabase(String keyspace, String userToken);
+    default Database getDatabase(String keyspace, String userToken) {
+        return getDatabase(keyspace, userToken, null);
+    }
 
     /**
      * Access the Database associated with this admin class.

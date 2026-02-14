@@ -13,13 +13,8 @@
     <modules>
         <module>astra-db-java</module>
         <module>astra-db-java-tools</module>
-        <module>examples</module>
         <module>langchain4j-astradb</module>
         <module>astra-sdk-devops</module>
-        <module>astra-db-java-tests</module>
-        <module>astra-db-java-tests/astra-db-java-test-commons</module>
-        <module>astra-db-java-tests/astra-db-java-test-hcd</module>
-        <module>astra-db-java-tests/astra-db-java-test-astra</module>
     </modules>
 
     <properties>
@@ -27,22 +22,22 @@
 
         <!-- Third Party Libraries -->
         <slf4j.version>2.0.17</slf4j.version>
-        <logback.version>1.5.21</logback.version>
-        <jackson.version>2.20.1</jackson.version>
+        <logback.version>1.5.29</logback.version>
+        <jackson.version>2.21.0</jackson.version>
         <lombok.version>1.18.42</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
         <awaitility.version>4.3.0</awaitility.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
         <uuid-generator.version>5.2.0</uuid-generator.version>
-        <httpclient.version>5.5.1</httpclient.version>
+        <httpclient.version>5.6</httpclient.version>
 
         <!-- Langchain4j -->
-        <langchain4j.version>1.10.0</langchain4j.version>
-        <langchain4j-beta.version>1.10.0-beta18</langchain4j-beta.version>
+        <langchain4j.version>1.11.0</langchain4j.version>
+        <langchain4j-beta.version>1.11.0-beta19</langchain4j-beta.version>
 
         <!-- Test -->
         <test.skipped>true</test.skipped>
-        <assertj.version>3.27.6</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <junit-jupiter.version>5.14.1</junit-jupiter.version>
         <junit.platform.version>1.14.1</junit.platform.version>
 
@@ -57,7 +52,7 @@
         <version.maven.plugin.gpg>3.2.8</version.maven.plugin.gpg>
         <version.maven.plugin.javadoc>3.12.0</version.maven.plugin.javadoc>
         <version.maven.plugin.jar>3.4.2</version.maven.plugin.jar>
-        <version.maven.plugin.license>2.7.0</version.maven.plugin.license>
+        <version.maven.plugin.license>2.7.1</version.maven.plugin.license>
         <version.maven.plugin.nexus>1.7.0</version.maven.plugin.nexus>
         <version.maven.plugin.release>3.1.1</version.maven.plugin.release>
         <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
@@ -275,11 +270,6 @@
                 <version>${version.maven.plugin.surefire}</version>
                 <configuration>
                     <skipTests>${test.skipped}</skipTests>
-                    <systemPropertyVariables>
-                        <ASTRA_DB_JAVA_TEST_ENV>${ASTRA_DB_JAVA_TEST_ENV}</ASTRA_DB_JAVA_TEST_ENV>
-                        <ASTRA_CLOUD_PROVIDER_DEV>${ASTRA_CLOUD_PROVIDER_DEV}</ASTRA_CLOUD_PROVIDER_DEV>
-                        <ASTRA_CLOUD_REGION_DEV>${ASTRA_CLOUD_REGION_DEV}</ASTRA_CLOUD_REGION_DEV>
-                    </systemPropertyVariables>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -429,73 +419,6 @@
          <activeByDefault>false</activeByDefault>
         </activation>
        </profile>
-
-
-        <profile>
-            <id>test_local</id>
-            <properties>
-                <ASTRA_DB_JAVA_TEST_ENV>local</ASTRA_DB_JAVA_TEST_ENV>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>com/datastax/astra/test/integration/**/*.**Test.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>test_astra_dev</id>
-            <properties>
-                <ASTRA_DB_JAVA_TEST_ENV>astra_dev</ASTRA_DB_JAVA_TEST_ENV>
-                <ASTRA_CLOUD_PROVIDER>GCP</ASTRA_CLOUD_PROVIDER>
-                <ASTRA_CLOUD_REGION>us-central1</ASTRA_CLOUD_REGION>
-                <ASTRA_DB_APPLICATION_TOKEN>${env.ASTRA_DB_APPLICATION_TOKEN_DEV}</ASTRA_DB_APPLICATION_TOKEN>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>com/datastax/astra/test/integration/**/*.**Test.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>test_astra_prod</id>
-            <properties>
-                <ASTRA_DB_JAVA_TEST_ENV>astra_prod</ASTRA_DB_JAVA_TEST_ENV>
-                <ASTRA_CLOUD_PROVIDER>AWS</ASTRA_CLOUD_PROVIDER>
-                <ASTRA_CLOUD_REGION>us-west-2</ASTRA_CLOUD_REGION>
-                <ASTRA_DB_APPLICATION_TOKEN>${env.ASTRA_DB_APPLICATION_TOKEN}</ASTRA_DB_APPLICATION_TOKEN>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>com/datastax/astra/test/integration/**/*.**Test.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
 
     </profiles>
 

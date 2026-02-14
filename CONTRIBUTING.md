@@ -36,7 +36,7 @@ chances of your issue being dealt with quickly:
 ### <a name="submit-pr"></a> Submitting a Pull Request (PR)
 Before you submit your Pull Request (PR) consider the following guidelines:
 
-* Search the repository (https://github.com/stargate/stargate-sdk-java/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
+* Search the repository (https://github.com/datastax/astra-db-java/pulls) for an open or closed PR that relates to your submission. You don't want to duplicate effort.
 
 * Create a fork of the repo
 	* Navigate to the repo you want to fork
@@ -57,11 +57,11 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
 That's it! Thank you for your contribution!
 
-## Developer tips
+## Developer Setup
 
-### Prerequisites for contributing
+### Prerequisites
 
-#### 📦 Java Development Kit (JDK) 17
+#### Java Development Kit (JDK) 17+
 
 - Use the [reference documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html) to install a **Java Development Kit**
 - Validate your installation with:
@@ -70,7 +70,7 @@ That's it! Thank you for your contribution!
    java --version
    ```
 
-#### 📦 Apache Maven
+#### Apache Maven 3.6.3+
 
 - Use the [reference documentation](https://maven.apache.org/install.html) to install **Apache Maven**
 - Validate your installation with:
@@ -79,223 +79,220 @@ That's it! Thank you for your contribution!
    mvn -version
    ```
 
-#### 📦 Docker (local Installation)
+#### Docker (for local testing)
 
-Docker is an open-source project that automates the deployment of software applications inside containers by providing an additional layer of abstraction and automation of OS-level virtualization on Linux.
+Docker is required to run a local HCD/DSE instance for integration tests.
 
-### Packaging
+### Building the Project
 
-- Clone the repository:
+Clone the repository and build:
 
-   ```console
-   git clone git@github.com:datastax/astra-db-java.git
-   ```
-
-- Build the project (Java 11 and Maven is required)
-
-> Note: You should skip the tests if you want to speed up the build. To run the test you need a bit of setup:
->
-> - An environment variable `ASTRA_DB_APPLICATION_TOKEN` with your an Organization Administrator Astra token (PROD)
-> - An environment variable `ASTRA_DB_APPLICATION_TOKEN_DEV` with your an Organization Administrator Astra token (DEV)
-> - A running Data API locally with docker (see the `docker-compose.yml` in the root of the project)
-
-```console
-mvn clean install -Dtest.skipped=true
+```bash
+git clone git@github.com:datastax/astra-db-java.git
+cd astra-db-java
+mvn clean install -DskipTests
 ```
 
-### Using the Java client with a local instance
+## Running Tests
 
-> Prerequisite: You need HCD, DSE, or CASSANDRA running on your machine and listening on `9042`. One good way is to run HCD as a docker image following [these instructions](https://github.com/stargate/data-api/tree/main/docker-compose).
+### Test Configuration System
 
-#### Run the Data API locally
+Tests are configured through a layered properties system. Values are resolved in priority order:
 
-- Clone the Data API repository:
+1. **Environment variables** (e.g., `ASTRA_DB_APPLICATION_TOKEN`)
+2. **System properties** (e.g., `-Dastra.token=...`)
+3. **Config files** (loaded in order, later files override earlier ones):
+   - `test-config.properties` — defaults (committed)
+   - `test-config-local.properties` — local HCD/DSE settings (committed)
+   - `test-config-astra.properties` — Astra credentials (**gitignored**)
+   - `test-config-embedding-providers.properties` — embedding API keys (**gitignored**)
 
-   ```
-   git clone git@github.com:stargate/data-api.git
-   ```
+#### Setting Up Config Files
 
-- Access the folder and start the Data API. Note the cassandra endpoint is `localhost` and the datacenter is `dc1`.
+For **Astra** testing, copy the template and fill in your credentials:
 
-   ```
-   cd data-api
-
-   STARGATE_DATA_STORE_SAI_ENABLED=true \
-   STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true \
-   STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true \
-   STARGATE_DATA_STORE_IGNORE_BRIDGE=true \
-   STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1 \
-   STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost \
-   QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE \
-   QUARKUS_LOG_LEVEL=INFO \
-   JAVA_MAX_MEM_RATIO=75 \
-   JAVA_INITIAL_MEM_RATIO=50 \
-   GC_CONTAINER_OPTIONS="-XX:+UseG1GC" \
-   JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.   logmanager.LogManager" \
-   mvn quarkus:dev -Dstargate.data-store.ignore-bridge=true -Dstargate.jsonapi.operations.vectorize-enabled=true -Dstargate.jsonapi.operations.database-config.local-datacenter=dc1 -Dquarkus.log.console.darken=2 -Dstargate.feature.flags.tables=true -Dstargate.jsonapi.operations.extend-error=true -Dstargate.feature.flags.reranking=true
-   ```
-
-- Check that the Data API is running:
-
-| Field                                      | Description                                                                             |
-|--------------------------------------------|-----------------------------------------------------------------------------------------|
-| **Data API Spec**                          | http://localhost:8181/swagger-ui/#/                                                     |
-| **Data API Endpoint**                      | http://localhost:8181                                                                   |
-| **Token Header Key**                       | `Token`                                                                                      |
-| **Token Header Value**               | `Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh` (aka `Cassandra:Base64(userName):Base64(password)`) |
-| **Authentication API Spec (before 1.0.6)** | http://localhost:8081/swagger-ui/#/                                                     |
-
-- The API will have 3 resources:
-
-| Field                 | Url                            | Description                                       |
-|-----------------------|--------------------------------|---------------------------------------------------|
-| **Namespace**         | `/v1/`                         | Interact with namespaces (not available in Astra) |
-| **Data API Endpoint** | `/v1/{namespace}`              | Interact with collections of a namespace |
-| **Token Header Key**  | `/v1/{namespace}/{collection}` |Interact with documents of a collection  |
-
-#### Use the Java client with a local instance
-
-To authenticate, use `cassandra` as the username and password to get a token.
-Use `http://localhost:8181` as the endpoint.
-
-```java
-public class QuickStartLocal {
-
-    public static void main(String[] args) {
-
-        // Create a token
-        String token = new UsernamePasswordTokenProvider("cassandra", "cassandra").getToken();
-        System.out.println("Token: " + token);
-
-        // Initialize the client
-        DataAPIClient client = new DataAPIClient(token, builder().withDestination(CASSANDRA).build());
-        System.out.println("Connected to Data API");
-
-       // Create a default keyspace
-       ((DataAPIDatabaseAdmin) client
-               .getDatabase(dataApiUrl)
-               .getDatabaseAdmin()).createNamespace(keyspaceName, NamespaceOptions.simpleStrategy(1));
-        System.out.println("Keyspace created ");
-
-        Database db = client.getDatabase("http://localhost:8181", "default_keyspace");
-        System.out.println("Connected to Database");
-
-        // Create a collection. The default similarity metric is cosine.
-        Collection<Document> collection = db.createCollection("simple", 5, COSINE);
-        System.out.println("Created a Collection simple");
-
-       // Create a collection with Vector embeddings OPEN AI
-       Collection<Document> collectionLyrics =  db.createCollection("vector", CollectionOptions.builder()
-                       .vectorSimilarity(SimilarityMetric.COSINE)
-                       .vectorDimension(1536)
-                       .vectorize("openai", "text-embedding-3-small")
-                       .build(),
-               new CommandOptions<>().embeddingAPIKey("sk-....."));
-    }
-}
+```bash
+cp astra-db-java/src/test/resources/test-config-astra.properties.template \
+   astra-db-java/src/test/resources/test-config-astra.properties
 ```
 
-### Running integration tests
+Then edit `test-config-astra.properties`:
 
-The clients can target a distribution of Data API installed locally or Astra DB.
-In case of Astra DB they can also target different environments (DEV, TEST, PROD).
-When we run a test suite we can specify the target with the following properties:
-
-| Property                        | Description                                                          |
-|---------------------------------|----------------------------------------------------------------------|
-| `ASTRA_DB_JAVA_TEST_ENV`        | `astra_dev`, `astra_test` or `astra_prod` (default)                  |
-| `ASTRA_DB_APPLICATION_TOKEN`    | the token to use for authentication leverage an env var like `${var}` |
-| `ASTRA_CLOUD_PROVIDER`          | `AWS`, `GCP` or  `AZURE`                                               |
-| `ASTRA_CLOUD_REGION`            | A valid region is selected provider us-east-1, us-east-2|
-
-> [!NOTE]
-> No database is required, the test suite will create and delete databases as needed.
-> To Know a valid region for a provider you can use the `[Astra CLI]`
->
-> ```
-> $ astra db list-regions-vector
-> +-----------------+-------------------------+------------------------------------+
-> | Cloud Provider  | Region                  | Full Name                          |
-> +-----------------+-------------------------+------------------------------------+
-> | aws             | ap-south-1              | Asia Pacific (Mumbai)              |
-> | aws             | ap-southeast-2          | Asia Pacific (Sydney)              |
-> | aws             | eu-west-1               | Europe (Ireland)                   |
-> | aws             | us-east-1               | US East (N. Virginia)              |
-> | aws             | us-east-2               | US East (Ohio)                     |
-> | azure           | australiaeast           | Australia East                     |
-> | azure           | centralindia            | Central India (Pune)               |
-> | azure           | southcentralus          | South Central US                   |
-> | azure           | westeurope              | West Europe                        |
-> | azure           | westus3                 | US West 3                          |
-> | gcp             | europe-west2            | West Europe2 (London, England, UK) |
-> | gcp             | northamerica-northeast1 | Montreal, Quebec                   |
-> | gcp (free-tier) | us-east1                | Moncks Corner, South Carolina      |
-> | gcp             | us-east4                | Ashburn, Virginia                  |
-> +-----------------+-------------------------+------------------------------------+
-> ```
-
-#### Prerequisites for testing
-
-> [!IMPORTANT]
->
-> - To run the maven command you need to build the project first:
->
->    ```
->    mvn clean install -Dtest.skipped=true
->    ```
->
-> - You also need to position yourself in folder `astra-db-java`:
->
->    ```
->    cd astra-db-java
->    ```
-
-#### Astra DB Admin test
-
-Test operation to create/delete databases we need to use an Organization Administrator token.
-
-```
-mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.astra_admin.*Test" \
- -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
- -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
- -DASTRA_CLOUD_PROVIDER=GCP \
- -DASTRA_CLOUD_REGION=us-east1 \
- -Dtest.skipped=false
+```properties
+test.environment=astra_prod
+astra.token=AstraCS:YOUR_TOKEN_HERE
+astra.cloud.provider=AWS
+astra.cloud.region=us-east-2
 ```
 
-#### DatabaseAdmin test
+For **embedding provider** tests (vectorize), copy and fill in API keys:
 
-```
-mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.database_admin.*Test" \
- -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
- -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
- -DASTRA_CLOUD_PROVIDER=GCP \
- -DASTRA_CLOUD_REGION=us-east1 \
- -Dtest.skipped=false
+```bash
+cp astra-db-java/src/test/resources/test-config-embedding-providers.properties.template \
+   astra-db-java/src/test/resources/test-config-embedding-providers.properties
 ```
 
-#### Database test
-
-```
-mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.database.*Test" \
- -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
- -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
- -DASTRA_CLOUD_PROVIDER=GCP \
- -DASTRA_CLOUD_REGION=us-east1 \
- -Dtest.skipped=false
+```properties
+openai.api.key=sk-...
+cohere.api.key=...
+mistral.api.key=...
 ```
 
-#### Running multiple tests
+#### Overriding a Single Property
 
+You can override any property without editing config files:
+
+```bash
+# Via environment variable
+export ASTRA_DB_APPLICATION_TOKEN=AstraCS:...
+mvn clean test -pl astra-db-java -Pastra-prod
+
+# Via system property
+mvn clean test -pl astra-db-java -Pastra-prod -Dastra.cloud.region=eu-west-1
+
+# Override the test environment
+mvn clean test -pl astra-db-java -DASTRA_DB_JAVA_TEST_ENV=astra_dev
 ```
-mvn test \
- -Dtest="com.datastax.astra.test.integration.astra.astra_admin.AstraDBAdmin_01_DatabaseDDL_ITTest,com.datastax.astra.test.integration.astra.database_admin.DatabaseAdminITTest" \
- -DASTRA_DB_JAVA_TEST_ENV=astra_prod \
- -DASTRA_DB_APPLICATION_TOKEN=${ASTRA_DB_APPLICATION_TOKEN} \
- -DASTRA_CLOUD_PROVIDER=GCP \
- -DASTRA_CLOUD_REGION=us-east1 \
- -Dtest.skipped=false
+
+### Maven Commands
+
+```bash
+# Run all tests against Astra PROD (with coverage report)
+mvn clean verify -pl astra-db-java -Pastra-prod
+
+# Run all tests against Astra DEV (with coverage report)
+mvn clean verify -pl astra-db-java -Pastra-dev
+
+# Run all tests against local HCD/DSE (with coverage report)
+mvn clean verify -pl astra-db-java -Plocal
+
+# Run tests and generate JaCoCo report explicitly
+mvn clean test jacoco:report -pl astra-db-java -Pastra-prod
+
+# Run a specific test class
+mvn test -pl astra-db-java -Pastra-prod -Dtest="Astra_Collections_01_IT"
+
+# Build without tests
+mvn clean install -DskipTests
+
+# Skip all tests via profile
+mvn clean install -pl astra-db-java -Pskip-tests
 ```
+
+The JaCoCo coverage report is generated at `astra-db-java/target/site/jacoco/index.html`.
+
+### Maven Profiles
+
+| Profile | `test.environment` | Cloud Provider | Region | Description |
+|---------|--------------------|----------------|--------|-------------|
+| `local` | `local` | GCP | us-east1 | Local HCD/DSE instance |
+| `astra-dev` | `astra_dev` | GCP | us-central1 | Astra development environment |
+| `astra-prod` | `astra_prod` | AWS | us-east-2 | Astra production environment |
+| `skip-tests` | - | - | - | Skip all tests |
+
+Profile values are passed as system properties, which take priority over config file values but not environment variables.
+
+### Running Tests in the IDE
+
+Tests work out of the box in IDEs (IntelliJ, Eclipse) with no environment variables required:
+
+1. **Astra tests:** Create `test-config-astra.properties` from the template with your token and region. Right-click any `Astra_*IT` test class and run.
+2. **Local tests:** Start HCD with `docker-compose up -d`, then right-click any `Local_*IT` test class and run. Tests auto-skip if local HCD is not available.
+
+### Test Annotations
+
+Test classes use JUnit 5 conditional annotations to run only in the appropriate environment:
+
+| Annotation | Behavior |
+|------------|----------|
+| `@EnabledIfAstra` | Runs only when `test.environment` is `astra_dev`, `astra_prod`, or `astra_test` **and** a valid Astra token is available. Skipped otherwise. |
+| `@EnabledIfLocalAvailable` | Runs only when a local HCD/DSE instance is reachable at the configured endpoint. Skipped otherwise. |
+
+This means you can safely run the entire test suite: tests for unavailable environments are **skipped** (not failed).
+
+### Local HCD Setup
+
+#### Prerequisites
+
+- Docker and Docker Compose
+- Java 17+
+- Maven
+- (Optional) A local clone of the [Data API](https://github.com/stargate/data-api) repository
+
+#### 1. Start HCD
+
+Using the `docker-compose.yml` included in this repository:
+
+```bash
+docker-compose up -d
+```
+
+Or, if you have the Data API repository cloned:
+
+```bash
+export DATA_API_FOLDER=/path/to/data-api
+cd $DATA_API_FOLDER/docker-compose && ./start_hcd.sh -d
+```
+
+#### 2. Start the Data API
+
+Clone and start the Data API from source:
+
+```bash
+git clone git@github.com:stargate/data-api.git
+cd data-api
+
+STARGATE_DATA_STORE_SAI_ENABLED=true \
+STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true \
+STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true \
+STARGATE_DATA_STORE_IGNORE_BRIDGE=true \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1 \
+STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost \
+QUARKUS_HTTP_ACCESS_LOG_ENABLED=FALSE \
+QUARKUS_LOG_LEVEL=INFO \
+JAVA_MAX_MEM_RATIO=75 \
+JAVA_INITIAL_MEM_RATIO=50 \
+GC_CONTAINER_OPTIONS="-XX:+UseG1GC" \
+JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager" \
+mvn quarkus:dev \
+  -Dstargate.data-store.ignore-bridge=true \
+  -Dstargate.jsonapi.operations.vectorize-enabled=true \
+  -Dstargate.jsonapi.operations.database-config.local-datacenter=dc1 \
+  -Dquarkus.log.console.darken=2 \
+  -Dstargate.feature.flags.tables=true \
+  -Dstargate.jsonapi.operations.extend-error=true \
+  -Dstargate.feature.flags.reranking=true
+```
+
+#### 3. Verify the Data API is running
+
+| Field | Value |
+|-------|-------|
+| **API Spec** | http://localhost:8181/swagger-ui/#/ |
+| **Endpoint** | http://localhost:8181 |
+| **Token Header Key** | `Token` |
+| **Token Header Value** | `Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh` (`Cassandra:Base64(username):Base64(password)`) |
+
+#### 4. Access CQL shell (optional)
+
+Connect to the running HCD instance with `cqlsh`:
+
+```bash
+# Docker
+docker run -it --rm --network container:$(docker ps | grep hcd | cut -b 1-12) \
+  cassandra:latest cqlsh -u cassandra -p cassandra
+
+# Podman
+podman exec -it $(podman ps | grep hcd | cut -b 1-12) \
+  cqlsh -u cassandra -p cassandra
+```
+
+## Release
+
+```bash
+# Prepare + perform release (core + langchain4j modules)
+mvn -pl astra-db-java,langchain4j-astradb -am release:prepare -DskipTests=true
+mvn -pl astra-db-java,langchain4j-astradb -am release:perform -DskipTests=true
+```
+
+Artifacts are published to Maven Central via Sonatype Central Publishing with GPG signing.

@@ -27,6 +27,9 @@ dist
 .factorypath
 .sts4-cache
 *.log
+# hold token values
+test-config-astra.properties
+test-config-embedding-providers.properties
 
 release.properties
 pom.xml.releaseBackup

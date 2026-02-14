@@ -114,7 +114,6 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
      *     list of db matching the criteria
      */
     public Database getDatabaseInformations() {
-        log.debug("getDatabaseInformations");
         return devopsDbClient
                 .findById(databaseId.toString())
                 .orElseThrow(() -> new DatabaseNotFoundException(databaseId.toString()));
@@ -153,33 +152,42 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
      */
     public String getApiEndpoint() {
         return new AstraApiEndpoint(databaseId,
-                getDatabaseInformations().getInfo().getRegion(), options.getDataAPIClientOptions().getAstraEnvironment())
+                getDatabaseInformations().getInfo().getRegion(),
+                options.getDataAPIClientOptions().getAstraEnvironment())
                 .getApiEndPoint();
     }
 
-    /**
-     * Access teh database with the default token.
-     *
-     * @param keyspace The name of the namespace (or keyspace) to retrieve. This parameter should match the
-     *                      exact name of the namespace as it exists in the database.
-     * @return
-     *      client to interact with database DML.
-     */
+    /** {@inheritDoc} */
+    @Override
+    public com.datastax.astra.client.databases.Database getDatabase() {
+        return db;
+    }
+
+    /** {@inheritDoc} */
+    @Override
     public com.datastax.astra.client.databases.Database getDatabase(String keyspace) {
         return db.useKeyspace(keyspace);
     }
 
-    /**
-     * Access teh database with the specialized token.
-     *
-     * @param keyspace The name of the namespace (or keyspace) to retrieve. This parameter should match the
-     *                      exact name of the namespace as it exists in the database.
-     * @param tokenUser token with reduce privileges compared to admin token in order to do dml options (CRUD).
-     * @return
-     *      client to interact with database DML.
-     */
-    public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String tokenUser) {
-        return new com.datastax.astra.client.databases.Database(getApiEndpoint(), db.getOptions());
+    @Override
+    public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String userToken, DatabaseOptions options) {
+        String          targetToken    = (userToken != null) ? userToken : db.getOptions().getToken();
+        DatabaseOptions targetOptions  = (options != null) ?   options :   db.getOptions();
+        String          targetKeyspace = (keyspace != null) ?  keyspace :  db.getKeyspace();
+        return new com.datastax.astra.client.databases.Database(db.getRootEndpoint(), targetOptions
+                .clone()
+                .token(targetToken)
+                .keyspace(targetKeyspace));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public com.datastax.astra.client.databases.Database getDatabase(String keyspace, String userToken) {
+        String          targetToken    = (userToken != null) ? userToken : db.getOptions().getToken();
+        String          targetKeyspace = (keyspace != null) ?  keyspace :  db.getKeyspace();
+        return new com.datastax.astra.client.databases.Database(db.getRootEndpoint(), db.getOptions().clone()
+                .token(targetToken)
+                .keyspace(targetKeyspace));
     }
 
     /** {@inheritDoc} */
@@ -238,12 +246,6 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
         if (ks.exist(keyspace) && options.isIfExists()) {
             ks.delete(keyspace);
         }
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public com.datastax.astra.client.databases.Database getDatabase() {
-        return db;
     }
 
 }

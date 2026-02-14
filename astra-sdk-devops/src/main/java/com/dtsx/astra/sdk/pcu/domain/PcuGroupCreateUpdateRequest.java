@@ -2,6 +2,7 @@ package com.dtsx.astra.sdk.pcu.domain;
 
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
@@ -12,7 +13,8 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public sealed abstract class PcuGroupCreateUpdateRequest permits PcuGroupCreationRequest, PcuGroupUpdateRequest {
+@NoArgsConstructor
+public abstract class PcuGroupCreateUpdateRequest {
     /**
      * Human-readable title for the PCU group.
      */
