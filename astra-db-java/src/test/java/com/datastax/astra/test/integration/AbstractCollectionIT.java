@@ -31,6 +31,7 @@ import com.datastax.astra.client.collections.commands.results.CollectionInsertOn
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
+import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
@@ -77,9 +78,12 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
 
     @BeforeAll
     void setupCollections() {
+        // FAST TRACK FOR TESTS
+        //collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
         dropAllCollections();
         dropAllTables();
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
+
         collectionVector = getDatabase().createCollection(
                 COLLECTION_VECTOR,
                 COLLECTION_VECTOR_DEF,
@@ -123,6 +127,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(4)
     void should_insertOne_withUUID() {
         collectionSimple.deleteAll();
         UUID uuid = UUID.randomUUID();
@@ -133,7 +138,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(22)
+    @Order(5)
     void should_insertOne_complexDocument() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(TestDataset.COMPLETE_DOCUMENT);
@@ -170,7 +175,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== insertMany ==========
 
     @Test
-    @Order(4)
+    @Order(6)
     void should_insertMany_singlePage() throws TooManyDocumentsToCountException {
         collectionSimple.deleteAll();
         List<Document> docList = generateDocList(10);
@@ -179,7 +184,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(5)
+    @Order(7)
     void should_insertMany_multiPages() throws TooManyDocumentsToCountException {
         collectionSimple.deleteAll();
         List<Document> docList = generateDocList(25);
@@ -188,7 +193,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(6)
+    @Order(8)
     void should_insertMany_distributed() throws TooManyDocumentsToCountException {
         collectionSimple.deleteAll();
         List<Document> docList = generateDocList(155);
@@ -202,7 +207,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findAll ==========
 
     @Test
-    @Order(7)
+    @Order(9)
     void should_findAll_returnAllDocuments() {
         collectionSimple.deleteAll();
         for (int i = 0; i < 25; i++) {
@@ -219,6 +224,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(10)
     void should_findAll_iterateTypedBeans() {
         getDatabase().getCollection(COLLECTION_VECTOR).findAll().forEach(System.out::println);
     }
@@ -226,7 +232,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findOne ==========
 
     @Test
-    @Order(8)
+    @Order(11)
     void should_findOne_withFilter() {
         collectionVector.deleteAll();
         ProductString product = new ProductString();
@@ -247,6 +253,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findById ==========
 
     @Test
+    @Order(12)
     void should_findById_returnDocument() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("fb1").put("name", "Alice"));
@@ -257,6 +264,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(13)
     void should_findById_returnEmptyWhenMissing() {
         collectionSimple.deleteAll();
         Optional<Document> doc = collectionSimple.findById("nonexistent");
@@ -266,7 +274,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== find ==========
 
     @Test
-    @Order(9)
+    @Order(14)
     void should_find_withSkipAndLimit() {
         collectionSimple.deleteAll();
         for (int i = 0; i < 25; i++) {
@@ -284,7 +292,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(10)
+    @Order(15)
     void should_find_returnEmptyOnNoMatch() {
         collectionSimple.deleteAll();
         List<Document> okDoc = collectionSimple.findAll().toList();
@@ -297,7 +305,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(11)
+    @Order(16)
     void should_find_withProjectionSlice() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(TestDataset.COMPLETE_DOCUMENT);
@@ -313,6 +321,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== find — Projection ==========
 
     @Test
+    @Order(17)
     void should_find_withProjectionIncludeMultipleFields() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("pi1")
@@ -331,6 +340,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(18)
     void should_find_withProjectionExclude() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("pe1")
@@ -347,6 +357,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(19)
     void should_find_withProjectionOnNestedField() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("pn1")
@@ -365,6 +376,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== find — Sort ==========
 
     @Test
+    @Order(20)
     void should_find_withSortDescending() {
         collectionSimple.deleteAll();
         for (int i = 0; i < 5; i++) {
@@ -380,6 +392,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(21)
     void should_find_withMultipleSortFields() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -402,6 +415,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(22)
     void should_findOne_withSortReturnsFirst() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -429,6 +443,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== find — Sort + Projection combined ==========
 
     @Test
+    @Order(23)
     void should_find_withFilterSortAndProjection() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -456,6 +471,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(24)
     void should_findOne_withSortAndProjection() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -478,6 +494,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(25)
     void should_find_withSortSkipLimitAndProjection() {
         collectionSimple.deleteAll();
         for (int i = 0; i < 10; i++) {
@@ -505,7 +522,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== countDocuments ==========
 
     @Test
-    @Order(12)
+    @Order(26)
     void should_countDocuments_withFilter() throws TooManyDocumentsToCountException {
         final Collection<Document> col = collectionSimple;
 
@@ -534,7 +551,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== estimatedDocumentCount ==========
 
     @Test
-    @Order(13)
+    @Order(27)
     void should_estimatedDocumentCount_returnEstimate() throws TooManyDocumentsToCountException {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(generateDocList(21));
@@ -545,7 +562,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== updateOne ==========
 
     @Test
-    @Order(14)
+    @Order(28)
     void should_updateOne_returnMatchAndModifyCount() {
         collectionSimple.deleteAll();
         Document doc1 = new Document().id(1)
@@ -565,6 +582,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(29)
     void should_updateOne_set() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u1").put("name", "Alice").put("age", 30));
@@ -578,6 +596,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(30)
     void should_updateOne_unset() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u2").put("name", "Alice").put("temp", "remove_me"));
@@ -591,6 +610,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(31)
     void should_updateOne_inc() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u3").put("counter", 10));
@@ -603,6 +623,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(32)
     void should_updateOne_incNegative() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u3b").put("counter", 20));
@@ -615,6 +636,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(33)
     void should_updateOne_min() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u4").put("score", 80));
@@ -633,6 +655,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(34)
     void should_updateOne_max() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u5").put("highscore", 100));
@@ -651,6 +674,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(35)
     void should_updateOne_mul() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u6").put("price", 10.0).put("quantity", 3.0));
@@ -664,6 +688,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(36)
     void should_updateOne_rename() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u7").put("old_name", "value1").put("keep", "value2"));
@@ -678,6 +703,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(37)
     void should_updateOne_push() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u8").put("tags", List.of("java", "python")));
@@ -690,6 +716,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(38)
     void should_updateOne_pushCreatesArray() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u8b").put("name", "Alice"));
@@ -702,6 +729,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(39)
     void should_updateOne_pushEach() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u9").put("items", List.of("a")));
@@ -715,6 +743,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(40)
     void should_updateOne_pushEachWithPosition() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u9b").put("items", List.of("a", "d")));
@@ -728,6 +757,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(41)
     void should_updateOne_popLast() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u10").put("queue", List.of("first", "middle", "last")));
@@ -740,6 +770,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(42)
     void should_updateOne_popFirst() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u10b").put("queue", List.of("first", "middle", "last")));
@@ -752,6 +783,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(43)
     void should_updateOne_addToSet() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u11").put("tags", List.of("java", "python")));
@@ -767,6 +799,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(44)
     void should_updateOne_currentDate() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("u12").put("name", "Alice"));
@@ -779,6 +812,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(45)
     void should_updateOne_setOnInsert() {
         collectionSimple.deleteAll();
 
@@ -811,6 +845,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(46)
     void should_updateOne_chainedOperations() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -833,6 +868,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(47)
     void should_updateOne_upsertWhenNoMatch() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document("1")
@@ -854,6 +890,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== updateMany ==========
 
     @Test
+    @Order(48)
     void should_updateMany_updateAllMatching() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -884,6 +921,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(49)
     void should_updateMany_returnZeroWhenNoMatch() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("um4").put("status", "active"));
@@ -899,7 +937,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findOneAndUpdate ==========
 
     @Test
-    @Order(15)
+    @Order(50)
     void should_findOneAndUpdate_returnAfter() {
         collectionSimple.deleteOne(Filters.eq(1));
         Document doc1 = new Document().id(1)
@@ -924,6 +962,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findOne — nested and escaping ==========
 
     @Test
+    @Order(51)
     void should_findOne_filterWithDotInFieldName() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id(1).put("hello.world", "test"));
@@ -934,6 +973,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(52)
     void should_findOne_filterWithAmpersandInFieldName() {
         collectionSimple.deleteAll();
         String escapedFieldName = EscapeUtils.escapeFieldNames("hello&world");
@@ -945,6 +985,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(53)
     void should_findOne_nestedMap() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -959,6 +1000,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(54)
     void should_findOne_deeplyNested() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -971,6 +1013,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(55)
     void should_findOne_nestedWithArray() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -988,6 +1031,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(56)
     void should_findOne_escapedDotInFieldName() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -1002,6 +1046,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(57)
     void should_findOne_escapedAmpersandInFieldName() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -1015,6 +1060,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(58)
     void should_findOne_mixedNestingAndEscaping() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document()
@@ -1029,7 +1075,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== distinct ==========
 
     @Test
-    @Order(19)
+    @Order(59)
     void should_distinct_topLevelField() {
         collectionSimple.deleteAll();
         for (int i = 0; i < 25; i++) {
@@ -1040,7 +1086,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(20)
+    @Order(60)
     void should_distinct_iterateValues() {
         int distinct = 22;
         collectionSimple.deleteAll();
@@ -1056,6 +1102,8 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(61)
+    // https://github.com/datastax/astra-db-java/issues/77
     void should_distinct_nestedField() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1065,11 +1113,17 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 new Document("4").put("metadata", Map.of("animal", "horse", "color", "brown")),
                 new Document("5").put("metadata", Map.of("animal", "dog", "color", "black"))));
 
-        Set<String> animals = collectionSimple.distinct("metadata.animal", String.class);
-        assertThat(animals).containsExactlyInAnyOrder("cat", "dog", "horse");
+        Set<String> animalsDotNotation = collectionSimple.distinct("metadata.animal", String.class);
+
+        // Use Distinct with the field path
+        Set<String> animalsFieldPaths = collectionSimple.distinct(new String[] {"metadata", "animal"}, String.class);
+
+        assertThat(animalsDotNotation).containsExactlyInAnyOrder("cat", "dog", "horse");
+        assertThat(animalsFieldPaths).containsExactlyInAnyOrder("cat", "dog", "horse");
     }
 
     @Test
+    @Order(62)
     void should_distinct_deeplyNestedField() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1083,6 +1137,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(63)
     void should_distinct_withFilter() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1096,6 +1151,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(64)
     void should_distinct_escapedDotInFieldName() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1108,6 +1164,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(65)
     void should_distinct_escapedAmpersandInFieldName() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1120,6 +1177,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(66)
     void should_distinct_nestedAnimals() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1139,6 +1197,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(67)
     void should_distinct_withEscapedFields() {
         collectionSimple.deleteAll();
         Document doc = new Document();
@@ -1162,10 +1221,48 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         Assertions.assertTrue(firstItems.contains("toto") && firstItems.contains("alpha"));
     }
 
+    @Test
+    @Order(67)
+    void should_distinct_with_values_of_index_array() {
+        collectionSimple.deleteAll();
+
+        // Insert 2 documents
+        Document doc1 = new Document()
+                .id("doc1")
+                .append("genres", List.of("sci-fi", "adventure", "action", "thriller"))
+                .append("prop.0", "val1")
+                .append("prop&.0", "escaped1");
+        Document doc2 = new Document()
+                .id("doc2")
+                .append("genres", List.of("action", "adventure", "action", "thriller"))
+                .append("prop.0", "val2")
+                .append("prop&.0", "escaped2");
+        collectionSimple.insertMany(doc1, doc2);
+
+        // Array
+        Set<String> genreDotNotations = collectionSimple.distinct("genres.0", String.class);
+        Assertions.assertTrue(genreDotNotations.contains("sci-fi") && genreDotNotations.contains("action"));
+
+        Set<String> genresFieldPath = collectionSimple.distinct(new String [] {"genres", "0"}, String.class);
+        Assertions.assertTrue(genresFieldPath.contains("sci-fi") && genresFieldPath.contains("action"));
+
+        Set<String> genreArrayNotations = collectionSimple.distinct("genres[0]", String.class);
+        Assertions.assertTrue(genreArrayNotations.contains("sci-fi") && genreArrayNotations.contains("action"));
+
+        // Property name
+        Set<String> propValues = collectionSimple.distinct("prop.0", String.class);
+        Assertions.assertTrue(propValues.contains("val1") && propValues.contains("val2"));
+
+        // Property name escaped
+        Set<String> propEscapedValues = collectionSimple.distinct("prop&.0", String.class);
+        Assertions.assertTrue(propEscapedValues.contains("escaped1") && propEscapedValues.contains("escaped2"));
+    }
+
     // ========== replaceOne ==========
 
     @Test
-    @Order(16)
+    @Order(68)
+    // https://github.com/datastax/astra-db-java/issues/75
     void should_replaceOne_returnAfter() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id(1).append("hello", "world"));
@@ -1178,7 +1275,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(16)
+    @Order(69)
     void should_replaceOne_returnBefore() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id(1).append("hello", "world"));
@@ -1199,21 +1296,55 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
-    void should_replaceOne_withSortAndFilter() {
+    @Order(70)
+    void should_replaceOne_withSortByField() {
         collectionSimple.deleteAll();
-        collectionSimple.insertOne(BOOK_HIDDEN_SHADOW.id(1));
-        collectionSimple.insertOne(BOOK_ECHOES_IRON_SKY.id(2));
-        collectionSimple.insertOne(BOOK_LAST_CARTOGRAPHER.id(3));
+        collectionSimple.insertMany(List.of(
+                new Document().id(1).append("rank", 3).append("status", "active").append("value", "A"),
+                new Document().id(2).append("rank", 1).append("status", "active").append("value", "B"),
+                new Document().id(3).append("rank", 2).append("status", "active").append("value", "C")));
 
-        collectionSimple
-                .find(Filters.eq("metadata.language", "French"))
-                .forEach(book -> log.info("Book found: {}", book.getString("title")));
+        // Replace the document with the lowest rank (ascending sort => rank=1, id=2)
+        CollectionUpdateResult res = collectionSimple.replaceOne(
+                Filters.eq("status", "active"),
+                new Document().append("status", "replaced").append("value", "X"),
+                new CollectionReplaceOneOptions().sort(Sort.ascending("rank")));
+        assertThat(res.getMatchedCount()).isEqualTo(1);
+        assertThat(res.getModifiedCount()).isEqualTo(1);
+        assertThat(res.getDocument().get("value")).isEqualTo("X");
+
+        // Verify document 2 was replaced (lowest rank)
+        Optional<Document> doc2 = collectionSimple.findById(2);
+        assertThat(doc2).isPresent();
+        assertThat(doc2.get().getString("status")).isEqualTo("replaced");
+
+        // Documents 1 and 3 should be untouched
+        Optional<Document> doc1 = collectionSimple.findById(1);
+        assertThat(doc1).isPresent();
+        assertThat(doc1.get().getString("status")).isEqualTo("active");
+    }
+
+    @Test
+    @Order(71)
+    // https://github.com/datastax/astra-db-java/issues/43
+    void should_replaceOne_withUpsert() {
+        collectionSimple.deleteAll();
+        Filter filter = Filters.eq("_id", "Idontexist");
+        Document newDocument = new Document()
+                .append("isCheckedOut", false)
+                .append("borrower", "Brook Reed");
+        CollectionReplaceOneOptions options = new CollectionReplaceOneOptions().upsert(true);
+        CollectionUpdateResult res = collectionSimple.replaceOne(filter, newDocument, options);
+        assertThat(res.getMatchedCount()).isZero();
+        assertThat(res.getModifiedCount()).isZero();
+        Optional<Document> doc = collectionSimple.findById("Idontexist");
+        assertThat(doc).isPresent();
     }
 
     // ========== findOneAndReplace ==========
 
     @Test
-    @Order(17)
+    @Order(71)
     void should_findOneAndReplace_returnUpdatedDoc() {
         Collection<Document> col = collectionSimple;
         col.deleteAll();
@@ -1233,7 +1364,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== deleteOne ==========
 
     @Test
-    @Order(18)
+    @Order(72)
     void should_deleteOne_removeMatchingDocument() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(IntStream.range(0, 3)
@@ -1270,6 +1401,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== deleteMany ==========
 
     @Test
+    @Order(73)
     void should_deleteMany_removeAllMatching() {
         collectionSimple.deleteAll();
         collectionSimple.insertMany(List.of(
@@ -1286,6 +1418,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(74)
     void should_deleteMany_returnZeroWhenNoMatch() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("dm4").put("status", "active"));
@@ -1300,6 +1433,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== findOneAndDelete ==========
 
     @Test
+    @Order(75)
     void should_findOneAndDelete_returnDeletedDocument() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("fad1").put("name", "Alice").put("role", "admin"));
@@ -1317,6 +1451,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     }
 
     @Test
+    @Order(76)
     void should_findOneAndDelete_returnEmptyWhenNoMatch() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id("fad3").put("name", "Charlie"));
@@ -1331,7 +1466,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== Typed Collections ==========
 
     @Test
-    @Order(21)
+    @Order(77)
     void should_insertOne_findById_typedBean() {
         ProductString p1 = new ProductString();
         p1.setId("p1");
@@ -1349,7 +1484,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     // ========== runCommand ==========
 
     @Test
-    @Order(23)
+    @Order(78)
     void should_runCommand_rawCommand() {
         collectionSimple.deleteAll();
 
@@ -1370,6 +1505,40 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         ProductString p1 = collectionSimple.runCommand(findOne, ProductString.class);
         assertThat(p1).isNotNull();
         assertThat(p1.getName()).isEqualTo("hello");
+    }
+
+    @Test
+    @Order(79)
+    // https://github.com/datastax/astra-db-java/issues/80
+    void should_insert_document_with_non_defaultId_collection() {
+        // Given a collection with non-default id type (e.g. UUID)
+        collectionSimple.deleteAll();
+
+        // Insert a document into the collection
+        UUIDv7 doc1 = new UUIDv7();
+        Document document = new Document().id(doc1).append("name", "Jane Doe");
+        CollectionInsertOneResult result = collectionSimple.insertOne(document);
+        assertThat(result).isNotNull();
+        assertThat(result.getInsertedId()).isNotNull();
+        assertThat(result.getInsertedId()).isInstanceOf(UUID.class);
+        assertThat(result.getInsertedId().toString()).isEqualTo(doc1.toString());
+    }
+
+    @Test
+    @Order(80)
+    void should_be_able_to_find_complex_documents() {
+        collectionSimple.deleteAll();
+
+        collectionSimple.insertOne(new Document()
+                .append("_id", "weirdo")
+                .put("a.a", "a.a")
+                .put("a&a", "a&a")
+                .put("a..a", "a..a")
+                .append(new String[] {"top", "lvl1", "lvl11"}, "11")
+                .append(new String[] {"top", "lvl1", "lvl12"}, "12"));
+
+        List<Document> found = collectionSimple.findAll().toList();
+        assertThat(found).isNotEmpty();
     }
 
     // ========== Utilities ==========

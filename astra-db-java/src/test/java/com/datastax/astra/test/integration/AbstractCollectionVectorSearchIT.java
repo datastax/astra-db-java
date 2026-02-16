@@ -21,11 +21,14 @@ package com.datastax.astra.test.integration;
  */
 
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindCursor;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.commands.Updates;
+import com.datastax.astra.client.collections.commands.options.CollectionReplaceOneOptions;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -435,6 +438,37 @@ public abstract class AbstractCollectionVectorSearchIT extends AbstractDataAPITe
                 org.assertj.core.data.Offset.offset(0.001d));
     }
 
+    // ========== replaceOne with vector sort ==========
+
+    @Test
+    @Order(17)
+    void should_replaceOne_withVectorSort() {
+        collectionVector.deleteAll();
+        collectionVector.insertMany(List.of(
+                new Document().id("rp1").vector(VECTOR_BEEF)
+                        .put("name", "Beef").put("version", 1),
+                new Document().id("rp2").vector(VECTOR_FISH)
+                        .put("name", "Fish").put("version", 1),
+                new Document().id("rp3").vector(VECTOR_VEGAN)
+                        .put("name", "Vegan").put("version", 1)));
+
+        // Replace the document most similar to VECTOR_FISH
+        CollectionUpdateResult res = collectionVector.replaceOne(
+                null,
+                new Document().id("rp2").vector(VECTOR_FISH)
+                        .put("name", "Premium Fish").put("version", 2),
+                new CollectionReplaceOneOptions()
+                        .sort(Sort.vector(VECTOR_FISH)));
+        assertThat(res.getMatchedCount()).isEqualTo(1);
+        assertThat(res.getModifiedCount()).isEqualTo(1);
+
+        // Verify rp2 was replaced (most similar to VECTOR_FISH)
+        Optional<Document> doc = collectionVector.findById("rp2");
+        assertThat(doc).isPresent();
+        assertThat(doc.get().getString("name")).isEqualTo("Premium Fish");
+        assertThat(doc.get().getInteger("version")).isEqualTo(2);
+    }
+
     // ========== findOneAndUpdate with vector sort ==========
 
     @Test
@@ -564,5 +598,102 @@ public abstract class AbstractCollectionVectorSearchIT extends AbstractDataAPITe
 
         java.util.Set<String> categories = collectionVector.distinct("category", String.class);
         assertThat(categories).containsExactlyInAnyOrder("meat", "seafood", "vegan");
+    }
+
+    // ========== Cursor builder methods ==========
+
+    @Test
+    @Order(23)
+    void should_cursorLimit_notCauseStackOverflow() {
+        collectionVector.deleteAll();
+        for (int i = 0; i < 5; i++) {
+            float[] vec = new float[14];
+            vec[i % 14] = 1f;
+            collectionVector.insertOne(new Document().id("cl" + i).vector(vec).put("idx", i));
+        }
+
+        CollectionFindCursor<Document, Document> cursor = collectionVector
+                .find(new CollectionFindOptions().sort(Sort.vector(VECTOR_BEEF)));
+
+        // cursor.limit() should set the limit on the options, not recurse
+        List<Document> results = cursor.limit(2).toList();
+        assertThat(results).hasSize(2);
+    }
+
+    @Test
+    @Order(24)
+    void should_cursorSkip_notCauseStackOverflow() {
+        CollectionFindCursor<Document, Document> cursor = collectionVector
+                .find(new CollectionFindOptions().sort(Sort.vector(VECTOR_BEEF)));
+
+        // cursor.skip() should set the skip on the options, not recurse
+        List<Document> results = cursor.skip(1).limit(2).toList();
+        assertThat(results).isNotEmpty();
+        assertThat(results.size()).isLessThanOrEqualTo(2);
+    }
+
+    @Test
+    @Order(25)
+    void should_cursorIncludeSortVector_notCauseStackOverflow() {
+        CollectionFindCursor<Document, Document> cursor = collectionVector
+                .find(new CollectionFindOptions()
+                        .sort(Sort.vector(VECTOR_BEEF))
+                        .limit(3));
+
+        // cursor.includeSortVector() should set the flag, not recurse
+        CollectionFindCursor<Document, Document> cursorWithVector = cursor.includeSortVector();
+        Optional<DataAPIVector> sortVector = cursorWithVector.getSortVector();
+        assertThat(sortVector).isPresent();
+        assertThat(sortVector.get().getEmbeddings()).hasSize(14);
+        log.info("Sort vector dimension: {}", sortVector.get().getEmbeddings().length);
+    }
+
+    @Test
+    @Order(26)
+    void should_cursorIncludeSimilarity_notCauseStackOverflow() {
+        CollectionFindCursor<Document, Document> cursor = collectionVector
+                .find(new CollectionFindOptions()
+                        .sort(Sort.vector(VECTOR_BEEF))
+                        .limit(3));
+
+        // cursor.includeSimilarity() should set the flag, not recurse
+        List<Document> results = cursor.includeSimilarity().toList();
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    @Order(27)
+    void should_cursorBuilderMethods_notMutateOriginalOptions() {
+        CollectionFindCursor<Document, Document> original = collectionVector
+                .find(new CollectionFindOptions()
+                        .sort(Sort.vector(VECTOR_BEEF))
+                        .limit(5));
+
+        // Creating a derived cursor with limit(2) should not affect the original
+        CollectionFindCursor<Document, Document> derived = original.limit(2);
+        List<Document> derivedResults = derived.toList();
+        assertThat(derivedResults).hasSize(2);
+
+        // Original should still return up to 5
+        List<Document> originalResults = original.toList();
+        assertThat(originalResults).hasSizeGreaterThan(2);
+    }
+
+    @Test
+    @Order(28)
+    void should_getSortVector_afterToList() {
+        CollectionFindCursor<Document, Document> cursor = collectionVector
+                .find(new CollectionFindOptions()
+                        .sort(Sort.vector(VECTOR_BEEF))
+                        .includeSortVector(true)
+                        .limit(3));
+
+        // Consume cursor first
+        List<Document> results = cursor.toList();
+        assertThat(results).isNotEmpty();
+
+        // Sort vector should still be accessible after consuming
+        Optional<DataAPIVector> sortVector = cursor.getSortVector();
+        assertThat(sortVector).isPresent();
     }
 }

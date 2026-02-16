@@ -27,9 +27,11 @@ import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.utils.Assert;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
 import java.util.UUID;
 
+import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorEnvironmentMismatch;
 import static com.datastax.astra.client.exceptions.InvalidEnvironmentException.throwErrorRestrictedAstra;
 
 /**
@@ -326,6 +328,7 @@ public class DataAPIClient {
      * @throws IllegalArgumentException If the provided parameters are invalid or insufficient for resolving the endpoint.
      */
     public Database getDatabase(String apiEndpoint, DatabaseOptions dbOptions) {
+        validateEndpointEnvironment(apiEndpoint, dbOptions);
         return new Database(apiEndpoint, dbOptions);
     }
 
@@ -342,7 +345,7 @@ public class DataAPIClient {
      */
     public Database getDatabase(String apiEndpoint, String keyspace) {
         DatabaseOptions dbOptions = new DatabaseOptions(token, options).keyspace(keyspace);
-        return new Database(apiEndpoint, dbOptions);
+        return getDatabase(apiEndpoint, dbOptions);
     }
 
     /**
@@ -441,6 +444,39 @@ public class DataAPIClient {
             dbRegion = getAdmin().getDatabaseInfo(databaseId).getRegion();
         }
         return new AstraApiEndpoint(databaseId, dbRegion, options.getAstraEnvironment()).getApiEndPoint();
+    }
+
+    /**
+     * Validate that the endpoint URL matches the client's configured environment.
+     * <p>
+     * Detects Astra environment from the URL domain and compares it to the destination
+     * configured on the client options. Throws if they don't match.
+     *
+     * @param apiEndpoint the database endpoint URL
+     * @param dbOptions   the database options (carries the client's destination)
+     */
+    private void validateEndpointEnvironment(String apiEndpoint, DatabaseOptions dbOptions) {
+        if (apiEndpoint == null || dbOptions == null) return;
+        DataAPIClientOptions clientOpts = dbOptions.getDataAPIClientOptions();
+        if (clientOpts == null) return;
+        DataAPIDestination destination = clientOpts.getDestination();
+        AstraEnvironment expectedEnv = DataAPIClientOptions.getAstraEnvironment(destination);
+
+        // Detect Astra environment from URL domain suffix
+        AstraEnvironment urlEnv = null;
+        for (AstraEnvironment env : AstraEnvironment.values()) {
+            if (apiEndpoint.contains(env.getAppsSuffix())) {
+                urlEnv = env;
+                break;
+            }
+        }
+        if (urlEnv == null || expectedEnv == null) {
+            // URL is not an Astra endpoint, or client is non-Astra — no validation needed
+            return;
+        }
+        if (urlEnv != expectedEnv) {
+            throwErrorEnvironmentMismatch(urlEnv, destination);
+        }
     }
 
 }

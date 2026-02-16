@@ -112,11 +112,12 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
         this.state                 = CursorState.IDLE;
         this.buffer                = new ArrayList<>();
         this.dataSource            = collectionFindCursor.dataSource;
-        this.options               = collectionFindCursor.options;
+        this.options               = new CollectionFindAndRerankOptions(collectionFindCursor.options);
         this.filter                = collectionFindCursor.filter;
-        this.currentPage           = collectionFindCursor.currentPage;
-        this.consumed              = collectionFindCursor.consumed;
+        this.currentPage           = null;
+        this.consumed              = 0;
         this.recordType            = collectionFindCursor.recordType;
+        this.newRowType            = collectionFindCursor.newRowType;
     }
 
     /** {@inheritDoc} */
@@ -177,7 +178,7 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     public CollectionFindAndRerankCursor<T, R> limit(int newLimit) {
         checkIdleState();
         CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
-        newCursor.limit(newLimit);
+        newCursor.options.limit(newLimit);
         return newCursor;
     }
 
@@ -189,7 +190,7 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     public CollectionFindAndRerankCursor<T, R> includeSimilarity() {
         checkIdleState();
         CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
-        newCursor.includeSimilarity();
+        newCursor.options.includeScores(true);
         return newCursor;
     }
 
@@ -201,7 +202,7 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
     public CollectionFindAndRerankCursor<T, R> includeSortVector() {
         checkIdleState();
         CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
-        newCursor.includeSortVector();
+        newCursor.options.includeSortVector(true);
         return newCursor;
     }
 

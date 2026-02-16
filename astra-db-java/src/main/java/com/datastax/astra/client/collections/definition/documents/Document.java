@@ -864,6 +864,17 @@ public class Document implements Serializable {
     public Object get(final List<String> fieldPathSegment) {
         Object current = documentMap;
         for (String token : fieldPathSegment) {
+            // Numeric token on a List → array index access (dot-notation: "genres.0")
+            if (current instanceof List<?> list) {
+                try {
+                    int idx = Integer.parseInt(token);
+                    if (idx < 0 || idx >= list.size()) return null;
+                    current = list.get(idx);
+                    continue;
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
             if (!(current instanceof Map)) return null;
             Matcher matcher = Pattern.compile("^(\\$?[\\p{L}\\p{N}\\p{M}\\p{Pc}\\p{Pd}&.]+)(\\[(\\d+)])?$")
                     .matcher(token);

@@ -31,8 +31,11 @@ import com.fasterxml.jackson.databind.JavaType;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Pivot class to interact with Table is a Row. User can wirj POJO that will be converted to Row.
@@ -112,7 +115,29 @@ public class RowMapper {
             for (EntityFieldDefinition fieldDef : beanDef.getFields().values()) {
                 String columnName = fieldDef.getColumnName() != null ? fieldDef.getColumnName() : fieldDef.getName();
                 Object columnValue = row.columnMap.get(columnName);
-                if (columnValue == null) continue;
+                if (columnValue == null) {
+                    // For collection-typed fields, assign empty collection instead of leaving null
+                    JavaType nullType = fieldDef.getJavaType();
+                    Class<?> rawClass = nullType.getRawClass();
+                    Object emptyValue = null;
+                    if (List.class.isAssignableFrom(rawClass)) {
+                        emptyValue = new ArrayList<>();
+                    } else if (Set.class.isAssignableFrom(rawClass)) {
+                        emptyValue = new LinkedHashSet<>();
+                    } else if (Map.class.isAssignableFrom(rawClass)) {
+                        emptyValue = new LinkedHashMap<>();
+                    }
+                    if (emptyValue != null) {
+                        if (fieldDef.getSetter() != null) {
+                            fieldDef.getSetter().invoke(input, emptyValue);
+                        } else {
+                            Field field = inputRowClass.getDeclaredField(fieldDef.getName());
+                            field.setAccessible(true);
+                            field.set(input, emptyValue);
+                        }
+                    }
+                    continue;
+                }
 
                 JavaType javaType = fieldDef.getJavaType();
                 Object value;

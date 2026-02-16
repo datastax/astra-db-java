@@ -25,13 +25,16 @@ import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
 import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.core.vectorize.SupportModelStatus;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.commands.options.FindEmbeddingProvidersOptions;
 import com.datastax.astra.client.databases.commands.options.FindRerankingProvidersOptions;
 import com.datastax.astra.client.databases.commands.results.FindEmbeddingProvidersResult;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import com.datastax.astra.client.exceptions.DataAPIResponseException;
+import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
+import com.datastax.astra.test.integration.model.TableEntityGameWithAnnotation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -57,7 +60,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @BeforeAll
-    void cleanupStaleTestKeyspaces() throws InterruptedException {
+    void cleanup_stale_test_keyspaces() throws InterruptedException {
         log.info("Cleaning up stale test keyspaces...");
         boolean dropped = false;
         for (String ks : getDatabaseAdmin().listKeyspaceNames()) {
@@ -93,8 +96,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(1)
-    @DisplayName("Should list available keyspaces")
-    void shouldListAvailableKeyspace() {
+    void should_list_keyspaces() {
         assertThat(getDatabaseAdmin()).isNotNull();
         assertThat(getDatabaseAdmin().listKeyspaceNames()).isNotEmpty();
 
@@ -105,8 +107,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(2)
-    @DisplayName("Should list embedding providers")
-    void shouldListEmbeddingProvider() {
+    void should_list_embedding_providers() {
         FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
         assertThat(result).isNotNull();
         Map<String, EmbeddingProvider> mapOfProviders = result.getEmbeddingProviders();
@@ -115,8 +116,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(3)
-    @DisplayName("Should create and drop keyspace")
-    void shouldCreateAndDropKeyspace() throws InterruptedException {
+    void should_create_and_drop_keyspace() throws InterruptedException {
         String keyspaceName = "test_keyspace_" + System.currentTimeMillis();
 
         // Create keyspace — retry if the DB is still settling from a previous operation
@@ -166,8 +166,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(4)
-    @DisplayName("Should list reranking providers")
-    void shouldListRerankingProvider() {
+    void should_list_rerank_providers() {
         try {
             FindRerankingProvidersResult result = getDatabaseAdmin().findRerankingProviders();
             assertThat(result).isNotNull();
@@ -185,8 +184,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(5)
-    @DisplayName("Should find embedding providers with status filter")
-    void shouldFindEmbeddingProvidersWithFilter() {
+    void should_list_embedding_providers_with_filter() {
         FindEmbeddingProvidersResult result = getDatabaseAdmin()
                 .findEmbeddingProviders(new FindEmbeddingProvidersOptions()
                         .filterModelStatus(SupportModelStatus.SUPPORTED));
@@ -200,8 +198,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(6)
-    @DisplayName("Should find reranking providers with status filter")
-    void shouldFindRerankingProvidersWithFilter() {
+    void should_list_rerank_providers_with_filter() {
         try {
             FindRerankingProvidersResult result = getDatabaseAdmin()
                     .findRerankingProviders(new FindRerankingProvidersOptions()
@@ -223,8 +220,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(7)
-    @DisplayName("Should find available regions (Astra only)")
-    void shouldFindAvailableRegions() {
+    void should_find_available_regions() {
         if (!isAstra()) {
             log.info("Skipping findAvailableRegions — only available on Astra");
             return;
@@ -243,5 +239,88 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
         assertThat(allRegions).isNotEmpty();
         assertThat(allRegions.size()).isGreaterThanOrEqualTo(regions.size());
         log.info("Org-enabled regions: {}, All regions: {}", regions.size(), allRegions.size());
+    }
+
+    @Test
+    @Order(8)
+    void should_use_keyspace_mutate_database() throws InterruptedException {
+        String testKeyspace = "test_keyspace_" + System.currentTimeMillis();
+        String testCollection = "test_col_useks";
+
+        // Start from default_keyspace
+        Database db = getDatabase().useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
+        assertThat(db.getKeyspace()).isEqualTo(DataAPIClientOptions.DEFAULT_KEYSPACE);
+
+        // Create a new keyspace
+        createKeyspaceWithRetry(testKeyspace, 10);
+        int maxWait = 30;
+        while (!getDatabaseAdmin().keyspaceExists(testKeyspace) && maxWait-- > 0) {
+            Thread.sleep(1000);
+        }
+        assertThat(getDatabaseAdmin().keyspaceExists(testKeyspace)).isTrue();
+
+        try {
+            // Switch to the new keyspace — same db instance should be mutated
+            db.useKeyspace(testKeyspace);
+            assertThat(db.getKeyspace()).isEqualTo(testKeyspace);
+
+            // Create a collection in the new keyspace
+            db.createCollection(testCollection);
+            assertThat(db.collectionExists(testCollection)).isTrue();
+
+            // List collections should contain the new collection
+            List<String> collections = db.listCollectionNames();
+            assertThat(collections).contains(testCollection);
+
+            // Clean up collection
+            db.dropCollection(testCollection);
+        } finally {
+            // Restore default keyspace and drop test keyspace
+            db.useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
+            getDatabaseAdmin().dropKeyspace(testKeyspace);
+            maxWait = 30;
+            while (getDatabaseAdmin().keyspaceExists(testKeyspace) && maxWait-- > 0) {
+                Thread.sleep(1000);
+            }
+        }
+    }
+
+    @Test
+    @Order(9)
+    void should_create_table_on_nondefault_keyspace() throws InterruptedException {
+        String testKeyspace = "test_keyspace_" + System.currentTimeMillis();
+
+        // Create a new keyspace
+        createKeyspaceWithRetry(testKeyspace, 10);
+        int maxWait = 30;
+        while (!getDatabaseAdmin().keyspaceExists(testKeyspace) && maxWait-- > 0) {
+            Thread.sleep(1000);
+        }
+        assertThat(getDatabaseAdmin().keyspaceExists(testKeyspace)).isTrue();
+
+        // Get database scoped to the new keyspace
+        Database db = getDatabase().useKeyspace(testKeyspace);
+        assertThat(db.getKeyspace()).isEqualTo(testKeyspace);
+
+        String tableName = db.getTableName(TableEntityGameWithAnnotation.class);
+        try {
+            // This should NOT throw "Keyspace 'default_keyspace' doesn't exist"
+            // Bug: createTable(Class) was ignoring the database keyspace for vector index creation
+            Table<TableEntityGameWithAnnotation> table = db.createTable(TableEntityGameWithAnnotation.class);
+            assertThat(table).isNotNull();
+            assertThat(db.tableExists(tableName)).isTrue();
+            assertThat(db.listTableNames()).contains(tableName);
+        } finally {
+            // Clean up: drop table, restore default keyspace, drop test keyspace
+            if (db.tableExists(tableName)) {
+                db.dropTable(tableName);
+            }
+            db.useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
+            getDatabaseAdmin().dropKeyspace(testKeyspace);
+            maxWait = 30;
+            while (getDatabaseAdmin().keyspaceExists(testKeyspace) && maxWait-- > 0) {
+                Thread.sleep(1000);
+            }
+        }
     }
 }

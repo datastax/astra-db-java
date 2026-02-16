@@ -43,7 +43,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize AWS Bedrock Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / AWS BedRock")
 public class Astra_Collections_13_Vectorize_AwsBedrockIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

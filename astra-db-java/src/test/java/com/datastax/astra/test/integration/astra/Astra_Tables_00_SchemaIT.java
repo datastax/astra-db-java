@@ -37,6 +37,6 @@ import org.junit.jupiter.api.DisplayName;
  * Tests are skipped automatically if not configured for Astra or token is missing.
  */
 @EnabledIfAstra
-@DisplayName("Astra > Tables > Schema")
+@DisplayName("Astra / Tables / DDL")
 public class Astra_Tables_00_SchemaIT extends AbstractTableDDLIT {
 }

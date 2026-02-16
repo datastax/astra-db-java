@@ -81,6 +81,23 @@ public class TableFindOptions extends BaseOptions<TableFindOptions> {
     }
 
     /**
+     * Copy constructor. Creates a deep copy of the given options,
+     * resetting {@code pageState} to {@code null} so the copy starts fresh.
+     *
+     * @param other the options to copy
+     */
+    public TableFindOptions(TableFindOptions other) {
+        super(other.token, other.commandType, other.serializer, other.dataAPIClientOptions);
+        this.projection       = other.projection != null ? other.projection.clone() : null;
+        this.sort             = other.sort != null ? other.sort.clone() : null;
+        this.skip             = other.skip;
+        this.limit            = other.limit;
+        this.includeSimilarity = other.includeSimilarity;
+        this.includeSortVector = other.includeSortVector;
+        this.pageState        = null;
+    }
+
+    /**
      * Add a skip clause in the find block
      *
      * @param skip value for skip options

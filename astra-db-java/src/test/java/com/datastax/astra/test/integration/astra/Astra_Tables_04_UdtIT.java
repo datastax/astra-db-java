@@ -25,6 +25,6 @@ import com.datastax.astra.test.integration.utils.EnabledIfAstra;
 import org.junit.jupiter.api.DisplayName;
 
 @EnabledIfAstra
-@DisplayName("11. Astra Table UDT")
+@DisplayName("Astra / Tables / User Defined Types")
 public class Astra_Tables_04_UdtIT extends AbstractTableUdtIT {
 }

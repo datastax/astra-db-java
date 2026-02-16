@@ -41,6 +41,8 @@ import java.util.Map;
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.HEADER_FEATURE_FLAG_TABLES;
 import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_GENERAL_METHOD_TIMEOUT_MILLIS;
 import static com.datastax.astra.client.core.options.TimeoutOptions.DEFAULT_REQUEST_TIMEOUT_MILLIS;
+import com.datastax.astra.client.exceptions.InvalidEnvironmentException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -124,13 +126,11 @@ class DataApiOptionsTest {
         assertThat(new CollectionFindOneAndReplaceOptions().sort(Sort.ascending("test"))).isNotNull();
         assertThat(new CollectionFindOneAndReplaceOptions().returnDocument(ReturnDocument.AFTER)).isNotNull();
         assertThat(new CollectionFindOneAndReplaceOptions().returnDocument(ReturnDocument.BEFORE)).isNotNull();
-        assertThat(new CollectionFindOneAndReplaceOptions().projection(Projection.include("ok"))).isNotNull();
         assertThat(new CollectionFindOneAndReplaceOptions().upsert(true)).isNotNull();
         assertThat(new CollectionFindOneAndReplaceOptions().sort(Sort.vector(new float[]{}))).isNotNull();
         assertThat(new CollectionFindOneAndReplaceOptions().sort(Sort.vectorize("OK"))
                 .sort(Sort.ascending("test"))
                 .upsert(true)
-                .projection(Projection.include("ok"))
                 .returnDocument(ReturnDocument.AFTER)
                 .returnDocument(ReturnDocument.BEFORE)
                 .sort(Sort.vectorize("OK"))
@@ -278,5 +278,66 @@ class DataApiOptionsTest {
         assertThat(new CollectionFindOptions().includeSimilarity(true)).isNotNull();
         assertThat(new CollectionFindOptions().limit(10)).isNotNull();
         assertThat(new CollectionFindOptions().skip(10)).isNotNull();
+    }
+
+    // ========== Environment mismatch detection ==========
+
+    @Test
+    void shouldRejectDevEndpointWithProdClient() {
+        // Client defaults to ASTRA (PROD), but URL is astra-dev
+        DataAPIClient client = new DataAPIClient("token", new DataAPIClientOptions());
+        String devUrl = "https://00000000-0000-0000-0000-000000000000-us-east-1.apps.astra-dev.datastax.com";
+        assertThatThrownBy(() -> client.getDatabase(devUrl))
+                .isInstanceOf(InvalidEnvironmentException.class)
+                .hasMessageContaining("DEV")
+                .hasMessageContaining("ASTRA");
+    }
+
+    @Test
+    void shouldRejectTestEndpointWithProdClient() {
+        DataAPIClient client = new DataAPIClient("token", new DataAPIClientOptions());
+        String testUrl = "https://00000000-0000-0000-0000-000000000000-us-east-1.apps.astra-test.datastax.com";
+        assertThatThrownBy(() -> client.getDatabase(testUrl))
+                .isInstanceOf(InvalidEnvironmentException.class)
+                .hasMessageContaining("TEST")
+                .hasMessageContaining("ASTRA");
+    }
+
+    @Test
+    void shouldRejectProdEndpointWithDevClient() {
+        DataAPIClient client = new DataAPIClient("token",
+                new DataAPIClientOptions().destination(DataAPIDestination.ASTRA_DEV));
+        String prodUrl = "https://00000000-0000-0000-0000-000000000000-us-east-1.apps.astra.datastax.com";
+        assertThatThrownBy(() -> client.getDatabase(prodUrl))
+                .isInstanceOf(InvalidEnvironmentException.class)
+                .hasMessageContaining("PROD")
+                .hasMessageContaining("ASTRA_DEV");
+    }
+
+    @Test
+    void shouldAcceptMatchingEnvironment() {
+        DataAPIClient client = new DataAPIClient("token",
+                new DataAPIClientOptions().destination(DataAPIDestination.ASTRA_DEV));
+        String devUrl = "https://00000000-0000-0000-0000-000000000000-us-east-1.apps.astra-dev.datastax.com";
+        // Should NOT throw
+        assertThat(client.getDatabase(devUrl)).isNotNull();
+    }
+
+    @Test
+    void shouldAcceptNonAstraUrlWithLocalDestination() {
+        DataAPIClient client = new DataAPIClient("token",
+                new DataAPIClientOptions().destination(DataAPIDestination.HCD));
+        // Non-Astra URL — no environment detection, no error
+        assertThat(client.getDatabase("http://localhost:8181")).isNotNull();
+    }
+
+    @Test
+    void shouldRejectDevEndpointWithKeyspaceOverload() {
+        // The getDatabase(String, String) overload should also be validated
+        DataAPIClient client = new DataAPIClient("token", new DataAPIClientOptions());
+        String devUrl = "https://00000000-0000-0000-0000-000000000000-us-east-1.apps.astra-dev.datastax.com";
+        assertThatThrownBy(() -> client.getDatabase(devUrl, "my_keyspace"))
+                .isInstanceOf(InvalidEnvironmentException.class)
+                .hasMessageContaining("DEV");
     }
 }

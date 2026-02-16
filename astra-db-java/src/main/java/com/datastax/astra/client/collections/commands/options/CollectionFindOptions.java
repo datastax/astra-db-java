@@ -83,6 +83,23 @@ public class CollectionFindOptions extends BaseOptions<CollectionFindOptions> {
     }
 
     /**
+     * Copy constructor. Creates a deep copy of the given options,
+     * resetting {@code pageState} to {@code null} so the copy starts fresh.
+     *
+     * @param other the options to copy
+     */
+    public CollectionFindOptions(CollectionFindOptions other) {
+        super(other.token, other.commandType, other.serializer, other.dataAPIClientOptions);
+        this.projection       = other.projection != null ? other.projection.clone() : null;
+        this.sort             = other.sort != null ? other.sort.clone() : null;
+        this.skip             = other.skip;
+        this.limit            = other.limit;
+        this.includeSimilarity = other.includeSimilarity;
+        this.includeSortVector = other.includeSortVector;
+        this.pageState        = null;
+    }
+
+    /**
      * Get the sort options.
      *
      * @return

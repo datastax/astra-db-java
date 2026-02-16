@@ -20,11 +20,19 @@ package com.datastax.astra.test.integration.astra;
  * #L%
  */
 
-import com.datastax.astra.test.integration.AbstractTableIndexIT;
+import com.datastax.astra.test.integration.AbstractTableVectorSearchIT;
 import com.datastax.astra.test.integration.utils.EnabledIfAstra;
 import org.junit.jupiter.api.DisplayName;
 
+/**
+ * Table vector search integration tests for Astra DB environment.
+ * <p>
+ * Uses Nvidia NV-Embed-QA vectorize service (built-in, no external API key required).
+ * Tests cover vectorize-based insertion, similarity search, includeSimilarity,
+ * includeSortVector, and getSortVector.
+ */
 @EnabledIfAstra
-@DisplayName("10. Astra Table Index")
-public class Astra_Tables_03_IndexIT extends AbstractTableIndexIT {
+@DisplayName("Astra / Table / VectorSearch")
+public class Astra_Tables_03_VectorSearchIT extends AbstractTableVectorSearchIT {
+    // All tests inherited from AbstractTableVectorSearchIT
 }

@@ -34,7 +34,7 @@ import org.junit.jupiter.api.DisplayName;
  * Requires ASTRA_DB_APPLICATION_TOKEN to be set.
  */
 @EnabledIfAstra
-@DisplayName("08. Astra Table")
-public class Astra_Tables_01_CrudIT extends AbstractTableIT {
+@DisplayName("Astra / Tables / Crud")
+public class Astra_Tables_02_CrudIT extends AbstractTableIT {
     // All tests inherited from AbstractTableIT
 }

@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize VoyageAI Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / VoyageAI")
 public class Astra_Collections_09_Vectorize_VoyageAIIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

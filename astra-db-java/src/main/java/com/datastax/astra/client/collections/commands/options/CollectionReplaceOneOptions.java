@@ -22,8 +22,8 @@ package com.datastax.astra.client.collections.commands.options;
 
 import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
@@ -37,12 +37,54 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
     /** If upsert is selected. */
     Boolean upsert;
 
-    /** Show information before of after. */
-    ReturnDocument returnDocument = ReturnDocument.AFTER;
+    /**
+     * Option to order the result.
+     */
+    Sort[] sort;
+
+    /**
+     * Tell to return the document before or after the update.
+     */
+    private String returnDocument = ReturnDocument.AFTER.getKey();
 
     /**
      * Default constructor.
      */
     public CollectionReplaceOneOptions() {
+    }
+
+    /**
+     * Adding this on top of projection(Projection[] p) to allow for a more fluent API.
+     *
+     * @param doc
+     *      ReturnDocument value
+     * @return
+     *     current command
+     */
+    public CollectionReplaceOneOptions returnDocument(ReturnDocument doc) {
+        this.returnDocument = doc.getKey();
+        return this;
+    }
+
+    /**
+     * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
+     * @param s
+     *      sort options
+     * @return
+     *     current command
+     */
+    public CollectionReplaceOneOptions sort(Sort... s) {
+        this.sort = s;
+        return this;
+    }
+
+    /**
+     * Get the sort options.
+     *
+     * @return
+     *      sort options
+     */
+    public Sort[] getSortArray() {
+        return sort;
     }
 }

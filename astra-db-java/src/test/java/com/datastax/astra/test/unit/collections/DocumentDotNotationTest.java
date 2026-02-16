@@ -603,4 +603,55 @@ public class DocumentDotNotationTest {
         doc.append("data.0.name", "first");
         assertEquals("first", doc.read("data.0.name"));
     }
+
+    // --------------------------------------------------
+    // Dot-notation array index access: "genres.0"
+    // --------------------------------------------------
+
+    @Test
+    public void should_read_array_element_with_dot_notation() {
+        Document doc = new Document();
+        doc.put("items", List.of("alpha", "beta", "gamma"));
+        assertEquals("alpha", doc.read("items.0"));
+        assertEquals("beta", doc.read("items.1"));
+        assertEquals("gamma", doc.read("items.2"));
+    }
+
+    @Test
+    public void should_read_nested_map_in_array_with_dot_notation() {
+        Document doc = new Document();
+        doc.put("items", List.of(Map.of("name", "Alice"), Map.of("name", "Bob")));
+        assertEquals("Alice", doc.read("items.0.name"));
+        assertEquals("Bob", doc.read("items.1.name"));
+    }
+
+    @Test
+    public void should_get_array_element_with_string_array_segments() {
+        Document doc = new Document();
+        doc.put("items", List.of("alpha", "beta", "gamma"));
+        assertEquals("alpha", doc.get(new String[]{"items", "0"}));
+        assertEquals("beta", doc.get(new String[]{"items", "1"}));
+    }
+
+    @Test
+    public void should_return_null_for_dot_notation_out_of_bounds() {
+        Document doc = new Document();
+        doc.put("items", List.of("a", "b"));
+        assertNull(doc.read("items.5"));
+    }
+
+    @Test
+    public void should_return_null_for_non_numeric_token_on_list() {
+        Document doc = new Document();
+        doc.put("items", List.of("a", "b"));
+        assertNull(doc.read("items.name"));
+    }
+
+    @Test
+    public void should_backward_compat_numeric_map_key_still_works() {
+        // When "data" is a Map, "0" should be used as a map key, not array index
+        Document doc = new Document();
+        doc.append("data.0.name", "first");
+        assertEquals("first", doc.read("data.0.name"));
+    }
 }

@@ -250,6 +250,115 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
         //(results.get(0).getSimilarity()).isNotNull();
     }
 
+    // ========== Cursor builder methods ==========
+
+    @Test
+    @Order(9)
+    @DisplayName("09. Should cursor limit not cause StackOverflow")
+    public void should_cursorLimit_notCauseStackOverflow() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> cursor = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "history and science")));
+
+        // cursor.limit() should set the limit on the options, not recurse
+        List<Row> results = cursor.limit(2).toList();
+        assertThat(results).hasSize(2);
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("10. Should cursor skip not cause StackOverflow")
+    public void should_cursorSkip_notCauseStackOverflow() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> cursor = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "history and science"))
+                        .limit(5));
+
+        // cursor.skip() should set the skip on the options, not recurse
+        List<Row> results = cursor.skip(1).toList();
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("11. Should cursor includeSortVector not cause StackOverflow")
+    public void should_cursorIncludeSortVector_notCauseStackOverflow() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> cursor = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "quantum physics"))
+                        .limit(3));
+
+        // cursor.includeSortVector() should set the flag, not recurse
+        TableFindCursor<Row, Row> cursorWithVector = cursor.includeSortVector();
+        Optional<DataAPIVector> sortVector = cursorWithVector.getSortVector();
+        assertThat(sortVector).isPresent();
+        log.info("Table sort vector dimension: {}", sortVector.get().getEmbeddings().length);
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("12. Should cursor includeSimilarity not cause StackOverflow")
+    public void should_cursorIncludeSimilarity_notCauseStackOverflow() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> cursor = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "quantum physics"))
+                        .limit(3));
+
+        // cursor.includeSimilarity() should set the flag, not recurse
+        List<Row> results = cursor.includeSimilarity().toList();
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    @Order(13)
+    @DisplayName("13. Should cursor builder methods not mutate original options")
+    public void should_cursorBuilderMethods_notMutateOriginalOptions() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> original = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "quantum physics"))
+                        .limit(5));
+
+        // Creating a derived cursor with limit(2) should not affect the original
+        TableFindCursor<Row, Row> derived = original.limit(2);
+        List<Row> derivedResults = derived.toList();
+        assertThat(derivedResults).hasSize(2);
+
+        // Original should still return up to 5
+        List<Row> originalResults = original.toList();
+        assertThat(originalResults).hasSizeGreaterThan(2);
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("14. Should getSortVector after toList")
+    public void should_getSortVector_afterToList() {
+        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
+
+        TableFindCursor<Row, Row> cursor = table.find(
+                new TableFindOptions()
+                        .sort(Sort.vectorize("vector", "mathematics"))
+                        .includeSortVector(true)
+                        .limit(3));
+
+        // Consume cursor first
+        List<Row> results = cursor.toList();
+        assertThat(results).isNotEmpty();
+
+        // Sort vector should still be accessible after consuming
+        Optional<DataAPIVector> sortVector = cursor.getSortVector();
+        assertThat(sortVector).isPresent();
+    }
+
     float[] floatArray = {
             -0.01197052f, -0.020980835f, 0.016098022f, -0.013122559f, -0.014152527f, -0.012908936f, 0.021499634f, -0.01939392f,
             -0.00793457f, -0.033203125f, -0.019592285f, 0.02368164f, -0.03845215f, -0.007217407f, -0.035980225f, 0.013694763f,

@@ -80,7 +80,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
@@ -640,5 +642,95 @@ public abstract class AbstractTableIT extends AbstractDataAPITest {
         // Verify all rows deleted
         assertThat(table.findAll().toList()).isEmpty();
         log.info("Deleted all rows from '{}' with custom retry/timeout options", tableName);
+    }
+
+    // ------------------------------------------
+    // Null collection columns
+    // ------------------------------------------
+
+    @Test
+    @Order(25)
+    public void should_findOne_with_null_collections() {
+        String tableName = "table_null_collections";
+        getDatabase().dropTable(tableName, IF_EXISTS);
+
+        // Create table with UUID pk, a scalar, and LIST / SET / MAP columns
+        Table<Row> table = getDatabase().createTable(tableName, new TableDefinition()
+                .addColumn("id", TableColumnTypes.UUID)
+                .addColumnText("label")
+                .addColumnList("tags", TableColumnTypes.TEXT)
+                .addColumnSet("categories", TableColumnTypes.TEXT)
+                .addColumnMap("properties", TableColumnTypes.TEXT, TableColumnTypes.INT)
+                .partitionKey("id"), IF_NOT_EXISTS);
+
+        // Insert a row with ONLY the pk and scalar — list, set, map are omitted (null in Cassandra)
+        UUID rowId = UUID.randomUUID();
+        table.insertOne(new Row()
+                .addUUID("id", rowId)
+                .addText("label", "row_with_nulls"));
+
+        // --- findOne: null collection columns should come back as empty, not null ---
+        Optional<Row> result = table.findOne(Filters.eq("id", rowId));
+        assertThat(result).isPresent();
+        Row row = result.get();
+        assertThat(row.getText("label")).isEqualTo("row_with_nulls");
+
+        // LIST column → empty list (not null)
+        Object tags = row.getColumnMap().get("tags");
+        assertThat(tags).isNotNull().isInstanceOf(List.class);
+        assertThat((List<?>) tags).isEmpty();
+
+        // SET column → empty set (not null)
+        Object categories = row.getColumnMap().get("categories");
+        assertThat(categories).isNotNull().isInstanceOf(Set.class);
+        assertThat((Set<?>) categories).isEmpty();
+
+        // MAP column → empty map (not null)
+        Object properties = row.getColumnMap().get("properties");
+        assertThat(properties).isNotNull().isInstanceOf(Map.class);
+        assertThat((Map<?, ?>) properties).isEmpty();
+
+        log.info("findOne: null LIST/SET/MAP returned as empty collections");
+
+        // --- findPage (via find cursor): same behavior ---
+        List<Row> rows = table.find(Filters.eq("id", rowId)).toList();
+        assertThat(rows).hasSize(1);
+        Row pageRow = rows.get(0);
+        assertThat(pageRow.getColumnMap().get("tags")).isNotNull().isInstanceOf(List.class);
+        assertThat((List<?>) pageRow.getColumnMap().get("tags")).isEmpty();
+        assertThat(pageRow.getColumnMap().get("categories")).isNotNull().isInstanceOf(Set.class);
+        assertThat((Set<?>) pageRow.getColumnMap().get("categories")).isEmpty();
+        assertThat(pageRow.getColumnMap().get("properties")).isNotNull().isInstanceOf(Map.class);
+        assertThat((Map<?, ?>) pageRow.getColumnMap().get("properties")).isEmpty();
+
+        log.info("find (cursor): null LIST/SET/MAP returned as empty collections");
+
+        // --- Row with actual values should still come back correctly ---
+        UUID rowId2 = UUID.randomUUID();
+        table.insertOne(new Row()
+                .addUUID("id", rowId2)
+                .addText("label", "row_with_values")
+                .addList("tags", List.of("java", "sdk"))
+                .addSet("categories", Set.of("open-source", "database"))
+                .addMap("properties", Map.of("priority", 1, "version", 2)));
+
+        Optional<Row> result2 = table.findOne(Filters.eq("id", rowId2));
+        assertThat(result2).isPresent();
+        Row row2 = result2.get();
+        @SuppressWarnings("unchecked")
+        List<String> tagValues = (List<String>) row2.getColumnMap().get("tags");
+        assertThat(tagValues).containsExactlyInAnyOrder("java", "sdk");
+        // API returns SET as JSON array (ArrayList); verify contents via new Set
+        @SuppressWarnings("unchecked")
+        List<String> categoryRaw = (List<String>) row2.getColumnMap().get("categories");
+        assertThat(new HashSet<>(categoryRaw)).containsExactlyInAnyOrder("open-source", "database");
+        @SuppressWarnings("unchecked")
+        Map<String, Integer> propValues = (Map<String, Integer>) row2.getColumnMap().get("properties");
+        assertThat(propValues).containsEntry("priority", 1).containsEntry("version", 2);
+
+        log.info("findOne: non-null LIST/SET/MAP returned with correct values");
+
+        // Cleanup
+        getDatabase().dropTable(tableName, IF_EXISTS);
     }
 }

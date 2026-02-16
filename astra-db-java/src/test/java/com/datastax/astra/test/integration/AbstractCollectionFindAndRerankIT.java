@@ -24,7 +24,9 @@ import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.commands.options.CollectionFindAndRerankOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
 import com.datastax.astra.client.collections.commands.options.CollectionInsertManyOptions;
+import com.datastax.astra.client.collections.commands.options.CollectionReplaceOneOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
+import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.DataAPIKeywords;
@@ -39,9 +41,11 @@ import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
 import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.rerank.RerankedResult;
+import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.core.vector.VectorOptions;
+import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -434,5 +438,192 @@ public abstract class AbstractCollectionFindAndRerankIT extends AbstractDataAPIT
                 .toList();
 
         assertThat(results).isNotEmpty();
+    }
+
+    // ========== findAndRerank — getSortVector ==========
+
+    @Test
+    @Order(18)
+    void should_findAndRerank_getSortVectorBeforeConsuming() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankCursor<Document, Document> cursor = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(baseFindAndRerankOptions()
+                        .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
+                        .includeSortVector(true)
+                        .hybridLimits(10));
+
+        // getSortVector() before consuming should trigger page fetch and return the vector
+        Optional<DataAPIVector> sortVector = cursor.getSortVector();
+        assertThat(sortVector).isPresent();
+        log.info("Sort vector (before consuming): dimension={}", sortVector.get().getEmbeddings().length);
+
+        // Cursor should still be iterable after getSortVector()
+        List<RerankedResult<Document>> results = cursor.toList();
+        assertThat(results).isNotEmpty();
+    }
+
+    @Test
+    @Order(19)
+    void should_findAndRerank_getSortVectorAfterConsuming() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankCursor<Document, Document> cursor = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(baseFindAndRerankOptions()
+                        .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
+                        .includeSortVector(true)
+                        .hybridLimits(10));
+
+        // Consume the cursor first
+        List<RerankedResult<Document>> results = cursor.toList();
+        assertThat(results).isNotEmpty();
+
+        // getSortVector() after consuming should still return the vector from the fetched page
+        Optional<DataAPIVector> sortVector = cursor.getSortVector();
+        assertThat(sortVector).isPresent();
+        log.info("Sort vector (after consuming): dimension={}", sortVector.get().getEmbeddings().length);
+    }
+
+    // ========== findAndRerank — cursor builder methods ==========
+
+    @Test
+    @Order(20)
+    void should_findAndRerank_cursorLimit_notCauseStackOverflow() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankCursor<Document, Document> cursor = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(baseFindAndRerankOptions()
+                        .sort(Sort.hybrid(new Hybrid("virtue and ethics")))
+                        .hybridLimits(10));
+
+        // cursor.limit() should set the limit on the options, not recurse
+        List<RerankedResult<Document>> results = cursor.limit(2).toList();
+        assertThat(results).isNotEmpty();
+        assertThat(results.size()).isLessThanOrEqualTo(2);
+    }
+
+    @Test
+    @Order(21)
+    void should_findAndRerank_cursorIncludeSortVector_notCauseStackOverflow() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankCursor<Document, Document> cursor = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(baseFindAndRerankOptions()
+                        .sort(Sort.hybrid(new Hybrid("knowledge and wisdom")))
+                        .hybridLimits(10));
+
+        // cursor.includeSortVector() should set the flag, not recurse
+        CollectionFindAndRerankCursor<Document, Document> cursorWithVector = cursor.includeSortVector();
+        Optional<DataAPIVector> sortVector = cursorWithVector.getSortVector();
+        assertThat(sortVector).isPresent();
+        log.info("Sort vector via cursor builder: dimension={}", sortVector.get().getEmbeddings().length);
+    }
+
+    @Test
+    @Order(22)
+    void should_findAndRerank_cursorBuilderMethods_notMutateOriginalOptions() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankCursor<Document, Document> original = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(baseFindAndRerankOptions()
+                        .sort(Sort.hybrid(new Hybrid("education and learning")))
+                        .limit(5)
+                        .hybridLimits(10));
+
+        // Creating a derived cursor with limit(2) should not affect the original
+        CollectionFindAndRerankCursor<Document, Document> derived = original.limit(2);
+        List<RerankedResult<Document>> derivedResults = derived.toList();
+        assertThat(derivedResults).isNotEmpty();
+        assertThat(derivedResults.size()).isLessThanOrEqualTo(2);
+
+        // Original should still return up to 5
+        List<RerankedResult<Document>> originalResults = original.toList();
+        assertThat(originalResults).hasSizeGreaterThan(2);
+    }
+
+    // ========== findAndRerank — includeScores false / omitted ==========
+
+    @Test
+    @Order(23)
+    void should_findAndRerank_withIncludeScoresFalse() {
+        if (skipIfNoRerankingKey()) return;
+
+        // Explicitly set includeScores(false) — should NOT throw NPE on status being null
+        CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions()
+                .rerankingAuthProvider(getRerankingAuthProvider())
+                .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
+                .includeScores(false)
+                .hybridLimits(10)
+                .limit(5);
+
+        List<RerankedResult<Document>> results = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(options)
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        // Scores should be null when includeScores is false
+        results.forEach(r -> {
+            assertThat(r.getDocument()).isNotNull();
+            assertThat(r.getScores()).isNull();
+        });
+    }
+
+    @Test
+    @Order(24)
+    void should_findAndRerank_withIncludeScoresOmitted() {
+        if (skipIfNoRerankingKey()) return;
+
+        // Do not set includeScores at all (defaults to false) — should NOT throw NPE
+        CollectionFindAndRerankOptions options = new CollectionFindAndRerankOptions()
+                .rerankingAuthProvider(getRerankingAuthProvider())
+                .sort(Sort.hybrid(new Hybrid("We struggle all in life")))
+                .includeScores(null)
+                .hybridLimits(10)
+                .limit(5);
+
+        List<RerankedResult<Document>> results = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(options)
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        results.forEach(r -> assertThat(r.getDocument()).isNotNull());
+    }
+
+    // ========== replaceOne with vectorize sort ==========
+
+    @Test
+    @Order(25)
+    void should_replaceOne_withVectorizeSort() {
+        if (skipIfNoRerankingKey()) return;
+
+        Collection<Document> col = getDatabase().getCollection(COLLECTION_FIND_RERANK);
+        col.deleteAll();
+
+        // Insert documents with vectorize content
+        col.insertMany(List.of(
+                new Document().id("rp1").put("quote", "The stars shine bright in the night sky").vectorize("The stars shine bright in the night sky"),
+                new Document().id("rp2").put("quote", "Mathematics is the queen of sciences").vectorize("Mathematics is the queen of sciences"),
+                new Document().id("rp3").put("quote", "Music soothes the soul").vectorize("Music soothes the soul")),
+                new CollectionInsertManyOptions().chunkSize(3));
+
+        // Replace the document most similar to a math query using vectorize sort
+        CollectionUpdateResult res = col.replaceOne(
+                null,
+                new Document().id("rp2").put("quote", "Math is beautiful").vectorize("Math is beautiful"),
+                new CollectionReplaceOneOptions().sort(Sort.vectorize("Mathematics and numbers")));
+        assertThat(res.getMatchedCount()).isEqualTo(1);
+        assertThat(res.getModifiedCount()).isEqualTo(1);
+
+        // Verify the math document was replaced
+        Optional<Document> doc = col.findById("rp2");
+        assertThat(doc).isPresent();
+        assertThat(doc.get().getString("quote")).isEqualTo("Math is beautiful");
     }
 }

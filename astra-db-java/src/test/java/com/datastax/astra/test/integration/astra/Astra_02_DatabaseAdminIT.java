@@ -36,6 +36,6 @@ import org.junit.jupiter.api.DisplayName;
  * Tests are skipped automatically if not configured for Astra or token is missing.
  */
 @EnabledIfAstra
-@DisplayName("Astra / Database Admin (keyspaces, providers)")
+@DisplayName("Astra / DatabaseAdmin")
 public class Astra_02_DatabaseAdminIT extends AbstractDatabaseAdminIT {
 }

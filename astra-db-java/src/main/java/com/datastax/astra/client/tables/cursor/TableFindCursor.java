@@ -99,9 +99,9 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
         this.state            = CursorState.IDLE;
         this.buffer           = new ArrayList<>();
         this.consumed         = 0;
-        this.currentPage      = tableFindCursor.currentPage;
+        this.currentPage      = null;
         this.dataSource       = tableFindCursor.dataSource;
-        this.tableFindOptions = tableFindCursor.tableFindOptions;
+        this.tableFindOptions = new TableFindOptions(tableFindCursor.tableFindOptions);
         this.filter           = tableFindCursor.filter;
     }
 
@@ -161,7 +161,7 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
     public TableFindCursor<T, R> limit(int newLimit) {
         checkIdleState();
         TableFindCursor<T, R> newTableFindCursor = this.clone();
-        newTableFindCursor.limit(newLimit);
+        newTableFindCursor.tableFindOptions.limit(newLimit);
         return newTableFindCursor;
     }
 
@@ -174,7 +174,7 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
     public TableFindCursor<T, R> skip(int newSkip) {
         checkIdleState();
         TableFindCursor<T, R> newTableFindCursor = this.clone();
-        newTableFindCursor.skip(newSkip);
+        newTableFindCursor.tableFindOptions.skip(newSkip);
         return newTableFindCursor;
     }
 
@@ -186,7 +186,7 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
     public TableFindCursor<T, R> includeSimilarity() {
         checkIdleState();
         TableFindCursor<T, R> newTableFindCursor = this.clone();
-        newTableFindCursor.includeSimilarity();
+        newTableFindCursor.tableFindOptions.includeSimilarity(true);
         return newTableFindCursor;
     }
 
@@ -198,7 +198,7 @@ public class TableFindCursor<T, R> extends AbstractCursor<T, R> {
     public TableFindCursor<T, R> includeSortVector() {
         checkIdleState();
         TableFindCursor<T, R> newTableFindCursor = this.clone();
-        newTableFindCursor.includeSortVector();
+        newTableFindCursor.tableFindOptions.includeSortVector(true);
         return newTableFindCursor;
     }
 

@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize MistralAI Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / MistralAI")
 public class Astra_Collections_07_Vectorize_MistralAIIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

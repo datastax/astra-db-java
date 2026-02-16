@@ -40,7 +40,7 @@ import java.util.Map;
  */
 @Slf4j
 @EnabledIfAstra
-@DisplayName("Astra Vectorize OpenAI Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / OpenAI")
 public class Astra_Collections_06_Vectorize_OpenAIIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

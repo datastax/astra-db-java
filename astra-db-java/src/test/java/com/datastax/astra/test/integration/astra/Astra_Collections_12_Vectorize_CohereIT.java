@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize Cohere Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / Cohere")
 public class Astra_Collections_12_Vectorize_CohereIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

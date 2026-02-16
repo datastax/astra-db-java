@@ -1422,7 +1422,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         Assert.notNull(resultClass, "resultClass");
         // Building a convenient find options
         CollectionFindOptions findOptions =  new CollectionFindOptions()
-                .projection(Projection.include( fieldName.replaceAll("\\[\\d+\\]", "")));
+                .projection(Projection.include( fieldName.replaceAll("\\[\\d+\\]", "").replaceAll("((?<!&)\\.\\d+)+$", "")));
         // Overriding options
         if (options != null && options.getDataAPIClientOptions() != null) {
             findOptions.dataAPIClientOptions(options.getDataAPIClientOptions());
@@ -1710,7 +1710,6 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .withFilter(filter)
                 .withReplacement(replacement)
                 .withSort(options.getSortArray())
-                .withProjection(options.getProjectionArray())
                 .withOptions(new Document()
                         .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
                         .appendIfNotNull(OPTIONS_RETURN_DOCUMENT, options.returnDocument())
@@ -1759,9 +1758,10 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .create("findOneAndReplace")
                 .withFilter(filter)
                 .withReplacement(replacement)
+                .withSort(collectionReplaceOneOptions.getSortArray())
                 .withOptions(new Document()
                         .appendIfNotNull(OPTIONS_UPSERT, collectionReplaceOneOptions.upsert())
-                        .append(OPTIONS_RETURN_DOCUMENT, collectionReplaceOneOptions.returnDocument().getKey())
+                        .append(OPTIONS_RETURN_DOCUMENT, collectionReplaceOneOptions.returnDocument())
                 );
 
         // Execute the `findOneAndReplace`

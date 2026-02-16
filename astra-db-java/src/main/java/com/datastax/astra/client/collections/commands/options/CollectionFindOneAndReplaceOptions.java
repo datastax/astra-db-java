@@ -41,11 +41,6 @@ public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFi
     private Sort[] sort;
 
     /**
-     * Options to project (select) the result.
-     */
-    private Projection[] projection;
-
-    /**
      * Flag to enforce the replacement
      */
     private Boolean upsert;
@@ -75,18 +70,6 @@ public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFi
 
     /**
      * Adding this on top of projection(Projection[] p) to allow for a more fluent API.
-     * @param p
-     *      projection options
-     * @return
-     *     current command
-     */
-    public CollectionFindOneAndReplaceOptions projection(Projection... p) {
-        this.projection = p;
-        return this;
-    }
-
-    /**
-     * Adding this on top of projection(Projection[] p) to allow for a more fluent API.
      *
      * @param doc
      *      ReturnDocument value
@@ -108,14 +91,6 @@ public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFi
         return sort;
     }
 
-    /**
-     * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
-     *
-     * @return
-     *      project
-     */
-    public Projection[] getProjectionArray() {
-        return projection;
-    }
+
 
 }

@@ -121,6 +121,7 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
             result.add(buffer.remove(0));
             count++;
         }
+        consumed += count;
         return result;
     }
 
@@ -220,6 +221,7 @@ public abstract class AbstractCursor<T, R> implements Iterable<R>, Cloneable {
         if (currentPage == null && state == CursorState.IDLE) {
             fetchNextPage();
         }
+
         if (currentPage == null) {
             return Optional.empty();
         }

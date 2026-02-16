@@ -106,10 +106,10 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
         this.state = CursorState.IDLE;
         this.buffer                = new ArrayList<>();
         this.dataSource = collectionFindCursor.dataSource;
-        this.collectionFindOptions = collectionFindCursor.collectionFindOptions;
+        this.collectionFindOptions = new CollectionFindOptions(collectionFindCursor.collectionFindOptions);
         this.filter                = collectionFindCursor.filter;
-        this.currentPage           = collectionFindCursor.currentPage;
-        this.consumed              = collectionFindCursor.consumed;
+        this.currentPage           = null;
+        this.consumed              = 0;
         this.recordType            = collectionFindCursor.recordType;
     }
 
@@ -169,7 +169,7 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
     public CollectionFindCursor<T, R> limit(int newLimit) {
         checkIdleState();
         CollectionFindCursor<T, R> newCursor = this.clone();
-        newCursor.limit(newLimit);
+        newCursor.collectionFindOptions.limit(newLimit);
         return newCursor;
     }
 
@@ -182,7 +182,7 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
     public CollectionFindCursor<T, R> skip(int newSkip) {
         checkIdleState();
         CollectionFindCursor<T, R> newCursor = this.clone();
-        newCursor.skip(newSkip);
+        newCursor.collectionFindOptions.skip(newSkip);
         return newCursor;
     }
 
@@ -194,7 +194,7 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
     public CollectionFindCursor<T, R> includeSimilarity() {
         checkIdleState();
         CollectionFindCursor<T, R> newCursor = this.clone();
-        newCursor.includeSimilarity();
+        newCursor.collectionFindOptions.includeSimilarity(true);
         return newCursor;
     }
 
@@ -206,7 +206,7 @@ public class CollectionFindCursor<T, R> extends AbstractCursor<T, R> {
     public CollectionFindCursor<T, R> includeSortVector() {
         checkIdleState();
         CollectionFindCursor<T, R> newCursor = this.clone();
-        newCursor.includeSortVector();
+        newCursor.collectionFindOptions.includeSortVector(true);
         return newCursor;
     }
 

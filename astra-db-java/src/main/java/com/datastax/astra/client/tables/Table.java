@@ -58,6 +58,8 @@ import com.datastax.astra.client.tables.definition.indexes.TableIndexMapTypes;
 import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableTextIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
+import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
 import com.datastax.astra.internal.api.DataAPIData;
@@ -661,6 +663,35 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         };
     }
 
+    // -------------------------------------------
+    // ---   Null collection population        ----
+    // -------------------------------------------
+
+    /**
+     * For each column declared as LIST, SET, or MAP in the projectionSchema
+     * but absent from the row (null in Cassandra), inject an empty collection.
+     *
+     * @param row         the row to enrich
+     * @param apiResponse the API response carrying projectionSchema in status
+     */
+    private void populateNullCollections(Row row, DataAPIResponse apiResponse) {
+        if (apiResponse.getStatus() == null) return;
+        LinkedHashMap<String, TableColumnDefinition> schema = apiResponse.getStatus().getProjectionSchema();
+        if (schema == null) return;
+        for (Map.Entry<String, TableColumnDefinition> entry : schema.entrySet()) {
+            String columnName = entry.getKey();
+            if (row.getColumnMap().containsKey(columnName)) continue;
+            TableColumnTypes type = entry.getValue().getType();
+            if (type == TableColumnTypes.LIST) {
+                row.getColumnMap().put(columnName, new ArrayList<>());
+            } else if (type == TableColumnTypes.SET) {
+                row.getColumnMap().put(columnName, new LinkedHashSet<>());
+            } else if (type == TableColumnTypes.MAP) {
+                row.getColumnMap().put(columnName, new LinkedHashMap<>());
+            }
+        }
+    }
+
     // --------------------------
     // ---   findOne         ----
     // --------------------------
@@ -686,7 +717,8 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                     );
         }
 
-        DataAPIData data = runCommand(findOne, findOneOptions).getData();
+        DataAPIResponse apiResponse = runCommand(findOne, findOneOptions);
+        DataAPIData data = apiResponse.getData();
 
         // No data found
         if (data == null || data.getDocument() == null) {
@@ -696,6 +728,9 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         // Document -> Row
         Row row = new Row();
         row.getColumnMap().putAll(data.getDocument().getDocumentMap());
+
+        // Populate empty collections for null LIST/SET/MAP columns using projectionSchema
+        populateNullCollections(row, apiResponse);
 
         // Row -> Optional<T>
         return Optional.ofNullable(RowMapper.mapFromRow(row, getSerializer(), newRowClass));
@@ -897,6 +932,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                 .map(doc -> {
                     Row targetRow =  new Row();
                     targetRow.getColumnMap().putAll(doc.getDocumentMap());
+                    populateNullCollections(targetRow, apiResponse);
                     return targetRow;
                 })
                 .map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))

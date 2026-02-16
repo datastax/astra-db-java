@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize JinaAI Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / JINAAI")
 public class Astra_Collections_08_Vectorize_JinaAIIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

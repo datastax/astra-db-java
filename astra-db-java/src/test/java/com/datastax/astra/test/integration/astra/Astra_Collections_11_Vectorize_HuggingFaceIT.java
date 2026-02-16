@@ -33,7 +33,7 @@ import java.util.Map;
  */
 @EnabledIfAstra
 @Slf4j
-@DisplayName("Astra Vectorize HuggingFace Integration Tests")
+@DisplayName("Astra / Collections / Vectorized / Hugging Face ")
 public class Astra_Collections_11_Vectorize_HuggingFaceIT extends AbstractVectorizeApiHeaderIT {
 
     @Override

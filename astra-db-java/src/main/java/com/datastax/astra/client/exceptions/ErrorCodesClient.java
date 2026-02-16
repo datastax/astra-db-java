@@ -53,6 +53,17 @@ public enum ErrorCodesClient {
     ASTRA_RESTRICTED_OPERATION("Operation '%s' available only for Astra environments (current is '%s')"),
 
     /**
+     * Indicates that the database endpoint URL does not match the client's configured environment.
+     * Dynamic placeholders:
+     * <ul>
+     *   <li>{@code '%s'}: The environment detected from the URL.</li>
+     *   <li>{@code '%s'}: The environment configured on the client.</li>
+     * </ul>
+     */
+    ENVIRONMENT_MISMATCH("The database endpoint corresponds to Astra '%s' but the client is configured for '%s'. "
+            + "Use DataAPIClientOptions.destination(%s) when creating the DataAPIClient."),
+
+    /**
      * Indicates that a required configuration parameter is missing.
      * Dynamic placeholders:
      * <ul>

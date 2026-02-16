@@ -21,8 +21,10 @@ package com.datastax.astra.client.exceptions;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
+import com.dtsx.astra.sdk.utils.AstraEnvironment;
 
 import static com.datastax.astra.client.exceptions.ErrorCodesClient.ASTRA_RESTRICTED_OPERATION;
+import static com.datastax.astra.client.exceptions.ErrorCodesClient.ENVIRONMENT_MISMATCH;
 
 /**
  * Exception thrown when the environment is invalid.
@@ -51,6 +53,26 @@ public class InvalidEnvironmentException extends DataAPIClientException {
     public static void throwErrorRestrictedAstra(String operation, DataAPIDestination currentEnv) {
         throw new InvalidEnvironmentException(ASTRA_RESTRICTED_OPERATION,
                 String.format(ASTRA_RESTRICTED_OPERATION.getMessage(), operation, currentEnv.name()));
+    }
+
+    /**
+     * Throw when the database URL environment does not match the client's configured destination.
+     *
+     * @param urlEnv
+     *      environment detected from the URL
+     * @param clientDestination
+     *      destination configured on the client
+     */
+    public static void throwErrorEnvironmentMismatch(AstraEnvironment urlEnv, DataAPIDestination clientDestination) {
+        // Suggest the correct DataAPIDestination for the URL environment
+        String suggestion = switch (urlEnv) {
+            case PROD -> "DataAPIDestination.ASTRA";
+            case DEV  -> "DataAPIDestination.ASTRA_DEV";
+            case TEST -> "DataAPIDestination.ASTRA_TEST";
+        };
+        throw new InvalidEnvironmentException(ENVIRONMENT_MISMATCH,
+                String.format(ENVIRONMENT_MISMATCH.getMessage(),
+                        urlEnv.name(), clientDestination.name(), suggestion));
     }
 
 }

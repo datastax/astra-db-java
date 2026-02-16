@@ -89,6 +89,23 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     }
 
     /**
+     * Copy constructor. Creates a deep copy of the given options.
+     *
+     * @param other the options to copy
+     */
+    public CollectionFindAndRerankOptions(CollectionFindAndRerankOptions other) {
+        super(other.token, other.commandType, other.serializer, other.dataAPIClientOptions);
+        this.sort             = other.sort != null ? other.sort.clone() : null;
+        this.projection       = other.projection != null ? other.projection.clone() : null;
+        this.hybridLimits     = other.hybridLimits;
+        this.limit            = other.limit;
+        this.rerankOn         = other.rerankOn;
+        this.rerankQuery      = other.rerankQuery;
+        this.includeScores    = other.includeScores;
+        this.includeSortVector = other.includeSortVector;
+    }
+
+    /**
      * Adding this on top of sort(Sort[] s) to allow for a more fluent API.
      *
      * @param hybrid
