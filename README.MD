@@ -3,7 +3,6 @@
 [![License Apache2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/com.datastax.astra/astra-db-java)](https://search.maven.org/artifact/com.datastax.astra/astra-db-java)
 [![javadoc](https://javadoc.io/badge2/com.datastax.astra/astra-db-java/javadoc.svg)](https://javadoc.io/doc/com.datastax.astra/astra-db-java)
-[![Javadoc](https://img.shields.io/badge/Javadoc-latest-blue.svg)](https://javadoc.io/doc/com.datastax.astra/astra-db-java/latest/index.html)
 [![Documentation](https://img.shields.io/badge/Docs-datastax.com-blueviolet.svg)](https://docs.datastax.com/en/astra-db-serverless/api-reference/dataapiclient.html)
 
 A Java client for [DataStax Astra DB](https://astra.datastax.com).
