@@ -15,6 +15,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 public abstract class PcuGroupCreateUpdateRequest {
+
     /**
      * Human-readable title for the PCU group.
      */
@@ -36,17 +37,17 @@ public abstract class PcuGroupCreateUpdateRequest {
     protected String region;
 
     /**
-     * Minimum number of PCUs (must be >= 1).
+     * Minimum number of PCUs (must be greater or equals to 1).
      */
     protected Integer min; // Integers so they're nullable
     
     /**
-     * Maximum number of PCUs (must be >= min).
+     * Maximum number of PCUs (must be greater or equals to min).
      */
     protected Integer max;
     
     /**
-     * Number of reserved PCUs (must be non-negative and <= min).
+     * Number of reserved PCUs (must be non-negative and lower or equals to min).
      */
     protected Integer reserved;
 

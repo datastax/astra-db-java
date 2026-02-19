@@ -1,4 +1,4 @@
-package com.datastax.astra.test.samples.quickstart;
+package com.datastax.astra.samples.quickstart;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;

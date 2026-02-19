@@ -53,12 +53,6 @@ public class TableColumnDefinitionVector extends TableColumnDefinition {
     private Integer dimension;
 
     /**
-     * The similarity metric to be used for comparing vectors.
-     * Common metrics include cosine similarity, Euclidean distance, etc.
-     */
-    private SimilarityMetric metric;
-
-    /**
      * The service options for vectorization.
      * Configures how vectors are generated or processed.
      */
@@ -80,17 +74,6 @@ public class TableColumnDefinitionVector extends TableColumnDefinition {
      */
     public TableColumnDefinitionVector dimension(int dimension) {
         this.dimension = dimension;
-        return this;
-    }
-
-    /**
-     * Sets the similarity metric for vector comparison and returns the updated instance.
-     *
-     * @param m the similarity metric
-     * @return this {@code ColumnDefinitionVector} instance
-     */
-    public TableColumnDefinitionVector metric(SimilarityMetric m) {
-        this.metric = m;
         return this;
     }
 

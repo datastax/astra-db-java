@@ -25,6 +25,6 @@ import com.datastax.astra.test.integration.utils.EnabledIfAstra;
 import org.junit.jupiter.api.DisplayName;
 
 @EnabledIfAstra
-@DisplayName("Astra / Table / Indices")
+@DisplayName("Astra / Tables / Indices")
 public class Astra_Tables_01_IndexIT extends AbstractTableIndexIT {
 }

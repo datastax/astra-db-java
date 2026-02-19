@@ -29,60 +29,29 @@ import com.datastax.astra.client.core.query.Sort;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.tables.Table;
-import com.datastax.astra.client.tables.commands.AlterTableAddColumns;
-import com.datastax.astra.client.tables.commands.AlterTableAddVectorize;
-import com.datastax.astra.client.tables.commands.AlterTableDropColumns;
-import com.datastax.astra.client.tables.commands.AlterTableDropVectorize;
-import com.datastax.astra.client.tables.commands.TableUpdateOperation;
-import com.datastax.astra.client.tables.commands.options.CreateIndexOptions;
-import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
-import com.datastax.astra.client.tables.commands.options.CreateVectorIndexOptions;
-import com.datastax.astra.client.tables.commands.options.DropTableIndexOptions;
-import com.datastax.astra.client.tables.commands.options.TableDeleteManyOptions;
-import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
-import com.datastax.astra.client.tables.commands.options.TableFindOptions;
-import com.datastax.astra.client.tables.commands.options.TableInsertManyOptions;
+import com.datastax.astra.client.tables.commands.*;
+import com.datastax.astra.client.tables.commands.options.*;
 import com.datastax.astra.client.tables.commands.results.TableInsertManyResult;
 import com.datastax.astra.client.tables.commands.results.TableInsertOneResult;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.TableDuration;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDefinitionOptions;
-import com.datastax.astra.client.tables.definition.indexes.TableIndexDescriptor;
-import com.datastax.astra.client.tables.definition.indexes.TableRegularIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
-import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
+import com.datastax.astra.client.tables.definition.indexes.*;
 import com.datastax.astra.client.tables.definition.rows.Row;
 import com.datastax.astra.test.integration.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.integration.model.TableCompositeRow;
 import com.datastax.astra.test.integration.model.TableCompositeRowGenerator;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Period;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.datastax.astra.client.core.query.Sort.ascending;
 import static com.datastax.astra.client.core.query.Sort.descending;
@@ -199,8 +168,7 @@ public abstract class AbstractTableIT extends AbstractDataAPITest {
                         .addColumn("p_uuid", TableColumnTypes.UUID)
                         .addColumn("p_varint", TableColumnTypes.VARINT)
                         .addColumnVector("p_vector", new TableColumnDefinitionVector()
-                                .dimension(3)
-                                .metric(COSINE))
+                                .dimension(3))
                         .addColumnList("p_list_int", TableColumnTypes.INT)
                         .addColumnSet("p_set_int", TableColumnTypes.INT)
                         .addColumnMap("p_map_text_text", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
@@ -240,8 +208,7 @@ public abstract class AbstractTableIT extends AbstractDataAPITest {
                 .addColumn("body_blob", TableColumnTypes.TEXT)
                 .addColumn("row_id", TableColumnTypes.UUID)
                 .addColumnMap("metadata_s", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
-                .addColumnVector("vector", new TableColumnDefinitionVector()
-                        .dimension(1536).metric(COSINE))
+                .addColumnVector("vector", new TableColumnDefinitionVector().dimension(1536))
                 .partitionKey("partition_id")
                 .clusteringColumns(Sort.descending("row_id")));
         assertThat(getDatabase().tableExists(TABLE_CASSIO)).isTrue();
@@ -499,7 +466,7 @@ public abstract class AbstractTableIT extends AbstractDataAPITest {
         // Add vector column
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isFalse();
         t.alter(new AlterTableAddColumns().addColumnVector("vv",
-                new TableColumnDefinitionVector().dimension(1024).metric(COSINE)));
+                new TableColumnDefinitionVector().dimension(1024)));
         assertThat(t.getDefinition().getColumns().containsKey("vv")).isTrue();
 
         // Add vectorize

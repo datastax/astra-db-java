@@ -26,6 +26,7 @@ import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
 import com.datastax.astra.test.integration.utils.TestConfig;
@@ -33,6 +34,7 @@ import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.time.Duration;
 import java.util.List;
 
 import static com.datastax.astra.internal.utils.AnsiUtils.green;
@@ -143,7 +145,14 @@ public abstract class AbstractDataAPITest {
     protected synchronized Database getDatabase() {
         if (database == null) {
             final DataAPIDestination env = getDataApiDestination();
-            DatabaseOptions options = new DatabaseOptions().logRequest();
+            DatabaseOptions options = new DatabaseOptions()
+                    .logRequest()
+                    .timeoutOptions(
+                            new TimeoutOptions()
+                            .connectTimeout(Duration.ofSeconds(60))
+                            .collectionAdminTimeout(Duration.ofSeconds(60))
+                            .requestTimeoutMillis(60000));
+
             switch (env) {
                 case HCD:
                 case CASSANDRA:

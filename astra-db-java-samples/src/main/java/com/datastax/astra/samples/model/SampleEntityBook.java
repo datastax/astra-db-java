@@ -1,4 +1,4 @@
-package com.datastax.astra.test.samples.model;
+package com.datastax.astra.samples.model;
 
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;

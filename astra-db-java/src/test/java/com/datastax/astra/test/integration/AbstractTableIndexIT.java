@@ -81,8 +81,7 @@ public abstract class AbstractTableIndexIT extends AbstractDataAPITest {
                 .addColumnMap("mapcolumn", TableColumnTypes.TEXT, TableColumnTypes.TEXT)
                 .addColumnSet("setcolumn", TableColumnTypes.TEXT)
                 .addColumnList("listcolumn", TableColumnTypes.TEXT)
-                .addColumnVector("vectorcolumn", new TableColumnDefinitionVector()
-                        .dimension(1536).metric(SimilarityMetric.DOT_PRODUCT))
+                .addColumnVector("vectorcolumn", new TableColumnDefinitionVector().dimension(1536))
                 .partitionKey("name"), IF_NOT_EXISTS);
 
         assertThat(getDatabase().tableExists(TABLE_COLLECTION_INDEX)).isTrue();

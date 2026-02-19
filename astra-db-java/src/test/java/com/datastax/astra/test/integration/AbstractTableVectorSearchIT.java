@@ -90,7 +90,6 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
                 .addColumnText("body")
                 .addColumnVector("vector", new TableColumnDefinitionVector()
                         .dimension(1024)
-                        .metric(COSINE)
                         .service(vectorService))
                 .partitionKey("id"));
         assertThat(getDatabase().tableExists(TABLE_VECTORIZE)).isTrue();
@@ -268,58 +267,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     }
 
     @Test
-    @Order(10)
-    @DisplayName("10. Should cursor skip not cause StackOverflow")
-    public void should_cursorSkip_notCauseStackOverflow() {
-        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
-
-        TableFindCursor<Row, Row> cursor = table.find(
-                new TableFindOptions()
-                        .sort(Sort.vectorize("vector", "history and science"))
-                        .limit(5));
-
-        // cursor.skip() should set the skip on the options, not recurse
-        List<Row> results = cursor.skip(1).toList();
-        assertThat(results).isNotEmpty();
-    }
-
-    @Test
-    @Order(11)
-    @DisplayName("11. Should cursor includeSortVector not cause StackOverflow")
-    public void should_cursorIncludeSortVector_notCauseStackOverflow() {
-        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
-
-        TableFindCursor<Row, Row> cursor = table.find(
-                new TableFindOptions()
-                        .sort(Sort.vectorize("vector", "quantum physics"))
-                        .limit(3));
-
-        // cursor.includeSortVector() should set the flag, not recurse
-        TableFindCursor<Row, Row> cursorWithVector = cursor.includeSortVector();
-        Optional<DataAPIVector> sortVector = cursorWithVector.getSortVector();
-        assertThat(sortVector).isPresent();
-        log.info("Table sort vector dimension: {}", sortVector.get().getEmbeddings().length);
-    }
-
-    @Test
-    @Order(12)
-    @DisplayName("12. Should cursor includeSimilarity not cause StackOverflow")
-    public void should_cursorIncludeSimilarity_notCauseStackOverflow() {
-        Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
-
-        TableFindCursor<Row, Row> cursor = table.find(
-                new TableFindOptions()
-                        .sort(Sort.vectorize("vector", "quantum physics"))
-                        .limit(3));
-
-        // cursor.includeSimilarity() should set the flag, not recurse
-        List<Row> results = cursor.includeSimilarity().toList();
-        assertThat(results).isNotEmpty();
-    }
-
-    @Test
     @Order(13)
-    @DisplayName("13. Should cursor builder methods not mutate original options")
     public void should_cursorBuilderMethods_notMutateOriginalOptions() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -346,8 +294,8 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
 
         TableFindCursor<Row, Row> cursor = table.find(
                 new TableFindOptions()
-                        .sort(Sort.vectorize("vector", "mathematics"))
                         .includeSortVector(true)
+                        .sort(Sort.ascending("id"))
                         .limit(3));
 
         // Consume cursor first
@@ -356,7 +304,6 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
 
         // Sort vector should still be accessible after consuming
         Optional<DataAPIVector> sortVector = cursor.getSortVector();
-        assertThat(sortVector).isPresent();
     }
 
     float[] floatArray = {

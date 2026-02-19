@@ -398,8 +398,6 @@ public class EntityBeanDefinition<T> {
                     throw new DataAPIClientException(ErrorCodesClient.INVALID_ANNOTATION, "ColumnVector", field.getName(), "dimension is required and must be in between 1 amd 8192");
                 }
                 column.append("dimension", field.getVectorDimension());
-                column.append("metric", field.getSimilarityMetric());
-
                 if (Utils.hasLength(field.getVectorServiceProvider())) {
                     Map<String, Object > service = new HashMap<>();
                     service.put("provider", field.getVectorServiceProvider());

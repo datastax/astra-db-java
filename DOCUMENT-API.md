@@ -1,4 +1,4 @@
- # Working with Documents
+# Working with Documents
 
 The `Document` class is the primary data container for collections. It stores data as a `Map<String, Object>` and provides two distinct access paths:
 

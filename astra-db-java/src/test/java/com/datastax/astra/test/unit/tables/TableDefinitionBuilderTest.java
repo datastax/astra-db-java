@@ -6,7 +6,6 @@ import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import org.junit.jupiter.api.Test;
 
-import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -106,7 +105,7 @@ class TableDefinitionBuilderTest {
     @Test
     void shouldAddVectorColumn() {
         TableDefinition def = new TableDefinition()
-                .addColumnVector("vec", new TableColumnDefinitionVector().dimension(3).metric(COSINE));
+                .addColumnVector("vec", new TableColumnDefinitionVector().dimension(3));
         assertThat(def.getColumns()).containsKey("vec");
         assertThat(def.getColumns().get("vec").getType()).isEqualTo(TableColumnTypes.VECTOR);
     }
@@ -211,7 +210,7 @@ class TableDefinitionBuilderTest {
         TableDefinition def = new TableDefinition()
                 .addColumnText("match_id")
                 .addColumnInt("round")
-                .addColumnVector("m_vector", new TableColumnDefinitionVector().dimension(3).metric(COSINE))
+                .addColumnVector("m_vector", new TableColumnDefinitionVector().dimension(3))
                 .addColumn("score", TableColumnTypes.INT)
                 .addColumn("when", TableColumnTypes.TIMESTAMP)
                 .addColumnSet("fighters", TableColumnTypes.UUID)

@@ -2,24 +2,23 @@ package com.datastax.astra.test.unit.tables;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.collections.CollectionOptions;
-import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
-import com.datastax.astra.client.core.commands.CommandType;
-import com.datastax.astra.client.core.options.DataAPIClientOptions;
-import com.datastax.astra.client.core.query.Sort;
-import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.collections.commands.options.CreateCollectionOptions;
 import com.datastax.astra.client.collections.commands.options.DropCollectionOptions;
 import com.datastax.astra.client.collections.commands.options.ListCollectionOptions;
-import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.core.commands.CommandType;
+import com.datastax.astra.client.core.headers.EmbeddingAPIKeyHeaderProvider;
+import com.datastax.astra.client.core.options.DataAPIClientOptions;
+import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.tables.TableOptions;
+import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
+import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinitionVector;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
-import com.datastax.astra.client.tables.commands.options.CreateTableOptions;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 
-import static com.datastax.astra.client.core.vector.SimilarityMetric.COSINE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -63,7 +62,7 @@ class WorkWithOptions {
         TableDefinition tableDefinition = new TableDefinition()
                 .addColumnText("match_id")
                 .addColumnInt("round")
-                .addColumnVector("m_vector", new TableColumnDefinitionVector().dimension(3).metric(COSINE))
+                .addColumnVector("m_vector", new TableColumnDefinitionVector().dimension(3))
                 .addColumn("score", TableColumnTypes.INT)
                 .addColumn("when", TableColumnTypes.TIMESTAMP)
                 .addColumn("winner", TableColumnTypes.TEXT)

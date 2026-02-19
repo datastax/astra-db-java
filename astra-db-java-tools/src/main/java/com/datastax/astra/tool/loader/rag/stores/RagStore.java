@@ -80,7 +80,6 @@ public class RagStore {
                 .addColumnSet("tags", TableColumnTypes.TEXT)
                 .addColumnVector("embeddings", new TableColumnDefinitionVector()
                         .dimension(dimension)
-                        .metric(SimilarityMetric.COSINE)
                         .service(vso)) // nullable
                 .partitionKey("source_id")
                 .clusteringColumns(Sort.ascending("chunk_idx"));

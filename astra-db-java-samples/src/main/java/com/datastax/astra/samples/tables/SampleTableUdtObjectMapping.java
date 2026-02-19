@@ -1,4 +1,4 @@
-package com.datastax.astra.test.samples.tables;
+package com.datastax.astra.samples.tables;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.DataAPIDestination;

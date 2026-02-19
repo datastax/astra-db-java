@@ -26,9 +26,10 @@ This client library provides a simplified way to interact with the Data API for 
 4. [Collections and Documents](#4-collections-and-documents)
 5. [Tables and POJO Mapping](#5-tables-and-pojo-mapping)
 6. [Support Functions](#6-support-functions)
-7. [Running Tests](#7-running-tests-and-contributing)
-8. [Help & Support](#8-help--support)
-9. [Resources & Documentation](#9-resources--documentation)
+7. [Samples](#7-samples)
+8. [Running Tests](#8-running-tests-and-contributing)
+9. [Help & Support](#9-help--support)
+10. [Resources & Documentation](#10-resources--documentation)
 
 ---
 
@@ -286,7 +287,27 @@ dreams.insertOne(new Dream(500, ...));
 
 ---
 
-## 7. Running Tests and Contributing
+## 7. Samples
+
+The [`astra-db-java-samples`](astra-db-java-samples/) module contains runnable examples covering the main SDK features. Each sample is a standalone `main()` class you can run after setting your credentials.
+
+| Category | Sample | Description |
+|----------|--------|-------------|
+| **Quickstart** | [`SampleQuickstartHCD`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/quickstart/SampleQuickstartHCD.java) | End-to-end HCD quickstart: connect, create keyspace, vectorize query |
+| **Client** | [`SampleClientConfiguration`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/client/SampleClientConfiguration.java) | Full configuration cookbook: HTTP settings, timeouts, proxies, observers |
+| **Collections** | [`SampleCollectionInsertMany`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleCollectionInsertMany.java) | Bulk insert with chunk size, concurrency, and ordering options |
+| | [`SampleCollectionVectorize`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleCollectionVectorize.java) | Server-side embeddings (vectorize) for insert and search |
+| | [`SampleCollectionDates`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleCollectionDates.java) | Working with `Calendar`, `Date`, and `Instant` fields |
+| | [`SampleDocumentIds`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleDocumentIds.java) | All supported `_id` types: UUID, UUIDv6/v7, ObjectId, etc. |
+| | [`SampleHybridCollectionDefinition`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleHybridCollectionDefinition.java) | Hybrid collection with vector, lexical, and reranking |
+| | [`SampleFindAndRerank`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/collections/SampleFindAndRerank.java) | Hybrid search with `findAndRerank` API |
+| **Tables** | [`SampleTableRows`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/tables/SampleTableRows.java) | Typed row builders and POJO mapping with `@Column` |
+| | [`SampleTableVectorize`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/tables/SampleTableVectorize.java) | Vectorize on table columns with similarity search |
+| | [`SampleTableUdtObjectMapping`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/tables/SampleTableUdtObjectMapping.java) | User-Defined Types (UDT) with nested POJO mapping |
+
+---
+
+## 8. Running Tests and Contributing
 
 We welcome contributions!
 
@@ -294,7 +315,7 @@ For details on running the test suite (Local, Dev, Prod), configuring environmen
 
 ---
 
-## 8. Help & Support
+## 9. Help & Support
 
 If you encounter any issues or have questions:
 * 🐛 **Report Bugs:** Open an issue on [GitHub Issues](https://github.com/datastax/astra-db-java/issues).
@@ -303,7 +324,7 @@ If you encounter any issues or have questions:
 
 ---
 
-## 9. Resources & Documentation
+## 10. Resources & Documentation
 
 **Astra DB Serverless**
 - [Quickstart: Collections](https://docs.datastax.com/en/astra-db-serverless/get-started/quickstart.html)

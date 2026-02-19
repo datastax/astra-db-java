@@ -1,4 +1,4 @@
-package com.datastax.astra.test.samples.tables;
+package com.datastax.astra.samples.tables;
 
 import com.datastax.astra.client.DataAPIClient;
 import com.datastax.astra.client.core.query.Filter;
@@ -38,9 +38,7 @@ public class SampleTableVectorize {
                 .provider("openai")
                 .modelName("text-embedding-3-small");
         TableColumnDefinitionVector vectorDef = new TableColumnDefinitionVector()
-                .dimension(512)
-                .metric(DOT_PRODUCT)
-                .service(openAI);
+                .dimension(512).service(openAI);
         TableDefinition miniGame = new TableDefinition()
                 .addColumnText("game_id").addPartitionBy("game_id")
                 .addColumnVector("m_vector", vectorDef);

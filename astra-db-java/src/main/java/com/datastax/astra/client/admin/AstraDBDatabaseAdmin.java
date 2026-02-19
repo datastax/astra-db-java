@@ -36,7 +36,9 @@ import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.db.AstraDBOpsClient;
 import com.dtsx.astra.sdk.db.DbKeyspacesClient;
+import com.dtsx.astra.sdk.db.DbOpsClient;
 import com.dtsx.astra.sdk.db.domain.Database;
+import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
 import lombok.extern.slf4j.Slf4j;
@@ -225,6 +227,7 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
 
     @Override
     public void createKeyspace(KeyspaceDefinition keyspace, CreateKeyspaceOptions options) {
+        waitForDatabaseActive();
         String keyspaceName  = keyspace.getName();
         DbKeyspacesClient ks = devopsDbClient.database(databaseId.toString()).keyspaces();
         if (!ks.exist(keyspaceName) && options.isIfNotExists()) {
@@ -242,9 +245,37 @@ public class AstraDBDatabaseAdmin extends AbstractCommandRunner<AdminOptions> im
     /** {@inheritDoc} */
     @Override
     public void dropKeyspace(String keyspace, DropKeyspaceOptions options) {
+        waitForDatabaseActive();
         DbKeyspacesClient ks = devopsDbClient.database(databaseId.toString()).keyspaces();
         if (ks.exist(keyspace) && options.isIfExists()) {
             ks.delete(keyspace);
+        }
+    }
+
+    /**
+     * Wait for the database to be in ACTIVE status before proceeding.
+     * This is required before keyspace operations as the database may be
+     * in MAINTENANCE state from a previous operation.
+     */
+    @SuppressWarnings("java:S2925")
+    private void waitForDatabaseActive() {
+        DbOpsClient dbc = devopsDbClient.database(databaseId.toString());
+        long top = System.currentTimeMillis();
+        long timeout = 1000L * AstraDBAdmin.WAIT_IN_SECONDS;
+        while (DatabaseStatusType.ACTIVE != dbc.get().getStatus()
+                && ((System.currentTimeMillis() - top) < timeout)) {
+            try {
+                Thread.sleep(5000);
+                log.info("...waiting for database '{}' to become active...", databaseId);
+            } catch (InterruptedException e) {
+                log.warn("Interrupted {}", e.getMessage());
+                Thread.currentThread().interrupt();
+            }
+        }
+        if (DatabaseStatusType.ACTIVE != dbc.get().getStatus()) {
+            throw new IllegalStateException("Database " + databaseId
+                    + " is not active after timeout of "
+                    + AstraDBAdmin.WAIT_IN_SECONDS + " seconds.");
         }
     }
 

@@ -624,7 +624,7 @@ public abstract class AbstractCollectionVectorSearchIT extends AbstractDataAPITe
     @Order(24)
     void should_cursorSkip_notCauseStackOverflow() {
         CollectionFindCursor<Document, Document> cursor = collectionVector
-                .find(new CollectionFindOptions().sort(Sort.vector(VECTOR_BEEF)));
+                .find(null, new CollectionFindOptions().sort(Sort.ascending("category")));
 
         // cursor.skip() should set the skip on the options, not recurse
         List<Document> results = cursor.skip(1).limit(2).toList();

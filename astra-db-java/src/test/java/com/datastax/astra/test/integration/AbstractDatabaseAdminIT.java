@@ -22,6 +22,8 @@ package com.datastax.astra.test.integration;
 
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
+import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.core.rerank.RerankProvider;
 import com.datastax.astra.client.core.vectorize.EmbeddingProvider;
 import com.datastax.astra.client.core.vectorize.SupportModelStatus;
@@ -34,6 +36,7 @@ import com.datastax.astra.client.databases.commands.results.FindRerankingProvide
 import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
+import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.test.integration.model.TableEntityGameWithAnnotation;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.datastax.astra.test.integration.utils.TestDataset.COLLECTION_SIMPLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -122,12 +126,15 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
         // Create keyspace — retry if the DB is still settling from a previous operation
         createKeyspaceWithRetry(keyspaceName, 10);
 
-        // Wait for creation to propagate
+        // Wait for creation to propagate (devops API)
         int maxWait = 30;
         while (!getDatabaseAdmin().keyspaceExists(keyspaceName) && maxWait-- > 0) {
             Thread.sleep(1000);
         }
         assertThat(getDatabaseAdmin().keyspaceExists(keyspaceName)).isTrue();
+
+        // Wait for Data API to also recognize the keyspace
+        waitForKeyspaceOnDataAPI(keyspaceName);
 
         // Get database for keyspace
         Database keyspaceDb = getDatabaseAdmin().getDatabase(keyspaceName);
@@ -142,6 +149,29 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
             Thread.sleep(1000);
         }
         assertThat(getDatabaseAdmin().keyspaceExists(keyspaceName)).isFalse();
+    }
+
+    /**
+     * Wait for the Data API to recognize a keyspace that was just created via the devops API.
+     * The devops API may report the keyspace as existing before the Data API has propagated it.
+     */
+    private void waitForKeyspaceOnDataAPI(String keyspaceName) throws InterruptedException {
+        Database db = getDatabaseAdmin().getDatabase(keyspaceName);
+        int maxWait = 30;
+        while (maxWait-- > 0) {
+            try {
+                db.listCollectionNames();
+                return; // Data API recognizes the keyspace
+            } catch (DataAPIResponseException e) {
+                if ("KEYSPACE_DOES_NOT_EXIST".equals(e.getErrorCode())) {
+                    log.info("Waiting for Data API to propagate keyspace '{}'...", keyspaceName);
+                    Thread.sleep(2000);
+                } else {
+                    throw e;
+                }
+            }
+        }
+        throw new IllegalStateException("Data API did not recognize keyspace '" + keyspaceName + "' after 60s");
     }
 
     /**
@@ -245,7 +275,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
     @Order(8)
     void should_use_keyspace_mutate_database() throws InterruptedException {
         String testKeyspace = "test_keyspace_" + System.currentTimeMillis();
-        String testCollection = "test_col_useks";
+        String testTable = "test_table_useks";
 
         // Start from default_keyspace
         Database db = getDatabase().useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
@@ -259,21 +289,28 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
         }
         assertThat(getDatabaseAdmin().keyspaceExists(testKeyspace)).isTrue();
 
+        // Wait for Data API to also recognize the keyspace
+        waitForKeyspaceOnDataAPI(testKeyspace);
+
         try {
             // Switch to the new keyspace — same db instance should be mutated
             db.useKeyspace(testKeyspace);
             assertThat(db.getKeyspace()).isEqualTo(testKeyspace);
 
             // Create a collection in the new keyspace
-            db.createCollection(testCollection);
-            assertThat(db.collectionExists(testCollection)).isTrue();
+            db.createTable(testTable, new TableDefinition()
+                    .addColumnText("id")
+                    .addColumnInt("age")
+                    .addColumnText("name")
+                    .partitionKey("id", "name"));
+            assertThat(db.tableExists(testTable)).isTrue();
 
             // List collections should contain the new collection
-            List<String> collections = db.listCollectionNames();
-            assertThat(collections).contains(testCollection);
+            List<String> tables = db.listTableNames();
+            assertThat(tables).contains(testTable);
 
             // Clean up collection
-            db.dropCollection(testCollection);
+            db.dropTable(testTable);
         } finally {
             // Restore default keyspace and drop test keyspace
             db.useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
@@ -287,7 +324,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(9)
-    void should_create_table_on_nondefault_keyspace() throws InterruptedException {
+    void should_create_collection_on_nondefault_keyspace() throws InterruptedException {
         String testKeyspace = "test_keyspace_" + System.currentTimeMillis();
 
         // Create a new keyspace
@@ -298,6 +335,9 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
         }
         assertThat(getDatabaseAdmin().keyspaceExists(testKeyspace)).isTrue();
 
+        // Wait for Data API to also recognize the keyspace
+        waitForKeyspaceOnDataAPI(testKeyspace);
+
         // Get database scoped to the new keyspace
         Database db = getDatabase().useKeyspace(testKeyspace);
         assertThat(db.getKeyspace()).isEqualTo(testKeyspace);
@@ -306,14 +346,14 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
         try {
             // This should NOT throw "Keyspace 'default_keyspace' doesn't exist"
             // Bug: createTable(Class) was ignoring the database keyspace for vector index creation
-            Table<TableEntityGameWithAnnotation> table = db.createTable(TableEntityGameWithAnnotation.class);
-            assertThat(table).isNotNull();
-            assertThat(db.tableExists(tableName)).isTrue();
-            assertThat(db.listTableNames()).contains(tableName);
+            Collection<Document> c = db.createCollection(COLLECTION_SIMPLE);
+            assertThat(c).isNotNull();
+            assertThat(db.collectionExists(COLLECTION_SIMPLE)).isTrue();
+            assertThat(db.listCollectionNames()).contains(COLLECTION_SIMPLE);
         } finally {
             // Clean up: drop table, restore default keyspace, drop test keyspace
-            if (db.tableExists(tableName)) {
-                db.dropTable(tableName);
+            if (db.collectionExists(COLLECTION_SIMPLE)) {
+                db.dropCollection(COLLECTION_SIMPLE);
             }
             db.useKeyspace(DataAPIClientOptions.DEFAULT_KEYSPACE);
             getDatabaseAdmin().dropKeyspace(testKeyspace);
