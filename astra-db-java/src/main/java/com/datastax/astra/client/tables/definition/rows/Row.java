@@ -33,6 +33,7 @@ import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.BetaPreview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -40,22 +41,8 @@ import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.InetAddress;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.Period;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.time.*;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -997,6 +984,7 @@ public class Row implements Serializable {
      * @return
      *      similarity value
      */
+    @JsonIgnore
     public Double getSimilarity() {
         return getDouble(DataAPIKeywords.SIMILARITY.getKeyword());
     }
