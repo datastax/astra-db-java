@@ -51,3 +51,4 @@ mvn -pl astra-db-java,langchain4j-astradb -am release:perform -DskipTests=true -
 ```
 
 
+mvn release:prepare -Darguments="-DskipTests"
