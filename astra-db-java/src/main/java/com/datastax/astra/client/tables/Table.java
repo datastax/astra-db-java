@@ -674,21 +674,25 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param row         the row to enrich
      * @param apiResponse the API response carrying projectionSchema in status
      */
-    private void populateNullCollections(Row row, DataAPIResponse apiResponse) {
+    private void populateNullFields(Row row, DataAPIResponse apiResponse) {
         if (apiResponse.getStatus() == null) return;
         LinkedHashMap<String, TableColumnDefinition> schema = apiResponse.getStatus().getProjectionSchema();
         if (schema == null) return;
         for (Map.Entry<String, TableColumnDefinition> entry : schema.entrySet()) {
             String columnName = entry.getKey();
             if (row.getColumnMap().containsKey(columnName)) continue;
+
             TableColumnTypes type = entry.getValue().getType();
-            if (type == TableColumnTypes.LIST) {
-                row.getColumnMap().put(columnName, new ArrayList<>());
-            } else if (type == TableColumnTypes.SET) {
-                row.getColumnMap().put(columnName, new LinkedHashSet<>());
-            } else if (type == TableColumnTypes.MAP) {
-                row.getColumnMap().put(columnName, new LinkedHashMap<>());
-            }
+
+            // TODO reify null UDTs as well
+            Object fallback = switch (type) {
+                case LIST -> new ArrayList<>();
+                case SET -> new LinkedHashSet<>();
+                case MAP -> new LinkedHashMap<>();
+                default -> null;
+            };
+
+            row.getColumnMap().put(columnName, fallback);
         }
     }
 
@@ -730,7 +734,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         row.getColumnMap().putAll(data.getDocument().getDocumentMap());
 
         // Populate empty collections for null LIST/SET/MAP columns using projectionSchema
-        populateNullCollections(row, apiResponse);
+        populateNullFields(row, apiResponse);
 
         // Row -> Optional<T>
         return Optional.ofNullable(RowMapper.mapFromRow(row, getSerializer(), newRowClass));
@@ -932,7 +936,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                 .map(doc -> {
                     Row targetRow =  new Row();
                     targetRow.getColumnMap().putAll(doc.getDocumentMap());
-                    populateNullCollections(targetRow, apiResponse);
+                    populateNullFields(targetRow, apiResponse);
                     return targetRow;
                 })
                 .map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))
