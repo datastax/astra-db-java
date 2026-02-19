@@ -46,13 +46,13 @@ This client library provides a simplified way to interact with the Data API for 
 <dependency>
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java</artifactId>
-    <version>2.1.4</version>
+    <version>2.1.7</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'com.datastax.astra:astra-db-java:2.1.4'
+implementation 'com.datastax.astra:astra-db-java:2.1.7'
 ```
 
 ### ⚡ Connect and Query in 30 Seconds
