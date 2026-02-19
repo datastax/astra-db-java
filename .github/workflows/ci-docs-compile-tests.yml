@@ -1,0 +1,32 @@
+name: Compile against documentation examples
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request: # temporary until it's merged
+    branches: [ KG-ci-additions ]
+  push:
+    branches: [ KG-ci-additions ]
+
+jobs:
+  test-compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build client
+        uses: ./.github/actions/checkout-and-build
+
+      - name: Get built JAR path
+        id: jar
+        run: |
+          JAR_PATH=$(ls target/astra-db-java-*.jar)
+          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+
+      - name: Run compilation tests
+        uses: datastax/astra-client-docs-tests/.github/actions/test-compilation@master
+        with:
+          clients: 'java'
+          args: -A java="$${{ steps.jar.outputs.jar_path }}"
+          docs-repo-token: ${{ secrets.DOC_GITHUB_PAT_CROSS_ORG }}
