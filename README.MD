@@ -291,6 +291,8 @@ dreams.insertOne(new Dream(500, ...));
 
 The [`astra-db-java-samples`](astra-db-java-samples/) module contains runnable examples covering the main SDK features. Each sample is a standalone `main()` class you can run after setting your credentials.
 
+> **Full index and tutorials:** see the [samples README](astra-db-java-samples/README.md) for step-by-step tutorials and the complete list of samples.
+
 | Category | Sample | Description |
 |----------|--------|-------------|
 | **Quickstart** | [`SampleQuickstartHCD`](astra-db-java-samples/src/main/java/com/datastax/astra/samples/quickstart/SampleQuickstartHCD.java) | End-to-end HCD quickstart: connect, create keyspace, vectorize query |

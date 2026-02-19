@@ -22,6 +22,8 @@ package com.datastax.astra.client.exceptions;
 
 import com.datastax.astra.client.DataAPIDestination;
 import com.dtsx.astra.sdk.utils.AstraEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.datastax.astra.client.exceptions.ErrorCodesClient.ASTRA_RESTRICTED_OPERATION;
 import static com.datastax.astra.client.exceptions.ErrorCodesClient.ENVIRONMENT_MISMATCH;
@@ -30,6 +32,8 @@ import static com.datastax.astra.client.exceptions.ErrorCodesClient.ENVIRONMENT_
  * Exception thrown when the environment is invalid.
  */
 public class InvalidEnvironmentException extends DataAPIClientException {
+
+    private static final Logger log = LoggerFactory.getLogger(InvalidEnvironmentException.class);
 
     /**
      * Constructor with code and message
@@ -70,9 +74,14 @@ public class InvalidEnvironmentException extends DataAPIClientException {
             case DEV  -> "DataAPIDestination.ASTRA_DEV";
             case TEST -> "DataAPIDestination.ASTRA_TEST";
         };
-        throw new InvalidEnvironmentException(ENVIRONMENT_MISMATCH,
-                String.format(ENVIRONMENT_MISMATCH.getMessage(),
-                        urlEnv.name(), clientDestination.name(), suggestion));
+        // As of 2.1 we are not enforcing environment matching, so we will log a warning instead of throwing an exception.
+        log.warn("Environment mismatch: URL environment is {}, but client destination is {}. " +
+                "Suggested destination for this URL environment is {}. This warning will become an error in a " +
+                "future release, please update your client configuration to match the URL environment.",
+                urlEnv.name(), clientDestination.name(), suggestion);
+        //throw new InvalidEnvironmentException(ENVIRONMENT_MISMATCH,
+        //        String.format(ENVIRONMENT_MISMATCH.getMessage(),
+        //                urlEnv.name(), clientDestination.name(), suggestion));
     }
 
 }
