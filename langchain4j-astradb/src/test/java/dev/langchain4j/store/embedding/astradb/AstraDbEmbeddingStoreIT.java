@@ -145,9 +145,6 @@ class AstraDbEmbeddingStoreIT extends EmbeddingStoreIT {
         db.dropCollection("SMALL");
     }
 
-    @Test
-    void should_add_multiple_embeddings_with_ids_and_segments() {
-    }
     /**
      * OVERRIDING FROM DEFAULT TEST AS  THE UUID are ENCODED AS {"$uuid":"value"} in ASTRA
      */
