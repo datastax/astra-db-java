@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: adopt
-          java-version: 17
+          java-version: 21
           cache: maven
 
       - name: Build with Maven
@@ -34,12 +34,11 @@ jobs:
         run: |
           mvn install -pl astra-db-java -am -Dmaven.test.skip=true -Dgpg.skip
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          JAR_PATH="$HOME/.m2/repository/com/datastax/astra/astra-db-java/$VERSION/astra-db-java-$VERSION.jar"
-          echo "jar_path=$JAR_PATH" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Run compilation tests
         uses: datastax/astra-client-docs-tests/.github/actions/test-compilation@master
         with:
           clients: 'java'
-          args: -A java='files(\"${{ steps.build.outputs.jar_path }}\")'
+          args: -A java='\"com.datastax.astra:astra-db-java:${{ steps.build.outputs.version }}\"'
           docs-repo-token: ${{ secrets.DOC_GITHUB_PAT_CROSS_ORG }}
