@@ -1,0 +1,44 @@
+name: Compile against documentation examples
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request: # temporary until it's merged
+    branches: [ KG-ci-additions ]
+  push:
+    branches: [ KG-ci-additions ]
+
+jobs:
+  test-compilation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install maven
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install maven -y
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: adopt
+          java-version: 21
+          cache: maven
+
+      - name: Build with Maven
+        shell: bash
+        id: build
+        run: |
+          mvn install -pl astra-db-java -am -Dmaven.test.skip=true -Dgpg.skip
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Run compilation tests
+        uses: datastax/astra-client-docs-tests/.github/actions/test-compilation@master
+        with:
+          clients: 'java'
+          args: -A java='\"com.datastax.astra:astra-db-java:${{ steps.build.outputs.version }}\"'
+          docs-repo-token: ${{ secrets.DOC_GITHUB_PAT_CROSS_ORG }}

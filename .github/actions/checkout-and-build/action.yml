@@ -33,4 +33,4 @@ runs:
     - name: Build with Maven
       shell: bash
       run: |
-        mvn install -Dmaven.test.skip=${{ inputs.skip_tests_on_build }}
+        mvn install -Dmaven.test.skip=${{ inputs.skip_tests_on_build }} -Dgpg.skip
