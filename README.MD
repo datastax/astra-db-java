@@ -2,7 +2,7 @@
 
 [![License Apache2](https://img.shields.io/hexpm/l/plug.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/com.datastax.astra/astra-db-java)](https://search.maven.org/artifact/com.datastax.astra/astra-db-java)
-[![Javadoc](https://img.shields.io/badge/Javadoc-latest-blue.svg)](https://javadoc.io/doc/com.datastax.astra/astra-db-java/latest/index.html)
+[![javadoc](https://javadoc.io/badge2/com.datastax.astra/astra-db-java/javadoc.svg)](https://javadoc.io/doc/com.datastax.astra/astra-db-java)
 [![Documentation](https://img.shields.io/badge/Docs-datastax.com-blueviolet.svg)](https://docs.datastax.com/en/astra-db-serverless/api-reference/dataapiclient.html)
 
 A Java client for [DataStax Astra DB](https://astra.datastax.com).
@@ -46,13 +46,13 @@ This client library provides a simplified way to interact with the Data API for 
 <dependency>
     <groupId>com.datastax.astra</groupId>
     <artifactId>astra-db-java</artifactId>
-    <version>2.1.4</version>
+    <version>2.1.7</version>
 </dependency>
 ```
 
 **Gradle**
 ```groovy
-implementation 'com.datastax.astra:astra-db-java:2.1.4'
+implementation 'com.datastax.astra:astra-db-java:2.1.7'
 ```
 
 ### ⚡ Connect and Query in 30 Seconds
