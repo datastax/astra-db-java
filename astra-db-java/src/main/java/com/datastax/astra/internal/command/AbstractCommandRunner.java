@@ -330,7 +330,6 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withRequestUrl(getApiEndpoint());
             Status<HttpResponse<String>> status = requestHttpClient.executeHttpRequest(request);
             // LOG RESPONSES CONSOLE
-            //System.out.println(status.getResult().body());
             ApiResponseHttp httpRes = requestHttpClient.parseHttpResponse(status.getResult());
             executionInfo.withHttpResponse(httpRes);
 

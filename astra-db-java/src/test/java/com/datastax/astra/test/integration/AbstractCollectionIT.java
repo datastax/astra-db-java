@@ -29,6 +29,8 @@ import com.datastax.astra.client.collections.commands.options.*;
 import com.datastax.astra.client.collections.commands.results.CollectionDeleteResult;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.commands.results.CollectionUpdateResult;
+import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
@@ -40,6 +42,8 @@ import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.utils.EscapeUtils;
 import com.datastax.astra.test.integration.model.ProductString;
@@ -47,6 +51,7 @@ import com.datastax.astra.test.integration.utils.TestDataset;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -80,7 +85,8 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     void setupCollections() {
         // FAST TRACK FOR TESTS
         //collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
-        dropAllCollections();
+
+        /*dropAllCollections();
         dropAllTables();
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
 
@@ -89,10 +95,11 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 COLLECTION_VECTOR_DEF,
                 ProductString.class);
         log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
-                COLLECTION_SIMPLE, COLLECTION_VECTOR);
+                COLLECTION_SIMPLE, COLLECTION_VECTOR);*/
     }
 
     // ========== Collection Metadata ==========
+
 
     @Test
     @Order(1)
@@ -1539,6 +1546,24 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
 
         List<Document> found = collectionSimple.findAll().toList();
         assertThat(found).isNotEmpty();
+    }
+
+    @Test
+    @Order(81)
+    void should_not_fail_on_identical_collection_already_exists() {
+        collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
+        collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
+    }
+
+    @Test
+    @Order(82)
+    void should_fail_on_different_collection_already_exists() {
+        collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
+
+        assertThatThrownBy(() -> getDatabase().createCollection(COLLECTION_SIMPLE,
+                new CollectionDefinition().defaultId(CollectionDefaultIdTypes.UUID)))
+                .isInstanceOf(DataAPIResponseException.class)
+                .hasMessageContaining("EXISTING_COLLECTION_DIFFERENT_SETTINGS");
     }
 
     // ========== Utilities ==========

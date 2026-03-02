@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>astra-db-java-parent</artifactId>
-        <version>2.1.7-SNAPSHOT</version>
+        <version>2.1.8-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -36,6 +36,11 @@
             <groupId>com.datastax.astra</groupId>
             <artifactId>langchain4j-astradb</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai-official</artifactId>
+            <version>${langchain4j-beta.version}</version>
         </dependency>
     </dependencies>
 

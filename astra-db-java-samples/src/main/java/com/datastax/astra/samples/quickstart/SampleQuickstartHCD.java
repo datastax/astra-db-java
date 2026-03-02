@@ -33,12 +33,16 @@ import static com.datastax.astra.client.core.query.Filters.eq;
 @SuppressWarnings("unused")
 public class SampleQuickstartHCD {
 
+    public static void main(String[] args) {
+        quickstartHCD();
+    }
+
     static void quickstartHCD() {
         // Settings
         String cassandraUserName     = "cassandra";
         String cassandraPassword     = "cassandra";
         String keyspaceName          = "ks1";
-        String collectionName        = "lyrics";
+        String collectionName        = "default_keyspace";
         String dataApiUrl            = DEFAULT_ENDPOINT_LOCAL; // http://localhost:8181
 
         // OpenAI Embeddings config

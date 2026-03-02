@@ -20,6 +20,8 @@ package com.datastax.astra.client.tables.definition.columns;
  * #L%
  */
 
+import com.datastax.astra.client.tables.definition.TableDefinition;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDefinition;
 import com.datastax.astra.internal.serdes.tables.RowSerializer;
 import lombok.Data;
 
@@ -77,6 +79,11 @@ public class TableColumnDefinition {
      * API support details for the column when not fully supported by the Data API.
      */
     private TableColumnDefinitionApiSupport apiSupport;
+
+    /**
+     * Definition of the meta data returned
+     */
+    private TableUserDefinedTypeDefinition definition;
 
     /**
      * Default constructor.

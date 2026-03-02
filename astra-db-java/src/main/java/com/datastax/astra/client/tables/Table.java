@@ -61,6 +61,8 @@ import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefin
 import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition;
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.client.tables.definition.types.TableDataAPIUserDefinedType;
+import com.datastax.astra.client.tables.definition.types.TableUserDefinedTypeDefinition;
 import com.datastax.astra.client.tables.exceptions.TooManyRowsToCountException;
 import com.datastax.astra.internal.api.DataAPIData;
 import com.datastax.astra.internal.api.DataAPIResponse;
@@ -80,6 +82,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -674,7 +677,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
      * @param row         the row to enrich
      * @param apiResponse the API response carrying projectionSchema in status
      */
-    private void populateNullCollections(Row row, DataAPIResponse apiResponse) {
+    private void populateNullAttributesFromResponse(Row row, DataAPIResponse apiResponse) {
         if (apiResponse.getStatus() == null) return;
         LinkedHashMap<String, TableColumnDefinition> schema = apiResponse.getStatus().getProjectionSchema();
         if (schema == null) return;
@@ -682,15 +685,32 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
             String columnName = entry.getKey();
             if (row.getColumnMap().containsKey(columnName)) continue;
             TableColumnTypes type = entry.getValue().getType();
-            if (type == TableColumnTypes.LIST) {
-                row.getColumnMap().put(columnName, new ArrayList<>());
-            } else if (type == TableColumnTypes.SET) {
-                row.getColumnMap().put(columnName, new LinkedHashSet<>());
-            } else if (type == TableColumnTypes.MAP) {
-                row.getColumnMap().put(columnName, new LinkedHashMap<>());
-            }
+
+            Object fallback = switch (type) {
+                case LIST        -> new ArrayList<>();
+                case SET         -> new LinkedHashSet<>();
+                case MAP         -> new LinkedHashMap<>();
+                case USERDEFINED -> buildNullUdt(entry.getValue().getDefinition());
+                default -> null;
+            };
+            row.getColumnMap().put(columnName, fallback);
         }
     }
+
+    /**
+     * Creates a map representing a UDT with all fields set to null.
+     *
+     * @param definition the UDT definition containing field names
+     * @return a map with all UDT fields set to null, or empty map if definition is null
+     **/
+    private Map<String, Object> buildNullUdt(TableUserDefinedTypeDefinition definition) {
+        if (definition == null) return Collections.emptyMap();
+
+        Map<String, Object> nullUdt = new HashMap<>();
+        definition.getFields().keySet().forEach(field -> nullUdt.put(field, null));
+        return nullUdt;
+    }
+
 
     // --------------------------
     // ---   findOne         ----
@@ -730,7 +750,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
         row.getColumnMap().putAll(data.getDocument().getDocumentMap());
 
         // Populate empty collections for null LIST/SET/MAP columns using projectionSchema
-        populateNullCollections(row, apiResponse);
+        populateNullAttributesFromResponse(row, apiResponse);
 
         // Row -> Optional<T>
         return Optional.ofNullable(RowMapper.mapFromRow(row, getSerializer(), newRowClass));
@@ -932,7 +952,7 @@ public class Table<T>  extends AbstractCommandRunner<TableOptions> {
                 .map(doc -> {
                     Row targetRow =  new Row();
                     targetRow.getColumnMap().putAll(doc.getDocumentMap());
-                    populateNullCollections(targetRow, apiResponse);
+                    populateNullAttributesFromResponse(targetRow, apiResponse);
                     return targetRow;
                 })
                 .map(d -> RowMapper.mapFromRow(d, getSerializer(), newRowType))

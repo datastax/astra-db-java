@@ -21,7 +21,9 @@ package com.datastax.astra.test.integration;
  */
 
 import com.datastax.astra.client.core.query.Filters;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.tables.Table;
+import com.datastax.astra.client.tables.commands.options.TableFindOneOptions;
 import com.datastax.astra.client.tables.commands.AlterTypeAddFields;
 import com.datastax.astra.client.tables.commands.AlterTypeRenameFields;
 import com.datastax.astra.client.tables.commands.TableUpdateOperation;
@@ -251,5 +253,51 @@ public abstract class AbstractTableUdtIT extends AbstractDataAPITest {
         List<String> typeNames = getDatabase().listTypeNames();
         assertThat(typeNames).doesNotContain(UDT_ADDRESS);
         log.info("Dropped UDT '{}'. Remaining types: {}", UDT_ADDRESS, typeNames);
+    }
+
+
+    @Test
+    @Order(10)
+    public void should_map_null_udt_field() {
+
+        // Create a type
+        getDatabase().createType(UDT_ADDRESS, new TableUserDefinedTypeDefinition()
+                .addFieldText("street")
+                .addFieldText("city")
+                .addFieldText("state")
+                .addFieldInt("zipcode"), CreateTypeOptions.IF_NOT_EXISTS);
+
+        // Use the UDT in table
+        Table<Row> tableWidthUdt = getDatabase().createTable(TABLE_WITH_UDT,
+          new TableDefinition()
+                .addColumnText("name")
+                .addColumnUserDefinedType("address", UDT_ADDRESS)
+                .addColumnListUserDefinedType("address_list", UDT_ADDRESS)
+                .partitionKey("name"), IF_NOT_EXISTS);
+
+        // Insert a row with a null UDT field
+        tableWidthUdt.insertOne(new Row().add("name", "null_udt_user"));
+
+        // Insert a row with all UDT fields populated
+        tableWidthUdt.insertOne(new Row()
+                .add("name", "full_udt_user")
+                .add("address", Map.of(
+                        "street", "1 Infinite Loop",
+                        "city", "Cupertino",
+                        "state", "CA",
+                        "zipcode", 95014)));
+
+
+        // Find the row and assert the UDT field is null
+        Optional<Row> result = tableWidthUdt
+                .findOne(Filters.eq("name", "null_udt_user"));
+
+        assertThat(result).isPresent();
+        // a null udt is not null
+        assertThat(result.get().get("address")).isNotNull();
+        // a null udt is representated as a map
+        assertThat(result.get().get("address")).isInstanceOf(Map.class);
+        // you can get key but not values
+        assertThat((Map) (result.get().get("address"))).containsEntry("city", null);
     }
 }
