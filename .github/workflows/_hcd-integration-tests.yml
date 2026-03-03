@@ -1,0 +1,42 @@
+name: Run integration tests against HCD
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request: # temporary until it's merged
+    branches: [ KG-ci-additions ]
+  push:
+    branches: [ KG-ci-additions ]
+
+permissions:
+  id-token: write
+
+jobs:
+  test-integration-hcd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Configure AWS credentials from OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::559669398656:role/astra-db-java-ecr-ro-user
+          aws-region: us-west-2
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Start HCD and Data API
+        run: docker-compose -f docker-compose-hcd.yml up -d --wait
+        working-directory: ${{ github.workspace }}/astra-db-java/src/test/resources
+
+      - name: Run integration tests
+        run: mvn clean verify -pl astra-db-java -Plocal
