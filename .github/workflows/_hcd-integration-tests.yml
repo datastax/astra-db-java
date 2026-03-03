@@ -28,14 +28,14 @@ jobs:
       - name: Configure AWS credentials from OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::559669398656:role/astra-db-java-ecr-ro-user
+          role-to-assume: arn:aws:iam::559669398656:role/data-api-clients-ecr-ro-user
           aws-region: us-west-2
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Start HCD and Data API
-        run: docker-compose -f docker-compose-hcd.yml up -d --wait
+        run: docker compose -f docker-compose-hcd.yml up -d --wait
         working-directory: ${{ github.workspace }}/astra-db-java/src/test/resources
 
       - name: Run integration tests
