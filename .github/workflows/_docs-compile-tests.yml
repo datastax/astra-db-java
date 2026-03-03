@@ -3,10 +3,10 @@ name: Compile against documentation examples
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request: # temporary until it's merged
-    branches: [ KG-ci-additions ]
-  push:
-    branches: [ KG-ci-additions ]
+#  pull_request: # temporary until it's merged
+#    branches: [ KG-ci-additions ]
+#  push:
+#    branches: [ KG-ci-additions ]
 
 jobs:
   test-compilation:
@@ -15,18 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Install maven
-        shell: bash
-        run: |
-          sudo apt update
-          sudo apt install maven -y
-
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
-          distribution: adopt
-          java-version: 21
-          cache: maven
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
 
       - name: Build with Maven
         shell: bash
