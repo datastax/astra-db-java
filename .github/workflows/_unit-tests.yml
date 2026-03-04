@@ -1,0 +1,35 @@
+name: Run unit tests
+
+on:
+  workflow_call:
+    inputs:
+      java_versions:
+        type: string
+        description: 'Comma-separated list of Java versions e.g. "17","21"'
+        required: true
+  workflow_dispatch:
+    inputs:
+      java_versions:
+        description: 'Comma-separated list of Java versions e.g. "17","21"'
+        default: '"17"'
+        required: false
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: ${{ fromJSON(format('[{0}]', inputs.java_versions || '"17"')) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run unit tests
+        run: mvn clean test -Dtest='!**/*IT' -Dtest.skipped=false -pl astra-db-java -B
