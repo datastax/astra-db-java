@@ -22,15 +22,13 @@ public class Astra_01_AstraDBAdminIT extends AbstractDataAPITest {
 
     protected static com.dtsx.astra.sdk.db.domain.Database devopsDb;
 
-    static final String TMP_DB_NAME    = "tmp_devops_db";
-    static final String TMP_DB_REGION  = "us-east-2";
-    static final CloudProviderType TMP_DB_PROVIDER = CloudProviderType.AWS;
+    static final String TMP_DB_NAME = "tmp_devops_db";
 
     @Test
     @Order(1)
     public void should_create_database() {
         Database db = getAstraDBAdmin()
-                .createDatabase(TMP_DB_NAME, TMP_DB_PROVIDER, TMP_DB_REGION)
+                .createDatabase(TMP_DB_NAME, getCloudProvider(), getCloudRegion())
                 .getDatabase();
         devopsDb = ((AstraDBDatabaseAdmin)db.getDatabaseAdmin()).getDatabaseInformations();
         assertThat(devopsDb).isNotNull();

@@ -104,6 +104,33 @@ public class Analyzer {
     }
 
     /**
+     * Define the list of filters in one call.
+     *
+     * @param pFilters
+     *      the arguments for the analyzer
+     * @return
+     *      current reference
+     */
+    public Analyzer filters(List<LexicalFilter> pFilters) {
+        this.filters = pFilters;
+        return this;
+    }
+
+    /**
+     * Define the list of charFilters in one call.
+     *
+     * @param pFilters
+     *      the arguments for the analyzer
+     * @return
+     *      current reference
+     */
+    public Analyzer charFilters(List<LexicalFilter> pFilters) {
+        this.charFilters = pFilters;
+        return this;
+    }
+
+
+    /**
      * Adds a filter to the analyzer.
      *
      * @param name

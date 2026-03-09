@@ -52,13 +52,13 @@ public final class TestDataset {
     public static final String COLLECTION_ALLOW = "collection_allow";
 
     public static CollectionDefinition COLLECTION_VECTOR_DEF = new CollectionDefinition()
-            .disableLexical()
-            .disableRerank()
+            //.disableLexical()
+            //.disableRerank()
             .vector(14, SimilarityMetric.COSINE);
 
     public static CollectionDefinition COLLECTION_VECTORIZE_DEF = new CollectionDefinition()
-            .disableLexical()
-            .disableRerank()
+            //.disableLexical()
+            //.disableRerank()
             .vector(1024, SimilarityMetric.COSINE)
             .vectorize("nvidia","NV-Embed-QA");
 

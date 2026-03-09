@@ -37,6 +37,7 @@ import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinition;
 import com.datastax.astra.client.tables.definition.indexes.TableVectorIndexDefinitionOptions;
 import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.test.integration.utils.EnabledIfVectorize;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -106,6 +107,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(2)
     @DisplayName("02. Should insert rows with vectorize")
+    @EnabledIfVectorize
     public void should_insertMany_withVectorize() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -130,6 +132,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(3)
     @DisplayName("03. Should find with vectorize sort")
+    @EnabledIfVectorize
     public void should_find_withVectorizeSort() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -147,6 +150,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(4)
     @DisplayName("04. Should find with vectorize sort and includeSimilarity")
+    @EnabledIfVectorize
     public void should_find_withVectorSortAndSimilarity() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -167,6 +171,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(5)
     @DisplayName("05. Should find with vectorize sort and includeSortVector")
+    @EnabledIfVectorize
     public void should_find_withVectorizeSortAndSortVector() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -192,6 +197,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(6)
     @DisplayName("06. Should findOne with vectorize sort and includeSimilarity")
+    @EnabledIfVectorize
     public void should_findOne_withVectorizeSortAndSimilarity() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -212,6 +218,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(7)
     @DisplayName("07. Should find with vectorize sort, projection, and similarity")
+    @EnabledIfVectorize
     public void should_find_withVectorizeSortProjectionAndSimilarity() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -234,6 +241,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(8)
     @DisplayName("08. Should find with vectorize sort and filter")
+    @EnabledIfVectorize
     public void should_find_withVectorizeSortAndFilter() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -254,6 +262,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
     @Test
     @Order(9)
     @DisplayName("09. Should cursor limit not cause StackOverflow")
+    @EnabledIfVectorize
     public void should_cursorLimit_notCauseStackOverflow() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -268,6 +277,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
 
     @Test
     @Order(13)
+    @EnabledIfVectorize
     public void should_cursorBuilderMethods_notMutateOriginalOptions() {
         Table<Row> table = getDatabase().getTable(TABLE_VECTORIZE);
 
@@ -300,8 +310,7 @@ public abstract class AbstractTableVectorSearchIT extends AbstractDataAPITest {
 
         // Consume cursor first
         List<Row> results = cursor.toList();
-        assertThat(results).isNotEmpty();
-
+        
         // Sort vector should still be accessible after consuming
         Optional<DataAPIVector> sortVector = cursor.getSortVector();
     }

@@ -13,7 +13,7 @@
     <modules>
         <module>astra-db-java</module>
         <module>astra-db-java-tools</module>
-        <module>astra-db-java-samples</module>
+        <!--<module>astra-db-java-samples</module>-->
         <module>langchain4j-astradb</module>
         <module>astra-sdk-devops</module>
     </modules>

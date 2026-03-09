@@ -25,10 +25,13 @@ import com.datastax.astra.client.DataAPIClients;
 import com.datastax.astra.client.DataAPIDestination;
 import com.datastax.astra.client.admin.AstraDBAdmin;
 import com.datastax.astra.client.admin.DatabaseAdmin;
+import com.datastax.astra.client.core.auth.TokenProvider;
+import com.datastax.astra.client.core.auth.UsernamePasswordTokenProvider;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.internal.utils.AnsiUtils;
 import com.datastax.astra.test.integration.utils.TestConfig;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +84,7 @@ public abstract class AbstractDataAPITest {
     protected DataAPIDestination getDataApiDestination() {
         if (destination == null) {
             destination = getConfig().getDataAPIDestination();
+            log.info("Astra Destination to " + AnsiUtils.yellow("{}"), destination);
         }
         return destination;
     }
@@ -117,10 +121,15 @@ public abstract class AbstractDataAPITest {
                     break;
                 case HCD:
                 case DSE:
-                    dataApiClient = DataAPIClients.clientHCD();
-                    break;
                 case CASSANDRA:
-                    dataApiClient = DataAPIClients.clientCassandra();
+                    TokenProvider tokenProvider = new UsernamePasswordTokenProvider(
+                            getConfig().getLocalUsername(),
+                            getConfig().getLocalPassword());
+                    dataApiClient = new DataAPIClient(tokenProvider.getToken(),
+                            new DataAPIClientOptions()
+                                 .destination(getDataApiDestination())
+                                 .logRequests());
+                    log.info("DataAPI client initialized for {}", getDataApiDestination().name());
                     break;
                 default:
                     throw new IllegalArgumentException("Invalid Environment: " + getDataApiDestination());
@@ -145,19 +154,25 @@ public abstract class AbstractDataAPITest {
     protected synchronized Database getDatabase() {
         if (database == null) {
             final DataAPIDestination env = getDataApiDestination();
-            DatabaseOptions options = new DatabaseOptions()
+            // Inherit Destination in Database Options
+            DatabaseOptions options = new DatabaseOptions(
+                            getDataApiClient().getToken(),
+                            getDataApiClient().getOptions().clone())
+                    .keyspace(getConfig().getKeyspace())
                     .logRequest()
                     .timeoutOptions(
                             new TimeoutOptions()
-                            .connectTimeout(Duration.ofSeconds(60))
-                            .collectionAdminTimeout(Duration.ofSeconds(60))
-                            .requestTimeoutMillis(60000));
+                            .connectTimeout(Duration.ofSeconds(100))
+                            .collectionAdminTimeout(Duration.ofSeconds(100))
+                            .requestTimeoutMillis(600000));
 
             switch (env) {
                 case HCD:
                 case CASSANDRA:
                 case DSE:
-                    database = getDataApiClient().getDatabase(getConfig().getLocalEndpoint(), options);
+                    database = getDataApiClient()
+                       .getDatabase(getConfig().getLocalEndpoint(), options);
+                    log.info("Database initialized for " + AnsiUtils.yellow("{}"), database.getKeyspace());
                     // Create keyspace if it doesn't exist
                     if (!database.getDatabaseAdmin().keyspaceExists(DataAPIClientOptions.DEFAULT_KEYSPACE)) {
                         log.info("Creating keyspace {}", DataAPIClientOptions.DEFAULT_KEYSPACE);

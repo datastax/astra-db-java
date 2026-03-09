@@ -38,6 +38,8 @@ import com.datastax.astra.client.tables.Table;
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
 import com.datastax.astra.client.tables.definition.TableDefinition;
 import com.datastax.astra.test.integration.model.TableEntityGameWithAnnotation;
+import com.datastax.astra.test.integration.utils.EnabledIfReranking;
+import com.datastax.astra.test.integration.utils.EnabledIfVectorize;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -111,6 +113,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(2)
+    @EnabledIfVectorize
     void should_list_embedding_providers() {
         FindEmbeddingProvidersResult result = getDatabaseAdmin().findEmbeddingProviders();
         assertThat(result).isNotNull();
@@ -163,7 +166,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
                 db.listCollectionNames();
                 return; // Data API recognizes the keyspace
             } catch (DataAPIResponseException e) {
-                if ("KEYSPACE_DOES_NOT_EXIST".equals(e.getErrorCode())) {
+                if ("UNKNOWN_KEYSPACE".equals(e.getErrorCode())) {
                     log.info("Waiting for Data API to propagate keyspace '{}'...", keyspaceName);
                     Thread.sleep(2000);
                 } else {
@@ -196,6 +199,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(4)
+    @EnabledIfReranking
     void should_list_rerank_providers() {
         try {
             FindRerankingProvidersResult result = getDatabaseAdmin().findRerankingProviders();
@@ -214,6 +218,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(5)
+    @EnabledIfVectorize
     void should_list_embedding_providers_with_filter() {
         FindEmbeddingProvidersResult result = getDatabaseAdmin()
                 .findEmbeddingProviders(new FindEmbeddingProvidersOptions()
@@ -228,6 +233,7 @@ public abstract class AbstractDatabaseAdminIT extends AbstractDataAPITest {
 
     @Test
     @Order(6)
+    @EnabledIfReranking
     void should_list_rerank_providers_with_filter() {
         try {
             FindRerankingProvidersResult result = getDatabaseAdmin()

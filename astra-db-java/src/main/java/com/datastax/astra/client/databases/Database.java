@@ -409,7 +409,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return A {@link DatabaseAdmin} instance configured with the default token for database-level operations.
      */
     public DatabaseAdmin getDatabaseAdmin() {
-        return getDatabaseAdmin(options.getToken());
+        return getDatabaseAdmin(new AdminOptions(options.getToken(), options.getDataAPIClientOptions().clone()));
     }
 
     /**
@@ -423,7 +423,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      * @return A {@link DatabaseAdmin} instance configured with the provided token.
      */
     public DatabaseAdmin getDatabaseAdmin(String superUserToken) {
-        return getDatabaseAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions()));
+        return getDatabaseAdmin(new AdminOptions(superUserToken, options.getDataAPIClientOptions().clone()));
     }
 
     // ------------------------------------------

@@ -1204,7 +1204,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
 
         // load sortVector if available
         DataAPIVector sortVector = null;
-        if (options != null && options.includeSortVector() != null && apiResponse.getStatus() != null) {
+        if (options != null && Boolean.TRUE.equals(options.includeSortVector()) && apiResponse.getStatus() != null) {
             sortVector = apiResponse.getStatus().getSortVector();
         }
 
@@ -1212,7 +1212,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         List<Document> documents = apiResponse.getData().getDocuments();
         if (documents == null) {
             throw new UnexpectedDataAPIResponseException(findAndRerankCommand,
-                    apiResponse, "No documents retuned");
+                    apiResponse, "No documents returned");
         }
 
         List<Document> documentResponses = null;
@@ -1226,8 +1226,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             Document document = documents.get(i);
 
             // MAP WITH DOCUMENT FUNCTION
-            DocumentSerializer serializer = new DocumentSerializer();
-            R results1 = serializer.convertValue(document, newRowType);
+            R results1 = getSerializer().convertValue(document, newRowType);
 
             // Getting associated document response
             if (documentResponses != null && documentResponses.size() >= i+1) {

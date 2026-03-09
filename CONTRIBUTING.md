@@ -158,12 +158,15 @@ mvn clean test -pl astra-db-java -DASTRA_DB_JAVA_TEST_ENV=astra_dev
 
 ```bash
 # Run all tests against Astra PROD (with coverage report)
+# Vectorize and reranking features enabled, uses default_keyspace
 mvn clean verify -pl astra-db-java -Pastra-prod
 
 # Run all tests against Astra DEV (with coverage report)
+# Vectorize and reranking features enabled, uses default_keyspace
 mvn clean verify -pl astra-db-java -Pastra-dev
 
-# Run all tests against local HCD/DSE (with coverage report)
+# Run all tests against local HCD/DSE/Cassandra (with coverage report)
+# Vectorize and reranking features disabled, uses default_keyspace
 mvn clean verify -pl astra-db-java -Plocal
 
 # Run tests and generate JaCoCo report explicitly
@@ -171,6 +174,12 @@ mvn clean test jacoco:report -pl astra-db-java -Pastra-prod
 
 # Run a specific test class
 mvn test -pl astra-db-java -Pastra-prod -Dtest="Astra_Collections_01_IT"
+
+# Override feature flags for a specific run
+mvn test -pl astra-db-java -Plocal -Dtest.vectorize=true -Dtest.reranking=true
+
+# Override keyspace for a specific run
+mvn test -pl astra-db-java -Pastra-prod -Dtest.keyspace=my_custom_keyspace
 
 # Build without tests
 mvn clean install -DskipTests
@@ -183,14 +192,25 @@ The JaCoCo coverage report is generated at `astra-db-java/target/site/jacoco/ind
 
 ### Maven Profiles
 
-| Profile | `test.environment` | Cloud Provider | Region | Description |
-|---------|--------------------|----------------|--------|-------------|
-| `local` | `local` | GCP | us-east1 | Local HCD/DSE instance |
-| `astra-dev` | `astra_dev` | GCP | us-central1 | Astra development environment |
-| `astra-prod` | `astra_prod` | AWS | us-east-2 | Astra production environment |
-| `skip-tests` | - | - | - | Skip all tests |
+| Profile | `test.environment` | Keyspace | Vectorize | Reranking | Cloud Provider | Region | Description |
+|---------|-------------------|----------|-----------|-----------|----------------|--------|-------------|
+| `local` | `local` | `default_keyspace` | `false` | `false` | - | - | Local HCD/DSE/Cassandra instance |
+| `astra-dev` | `astra_dev` | `default_keyspace` | `true` | `true` | AWS | us-west-2 | Astra development environment |
+| `astra-prod` | `astra_prod` | `default_keyspace` | `true` | `true` | AWS | us-east-2 | Astra production environment |
+| `skip-tests` | - | - | - | - | - | - | Skip all tests |
 
 Profile values are passed as system properties, which take priority over config file values but not environment variables.
+
+#### Feature Flags
+
+Tests that require specific features use conditional annotations:
+
+| Annotation | Property | Behavior |
+|------------|----------|----------|
+| `@EnabledIfVectorize` | `test.vectorize` | Runs only when vectorize feature is enabled (`test.vectorize=true`). Skipped otherwise. |
+| `@EnabledIfReranking` | `test.reranking` | Runs only when reranking feature is enabled (`test.reranking=true`). Skipped otherwise. |
+
+**Note:** Vectorize and reranking features are enabled for Astra environments but disabled for local HCD/DSE/Cassandra.
 
 ### Running Tests in the IDE
 

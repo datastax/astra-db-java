@@ -21,6 +21,7 @@ package com.datastax.astra.test.integration.utils;
  */
 
 import com.datastax.astra.client.DataAPIDestination;
+import com.datastax.astra.internal.utils.AnsiUtils;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,21 +55,25 @@ public final class TestConfig {
     public static final String ENV_VAR_CLOUD_REGION = "ASTRA_CLOUD_REGION";
 
     // Environment values
-    public static final String ENV_LOCAL = "local";
-    public static final String ENV_ASTRA_DEV = "astra_dev";
-    public static final String ENV_ASTRA_PROD = "astra_prod";
-    public static final String ENV_ASTRA_TEST = "astra_test";
+    public static final String ENV_LOCAL              = "local";
+    public static final String ENV_ASTRA_DEV          = "astra_dev";
+    public static final String ENV_ASTRA_PROD         = "astra_prod";
+    public static final String ENV_ASTRA_TEST         = "astra_test";
 
     // Property keys (for config files)
-    private static final String PROP_ENVIRONMENT = "test.environment";
-    private static final String PROP_LOCAL_ENDPOINT = "local.endpoint";
-    private static final String PROP_LOCAL_USERNAME = "local.username";
-    private static final String PROP_LOCAL_PASSWORD = "local.password";
-    private static final String PROP_LOCAL_KEYSPACE = "local.keyspace";
-    private static final String PROP_ASTRA_TOKEN = "astra.token";
-    private static final String PROP_ASTRA_TOKEN_DEV = "astra.token.dev";
+    private static final String PROP_ENVIRONMENT       = "test.environment";
+    private static final String PROP_KEYSPACE          = "test.keyspace";
+    private static final String PROP_FEATURE_VECTORIZE = "test.vectorize";
+    private static final String PROP_FEATURE_RERANKING = "test.reranking";
+
+    private static final String PROP_LOCAL_ENDPOINT   = "local.endpoint";
+    private static final String PROP_LOCAL_USERNAME   = "local.username";
+    private static final String PROP_LOCAL_PASSWORD   = "local.password";
+    private static final String PROP_LOCAL_DATACENTER = "local.datacenter";
+
+    private static final String PROP_ASTRA_TOKEN          = "astra.token";
     private static final String PROP_ASTRA_CLOUD_PROVIDER = "astra.cloud.provider";
-    private static final String PROP_ASTRA_CLOUD_REGION = "astra.cloud.region";
+    private static final String PROP_ASTRA_CLOUD_REGION   = "astra.cloud.region";
 
     // API Keys for embedding providers
     private static final String PROP_OPENAI_API_KEY = "openai.api.key";
@@ -106,10 +111,15 @@ public final class TestConfig {
     // Loaded properties
     private final Properties properties;
 
+    private String currentEnv;
+
     private TestConfig() {
         this.properties = loadProperties();
-        log.info("TestConfig initialized - environment: {}, isAstra: {}, hasToken: {}",
+        log.info("TestConfig initialized - Env: " + AnsiUtils.yellow("{}") +
+                        ", isAstra: " + AnsiUtils.yellow("{}") +
+                        ", hasToken: " + AnsiUtils.yellow("{}"),
                 getEnvironment(), isAstra(), hasAstraToken());
+        log.info(AnsiUtils.magenta("--------------------------------------------------------"));
     }
 
     /**
@@ -131,10 +141,10 @@ public final class TestConfig {
             try (InputStream is = getClass().getClassLoader().getResourceAsStream(configFile)) {
                 if (is != null) {
                     props.load(is);
-                    log.debug("Loaded config file: {}", configFile);
+                    log.debug("Loaded config file: " + AnsiUtils.green("{}"), configFile);
                 }
             } catch (IOException e) {
-                log.warn("Failed to load config file: {}", configFile, e);
+                log.warn("Failed to load config file:" + AnsiUtils.magenta("{}"), configFile, e);
             }
         }
         return props;
@@ -189,7 +199,11 @@ public final class TestConfig {
      * Get the test environment (local, astra_dev, astra_prod, astra_test).
      */
     public String getEnvironment() {
-        return getConfig(ENV_VAR_DESTINATION, PROP_ENVIRONMENT, ENV_LOCAL);
+        if (currentEnv == null) {
+            currentEnv =  getConfig(ENV_VAR_DESTINATION, PROP_ENVIRONMENT, ENV_LOCAL);
+            log.info("Current environment: " + AnsiUtils.yellow("{}"), currentEnv);
+        }
+        return currentEnv;
     }
 
     /**
@@ -234,10 +248,15 @@ public final class TestConfig {
         if (ENV_ASTRA_DEV.equals(env)) {
             String devToken = getConfig(ENV_VAR_ASTRA_TOKEN_DEV, PROP_ASTRA_TOKEN, null);
             if (hasLength(devToken)) {
+                log.info("Astra DEV Token: {}", devToken);
                 return devToken;
             }
         }
-        return getConfig(ENV_VAR_ASTRA_TOKEN, PROP_ASTRA_TOKEN, null);
+        String token = getConfig(ENV_VAR_ASTRA_TOKEN, PROP_ASTRA_TOKEN, null);
+        log.info("Astra PROD Token: {}", token);
+        return token;
+
+
     }
 
     /**
@@ -279,8 +298,29 @@ public final class TestConfig {
     /**
      * Get the local keyspace.
      */
-    public String getLocalKeyspace() {
-        return getConfig(null, PROP_LOCAL_KEYSPACE, "default_keyspace");
+    public String getKeyspace() {
+        return getConfig(null, PROP_KEYSPACE, "default_keyspace");
+    }
+
+    /**
+     * Get the local keyspace.
+     */
+    public boolean isVectorizeEnabled() {
+        return Boolean.valueOf(getConfig(null, PROP_FEATURE_VECTORIZE, "false"));
+    }
+
+    /**
+     * Get the local keyspace.
+     */
+    public boolean isRerankingEnabled() {
+        return Boolean.valueOf(getConfig(null, PROP_FEATURE_RERANKING, "false"));
+    }
+
+    /**
+     * Get the local keyspace.
+     */
+    public String getLocalDataCenter() {
+        return getConfig(null, PROP_LOCAL_DATACENTER, "dc1");
     }
 
     /**

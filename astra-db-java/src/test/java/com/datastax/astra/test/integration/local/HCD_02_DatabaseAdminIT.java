@@ -41,7 +41,7 @@ class HCD_02_DatabaseAdminIT extends AbstractDatabaseAdminIT {
         // Given
         DataAPIDatabaseAdmin dbAdmin = (DataAPIDatabaseAdmin) getDatabaseAdmin();
         // When
-        dbAdmin.createKeyspace("ns3", KeyspaceOptions.networkTopologyStrategy(Map.of("dc1", 1)));
+        dbAdmin.createKeyspace("ns3", KeyspaceOptions.networkTopologyStrategy(Map.of(getConfig().getLocalDataCenter(), 1)));
         assertThat(dbAdmin.keyspaceExists("ns3")).isTrue();
         Database ns3 = dbAdmin.getDatabase("ns3");
         assertThat(ns3).isNotNull();

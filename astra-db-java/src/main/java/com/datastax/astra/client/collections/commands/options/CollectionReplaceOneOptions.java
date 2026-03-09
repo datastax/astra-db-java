@@ -45,7 +45,7 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
     /**
      * Tell to return the document before or after the update.
      */
-    private String returnDocument = ReturnDocument.AFTER.getKey();
+    private String returnDocument = ReturnDocument.BEFORE.getKey();
 
     /**
      * Default constructor.

@@ -84,9 +84,9 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     @BeforeAll
     void setupCollections() {
         // FAST TRACK FOR TESTS
-        //collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
+        collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
 
-        /*dropAllCollections();
+        dropAllCollections();
         dropAllTables();
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
 
@@ -95,7 +95,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 COLLECTION_VECTOR_DEF,
                 ProductString.class);
         log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
-                COLLECTION_SIMPLE, COLLECTION_VECTOR);*/
+                COLLECTION_SIMPLE, COLLECTION_VECTOR);
     }
 
     // ========== Collection Metadata ==========
@@ -1270,7 +1270,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     @Test
     @Order(68)
     // https://github.com/datastax/astra-db-java/issues/75
-    void should_replaceOne_returnAfter() {
+    void should_replaceOne_returnDefault() {
         collectionSimple.deleteAll();
         collectionSimple.insertOne(new Document().id(1).append("hello", "world"));
         collectionSimple.insertOne(new Document().id(2).append("bonjour", "monde"));
@@ -1278,7 +1278,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 Filters.eq(1), new Document().append("hello", "welt"));
         assertThat(u1.getMatchedCount()).isEqualTo(1);
         assertThat(u1.getModifiedCount()).isEqualTo(1);
-        assertThat(u1.getDocument().get("hello")).isEqualTo("welt");
+        assertThat(u1.getDocument().get("hello")).isEqualTo("world");
     }
 
     @Test
@@ -1315,7 +1315,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         CollectionUpdateResult res = collectionSimple.replaceOne(
                 Filters.eq("status", "active"),
                 new Document().append("status", "replaced").append("value", "X"),
-                new CollectionReplaceOneOptions().sort(Sort.ascending("rank")));
+                new CollectionReplaceOneOptions().sort(Sort.ascending("rank")).returnDocument(ReturnDocument.AFTER));
         assertThat(res.getMatchedCount()).isEqualTo(1);
         assertThat(res.getModifiedCount()).isEqualTo(1);
         assertThat(res.getDocument().get("value")).isEqualTo("X");
@@ -1558,8 +1558,6 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     @Test
     @Order(82)
     void should_fail_on_different_collection_already_exists() {
-        collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
-
         assertThatThrownBy(() -> getDatabase().createCollection(COLLECTION_SIMPLE,
                 new CollectionDefinition().defaultId(CollectionDefaultIdTypes.UUID)))
                 .isInstanceOf(DataAPIResponseException.class)

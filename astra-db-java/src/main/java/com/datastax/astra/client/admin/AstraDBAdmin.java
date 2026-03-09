@@ -410,7 +410,7 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Access the database functions.
+     * Access the database administration functions.
      *
      * @param databaseId
      *      database identifier
@@ -422,6 +422,18 @@ public class AstraDBAdmin {
         return new AstraDBDatabaseAdmin(
                 adminOptions.getToken(), databaseId,
                 adminOptions.getDataAPIClientOptions());
+    }
+
+    /**
+     * Access the database administration functions.
+     *
+     * @param databaseEndpoint
+     *      database endpoint
+     * @return
+     *      database client
+     */
+    public AstraDBDatabaseAdmin getDatabaseAdmin(String databaseEndpoint) {
+        return getDatabaseAdmin(AstraApiEndpoint.parse(databaseEndpoint).getDatabaseId());
     }
 
     /**

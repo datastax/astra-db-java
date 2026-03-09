@@ -66,7 +66,7 @@ public class AstraApiEndpoint {
      *      astra db endpoint parsed
      */
     public static AstraApiEndpoint parse(String endpointUrl) {
-        Assert.notNull(endpointUrl, "endpoint");
+        Assert.hasLength(endpointUrl, "endpoint");
         AstraApiEndpoint endpoint = new AstraApiEndpoint();
         String tmpUrl;
         if (endpointUrl.contains(AstraEnvironment.PROD.getAppsSuffix())) {

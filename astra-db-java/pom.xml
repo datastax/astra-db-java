@@ -166,8 +166,9 @@
             <id>local</id>
             <properties>
                 <test.environment>local</test.environment>
-                <astra.cloud.provider>GCP</astra.cloud.provider>
-                <astra.cloud.region>us-east1</astra.cloud.region>
+                <test.keyspace>default_keyspace</test.keyspace>
+                <test.vectorize>false</test.vectorize>
+                <test.reranking>false</test.reranking>
             </properties>
         </profile>
 
@@ -176,8 +177,11 @@
             <id>astra-dev</id>
             <properties>
                 <test.environment>astra_dev</test.environment>
-                <astra.cloud.provider>GCP</astra.cloud.provider>
-                <astra.cloud.region>us-central1</astra.cloud.region>
+                <test.keyspace>default_keyspace</test.keyspace>
+                <test.vectorize>true</test.vectorize>
+                <test.reranking>true</test.reranking>
+                <astra.cloud.provider>AWS</astra.cloud.provider>
+                <astra.cloud.region>us-west-2</astra.cloud.region>
             </properties>
         </profile>
 
@@ -186,6 +190,9 @@
             <id>astra-prod</id>
             <properties>
                 <test.environment>astra_prod</test.environment>
+                <test.keyspace>default_keyspace</test.keyspace>
+                <test.vectorize>true</test.vectorize>
+                <test.reranking>true</test.reranking>
                 <astra.cloud.provider>AWS</astra.cloud.provider>
                 <astra.cloud.region>us-east-2</astra.cloud.region>
             </properties>
