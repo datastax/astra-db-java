@@ -33,6 +33,7 @@ import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.BetaPreview;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.NonNull;
 
 import java.io.Serializable;
@@ -997,6 +998,7 @@ public class Row implements Serializable {
      * @return
      *      similarity value
      */
+    @JsonIgnore
     public Double getSimilarity() {
         return getDouble(DataAPIKeywords.SIMILARITY.getKeyword());
     }
