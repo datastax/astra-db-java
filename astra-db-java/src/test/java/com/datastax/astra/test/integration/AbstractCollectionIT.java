@@ -86,6 +86,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         // FAST TRACK FOR TESTS
         collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
 
+        /*
         dropAllCollections();
         dropAllTables();
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
@@ -96,6 +97,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 ProductString.class);
         log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
                 COLLECTION_SIMPLE, COLLECTION_VECTOR);
+                */
     }
 
     // ========== Collection Metadata ==========
@@ -1352,20 +1354,36 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
 
     @Test
     @Order(71)
-    void should_findOneAndReplace_returnUpdatedDoc() {
+    void should_findOneAndReplace_returnBeforeDoc() {
         Collection<Document> col = collectionSimple;
         col.deleteAll();
-        col.insertOne(new Document().id(1).append("hello", "world"));
-        col.insertOne(new Document().id(2).append("bonjour", "monde"));
+        col.insertOne(new Document().id(1).append("prop1", "val11").append("prop2", "val21"));
+        col.insertOne(new Document().id(2).append("prop1", "val12").append("prop2", "val22"));
 
-        Optional<Document> opt1 = col.findOneAndReplace(Filters.eq(1), new Document().id(1).append("hello", "world2"));
+        // Default we returned Before
+        Optional<Document> opt1 = col.findOneAndReplace(
+                // Replace first
+                Filters.eq(1),
+                // update prop1
+                new Document().id(1).append("prop1", "val13"));
         assertThat(opt1).isPresent();
-        assertThat(opt1.get().getDocumentMap()).containsEntry("hello", "world2");
+        assertThat(opt1.get().getDocumentMap()).containsEntry("prop1", "val11");
 
-        Optional<Document> opt2 = collectionSimple
-                .findOneAndReplace(Filters.eq(3), new Document().id(3).append("hello", "world2"),
+        // We force returned after
+        Optional<Document> opt2 = col.findOneAndReplace(
+                // Replace first
+                Filters.eq(1),
+                // update prop1
+                new Document().id(1).append("prop1", "val14"),
+                new CollectionFindOneAndReplaceOptions().returnDocument(ReturnDocument.AFTER));
+        assertThat(opt2).isPresent();
+        assertThat(opt2.get().getDocumentMap()).containsEntry("prop1", "val14");
+
+        // id 3 does not exist
+        Optional<Document> opt3 = collectionSimple
+                .findOneAndReplace(Filters.eq(3), new Document().id(3).append("prop1", "val13"),
                         new CollectionFindOneAndReplaceOptions().upsert(false));
-        assertThat(opt2).isEmpty();
+        assertThat(opt3).isEmpty();
     }
 
     // ========== deleteOne ==========

@@ -22,6 +22,7 @@ package com.datastax.astra.client.collections.commands.options;
 
 import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.core.options.BaseOptions;
+import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,6 +42,11 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
      * Option to order the result.
      */
     Sort[] sort;
+
+    /**
+     * Option for projects
+     */
+    private Projection[] projection;
 
     /**
      * Tell to return the document before or after the update.
@@ -86,5 +92,27 @@ public class CollectionReplaceOneOptions extends BaseOptions<CollectionReplaceOn
      */
     public Sort[] getSortArray() {
         return sort;
+    }
+
+    /**
+     * Adding this on top of projection(Projection[] p) to allow for a more fluent API.
+     * @param p
+     *      projection options
+     * @return
+     *     current command
+     */
+    public CollectionReplaceOneOptions projection(Projection... p) {
+        this.projection = p;
+        return this;
+    }
+
+    /**
+     * Adding projection Arrays.
+     *
+     * @return
+     *      projection array
+     */
+    public Projection[] getProjectionArray() {
+        return projection;
     }
 }

@@ -53,6 +53,8 @@ import org.junit.jupiter.api.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -350,12 +352,12 @@ public abstract class AbstractCollectionFindAndRerankIT extends AbstractDataAPIT
 
     @Test
     @Order(13)
-    void should_findAndRerank_withProjection() {
+    void should_findAndRerank_withProjectionExclude() {
         if (skipIfNoRerankingKey()) return;
 
         CollectionFindAndRerankOptions options = baseFindAndRerankOptions()
                 .sort(Sort.hybrid(new Hybrid("education and learning")))
-                .projection(Projection.include("author", "quote"))
+                .projection(Projection.exclude("quote"))
                 .hybridLimits(5);
 
         List<RerankedResult<Document>> results = getDatabase()
@@ -366,8 +368,30 @@ public abstract class AbstractCollectionFindAndRerankIT extends AbstractDataAPIT
         assertThat(results).isNotEmpty();
         // Verify projection applied — only author and quote should be present
         results.forEach(r -> {
+            assertThat(r.getDocument().getString("quote")).isNull();
             assertThat(r.getDocument().getString("author")).isNotNull();
-            assertThat(r.getDocument().getString("quote")).isNotNull();
+        });
+    }
+
+    @Test
+    @Order(13)
+    void should_findAndRerank_withProjectionInclude() {
+        if (skipIfNoRerankingKey()) return;
+
+        CollectionFindAndRerankOptions options = baseFindAndRerankOptions()
+                .sort(Sort.hybrid(new Hybrid("education and learning")))
+                .projection(Projection.include("quote"))
+                .hybridLimits(5);
+
+        List<RerankedResult<Document>> results = getDatabase()
+                .getCollection(COLLECTION_FIND_RERANK)
+                .findAndRerank(options)
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        // Verify projection applied — only author and quote should be present
+        results.forEach(r -> {
+            assertThat(r.getDocument().getString("author")).isNull();
         });
     }
 

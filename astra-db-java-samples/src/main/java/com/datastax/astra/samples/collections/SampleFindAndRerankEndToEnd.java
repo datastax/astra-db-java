@@ -20,7 +20,16 @@ import lombok.Data;
  * @see Hybrid
  */
 @SuppressWarnings("unused")
-public class SampleFindAndRerank {
+public class SampleFindAndRerankEndToEnd {
+
+    public static void main(String[] args) {
+        // Connect
+
+        // Creqte
+
+
+        {"name":"test_collection","options":{"vector":{"dimension":1024,"metric":"cosine","sourceModel":"other","service":{"provider":"nvidia","modelName":"nvidia/nv-embedqa-e5-v5"}},"lexical":{"enabled":true,"analyzer":{"tokenizer":{"name":"standard"},"filters":[{"name":"lowercase"},{"name":"stop"},{"name":"porterstem"},{"name":"asciifolding"}]}},"rerank":{"enabled":true,"service":{"provider":"nvidia","modelName":"nvidia/llama-3.2-nv-rerankqa-1b-v2"}}}},
+    }
 
     @Data
     public static class Projected {

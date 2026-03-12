@@ -1708,6 +1708,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                 .create("findOneAndReplace")
                 .withFilter(filter)
                 .withReplacement(replacement)
+                .withProjection(options.getProjectionArray())
                 .withSort(options.getSortArray())
                 .withOptions(new Document()
                         .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
@@ -1756,6 +1757,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
         Command findOneAndReplace = Command
                 .create("findOneAndReplace")
                 .withFilter(filter)
+                .withProjection(collectionReplaceOneOptions.getProjectionArray())
                 .withReplacement(replacement)
                 .withSort(collectionReplaceOneOptions.getSortArray())
                 .withOptions(new Document()
