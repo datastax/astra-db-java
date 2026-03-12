@@ -26,7 +26,7 @@ jobs:
         shell: bash
         id: build
         run: |
-          mvn install -pl astra-db-java -am -Dmaven.test.skip=true -Dgpg.skip
+          mvn install -pl astra-db-java -am -Dmaven.test.skip=true -Dgpg.skip -B
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 

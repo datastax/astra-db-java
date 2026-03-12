@@ -39,4 +39,4 @@ jobs:
         working-directory: ${{ github.workspace }}/astra-db-java/src/test/resources
 
       - name: Run integration tests
-        run: mvn clean verify -pl astra-db-java -am -Plocal -Dgpg.skip
+        run: mvn clean verify -pl astra-db-java -am -Plocal -Dgpg.skip -B

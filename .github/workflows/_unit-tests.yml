@@ -32,4 +32,4 @@ jobs:
           cache: 'maven'
 
       - name: Run unit tests
-        run: mvn clean test -Dtest='!**/*IT' -Dtest.skipped=false -pl astra-db-java -B
+        run: mvn clean test -pl astra-db-java -am -Dtest='!**/*IT' -B -Dlogback.root.level=INFO

@@ -28,4 +28,4 @@ jobs:
       - name: Run integration tests
         env:
           ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
-        run: mvn clean verify -pl astra-db-java -am -Pastra-dev -Dgpg.skip
+        run: mvn clean verify -pl astra-db-java -am -Pastra-dev -Dgpg.skip -B
