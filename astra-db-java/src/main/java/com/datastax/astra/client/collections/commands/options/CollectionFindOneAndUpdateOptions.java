@@ -55,7 +55,7 @@ public class CollectionFindOneAndUpdateOptions extends BaseOptions<CollectionFin
     /**
      * Return document flag.
      */
-    private String returnDocument;
+    private String returnDocument = ReturnDocument.BEFORE.getKey();
 
     /**
      * Default constructor.
