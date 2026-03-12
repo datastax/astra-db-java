@@ -53,7 +53,7 @@ public class CollectionFindOneAndReplaceOptions extends BaseOptions<CollectionFi
     /**
      * Tell to return the document before or after the update.
      */
-    private String returnDocument = ReturnDocument.AFTER.getKey();
+    private String returnDocument = ReturnDocument.BEFORE.getKey();
 
     /**
      * Default constructor.
