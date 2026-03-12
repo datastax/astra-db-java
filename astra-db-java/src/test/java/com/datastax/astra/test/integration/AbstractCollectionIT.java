@@ -86,7 +86,6 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         // FAST TRACK FOR TESTS
         collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
 
-        /*
         dropAllCollections();
         dropAllTables();
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
@@ -97,7 +96,7 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
                 ProductString.class);
         log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
                 COLLECTION_SIMPLE, COLLECTION_VECTOR);
-                */
+
     }
 
     // ========== Collection Metadata ==========
