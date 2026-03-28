@@ -3,10 +3,6 @@ name: Run integration tests against HCD
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request: # temporary until it's merged
-    branches: [ KG-ci-additions ]
-  push:
-    branches: [ KG-ci-additions ]
 
 permissions:
   id-token: write
