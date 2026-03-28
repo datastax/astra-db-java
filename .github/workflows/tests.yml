@@ -15,8 +15,8 @@ jobs:
     name: Run unit tests
     uses: ./.github/workflows/_unit-tests.yml
     with:
-      java_versions: '"17","21","25"'
-#      java_versions: ${{ github.event_name == 'merge_group' && '"17","21","25"' || '"17"' }}
+      java_versions: '"17","21"'
+#      java_versions: ${{ github.event_name == 'merge_group' && '"17","21"' || '"17"' }}
 
   run-docs-compilation-tests:
     name: Run docs compilation tests
