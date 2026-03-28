@@ -241,6 +241,13 @@
                     <source>${maven.plugin.compiler.source}</source>
                     <target>${maven.plugin.compiler.target}</target>
                     <showWarnings>false</showWarnings>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.44</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
