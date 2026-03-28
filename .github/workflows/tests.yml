@@ -2,21 +2,17 @@ name: Tests
 
 on:
   merge_group:
-#  pull_request:
-  pull_request: # temporary until it's merged
-    branches: [ KG-ci-additions ]
-  push:
-    branches: [ KG-ci-additions ]
+  pull_request:
 
-# alias act='act --container-architecture linux/amd64 -P ubuntu-latest=quay.io/jamezp/act-maven'
+# To run this locally, the following should be used:
+# > alias act='act --container-architecture linux/amd64 -P ubuntu-latest=quay.io/jamezp/act-maven'
 
 jobs:
   run-unit-tests:
     name: Run unit tests
     uses: ./.github/workflows/_unit-tests.yml
     with:
-      java_versions: '"17","21","25"'
-#      java_versions: ${{ github.event_name == 'merge_group' && '"17","21","25"' || '"17"' }}
+      java_versions: ${{ github.event_name == 'merge_group' && '"17","21","25"' || '"17"' }}
 
   run-docs-compilation-tests:
     name: Run docs compilation tests

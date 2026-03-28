@@ -5,12 +5,12 @@ on:
     inputs:
       java_versions:
         type: string
-        description: 'Comma-separated list of Java versions e.g. "17","21"'
+        description: 'Comma-separated list of Java versions e.g. "17","21","25"'
         required: true
   workflow_dispatch:
     inputs:
       java_versions:
-        description: 'Comma-separated list of Java versions e.g. "17","21"'
+        description: 'Comma-separated list of Java versions e.g. "17","21","25"'
         default: '"17"'
         required: false
 

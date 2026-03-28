@@ -19,7 +19,6 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        shell: bash
         id: build
         run: |
           mvn install -pl astra-db-java -am -Dmaven.test.skip=true -Dgpg.skip -B
