@@ -3,42 +3,51 @@ name: Tests
 on:
   merge_group:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
 
 # To run this locally, the following should be used:
 # > alias act='act --container-architecture linux/amd64 -P ubuntu-latest=quay.io/jamezp/act-maven'
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      is_full_run: ${{ github.event_name == 'merge_group' || contains(github.event.pull_request.labels.*.name, 'Run Full Tests') }}
+    steps:
+      - run: exit 0
+
   run-unit-tests:
     name: Run unit tests
+    needs: [setup]
     uses: ./.github/workflows/_unit-tests.yml
     with:
-      java_versions: ${{ github.event_name == 'merge_group' && '"17","21","25"' || '"17"' }}
+      java_versions: ${{ needs.setup.outputs.is_full_run == 'true' && '"17","21","25"' || '"17"' }}
 
   run-docs-compilation-tests:
     name: Run docs compilation tests
-    needs: [run-unit-tests]
-    if: github.event_name == 'merge_group'
+    needs: [setup, run-unit-tests]
+    if: needs.setup.outputs.is_full_run == 'true'
     uses: ./.github/workflows/_docs-compile-tests.yml
     secrets: inherit
 
   run-hcd-integration-tests:
     name: Run HCD integration tests
-    needs: [run-unit-tests]
-    if: github.event_name == 'merge_group'
+    needs: [setup, run-unit-tests]
+    if: needs.setup.outputs.is_full_run == 'true'
     uses: ./.github/workflows/_hcd-integration-tests.yml
     secrets: inherit
 
   run-astra-integration-tests:
     name: Run Astra integration tests
-    needs: [run-unit-tests]
-    if: github.event_name == 'merge_group'
+    needs: [setup, run-unit-tests]
+    if: needs.setup.outputs.is_full_run == 'true'
     uses: ./.github/workflows/_hcd-integration-tests.yml
     secrets: inherit
 
   can-enqueue:
     name: Can enqueue
-    needs: [run-unit-tests]
-    if: always() && github.event_name != 'merge_group'
+    needs: [setup, run-unit-tests]
+    if: always() && needs.setup.outputs.is_full_run != 'true' && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Check outcomes
@@ -47,8 +56,8 @@ jobs:
 
   can-merge:
     name: Can merge
-    needs: [run-unit-tests, run-docs-compilation-tests, run-hcd-integration-tests, run-astra-integration-tests]
-    if: always() && github.event_name == 'merge_group'
+    needs: [setup, run-unit-tests, run-docs-compilation-tests, run-hcd-integration-tests, run-astra-integration-tests]
+    if: always() && needs.setup.outputs.is_full_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check outcomes
