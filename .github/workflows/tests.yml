@@ -2,8 +2,9 @@ name: Tests
 
 on:
   merge_group:
+    branches: [ main ]
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    branches: [ main ]
 
 # To run this locally, the following should be used:
 # > alias act='act --container-architecture linux/amd64 -P ubuntu-latest=quay.io/jamezp/act-maven'
