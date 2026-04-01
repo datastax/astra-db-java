@@ -48,7 +48,7 @@ jobs:
   can-enqueue:
     name: Can enqueue
     needs: [setup, run-unit-tests]
-    if: always() && needs.setup.outputs.is_full_run != 'true' && github.event_name != 'merge_group'
+    if: always() && github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Check outcomes
@@ -58,7 +58,7 @@ jobs:
   can-merge:
     name: Can merge
     needs: [setup, run-unit-tests, run-docs-compilation-tests, run-hcd-integration-tests, run-astra-integration-tests]
-    if: always() && needs.setup.outputs.is_full_run == 'true'
+    if: always() && github.event_name == 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - name: Check outcomes
