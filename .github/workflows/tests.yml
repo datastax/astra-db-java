@@ -41,8 +41,8 @@ jobs:
   run-astra-integration-tests:
     name: Run Astra integration tests
     needs: [setup, run-unit-tests]
-    if: needs.setup.outputs.is_full_run == 'true'
-    uses: ./.github/workflows/_hcd-integration-tests.yml
+    if: github.event_name == 'merge_group' # We want to run this as little as possible to avoid messing up the shared Astra org
+    uses: ./.github/workflows/_astra-integration-tests.yml
     secrets: inherit
 
   can-enqueue:
