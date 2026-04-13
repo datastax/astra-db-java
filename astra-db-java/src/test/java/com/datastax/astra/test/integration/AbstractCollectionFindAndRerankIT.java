@@ -47,6 +47,7 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 

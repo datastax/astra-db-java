@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.datastax.astra</groupId>
+        <artifactId>astra-db-java-parent</artifactId>
+        <version>2.2.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>astra-db-java-samples-parent</artifactId>
+    <name>Dqata API Client - Samples</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>sample-demo</module>
+        <module>sample-hcd</module>
+        <module>sample-astra-spring-boot3x</module>
+    </modules>
+
+    <properties>
+        <!-- Skip deployment and publishing for samples -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+        <gpg.skip>true</gpg.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+        <maven.source.skip>true</maven.source.skip>
+        <central.publishing.skip>true</central.publishing.skip>
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Provide version management for sample dependencies -->
+            <dependency>
+                <groupId>com.datastax.astra</groupId>
+                <artifactId>astra-db-java</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.datastax.astra</groupId>
+                <artifactId>astra-db-java-tools</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.datastax.astra</groupId>
+                <artifactId>langchain4j-astradb</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>dev.langchain4j</groupId>
+                <artifactId>langchain4j-open-ai-official</artifactId>
+                <version>${langchain4j-beta.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <!-- Disable jar creation for parent pom -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>none</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
