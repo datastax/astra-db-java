@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>sample-demo</artifactId>
-    <name>Data API Client Samples - Demo</name>
+    <name>+ sample end-to-end demos</name>
 
     <dependencies>
         <dependency>

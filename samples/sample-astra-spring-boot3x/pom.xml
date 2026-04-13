@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>sample-astra-spring-boot3x</artifactId>
-	<name>Data API Client Samples - Spring Boot 3.x</name>
+	<name>+ sample Spring Boot 3x</name>
 
 	<properties>
 		<java.version>21</java.version>

@@ -1,0 +1,31 @@
+name: Run integration tests against Astra
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+concurrency:
+  group: astra-integration-tests
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+
+jobs:
+  test-integration-astra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Run integration tests
+        env:
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN_DEV }}
+        run: mvn clean verify -pl astra-db-java -am -Pastra-dev -Dgpg.skip -B

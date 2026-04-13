@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>astra-db-java-samples-parent</artifactId>
-    <name>Dqata API Client - Samples</name>
+    <name>Data API Client - Samples</name>
     <packaging>pom</packaging>
 
     <modules>
