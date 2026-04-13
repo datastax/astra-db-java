@@ -152,6 +152,9 @@
                         <ASTRA_DB_JAVA_TEST_ENV>${test.environment}</ASTRA_DB_JAVA_TEST_ENV>
                         <ASTRA_CLOUD_PROVIDER>${astra.cloud.provider}</ASTRA_CLOUD_PROVIDER>
                         <ASTRA_CLOUD_REGION>${astra.cloud.region}</ASTRA_CLOUD_REGION>
+                        <test.vectorize>${test.vectorize}</test.vectorize>
+                        <test.reranking>${test.reranking}</test.reranking>
+                        <test.keyspace>${test.keyspace}</test.keyspace>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

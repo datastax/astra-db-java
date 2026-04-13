@@ -33,3 +33,4 @@ test-config-embedding-providers.properties
 
 release.properties
 pom.xml.releaseBackup
+.bob
