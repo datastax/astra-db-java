@@ -57,6 +57,9 @@ public class DataAPIException extends RuntimeException {
     public static final String DEFAULT_ERROR_CODE = "CLIENT_ERROR";
 
     /** Default error code. */
+    public static final String ERROR_CODE_PARTIAL_INSERTION = "CLIENT_PARTIAL_INSERTION";
+
+    /** Default error code. */
     public static final String ERROR_CODE_TIMEOUT = "CLIENT_TIMEOUT";
 
     /** Default error code. */

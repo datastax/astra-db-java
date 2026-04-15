@@ -51,6 +51,7 @@ import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.collections.definition.documents.types.ObjectId;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv6;
 import com.datastax.astra.client.collections.definition.documents.types.UUIDv7;
+import com.datastax.astra.client.collections.exceptions.CollectionInsertManyException;
 import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.core.DataAPIKeywords;
 import com.datastax.astra.client.core.commands.Command;
@@ -63,7 +64,9 @@ import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.client.exceptions.UnexpectedDataAPIResponseException;
+import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.client.tables.commands.options.TableDistinctOptions;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.api.DataAPIStatus;
@@ -590,12 +593,30 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
 
         // Grouping All Insert ids in the same list.
         CollectionInsertManyResult finalResult = new CollectionInsertManyResult();
+        List<CollectionInsertManyException> partialExceptions = new ArrayList<>();
+        
         try {
+            // Collect results from all futures, even if some fail
             for (Future<CollectionInsertManyResult> future : futures) {
-                CollectionInsertManyResult res = future.get();
-                finalResult.getInsertedIds().addAll(res.getInsertedIds());
-                finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
+                try {
+                    CollectionInsertManyResult res = future.get();
+                    finalResult.getInsertedIds().addAll(res.getInsertedIds());
+                    finalResult.getDocumentResponses().addAll(res.getDocumentResponses());
+                } catch (ExecutionException e) {
+                    // Collect partial insertion exceptions
+                    if (e.getCause() instanceof CollectionInsertManyException) {
+                        CollectionInsertManyException partialEx = (CollectionInsertManyException) e.getCause();
+                        // Add the partial IDs from this failed chunk
+                        finalResult.getInsertedIds().addAll(partialEx.getInsertedIds());
+                        partialExceptions.add(partialEx);
+                    } else if (e.getCause() instanceof DataAPIException) {
+                        throw (DataAPIException) e.getCause();
+                    } else {
+                        throw new DataAPIException(ERROR_CODE_INTERRUPTED, "Error during insertMany execution", e.getCause());
+                    }
+                }
             }
+            
             // Set a default timeouts for the overall operation
             long totalTimeout = this.options.getTimeout();
             if (options.getDataAPIClientOptions() != null) {
@@ -607,10 +628,18 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
             } else {
                 throw new DataAPIException(ERROR_CODE_TIMEOUT, "Request did not complete within ");
             }
-        } catch (InterruptedException | ExecutionException e) {
-            if (e.getCause() instanceof DataAPIException) {
-                throw (DataAPIException) e.getCause();
+            
+            // If we collected any partial exceptions, throw a consolidated one
+            if (!partialExceptions.isEmpty()) {
+                throw new CollectionInsertManyException(
+                    finalResult.getInsertedIds(),
+                    String.format("Partial insertion: %d documents inserted across %d chunks, %d chunks failed",
+                        finalResult.getInsertedIds().size(),
+                        futures.size(),
+                        partialExceptions.size())
+                );
             }
+        } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new DataAPIException(ERROR_CODE_INTERRUPTED, "Thread was interrupted while waiting", e);
         }
@@ -794,15 +823,40 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                             .append(OPTIONS_ORDERED, collectionInsertManyOptions.isOrdered())
                             .append(OPTIONS_RETURN_DOCUMENT_RESPONSES, collectionInsertManyOptions.isReturnDocumentResponses()));
 
-            DataAPIStatus status = runCommand(insertMany, collectionInsertManyOptions).getStatus();
-            CollectionInsertManyResult result = new CollectionInsertManyResult();
-            if (status.getInsertedIds()!= null && !status.getInsertedIds().isEmpty()) {
-                result.setInsertedIds(status.getInsertedIds().stream().map(this::unmarshallDocumentId).toList());
+            try {
+                DataAPIResponse response = runCommand(insertMany, collectionInsertManyOptions);
+                DataAPIStatus status = response.getStatus();
+                CollectionInsertManyResult result = new CollectionInsertManyResult();
+                
+                // Collect inserted IDs
+                if (status.getInsertedIds()!= null && !status.getInsertedIds().isEmpty()) {
+                    List<Object> insertedIds = status.getInsertedIds().stream().map(this::unmarshallDocumentId).toList();
+                    result.setInsertedIds(insertedIds);
+                }
+                
+                if (status.getDocumentResponses()!= null && !status.getDocumentResponses().isEmpty()) {
+                    result.setDocumentResponses(status.getDocumentResponses());
+                }
+                
+                return result;
+            } catch (DataAPIResponseException e) {
+                // Extract partial insertedIds from the response before the error
+                List<Object> partialIds = new ArrayList<>();
+                if (e.getCommandsList() != null && !e.getCommandsList().isEmpty()) {
+                    DataAPIResponse errorResponse = e.getCommandsList().get(0).getResponse();
+                    if (errorResponse != null && errorResponse.getStatus() != null 
+                            && errorResponse.getStatus().getInsertedIds() != null) {
+                        partialIds = errorResponse.getStatus().getInsertedIds().stream()
+                                .map(this::unmarshallDocumentId)
+                                .toList();
+                    }
+                }
+                
+                // Throw CollectionInsertManyException with partial IDs
+                throw new CollectionInsertManyException(partialIds,
+                    "Partial insertion: " + partialIds.size() + " documents inserted before error. " +
+                    "Error: " + e.getMessage());
             }
-            if (status.getDocumentResponses()!= null && !status.getDocumentResponses().isEmpty()) {
-                result.setDocumentResponses(status.getDocumentResponses());
-            }
-            return result;
         };
     }
 

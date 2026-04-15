@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "openrag": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/path/to/openrag/sdks/mcp",
+        "openrag-mcp"
+      ],
+      "env": {
+        "OPENRAG_URL": "http://localhost:3000",
+        "OPENRAG_API_KEY": "orag_Xayv9xKl_6Dc4NAuUpUWCRRjK1Rivpvg7NXnmrnFPHE"
+      }
+    }
+  }
+}

@@ -9,13 +9,14 @@
     </parent>
 
     <artifactId>astra-db-java-samples-parent</artifactId>
-    <name>Data API Client - Samples</name>
+    <name>Samples</name>
     <packaging>pom</packaging>
 
     <modules>
         <module>sample-demo</module>
         <module>sample-hcd</module>
-        <module>sample-astra-spring-boot3x</module>
+        <module>sample-spring-boot3x</module>
+        <module>sample-openrag-api</module>
     </modules>
 
     <properties>

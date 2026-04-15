@@ -12,11 +12,10 @@
 
     <modules>
         <module>astra-db-java</module>
-        <module>astra-db-java-tools</module>
-        <module>langchain4j-astradb</module>
         <module>astra-sdk-devops</module>
+        <module>tools</module>
+        <module>integrations</module>
         <module>samples</module>
-
     </modules>
 
     <properties>
@@ -25,7 +24,7 @@
         <!-- Third Party Libraries -->
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.29</logback.version>
-        <jackson.version>2.21.0</jackson.version>
+        <jackson.version>2.21.2</jackson.version>
         <lombok.version>1.18.42</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
         <awaitility.version>4.3.0</awaitility.version>
