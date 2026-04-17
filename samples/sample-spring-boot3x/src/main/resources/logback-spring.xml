@@ -25,9 +25,8 @@
 
     <logger name="com.datastax.astra" level="INFO"/>
     <logger name="com.datastax.astra.boot.autoconfigure" level="DEBUG"/>
-    <logger name="com.datastax.astra.client" level="INFO"/>
+    <logger name="com.datastax.astra.client" level="DEBUG"/>
     <logger name="com.datastax.astra.internal" level="WARN"/>
-
     <logger name="com.ibm.astra.demo" level="DEBUG"/>
 
     <logger name="org.apache.http" level="WARN"/>

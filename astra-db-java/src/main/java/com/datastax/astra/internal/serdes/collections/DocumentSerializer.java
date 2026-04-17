@@ -59,7 +59,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.datastax.astra.internal.serdes.collections.DataAPIAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -108,7 +108,7 @@ public class DocumentSerializer implements DataAPISerializer {
                     .setDateFormat(new SimpleDateFormat("dd/MM/yyyy"))
                     // Update 2.2, null fields are required to empty values
                     //.setSerializationInclusion(Include.NON_NULL)
-                    .setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+                    .setAnnotationIntrospector(new DataAPIAnnotationIntrospector());
 
             SimpleModule module = new SimpleModule();
 

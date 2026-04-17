@@ -11,6 +11,7 @@ logging:
   level:
     org.springframework.web: WARN
     com.ibm.astra.demo: INFO
+    com.datastax.astra.client: DEBUG
     root: WARN
 
 astra:

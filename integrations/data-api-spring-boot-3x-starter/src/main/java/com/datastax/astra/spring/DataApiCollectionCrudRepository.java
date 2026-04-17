@@ -138,7 +138,7 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
             log.info("Detected schema action CREATE_IF_NOT_EXISTS, ensuring collection {} exists...", collectionName);
             if (!database.collectionExists(collectionName)) {
                 log.info("Collection '{}' does not exist, creating it...", collectionName);
-                CollectionDefinition expected = database.getCollection(collectionName, documentClass).getDefinition();
+                CollectionDefinition expected = beanDefinition.buildCollectionDefinition();
                 database.createCollection(collectionName, expected, documentClass);
                 log.info("Collection '{}' created successfully", collectionName);
             } else {
@@ -150,7 +150,7 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
                 throw new IllegalArgumentException("Collection '" + collectionName + "' does not exist");
             } else {
                 CollectionDefinition existing = database.getCollection(collectionName).getDefinition();
-                CollectionDefinition expected = database.getCollection(collectionName, documentClass).getDefinition();
+                CollectionDefinition expected = beanDefinition.buildCollectionDefinition();
 
                 // Compare collection definitions
                 if (!existing.equals(expected)) {
