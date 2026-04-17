@@ -1,6 +1,7 @@
 package com.datastax.astra.boot.autoconfigure;
 
 import com.datastax.astra.client.DataAPIClient;
+import com.datastax.astra.client.admin.DatabaseAdmin;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
 import com.datastax.astra.client.core.http.HttpClientOptions;
@@ -248,21 +249,54 @@ public class DataAPIAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public Database database(DataAPIClient dataAPIClient) {
+
         if (Utils.hasLength(dataAPIClientProperties.getEndpointUrl())) {
+            Database database;
             if (Utils.hasLength(dataAPIClientProperties.getKeyspace())) {
                 LOGGER.info("Setup of Database from endpoint-url: {} with keyspace: {}", 
                     dataAPIClientProperties.getEndpointUrl(), 
                     dataAPIClientProperties.getKeyspace());
-                return dataAPIClient.getDatabase(
+                database = dataAPIClient.getDatabase(
                     dataAPIClientProperties.getEndpointUrl(), 
                     dataAPIClientProperties.getKeyspace());
             } else {
                 LOGGER.info("Setup of Database from endpoint-url: {}", dataAPIClientProperties.getEndpointUrl());
-                return dataAPIClient.getDatabase(dataAPIClientProperties.getEndpointUrl());
+                database = dataAPIClient.getDatabase(dataAPIClientProperties.getEndpointUrl());
             }
+
+            // list keyspaces from Data API Client
+            SchemaAction schemaAction = dataAPIClientProperties.getSchemaAction();
+            DatabaseAdmin dbAdmin = database.getDatabaseAdmin();
+            if (!dbAdmin.listKeyspaceNames().contains(database.getKeyspace())) {
+                LOGGER.info("Schema action configured: {}", schemaAction);
+                if (SchemaAction.CREATE_IF_NOT_EXISTS.equals(schemaAction)) {
+                    dbAdmin.createKeyspace(database.getKeyspace());
+                } else if (SchemaAction.VALIDATE.equals(schemaAction)) {
+                    throw new IllegalArgumentException("Keyspace '"
+                            + database.getKeyspace() + "' has not been found, create the keyspace or " +
+                            "set astra.data-api.schema-action to CREATE_IF_NOT_EXISTS");
+                }
+            }
+
+            // if expected keyspace does not exists
+
+
+
+
+
+            return database;
         } else {
             LOGGER.warn("No endpoint-url provided in configuration. Database bean will not be created.");
             return null;
         }
+    }
+    
+    /**
+     * Gets the configured schema action.
+     *
+     * @return the schema action
+     */
+    public SchemaAction getSchemaAction() {
+        return dataAPIClientProperties.getSchemaAction();
     }
 }

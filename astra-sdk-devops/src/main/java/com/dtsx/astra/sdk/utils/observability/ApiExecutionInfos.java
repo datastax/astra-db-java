@@ -4,14 +4,10 @@ import com.dtsx.astra.sdk.utils.ApiResponse;
 import com.dtsx.astra.sdk.utils.ApiResponseHttp;
 import com.dtsx.astra.sdk.utils.Assert;
 import lombok.Getter;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.NameValuePair;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import java.io.Serializable;
+import java.net.http.HttpRequest;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +39,9 @@ public class ApiExecutionInfos implements Serializable {
     private final Map<String, List<String>> requestHttpHeaders;
 
     /**
-     * HTTP Request in
+     * HTTP Request method
      */
-    private final Method requestHttpMethod;
+    private final String requestHttpMethod;
 
     /**
      * Request URL
@@ -124,7 +120,7 @@ public class ApiExecutionInfos implements Serializable {
     public static class ApiExecutionInfoBuilder {
         private String operationName;
         private Object payload;
-        private Method requestHttpMethod;
+        private String requestHttpMethod;
         private ApiResponse<?> response;
         private long executionTime;
         private int responseHttpCode;
@@ -175,19 +171,12 @@ public class ApiExecutionInfos implements Serializable {
          * @return
          *     current reference
          */
-        public ApiExecutionInfoBuilder withHttpRequest(HttpUriRequestBase req) {
-            this.requestHttpMethod = Method.valueOf(req.getMethod());
-            this.requestHttpHeaders = Arrays.stream(req.getHeaders()).collect
-                    (Collectors.toMap(NameValuePair::getName,
-                            h -> Collections.singletonList(h.getValue())));
-            try {
-                this.requestUrl = req.getUri().toString();
-            } catch (Exception e) {}
-            if (req.getEntity() != null) {
-                try {
-                    this.payload = EntityUtils.toString(req.getEntity());
-                } catch (Exception e) {}
-            }
+        public ApiExecutionInfoBuilder withHttpRequest(HttpRequest req) {
+            this.requestHttpMethod = req.method();
+            this.requestHttpHeaders = req.headers().map();
+            this.requestUrl = req.uri().toString();
+            // Note: HttpRequest doesn't provide direct access to body content after creation
+            // Body content would need to be tracked separately if needed
             return this;
         }
 

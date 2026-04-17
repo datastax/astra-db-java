@@ -42,6 +42,16 @@ public class DataAPIClientProperties {
     private Boolean logRequest;
 
     /**
+     * Schema action for collection/table management.
+     * Similar to JPA's ddl-auto property.
+     * Possible values:
+     * - CREATE_IF_NOT_EXISTS: Create collections/tables if they don't exist (default)
+     * - VALIDATE: Validate that collections/tables exist but don't create them
+     * - NONE: Do nothing, assume collections/tables already exist
+     */
+    private SchemaAction schemaAction = SchemaAction.CREATE_IF_NOT_EXISTS;
+
+    /**
      * Advanced options for DataAPI client
      */
     private Options options;

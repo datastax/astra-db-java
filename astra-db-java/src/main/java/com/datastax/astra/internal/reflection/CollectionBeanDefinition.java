@@ -55,7 +55,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-public class CollectionRecordDefinition<T> {
+public class CollectionBeanDefinition<T> {
 
     /** Class introspected. */
     private final Class<T> clazz;
@@ -89,14 +89,14 @@ public class CollectionRecordDefinition<T> {
      *
      * @param clazz the class type
      */
-    public CollectionRecordDefinition(Class<T> clazz) {
+    public CollectionBeanDefinition(Class<T> clazz) {
         this.clazz = clazz;
         this.fields = new HashMap<>();
 
         // Collection Name
         DataApiCollection collectionAnn = clazz.getAnnotation(DataApiCollection.class);
-        if (collectionAnn != null && !collectionAnn.value().isEmpty()) {
-            this.collectionName = collectionAnn.value();
+        if (collectionAnn != null && !collectionAnn.name().isEmpty()) {
+            this.collectionName = collectionAnn.name();
         } else {
             this.collectionName = clazz.getSimpleName().toLowerCase();
         }
@@ -250,6 +250,48 @@ public class CollectionRecordDefinition<T> {
      */
     public String getIdFieldName() {
         return idField != null ? idField.getName() : null;
+    }
+
+    /**
+     * Checks if the ID field can be written through a setter.
+     *
+     * @return true if an ID field exists and a setter is available
+     */
+    public boolean canSetId() {
+        return idField != null && idField.getSetter() != null;
+    }
+
+    /**
+     * Sets the ID value on the given instance.
+     *
+     * @param instance the instance to update
+     * @param value the new ID value
+     */
+    public void setId(T instance, Object value) {
+        if (instance == null) {
+            throw new IllegalArgumentException("Instance must not be null");
+        }
+
+        if (idField == null) {
+            throw new IllegalStateException(String.format(
+                    "No field annotated with @DocumentId found in class '%s'",
+                    clazz.getName()));
+        }
+
+        Method setter = idField.getSetter();
+        if (setter == null) {
+            throw new IllegalStateException(String.format(
+                    "No setter method found for @DocumentId field '%s' in class '%s'",
+                    idField.getName(), clazz.getName()));
+        }
+
+        try {
+            setter.invoke(instance, value);
+        } catch (Exception e) {
+            throw new IllegalStateException(String.format(
+                    "Failed to set ID value on field '%s' in class '%s'",
+                    idField.getName(), clazz.getName()), e);
+        }
     }
 
     /**
@@ -449,9 +491,8 @@ public class CollectionRecordDefinition<T> {
         }
 
         // Lexical options
-        if (!annotation.lexicalEnabled()) {
-            definition.disableLexical();
-        } else if (annotation.lexicalAnalyzer() != null) {
+        if (annotation.lexicalEnabled()) {
+            // Enable lexical search with the specified analyzer
             definition.lexical(new Analyzer(annotation.lexicalAnalyzer()));
         }
 

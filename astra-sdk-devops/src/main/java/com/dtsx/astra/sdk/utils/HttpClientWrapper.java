@@ -4,32 +4,16 @@ import com.dtsx.astra.sdk.exception.AuthenticationException;
 import com.dtsx.astra.sdk.utils.observability.ApiExecutionInfos;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.dtsx.astra.sdk.utils.observability.CompletableFutures;
-import org.apache.hc.client5.http.auth.StandardAuthScheme;
-import org.apache.hc.client5.http.classic.methods.HttpDelete;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.classic.methods.HttpHead;
-import org.apache.hc.client5.http.classic.methods.HttpPatch;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpPut;
-import org.apache.hc.client5.http.classic.methods.HttpTrace;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.config.RequestConfig;
-import org.apache.hc.client5.http.cookie.StandardCookieSpec;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.Method;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
-import org.apache.hc.core5.util.TimeValue;
-import org.apache.hc.core5.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.HttpURLConnection;
-import java.util.Arrays;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
- * Helper to forge Http Requests to interact with Devops API.
+ * Helper to forge Http Requests to interact with Devops API using JDK11+ HttpClient.
  */
 public class HttpClientWrapper {
     
@@ -82,23 +66,14 @@ public class HttpClientWrapper {
     /** Singleton pattern. */
     private static HttpClientWrapper _instance = null;
     
-    /** HttpComponent5. */
-    protected CloseableHttpClient httpClient = null;
+    /** JDK11+ HttpClient. */
+    protected HttpClient httpClient = null;
 
     /** Observers. */
     protected static Map<String, ApiRequestObserver> observers = new LinkedHashMap<>();
 
     /** Observers. */
     protected String operationName= "n/a";
-
-    /** Default request configuration. */
-    protected static RequestConfig requestConfig = RequestConfig.custom()
-            .setCookieSpec(StandardCookieSpec.STRICT)
-            .setExpectContinueEnabled(true)
-            .setConnectionRequestTimeout(Timeout.ofSeconds(DEFAULT_TIMEOUT_REQUEST))
-            .setConnectTimeout(Timeout.ofSeconds(DEFAULT_TIMEOUT_CONNECT))
-            .setTargetPreferredAuthSchemes(Arrays.asList(StandardAuthScheme.NTLM, StandardAuthScheme.DIGEST))
-            .build();
 
     // -------------------------------------------
     // ----------------- Singleton ---------------
@@ -118,11 +93,11 @@ public class HttpClientWrapper {
     private static synchronized HttpClientWrapper getInstance() {
         if (_instance == null) {
             _instance = new HttpClientWrapper();
-            final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
-            connManager.setValidateAfterInactivity(TimeValue.ofSeconds(10));
-            connManager.setMaxTotal(100);
-            connManager.setDefaultMaxPerRoute(10);
-            _instance.httpClient = HttpClients.custom().setConnectionManager(connManager).build();
+            _instance.httpClient = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(DEFAULT_TIMEOUT_CONNECT))
+                    .build();
         }
         return _instance;
     }
@@ -138,11 +113,11 @@ public class HttpClientWrapper {
     public static synchronized HttpClientWrapper getInstance(String operation) {
         if (_instance == null) {
             _instance = new HttpClientWrapper();
-            final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
-            connManager.setValidateAfterInactivity(TimeValue.ofSeconds(10));
-            connManager.setMaxTotal(100);
-            connManager.setDefaultMaxPerRoute(10);
-            _instance.httpClient = HttpClients.custom().setConnectionManager(connManager).build();
+            _instance.httpClient = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(DEFAULT_TIMEOUT_CONNECT))
+                    .build();
         }
         _instance.operationName = operation;
         return _instance;
@@ -163,7 +138,7 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp GET(String url, String token) {
-        return executeHttp(Method.GET, url, token, null, CONTENT_TYPE_JSON, false);
+        return executeHttp("GET", url, token, null, CONTENT_TYPE_JSON, false);
     }
 
     /**
@@ -181,9 +156,9 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp GET_PULSAR(String url, String token, String pulsarCluster, String organizationId) {
-        HttpUriRequestBase request = buildRequest(Method.GET, url, token, null, CONTENT_TYPE_JSON);
-        updatePulsarHttpRequest(request, token, pulsarCluster, organizationId);
-        return executeHttp(request, false);
+        HttpRequest.Builder requestBuilder = buildRequest("GET", url, token, null, CONTENT_TYPE_JSON);
+        updatePulsarHttpRequest(requestBuilder, token, pulsarCluster, organizationId);
+        return executeHttp(requestBuilder.build(), false);
     }
 
     /**
@@ -203,9 +178,9 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp POST_PULSAR(String url, String token, String body, String pulsarCluster, String organizationId) {
-        HttpUriRequestBase request = buildRequest(Method.POST, url, token, body, CONTENT_TYPE_JSON);
-        updatePulsarHttpRequest(request, token, pulsarCluster, organizationId);
-        return executeHttp(request, false);
+        HttpRequest.Builder requestBuilder = buildRequest("POST", url, token, body, CONTENT_TYPE_JSON);
+        updatePulsarHttpRequest(requestBuilder, token, pulsarCluster, organizationId);
+        return executeHttp(requestBuilder.build(), false);
     }
 
     /**
@@ -225,16 +200,16 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp DELETE_PULSAR(String url, String token, String body, String pulsarCluster, String organizationId) {
-        HttpUriRequestBase request = buildRequest(Method.DELETE, url, token, body, CONTENT_TYPE_JSON);
-        updatePulsarHttpRequest(request, token, pulsarCluster, organizationId);
-        return executeHttp(request, false);
+        HttpRequest.Builder requestBuilder = buildRequest("DELETE", url, token, body, CONTENT_TYPE_JSON);
+        updatePulsarHttpRequest(requestBuilder, token, pulsarCluster, organizationId);
+        return executeHttp(requestBuilder.build(), false);
     }
 
     /**
      * Add item for a pulsar request.
      *
-     * @param request
-     *      current request
+     * @param requestBuilder
+     *      current request builder
      * @param pulsarToken
      *      pulsar token
      * @param pulsarCluster
@@ -242,10 +217,10 @@ public class HttpClientWrapper {
      * @param organizationId
      *      organization
      */
-    private void updatePulsarHttpRequest(HttpUriRequestBase request, String pulsarToken, String pulsarCluster, String organizationId) {
-        request.addHeader(HEADER_AUTHORIZATION, "Bearer " + pulsarToken);
-        request.addHeader(HEADER_CURRENT_ORG, organizationId);
-        request.addHeader(HEADER_CURRENT_PULSAR_CLUSTER, pulsarCluster);
+    private void updatePulsarHttpRequest(HttpRequest.Builder requestBuilder, String pulsarToken, String pulsarCluster, String organizationId) {
+        requestBuilder.header(HEADER_AUTHORIZATION, "Bearer " + pulsarToken);
+        requestBuilder.header(HEADER_CURRENT_ORG, organizationId);
+        requestBuilder.header(HEADER_CURRENT_PULSAR_CLUSTER, pulsarCluster);
     }
 
     /**
@@ -259,7 +234,7 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp HEAD(String url, String token) {
-        return executeHttp(Method.HEAD, url, token, null, CONTENT_TYPE_JSON, false);
+        return executeHttp("HEAD", url, token, null, CONTENT_TYPE_JSON, false);
     }
     
     /**
@@ -273,7 +248,7 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp POST(String url, String token) {
-        return executeHttp(Method.POST, url, token, null, CONTENT_TYPE_JSON, true);
+        return executeHttp("POST", url, token, null, CONTENT_TYPE_JSON, true);
     }
     
     /**
@@ -289,7 +264,7 @@ public class HttpClientWrapper {
      *      http request
      */
     public ApiResponseHttp POST(String url, String token, String body) {
-        return executeHttp(Method.POST, url, token, body, CONTENT_TYPE_JSON, true);
+        return executeHttp("POST", url, token, body, CONTENT_TYPE_JSON, true);
     }
     
     /**
@@ -301,7 +276,7 @@ public class HttpClientWrapper {
      *      authentication token
      */
     public void DELETE(String url, String token) {
-        executeHttp(Method.DELETE, url, token, null, CONTENT_TYPE_JSON, true);
+        executeHttp("DELETE", url, token, null, CONTENT_TYPE_JSON, true);
     }
     
     /**
@@ -315,7 +290,7 @@ public class HttpClientWrapper {
      *      request body
      */
     public void PUT(String url, String token, String body) {
-        executeHttp(Method.PUT, url, token, body, CONTENT_TYPE_JSON, false);
+        executeHttp("PUT", url, token, body, CONTENT_TYPE_JSON, false);
     }
 
     /**
@@ -329,7 +304,7 @@ public class HttpClientWrapper {
      *      request body
      */
     public void PATCH(String url, String token, String body) {
-        executeHttp(Method.PATCH, url, token, body, CONTENT_TYPE_JSON, false);
+        executeHttp("PATCH", url, token, body, CONTENT_TYPE_JSON, false);
     }
 
     /**
@@ -350,8 +325,9 @@ public class HttpClientWrapper {
      * @return
      *      basic request
      */
-    public ApiResponseHttp executeHttp(final Method method, final String url, final String token, String reqBody, String contentType, boolean mandatory) {
-        return executeHttp(buildRequest(method, url, token, reqBody, contentType), mandatory);
+    public ApiResponseHttp executeHttp(final String method, final String url, final String token, String reqBody, String contentType, boolean mandatory) {
+        HttpRequest request = buildRequest(method, url, token, reqBody, contentType).build();
+        return executeHttp(request, mandatory);
     }
     
     /**
@@ -364,28 +340,28 @@ public class HttpClientWrapper {
      * @return
      *      api response
      */
-    public ApiResponseHttp executeHttp(HttpUriRequestBase req, boolean mandatory) {
+    public ApiResponseHttp executeHttp(HttpRequest req, boolean mandatory) {
 
         // Execution Infos
         ApiExecutionInfos.ApiExecutionInfoBuilder executionInfo = ApiExecutionInfos.builder()
                 .withOperationName(operationName)
                 .withHttpRequest(req);
 
-        try(CloseableHttpResponse response = httpClient.execute(req)) {
+        try {
+            HttpResponse<String> response = httpClient.send(req, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            
             ApiResponseHttp res;
             if (response == null) {
                 res = new ApiResponseHttp("Response is empty, please check url",
                         HttpURLConnection.HTTP_UNAVAILABLE, null);
             } else {
                 // Mapping response
-                String body = null;
-                if (null != response.getEntity()) {
-                    body = EntityUtils.toString(response.getEntity());
-                    EntityUtils.consume(response.getEntity());
-                }
-                Map<String, String > headers = new HashMap<>();
-                Arrays.stream(response.getHeaders()).forEach(h -> headers.put(h.getName(), h.getValue()));
-                res = new ApiResponseHttp(body, response.getCode(), headers);
+                String body = response.body();
+                Map<String, String> headers = new HashMap<>();
+                response.headers().map().forEach((key, values) -> 
+                    headers.put(key, String.join(", ", values))
+                );
+                res = new ApiResponseHttp(body, response.statusCode(), headers);
             }
 
             // Error management
@@ -393,12 +369,9 @@ public class HttpClientWrapper {
                 return res;
             }
             if (res.getCode() >= 300) {
-              String entity = "n/a";
-              if (req.getEntity() != null) {
-                  entity = EntityUtils.toString(req.getEntity());
-              }
+              String entity = req.bodyPublisher().map(bp -> "body present").orElse("n/a");
               LOGGER.error("Error for request, url={}, method={}, body={}",
-                      req.getUri().toString(), req.getMethod(), entity);
+                      req.uri().toString(), req.method(), entity);
               LOGGER.error("Response  code={}, body={}", res.getCode(), res.getBody());
               processErrors(res, mandatory);
               LOGGER.error("An HTTP Error occurred. The HTTP CODE Return is {}", res.getCode());
@@ -425,39 +398,62 @@ public class HttpClientWrapper {
      *      target URL
      * @param token
      *      current token
+     * @param body
+     *      request body
+     * @param contentType
+     *      content type
      * @return
-     *      default http with header
+     *      default http request builder with headers
      */
-    private HttpUriRequestBase buildRequest(final Method method, final String url, final String token, String body, String contentType) {
-        HttpUriRequestBase req;
-        switch(method) {
-            case GET:    req = new HttpGet(url);    break;
-            case POST:   req = new HttpPost(url);   break;
-            case PUT:    req = new HttpPut(url);    break;
-            case DELETE: req = new HttpDelete(url); break;
-            case PATCH:  req = new HttpPatch(url);  break;
-            case HEAD:   req = new HttpHead(url);   break;
-            case TRACE:  req = new HttpTrace(url);  break;
-            case OPTIONS:
-            case CONNECT:
-            default:throw new IllegalArgumentException("Invalid HTTP Method");
+    private HttpRequest.Builder buildRequest(final String method, final String url, final String token, String body, String contentType) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(DEFAULT_TIMEOUT_REQUEST))
+                .header(HEADER_CONTENT_TYPE, contentType)
+                .header(HEADER_ACCEPT, CONTENT_TYPE_JSON)
+                .header(HEADER_USER_AGENT, REQUEST_WITH)
+                .header(HEADER_REQUESTED_WITH, REQUEST_WITH)
+                .header(HEADER_AUTHORIZATION, "Bearer " + token);
+        
+        // Set method and body
+        HttpRequest.BodyPublisher bodyPublisher = body != null 
+                ? HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8)
+                : HttpRequest.BodyPublishers.noBody();
+        
+        switch(method.toUpperCase()) {
+            case "GET":
+                builder.GET();
+                break;
+            case "POST":
+                builder.POST(bodyPublisher);
+                break;
+            case "PUT":
+                builder.PUT(bodyPublisher);
+                break;
+            case "DELETE":
+                builder.method("DELETE", bodyPublisher);
+                break;
+            case "PATCH":
+                builder.method("PATCH", bodyPublisher);
+                break;
+            case "HEAD":
+                builder.method("HEAD", HttpRequest.BodyPublishers.noBody());
+                break;
+            case "TRACE":
+                builder.method("TRACE", HttpRequest.BodyPublishers.noBody());
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid HTTP Method: " + method);
         }
-        req.addHeader(HEADER_CONTENT_TYPE, contentType);
-        req.addHeader(HEADER_ACCEPT, CONTENT_TYPE_JSON);
-        req.addHeader(HEADER_USER_AGENT, REQUEST_WITH);
-        req.addHeader(HEADER_REQUESTED_WITH, REQUEST_WITH);
-        req.addHeader(HEADER_AUTHORIZATION, "Bearer " + token);
-        req.setConfig(requestConfig);
-        if (null != body) {
-            req.setEntity(new StringEntity(body, ContentType.TEXT_PLAIN));
-        }
-        return req;
+        
+        return builder;
     }
 
     /**
      * Process ERRORS.Anything above code 300 can be marked as an error Still something
      * 404 is expected and should not result in throwing exception (=not find)
      * @param res HttpResponse
+     * @param mandatory mandatory flag
      */
     private void processErrors(ApiResponseHttp res, boolean mandatory) {
         String body = res.getBody();

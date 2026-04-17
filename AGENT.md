@@ -264,7 +264,7 @@ Files in `astra-db-java/src/test/resources/`:
 | `junit-platform.properties` | JUnit 5 config (ordered execution, sequential) |
 | `logback-test.xml` | Test logging |
 
-**Priority order:** Environment variables > System properties > Config files.
+**Priority orderBean:** Environment variables > System properties > Config files.
 
 ### Custom test annotations
 

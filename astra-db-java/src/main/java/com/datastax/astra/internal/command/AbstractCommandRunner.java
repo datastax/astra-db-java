@@ -34,8 +34,6 @@ import com.datastax.astra.internal.http.RetryHttpClient;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.datastax.astra.internal.utils.Assert;
 import com.datastax.astra.internal.utils.CompletableFutures;
-import com.datastax.astra.internal.utils.EscapeUtils;
-import com.dtsx.astra.sdk.utils.JsonUtils;
 import com.evanlennick.retry4j.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

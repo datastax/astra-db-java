@@ -9,7 +9,4 @@ public class DataApiStarterSpringBootApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DataApiStarterSpringBootApplication.class, args);
 	}
-
-
-
 }

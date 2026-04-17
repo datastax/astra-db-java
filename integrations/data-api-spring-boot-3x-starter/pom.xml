@@ -33,6 +33,13 @@
     </dependencyManagement>
 
     <dependencies>
+        <!-- DataAPI Client -->
+        <dependency>
+            <groupId>com.datastax.astra</groupId>
+            <artifactId>astra-db-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- Auto-configuration module -->
         <dependency>
             <groupId>com.datastax.astra</groupId>

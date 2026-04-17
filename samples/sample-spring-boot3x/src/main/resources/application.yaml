@@ -1,3 +1,8 @@
+spring:
+  output:
+    ansi:
+      enabled: ALWAYS
+
 server:
   port: 8081
   forward-headers-strategy: framework
@@ -10,30 +15,30 @@ logging:
 
 astra:
   data-api:
-    token: "token"
-    endpoint-url: "url"
+    token: ${ASTRA_DB_APPLICATION_TOKEN}
+    endpoint-url: https://cad896f4-49e4-4b55-bce3-36dd290e4b9b-us-east-2.apps.astra.datastax.com
     keyspace: default_keyspace
-    destination: "ASTRA"
-    # Would Create the Keyspace if not exists
     schema-action: CREATE_IF_NOT_EXISTS
-
     log-request: true
+
+    #destination: "ASTRA"
+    # Would Create the Keyspace if not exists
     options:
         # Provide API key for embedding services (OpenAI, Cohere, etc.)
-        embedding-api-key: "your-embedding-api-key-here"
+        #embedding-api-key: "your-embedding-api-key-here"
         # Provide API key for reranking services
-        rerank-api-key: "your-rerank-api-key-here"
+        #rerank-api-key: "your-rerank-api-key-here"
 
         # HTTP Client Options
-        http:
-          retry-count: 3
-          retry-delay: 100
+        #http:
+          #retry-count: 3
+          #retry-delay: 100
           # HTTP protocol settings, Default: HTTP_2
           # Options for httpVersion: HTTP_1_1, HTTP_2
-          version: "HTTP_2"
+          #version: "HTTP_2"
           # HTTP redirect policy, Default: NORMAL
           # Options: NEVER, ALWAYS, NORMAL
-          redirect: "NORMAL"
+          #redirect: "NORMAL"
 
         # HTTP Proxy configuration (optional)
         #proxy:
@@ -60,42 +65,42 @@ astra:
             general: 30000
             # Database admin timeout (create, delete, list databases)
             # Default: 600000ms (10 minutes)
-            dbAdmin: 600000
+            #dbAdmin: 600000
             # Keyspace admin timeout (create, delete, list keyspaces)
             # Default: 30000ms (30 seconds)
-            keyspaceAdmin: 30000
+            #keyspaceAdmin: 30000
             # Collection admin timeout (create, alter, drop collections)
             # Default: 60000ms (1 minute)
-            collectionAdmin: 60000
+            # collectionAdmin: 60000
             # Table admin timeout (create, alter, drop tables)
             # Default: 30000ms (30 seconds)
-            tableAdmin: 30000
+            #tableAdmin: 30000
 
         # Additional headers
-        headers:
-            db:
-              "X-Custom-Header": "custom-value"
-              "X-Request-ID": "request-123"
-              "Feature-Flag-tables": "true"
-            admin:
-              "X-Admin-Header": "admin-value"
-              "X-Tenant-ID": "tenant-123"
+        #headers:
+        #    db:
+        #      "X-Custom-Header": "custom-value"
+        #      "X-Request-ID": "request-123"
+        #      "Feature-Flag-tables": "true"
+        #    admin:
+        #      "X-Admin-Header": "admin-value"
+        #      "X-Tenant-ID": "tenant-123"
 
         # Observers
-        observers:
+        #observers:
             # Built-in logging observer
-            - type: "logging"
-              name: "LoggingCommandObserver"
-              enabled: true
+        #    - type: "logging"
+        #      name: "LoggingCommandObserver"
+        #      enabled: true
             # Custom observer example
-            - type: "custom"
-              name: "MetricsObserver"
-              className: "com.example.MetricsObserver"
-              enabled: true
+        #    - type: "custom"
+        #      name: "MetricsObserver"
+        #      className: "com.example.MetricsObserver"
+        #      enabled: true
 
         # Serialization/Deserialization Options
-        serdes:
+ #       serdes:
           # Encode Duration objects as ISO8601 strings (Default: true)
-          encodeDurationAsISO8601: true
+  #        encodeDurationAsISO8601: true
           # Encode DataAPIVector objects as Base64 (Default: true)
-          encodeDataApiVectorsAsBase64: true
+   #       encodeDataApiVectorsAsBase64: true

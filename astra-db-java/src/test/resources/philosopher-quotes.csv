@@ -31,7 +31,7 @@ aristotle,"A friend is another I.",
 aristotle,"He who hath many friends hath none.",ethics
 aristotle,"The hand is the tool of tools.",
 aristotle,"Good moral character is not something that we can achieve on our own. We need a culture that supports the conditions under which self-love and friendship flourish.",ethics
-aristotle,"We give up leisure in order that we may have leisure, just as we go to war in order that we may have peace.",ethics
+aristotle,"We give up leisure in orderBean that we may have leisure, just as we go to war in orderBean that we may have peace.",ethics
 aristotle,"We must be neither cowardly nor rash but courageous.",ethics;knowledge
 aristotle,"The true nature of anything is what it becomes at its highest.",knowledge
 aristotle,"To give away money is an easy matter and in any man's power. But to decide to whom to give it and how large and when, and for what purpose and how, is neither in every man's power nor an easy matter.",knowledge;ethics;politics
@@ -60,7 +60,7 @@ schopenhauer,"Pleasure is never as pleasant as we expected it to be and pain is 
 schopenhauer,"at the death of every friendly soul",history
 schopenhauer,"arises from the feeling that there is",
 schopenhauer,"To be alone is the fate of all great mindsa fate deplored at times, but still always chosen as the less grievous of two evils.",knowledge;ethics
-schopenhauer,"However, for the man who studies to gain insight, books and studies are merely rungs of the ladder on which he climbs to the summit of knowledge. As soon as a rung has raised him up one step, he leaves it behind. On the other hand, the many who study in order to fill their memory do not use the rungs of the ladder for climbing, but take them off and load themselves with them to take away, rejoicing at the increasing weight of the burden. They remain below forever, because they bear what should have bourne them.",knowledge;education
+schopenhauer,"However, for the man who studies to gain insight, books and studies are merely rungs of the ladder on which he climbs to the summit of knowledge. As soon as a rung has raised him up one step, he leaves it behind. On the other hand, the many who study in orderBean to fill their memory do not use the rungs of the ladder for climbing, but take them off and load themselves with them to take away, rejoicing at the increasing weight of the burden. They remain below forever, because they bear what should have bourne them.",knowledge;education
 schopenhauer,"There is not a grain of dust, not an atom that can become nothing, yet man believes that death is the annhilation of his being.",ethics;religion
 schopenhauer,"Human life, like all inferior goods, is covered on the outside with a false glitter; what suffers always conceals itself.",ethics
 schopenhauer,"Just as one spoils the stomach by overfeeding and thereby impairs the whole body, so can one overload and choke the mind by giving it too much nourishment. For the more one reads the fewer are the traces left of what one has read; the mind is like a tablet that has been written over and over. Hence it is impossible to reflect; and it is only by reflection that one can assimilate what one has read. If one reads straight ahead without pondering over it later, what has been read does not take root, but is for the most part lost.",knowledge;ethics
@@ -92,7 +92,7 @@ schopenhauer,"He who can see truly in the midst of general infatuation is like a
 schopenhauer,"If a person is stupid, we excuse him by saying that he cannot help it; but if we attempted to excuse in precisely the same way the person who is bad, we should be laughed at.",ethics
 schopenhauer,"My body and my will are one.",
 schopenhauer,"The ordinary method of education is to imprint ideas and opinions, in the strict sense of the word, prejudices, on the mind of the child, before it has had any but a very few particular observations. It is thus that he afterwards comes to view the world and gather experience through the medium of those ready-made ideas, rather than to let his ideas be formed for him out of his own experience of life, as they ought to be.",education
-schopenhauer,"One can never read too little of bad, or too much of good books: bad books are intellectual poison; they destroy the mind. In order to read what is good one must make it a condition never to read what is bad; for life is short, and both time and strength limited.",knowledge;ethics;education
+schopenhauer,"One can never read too little of bad, or too much of good books: bad books are intellectual poison; they destroy the mind. In orderBean to read what is good one must make it a condition never to read what is bad; for life is short, and both time and strength limited.",knowledge;ethics;education
 schopenhauer,"Many undoubtedly owe their good fortune to the circumstance that they possess a pleasing smile with which they win hearts. Yet these hearts would do better to beware and to learn from Hamlet's tables that one may smile, and smile, and be a villain.",knowledge;education;ethics
 schopenhauer,"In the blessings as well as in the ills of life, less depends upon what befalls us than upon the way in which it is met.",knowledge;ethics
 schopenhauer,"It is only a man's own fundamental thoughts that have truth and life in them. For it is these that he really and completely understands. To read the thoughts of others is like taking the remains of someone else's meal, like putting on the discarded clothes of a stranger.",knowledge;ethics;education;history;love
@@ -137,9 +137,9 @@ spinoza,"If men were born free, they would, so long as they remained free, form 
 spinoza,"In so far as the mind sees things in their eternal aspect, it participates in eternity.",knowledge;ethics
 spinoza,"them.",knowledge;ethics
 spinoza,"Many errors, of a truth, consist merely in the application of the wrong names of things.",
-spinoza,".... we are a part of nature as a whole, whose order we follow.",
+spinoza,".... we are a part of nature as a whole, whose orderBean we follow.",
 spinoza,"Men will find that they can ... avoid far more easily the perils which beset them on all sides by united action.",ethics;politics;knowledge
-spinoza,"The order and connection of ideas is the same as the order and connection of things.",
+spinoza,"The orderBean and connection of ideas is the same as the orderBean and connection of things.",
 spinoza,"Desire is the essence of a man.",
 spinoza,"Love is pleasure accompanied by the idea of an external cause, and hatred pain accompanied by the idea of an external cause.",love
 spinoza,"He that can carp in the most eloquent or acute manner at the weakness of the human mind is held by his fellows as almost divine.",
@@ -184,7 +184,7 @@ hegel,"The heart-throb for the welfare of humanity therefore passes into the rav
 hegel,"The Catholics had been in the position of oppressors, and the Protestants of the oppressed",religion;politics;history;ethics
 hegel,"To him who looks upon the world rationally, the world in its turn presents a rational aspect. The relation is mutual.",knowledge;ethics
 hegel,"Propounding peace and love without practical or institutional engagement is delusion, not virtue.",
-hegel,"It strikes everyone in beginning to form an acquaintance with the treasures of Indian literature that a land so rich in intellectual products and those of the profoundest order of thought.",knowledge
+hegel,"It strikes everyone in beginning to form an acquaintance with the treasures of Indian literature that a land so rich in intellectual products and those of the profoundest orderBean of thought.",knowledge
 hegel,"The people will learn to feel the dignity of man. They will not merely demand their rights, which have been trampled in the dust, but themselves will take them - make them their own.",knowledge;ethics;education;politics
 hegel,"It is easier to discover a deficiency in individuals, in states, and in Providence, than to see their real import and value.",
 hegel,"Children are potentially free and their life directly embodies nothing save potential freedom. Consequently they are not things and cannot be the property either of their parents or others.",ethics
@@ -328,7 +328,7 @@ sartre,"Photographs are not ideas. They give us ideas.",
 sartre,"Smooth and smiling faces everywhere, but ruin in their eyes.",politics
 sartre,"Be quiet! Anyone can spit in my face, and call me a criminal and a prostitute. But no one has the right to judge my remorse.",ethics;knowledge;politics
 sartre,"I found the human heart empty and insipid everywhere except in books.",knowledge
-sartre,"I wanted pure love: foolishness; to love one another is to hate a common enemy: I will thus espouse your hatred. I wanted Good: nonsense; on this earth and in these times, Good and Bad are inseparable: I accept to be evil in order to become good.",love;politics
+sartre,"I wanted pure love: foolishness; to love one another is to hate a common enemy: I will thus espouse your hatred. I wanted Good: nonsense; on this earth and in these times, Good and Bad are inseparable: I accept to be evil in orderBean to become good.",love;politics
 sartre,"As for the square at Meknes, where I used to go every day, it's even simpler: I do not see it at all anymore. All that remains is the vague feeling that it was charming, and these five words that are indivisibly bound together: a charming square at Meknes. ... I don't see anything any more: I can search the past in vain, I can only find these scraps of images and I am not sure what they represent, whether they are memories or just fiction.",history
 sartre,"I think that is the big danger in keeping a diary: you exaggerate everything.",
 sartre,"To keep hope alive one must, in spite of all mistakes, horrors, and crimes, recognize the obvious superiority of the socialist camp.",politics;knowledge
@@ -388,7 +388,7 @@ plato,"When man is not properly trained, he is the most savage animal on the fac
 plato,"Happiness springs from doing good and helping others.",ethics
 plato,"One of the penalties for refusing to participate in politics is that you end up being governed by your inferiors.",politics
 plato,"The blame is his who chooses: God is blameless.",religion;ethics;knowledge
-plato,"Harmony sinks deep into the recesses of the soul and takes its strongest hold there, bringing grace also to the body & mind as well. Music is a moral law. It gives a soul to the universe, wings to the mind, flight to the imagination, a charm to sadness, and life to everything. It is the essence of order.",
+plato,"Harmony sinks deep into the recesses of the soul and takes its strongest hold there, bringing grace also to the body & mind as well. Music is a moral law. It gives a soul to the universe, wings to the mind, flight to the imagination, a charm to sadness, and life to everything. It is the essence of orderBean.",
 plato,"Do not expect justice where might is right.",
 plato,"When you feel grateful, you become great, and eventually attract great things.",ethics;knowledge
 plato,"If we are to have any hope for the future, those who have lanterns must pass them on to others.",ethics
@@ -438,7 +438,7 @@ kant,"Time is not an empirical concept. For neither co-existence nor succession 
 kant,"Have patience awhile; slanders are not long-lived. Truth is the child of time; erelong she shall appear to vindicate thee.",knowledge;ethics;history;education
 kant,"But only he who, himself enlightened, is not afraid of shadows.",knowledge;education;ethics
 kant,"There is needed, no doubt, a body of servants (ministerium) of the invisible church, but not officials (officiales), in other words, teachers but not dignitaries, because in the rational religion of every individual there does not yet exist a church as a universal union (omnitudo collectiva).",religion;education;knowledge
-kant,"Reason must approach nature in order to be taught by it. It must not, however, do so in the character of a pupil who listens to everything that the teacher chooses to say, but of an appointed judge who compels the witness to answer questions which he has himself formulated.",education;knowledge
+kant,"Reason must approach nature in orderBean to be taught by it. It must not, however, do so in the character of a pupil who listens to everything that the teacher chooses to say, but of an appointed judge who compels the witness to answer questions which he has himself formulated.",education;knowledge
 kant,"But although all our knowledge begins with experience, it does not follow that it arises from experience.",knowledge;ethics;education
 kant,"Enlightenment is the liberation of man from his self-caused state of minority... Supere aude! Dare to use your own understanding!is thus the motto of the Enlightenment.",knowledge
 kant,"The history of the human race, viewed as a whole, may be regarded as the realization of a hidden plan of nature to bring about a political constitution, internally, and for this purpose, also externally perfect, as the only state in which all the capacities implanted by her in mankind can be fully developed.",history;politics

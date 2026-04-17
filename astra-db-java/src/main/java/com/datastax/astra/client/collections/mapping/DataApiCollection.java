@@ -72,7 +72,7 @@ public @interface DataApiCollection {
      *
      * @return the collection name
      */
-    String value() default "";
+    String name() default "";
 
     // ---------------------
     // DefaultId Options
@@ -164,7 +164,7 @@ public @interface DataApiCollection {
      *
      * @return true to enable lexical search, false to disable
      */
-    boolean lexicalEnabled() default true;
+    boolean lexicalEnabled() default false;
 
     /**
      * Analyzer type for lexical search.

@@ -2,12 +2,12 @@ package com.ibm.astra.demo.books;
 
 import com.datastax.astra.client.collections.mapping.DataApiCollection;
 import com.datastax.astra.client.collections.mapping.DocumentId;
-import com.datastax.astra.client.collections.mapping.Lexical;
 import com.datastax.astra.client.collections.mapping.Vectorize;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.util.Map;
 import java.util.Set;
@@ -15,36 +15,49 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@DataApiCollection("c_book")
+@DataApiCollection(
+   name = "c_books_vectorize_nvidia",
+   vectorDimension = 1024,
+   vectorizeModel = "NV-Embed-QA",
+   vectorizeProvider = "nvidia"
+)
+@Schema(name = "Book", description = "Book document stored in Astra DB")
 public class Book {
 
     @DocumentId
-    String id;
+    @Schema(description = "Unique identifier of the book", example = "book-1984")
+    private String id;
 
-    String title;
+    @Schema(description = "Title of the book", example = "1984")
+    private String title;
 
-    String author;
+    @Schema(description = "Author name", example = "George Orwell")
+    private String author;
 
-    boolean is_checked_out;
-
-    @Vectorize
-    String vectorize;
-
-    @Lexical
-    String lexical;
+    @JsonProperty("checked_out")
+    @Schema(description = "Whether the book is currently checked out", example = "false")
+    private boolean checkedOut;
 
     @JsonProperty("number_of_pages")
-    Integer numberOfPages;
+    @Schema(description = "Number of pages", example = "328")
+    private Integer numberOfPages;
 
-    String genre;
+    @Schema(description = "Primary genre", example = "Dystopian")
+    private String genre;
 
-    String description;
+    @Schema(description = "Short description of the book", example = "A dystopian social science fiction novel.")
+    private String description;
 
-    Set<String> genres;
+    @Vectorize
+    @Schema(description = "String use for vectorization")
+    private String vectorize;
 
-    Map<String, String> metadata;
+    @Schema(description = "List of genres or tags")
+    private Set<String> genres;
 
-    // Fluent interface methods
+    @Schema(description = "Additional metadata as key-value pairs")
+    private Map<String, String> metadata;
+
     public Book id(String id) {
         this.id = id;
         return this;
@@ -60,18 +73,13 @@ public class Book {
         return this;
     }
 
-    public Book isCheckedOut(boolean isCheckedOut) {
-        this.is_checked_out = isCheckedOut;
+    public Book isCheckedOut(boolean checkedOut) {
+        this.checkedOut = checkedOut;
         return this;
     }
 
-    public Book vectorize(String vectorize) {
-        this.vectorize = vectorize;
-        return this;
-    }
-
-    public Book lexical(String lexical) {
-        this.lexical = lexical;
+    public Book checkedOut(boolean checkedOut) {
+        this.checkedOut = checkedOut;
         return this;
     }
 
@@ -87,6 +95,7 @@ public class Book {
 
     public Book description(String description) {
         this.description = description;
+        this.vectorize   = description;
         return this;
     }
 

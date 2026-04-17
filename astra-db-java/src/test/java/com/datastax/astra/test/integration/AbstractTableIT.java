@@ -39,6 +39,8 @@ import com.datastax.astra.client.tables.definition.columns.TableColumnDefinition
 import com.datastax.astra.client.tables.definition.columns.TableColumnTypes;
 import com.datastax.astra.client.tables.definition.indexes.*;
 import com.datastax.astra.client.tables.definition.rows.Row;
+import com.datastax.astra.test.integration.model.OrderBean;
+import com.datastax.astra.test.integration.model.OrderKey;
 import com.datastax.astra.test.integration.model.TableCompositeAnnotatedRow;
 import com.datastax.astra.test.integration.model.TableCompositeRow;
 import com.datastax.astra.test.integration.model.TableCompositeRowGenerator;
@@ -697,6 +699,79 @@ public abstract class AbstractTableIT extends AbstractDataAPITest {
 
         log.info("findOne: non-null LIST/SET/MAP returned with correct values");
 
+        // Cleanup
+        getDatabase().dropTable(tableName, IF_EXISTS);
+    }
+
+    @Test
+    @Order(50)
+    @DisplayName("50. Should support @TablePrimaryKeyClass pattern for insertOne")
+    public void should_support_tablePrimaryKeyClass_insertOne() {
+        // Given: Create table using @TablePrimaryKeyClass pattern
+        String tableName = "orders_pk_class";
+        getDatabase().createTable(OrderBean.class);
+        Table<OrderBean> table = getDatabase().getTable(tableName, OrderBean.class);
+        
+        // When: Insert an order using the @TablePrimaryKeyClass pattern
+        OrderKey key = new OrderKey("CUST123", LocalDate.of(2024, 1, 15));
+        OrderBean orderBean = new OrderBean(key, "ORD001", new BigDecimal("99.99"), "PENDING");
+        table.insertOne(orderBean);
+        
+        // Then: Verify the order was inserted and can be retrieved
+        Optional<OrderBean> found = table.findOne(
+            Filters.and(
+                Filters.eq("customer_id", "CUST123"),
+                Filters.eq("order_date", LocalDate.of(2024, 1, 15))
+            )
+        );
+        
+        assertThat(found).isPresent();
+        OrderBean retrievedOrderBean = found.get();
+        assertThat(retrievedOrderBean.getKey().getCustomerId()).isEqualTo("CUST123");
+        assertThat(retrievedOrderBean.getKey().getOrderDate()).isEqualTo(LocalDate.of(2024, 1, 15));
+        assertThat(retrievedOrderBean.getOrderId()).isEqualTo("ORD001");
+        assertThat(retrievedOrderBean.getAmount()).isEqualByComparingTo(new BigDecimal("99.99"));
+        assertThat(retrievedOrderBean.getStatus()).isEqualTo("PENDING");
+        
+        log.info("✓ @TablePrimaryKeyClass pattern: insertOne successful");
+        
+        // Cleanup
+        getDatabase().dropTable(tableName, IF_EXISTS);
+    }
+
+    @Test
+    @Order(51)
+    @DisplayName("51. Should support @TablePrimaryKeyClass pattern for TableDefinition creation")
+    public void should_support_tablePrimaryKeyClass_tableDefinition() {
+        // Given: An entity class using @TablePrimaryKeyClass pattern
+        String tableName = "orders_pk_class";
+        
+        // When: Create table from the annotated class
+        getDatabase().createTable(OrderBean.class);
+        
+        // Then: Verify the table was created with correct structure
+        assertThat(getDatabase().tableExists(tableName)).isTrue();
+        
+        Table<OrderBean> table = getDatabase().getTable(tableName, OrderBean.class);
+        TableDefinition definition = table.getDefinition();
+        
+        // Verify partition keys
+        assertThat(definition.getPrimaryKey().getPartitionBy()).containsExactly("customer_id");
+        
+        // Verify clustering columns
+        assertThat(definition.getPrimaryKey().getPartitionSort()).containsKey("order_date");
+        
+        // Verify all columns are present (flattened from primary key class + entity fields)
+        assertThat(definition.getColumns()).containsKeys(
+            "customer_id",    // from OrderKey
+            "order_date",     // from OrderKey
+            "order_id",       // from Order
+            "amount",         // from Order
+            "status"          // from Order
+        );
+        
+        log.info("✓ @TablePrimaryKeyClass pattern: TableDefinition created correctly");
+        
         // Cleanup
         getDatabase().dropTable(tableName, IF_EXISTS);
     }

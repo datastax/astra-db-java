@@ -4,7 +4,7 @@
 # Copy this file to test-config-embedding-providers.properties and fill in your keys.
 # The actual config file is gitignored for security.
 #
-# Priority order for configuration values:
+# Priority orderBean for configuration values:
 #   1. Environment variables (listed in parentheses below)
 #   2. System properties
 #   3. This config file

@@ -35,6 +35,8 @@ import com.datastax.astra.client.tables.mapping.ColumnVector;
 import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.client.tables.mapping.PartitionBy;
 import com.datastax.astra.client.tables.mapping.PartitionSort;
+import com.datastax.astra.client.tables.mapping.TablePrimaryKey;
+import com.datastax.astra.client.tables.mapping.TablePrimaryKeyClass;
 import com.dtsx.astra.sdk.utils.Utils;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -69,7 +71,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Data
-public class EntityBeanDefinition<T> {
+public class EntityTableBeanDefinition<T> {
 
     /** Class introspected. */
     final Class<T> clazz;
@@ -92,7 +94,7 @@ public class EntityBeanDefinition<T> {
      * @param clazz
      *      class type
      */
-    public EntityBeanDefinition(Class<T> clazz) {
+    public EntityTableBeanDefinition(Class<T> clazz) {
         this.clazz  = clazz;
         this.fields = new HashMap<>();
         // Table Name
@@ -143,6 +145,31 @@ public class EntityBeanDefinition<T> {
 
             AnnotatedField annfield = property.getField();
             if (annfield != null) {
+                // Check if this field is annotated with @TablePrimaryKey
+                TablePrimaryKey tablePrimaryKey = annfield.getAnnotated()
+                        .getAnnotation(TablePrimaryKey.class);
+                
+                if (tablePrimaryKey != null) {
+                    // This field contains a primary key class - expand its fields
+                    Class<?> pkClass = field.getType();
+                    if (!pkClass.isAnnotationPresent(TablePrimaryKeyClass.class)) {
+                        throw new IllegalArgumentException(String.format(
+                                "Field '%s' in class '%s' is annotated with @TablePrimaryKey but its type '%s' " +
+                                "is not annotated with @TablePrimaryKeyClass",
+                                field.getName(), clazz.getName(), pkClass.getName()));
+                    }
+                    
+                    // Introspect the primary key class and add its fields to this entity's fields
+                    EntityTableBeanDefinition<?> pkBean = new EntityTableBeanDefinition<>(pkClass);
+                    pkBean.getFields().forEach((pkFieldName, pkField) -> {
+                        // Add the primary key field to the entity's field map
+                        fields.put(pkFieldName, pkField);
+                    });
+                    
+                    // Skip adding the @TablePrimaryKey field itself
+                    continue;
+                }
+                
                 Column column = annfield.getAnnotated()
                         .getAnnotation(Column.class);
                 ColumnVector columnVector = annfield.getAnnotated()
@@ -297,7 +324,7 @@ public class EntityBeanDefinition<T> {
      *      a list of vector index definitions
      */
     public static List<TableVectorIndexDefinition> listVectorIndexDefinitions(String tableName, Class<?> clazz) {
-        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
+        EntityTableBeanDefinition<?> bean = new EntityTableBeanDefinition<>(clazz);
         if (Utils.hasLength(bean.getName()) && !bean.getName().equals(tableName)) {
             throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + bean.getName() + "'");
         }
@@ -328,7 +355,7 @@ public class EntityBeanDefinition<T> {
      *      a document representing the table command
      */
     public static Document createTypeCommand(Class<?> clazz) {
-        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
+        EntityTableBeanDefinition<?> bean = new EntityTableBeanDefinition<>(clazz);
         Document doc = new Document();
         doc.append("name", bean.getName());
         Document definition = new Document();
@@ -362,7 +389,7 @@ public class EntityBeanDefinition<T> {
      *      a document representing the table command
      */
     public static Document createTableCommand(String tableName, Class<?> clazz) {
-        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(clazz);
+        EntityTableBeanDefinition<?> bean = new EntityTableBeanDefinition<>(clazz);
         if (Utils.hasLength(bean.getName()) && !bean.getName().equals(tableName)) {
             throw new IllegalArgumentException("Table name mismatch, expected '" + tableName + "' but got '" + bean.getName() + "'");
         }

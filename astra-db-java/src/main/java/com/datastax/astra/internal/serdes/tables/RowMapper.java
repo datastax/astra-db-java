@@ -21,7 +21,9 @@ package com.datastax.astra.internal.serdes.tables;
  */
 
 import com.datastax.astra.client.tables.definition.rows.Row;
-import com.datastax.astra.internal.reflection.EntityBeanDefinition;
+import com.datastax.astra.client.tables.mapping.TablePrimaryKey;
+import com.datastax.astra.client.tables.mapping.TablePrimaryKeyClass;
+import com.datastax.astra.internal.reflection.EntityTableBeanDefinition;
 import com.datastax.astra.internal.reflection.EntityFieldDefinition;
 import com.datastax.astra.internal.serdes.DataAPISerializer;
 import com.fasterxml.jackson.core.JsonParser;
@@ -62,10 +64,27 @@ public class RowMapper {
         if (input == null || input instanceof Row) {
             return (Row) input;
         }
-        EntityBeanDefinition<?> bean = new EntityBeanDefinition<>(input.getClass());
+        EntityTableBeanDefinition<?> bean = new EntityTableBeanDefinition<>(input.getClass());
         Row row = new Row();
+        
+        // Check if any field is annotated with @TablePrimaryKey
+        final Field primaryKeyFieldFinal;
+        Field tempPrimaryKeyField = null;
+        for (Field f : input.getClass().getDeclaredFields()) {
+            if (f.isAnnotationPresent(TablePrimaryKey.class)) {
+                tempPrimaryKeyField = f;
+                break;
+            }
+        }
+        primaryKeyFieldFinal = tempPrimaryKeyField;
+        
         bean.getFields().forEach((name, field) -> {
             try {
+                // Skip the @TablePrimaryKey field itself - we'll flatten its contents
+                if (primaryKeyFieldFinal != null && name.equals(primaryKeyFieldFinal.getName())) {
+                    return;
+                }
+                
                 Object value = field.getGetter().invoke(input);
 
                 // Check if map and key is not String
@@ -79,10 +98,61 @@ public class RowMapper {
                 } else {
                     row.put(field.getColumnName() != null ? field.getColumnName() : name, value);
                 }
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                // If we get IllegalArgumentException, this might be a field from a primary key class
+                // Try to get it from the primary key object instead
+                if (primaryKeyFieldFinal != null && e instanceof IllegalArgumentException) {
+                    try {
+                        primaryKeyFieldFinal.setAccessible(true);
+                        Object pkValue = primaryKeyFieldFinal.get(input);
+                        if (pkValue != null) {
+                            Object nestedValue = field.getGetter().invoke(pkValue);
+                            if (nestedValue instanceof Map<?, ?> map &&
+                                    field.getGenericKeyType() != null &&
+                                    !String.class.equals(field.getGenericKeyType())) {
+                                List<List<Object>> pairs = new ArrayList<>();
+                                map.forEach((k, v) -> pairs.add(List.of(k, v)));
+                                row.put(field.getColumnName() != null ? field.getColumnName() : name, pairs);
+                            } else {
+                                row.put(field.getColumnName() != null ? field.getColumnName() : name, nestedValue);
+                            }
+                        }
+                    } catch (Exception ex) {
+                        throw new RuntimeException("Failed to extract field from primary key: " + name, ex);
+                    }
+                } else {
+                    throw new RuntimeException(e);
+                }
             }
         });
+        
+        // If there's a @TablePrimaryKey field, flatten its contents into the row
+        if (primaryKeyFieldFinal != null) {
+            try {
+                primaryKeyFieldFinal.setAccessible(true);
+                Object primaryKeyValue = primaryKeyFieldFinal.get(input);
+                if (primaryKeyValue != null) {
+                    Class<?> pkClass = primaryKeyValue.getClass();
+                    if (pkClass.isAnnotationPresent(TablePrimaryKeyClass.class)) {
+                        // Create a bean definition for the primary key class
+                        EntityTableBeanDefinition<?> pkBean = new EntityTableBeanDefinition<>(pkClass);
+                        pkBean.getFields().forEach((pkFieldName, pkField) -> {
+                            try {
+                                Object pkFieldValue = pkField.getGetter().invoke(primaryKeyValue);
+                                String columnName = pkField.getColumnName() != null ? 
+                                        pkField.getColumnName() : pkFieldName;
+                                row.put(columnName, pkFieldValue);
+                            } catch (IllegalAccessException | InvocationTargetException e) {
+                                throw new RuntimeException("Failed to extract primary key field: " + pkFieldName, e);
+                            }
+                        });
+                    }
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException("Failed to access @TablePrimaryKey field", e);
+            }
+        }
+        
         return row;
     }
 
@@ -109,10 +179,59 @@ public class RowMapper {
                 return null;
             }
 
-            EntityBeanDefinition<T> beanDef = new EntityBeanDefinition<>(inputRowClass);
+            EntityTableBeanDefinition<T> beanDef = new EntityTableBeanDefinition<>(inputRowClass);
             T input = inputRowClass.getDeclaredConstructor().newInstance();
 
+            // Check if any field is annotated with @TablePrimaryKey
+            Field primaryKeyField = null;
+            for (Field f : inputRowClass.getDeclaredFields()) {
+                if (f.isAnnotationPresent(TablePrimaryKey.class)) {
+                    primaryKeyField = f;
+                    break;
+                }
+            }
+
+            // If there's a @TablePrimaryKey field, reconstruct it from flattened columns
+            Object primaryKeyInstance = null;
+            EntityTableBeanDefinition<?> pkBeanDef = null;
+            if (primaryKeyField != null) {
+                Class<?> pkClass = primaryKeyField.getType();
+                if (pkClass.isAnnotationPresent(TablePrimaryKeyClass.class)) {
+                    primaryKeyInstance = pkClass.getDeclaredConstructor().newInstance();
+                    pkBeanDef = new EntityTableBeanDefinition<>(pkClass);
+                    
+                    // Map flattened columns to primary key fields
+                    for (EntityFieldDefinition pkFieldDef : pkBeanDef.getFields().values()) {
+                        String columnName = pkFieldDef.getColumnName() != null ? 
+                                pkFieldDef.getColumnName() : pkFieldDef.getName();
+                        Object columnValue = row.columnMap.get(columnName);
+                        
+                        if (columnValue != null) {
+                            JavaType javaType = pkFieldDef.getJavaType();
+                            Object value = serializer.getMapper().convertValue(columnValue, javaType);
+                            
+                            if (pkFieldDef.getSetter() != null) {
+                                pkFieldDef.getSetter().invoke(primaryKeyInstance, value);
+                            } else {
+                                Field field = pkClass.getDeclaredField(pkFieldDef.getName());
+                                field.setAccessible(true);
+                                field.set(primaryKeyInstance, value);
+                            }
+                        }
+                    }
+                    
+                    // Set the reconstructed primary key to the bean
+                    primaryKeyField.setAccessible(true);
+                    primaryKeyField.set(input, primaryKeyInstance);
+                }
+            }
+
             for (EntityFieldDefinition fieldDef : beanDef.getFields().values()) {
+                // Skip fields that belong to the primary key class - they've already been handled
+                if (pkBeanDef != null && pkBeanDef.getFields().containsKey(fieldDef.getName())) {
+                    continue;
+                }
+                
                 String columnName = fieldDef.getColumnName() != null ? fieldDef.getColumnName() : fieldDef.getName();
                 Object columnValue = row.columnMap.get(columnName);
                 if (columnValue == null) {

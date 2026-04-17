@@ -46,6 +46,7 @@ import com.datastax.astra.client.exceptions.DataAPIException;
 import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.internal.api.DataAPIResponse;
 import com.datastax.astra.internal.utils.EscapeUtils;
+import com.datastax.astra.test.integration.model.Book;
 import com.datastax.astra.test.integration.model.ProductString;
 import com.datastax.astra.test.integration.utils.TestDataset;
 import lombok.extern.slf4j.Slf4j;

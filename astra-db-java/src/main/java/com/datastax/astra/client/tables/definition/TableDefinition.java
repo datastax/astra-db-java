@@ -345,4 +345,49 @@ public class TableDefinition {
     public String toString() {
         return new RowSerializer().marshall(this);
     }
+
+    /**
+     * Custom equals method for comparing table definitions.
+     * Compares columns and primary key structure.
+     *
+     * @param o the object to compare with
+     * @return true if the table definitions are equal, false otherwise
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        
+        TableDefinition that = (TableDefinition) o;
+        
+        // Compare columns
+        if (columns == null && that.columns != null) return false;
+        if (columns != null && that.columns == null) return false;
+        if (columns != null) {
+            if (columns.size() != that.columns.size()) return false;
+            for (String key : columns.keySet()) {
+                if (!that.columns.containsKey(key)) return false;
+                TableColumnDefinition thisCol = columns.get(key);
+                TableColumnDefinition thatCol = that.columns.get(key);
+                if (!thisCol.equals(thatCol)) return false;
+            }
+        }
+        
+        // Compare primary key
+        if (primaryKey == null && that.primaryKey != null) return false;
+        if (primaryKey != null && that.primaryKey == null) return false;
+        return primaryKey == null || primaryKey.equals(that.primaryKey);
+    }
+
+    /**
+     * Custom hashCode method consistent with equals.
+     *
+     * @return the hash code
+     */
+    @Override
+    public int hashCode() {
+        int result = columns != null ? columns.hashCode() : 0;
+        result = 31 * result + (primaryKey != null ? primaryKey.hashCode() : 0);
+        return result;
+    }
 }
