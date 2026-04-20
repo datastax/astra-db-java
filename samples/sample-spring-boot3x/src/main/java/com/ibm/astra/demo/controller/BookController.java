@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
-@RequestMapping("/api/v1/books")
+@RequestMapping("/books")
 @Tag(name = "Books", description = "CRUD REST API for books")
 public class BookController {
 
