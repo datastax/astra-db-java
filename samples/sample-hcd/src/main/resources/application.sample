@@ -1,0 +1,7 @@
+
+# Cassandra / HCD Connection Settings
+cassandra.username=<change_me>
+cassandra.password=<change_me>
+cassandra.keyspace=<change_me>
+cassandra.data-api.url=<change_me>
+
