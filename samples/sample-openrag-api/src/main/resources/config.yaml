@@ -1,0 +1,52 @@
+apiVersion: wb/v1
+kind: Workspace
+metadata:
+  workspaceId: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+  name: "acme-knowledge"
+  createdAt: "2026-04-10T09:15:00Z"
+  updatedAt: "2026-04-21T14:32:00Z"
+
+config:
+  defaultVectorStore: 9b4c8c3e-0c72-4df2-9c55-c1cbd9be21f4
+  ingestion:
+    maxFileSizeMb: 100
+    allowedFileTypes: ["pdf", "docx", "md"]
+    chunkSize: 1024
+    chunkOverlap: 128
+  search:
+    topK: 10
+    hybridEnabled: true
+
+vectorStores:
+  - vectorStoreId: 9b4c8c3e-0c72-4df2-9c55-c1cbd9be21f4
+    name: "primary-rag-store"
+    vector:
+      dimension: 1536
+      similarity: "cosine"
+    embedding:
+      provider: "openai"
+      model: "text-embedding-3-large"
+      endpoint: "https://api.openai.com/v1/embeddings"
+      dimension: 1536
+      secretRef: "secrets/openai/embeddings"
+    lexical:
+      enabled: true
+      analyzer: "standard"
+      options:
+        language: "en"
+    reranking:
+      enabled: true
+      provider: "cohere"
+      model: "rerank-english-v3.0"
+      endpoint: "https://api.cohere.com/v1/rerank"
+      secretRef: "secrets/cohere/rerank"
+    createdAt: "2026-04-10T09:30:00Z"
+    updatedAt: "2026-04-20T11:05:00Z"
+
+catalogs:
+  - catalogId: 6d8fc6c4-0b6b-4bdf-9f88-48f4f4d5fd3b
+    name: "product-docs"
+    description: "Internal and external product documentation"
+    vectorStore: 9b4c8c3e-0c72-4df2-9c55-c1cbd9be21f4
+    createdAt: "2026-04-11T08:40:00Z"
+    updatedAt: "2026-04-21T12:10:00Z"

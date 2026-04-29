@@ -1,0 +1,11 @@
+workbench:
+  -
+uid           UUID,
+ *     name          text,
+ *     url           text,
+ *     kind          text, -- astra / hcd / open-rag
+ *     namespace     text,
+ *     credentials   map<text, text>, -- refs only, no secrets
+ *     created_at    timestamp,
+ *     updated_at    timestamp,
+ *     PRIMARY KEY (uid)

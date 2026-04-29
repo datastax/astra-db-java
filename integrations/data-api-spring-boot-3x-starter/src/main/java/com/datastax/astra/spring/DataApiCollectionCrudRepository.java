@@ -3,11 +3,12 @@ package com.datastax.astra.spring;
 import com.datastax.astra.boot.autoconfigure.DataAPIClientProperties;
 import com.datastax.astra.boot.autoconfigure.SchemaAction;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
-import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.mapping.DataApiCollection;
 import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.internal.reflection.CollectionBeanDefinition;
 import com.datastax.astra.internal.utils.BetaPreview;
@@ -190,10 +191,15 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
     @Override
     @NonNull
     public <S extends RECORD> S save(@NonNull S entity) {
-        CollectionInsertOneResult res = collection.insertOne(entity);
-        if (res.getInsertedId() != null && beanDefinition.canSetId()) {
-            beanDefinition.setId(entity, res.getInsertedId());
+        Object documentId = beanDefinition.getId(entity);
+        if (documentId == null) {
+            collection.insertOne(entity);
+            return entity;
         }
+        collection.findOneAndReplace(
+                Filters.id(documentId),
+                entity,
+                new CollectionFindOneAndReplaceOptions().upsert(true));
         return entity;
     }
 

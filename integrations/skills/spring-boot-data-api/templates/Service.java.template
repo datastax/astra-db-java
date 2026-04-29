@@ -1,0 +1,93 @@
+package com.example.demo.service;
+
+import com.datastax.astra.client.core.query.Filter;
+import com.datastax.astra.client.core.query.Filters;
+import com.example.demo.model.{{CLASS_NAME}};
+import com.example.demo.repository.{{CLASS_NAME}}Repository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.*;
+import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Service layer for {{CLASS_NAME}} business logic.
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class {{CLASS_NAME}}Service {
+    
+    private final {{CLASS_NAME}}Repository repository;
+    
+    /**
+     * Create a new entity.
+     */
+    public {{CLASS_NAME}} create({{CLASS_NAME}} entity) {
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+        log.info("Creating entity: {}", entity);
+        return repository.save(entity);
+    }
+    
+    /**
+     * Find entity by ID.
+     */
+    public Optional<{{CLASS_NAME}}> findById(String id) {
+        return repository.findById(id);
+    }
+    
+    /**
+     * Find all entities.
+     */
+    public List<{{CLASS_NAME}}> findAll() {
+        return (List<{{CLASS_NAME}}>) repository.findAll();
+    }
+    
+    /**
+     * Update an existing entity.
+     */
+    public {{CLASS_NAME}} update(String id, {{CLASS_NAME}} updates) {
+        {{CLASS_NAME}} entity = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entity not found: " + id));
+        
+        // Update fields
+        // entity.setField1(updates.getField1());
+        // entity.setField2(updates.getField2());
+        entity.setUpdatedAt(Instant.now());
+        
+        return repository.save(entity);
+    }
+    
+    /**
+     * Delete entity by ID.
+     */
+    public void delete(String id) {
+        repository.deleteById(id);
+    }
+    
+    /**
+     * Find entities with pagination.
+     */
+    public Page<{{CLASS_NAME}}> findAllPaginated(int page, int size, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy));
+        return repository.findAll(Example.of(new {{CLASS_NAME}}()), pageable);
+    }
+    
+    /**
+     * Search entities using Data API filters.
+     */
+    public List<{{CLASS_NAME}}> search(String field, String value) {
+        Filter filter = Filters.eq(field, value);
+        return (List<{{CLASS_NAME}}>) repository.findAll(filter);
+    }
+}
+
+class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}

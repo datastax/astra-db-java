@@ -201,29 +201,38 @@ public abstract class DataApiTableCrudRepository<ROW, PK> implements CrudReposit
                     entityClass.getName()));
         }
 
+        // First check if entity has a field annotated with @TablePrimaryKey
+        this.primaryKeyField = findPrimaryKeyField(entityClass);
+        
         // Check if using @TablePrimaryKeyClass pattern
         this.isPrimaryKeyClass = primaryKeyClass.isAnnotationPresent(TablePrimaryKeyClass.class);
         
-        if (isPrimaryKeyClass) {
-            // Find the field annotated with @TablePrimaryKey in the entity
-            this.primaryKeyField = findPrimaryKeyField(entityClass);
-            if (primaryKeyField == null) {
+        if (primaryKeyField != null) {
+            // Using @TablePrimaryKey pattern - extract keys from the primary key field's type
+            Class<?> pkFieldType = primaryKeyField.getType();
+            this.partitionKeyColumns = extractPartitionKeyColumns(pkFieldType);
+            this.clusteringColumns = extractClusteringColumns(pkFieldType);
+            
+            // Validate that the primary key class is properly annotated
+            if (!pkFieldType.isAnnotationPresent(TablePrimaryKeyClass.class)) {
                 throw new IllegalStateException(String.format(
-                        "Entity class '%s' must have a field annotated with @TablePrimaryKey when using @TablePrimaryKeyClass",
+                        "Field annotated with @TablePrimaryKey in entity class '%s' must be of a type annotated with @TablePrimaryKeyClass",
                         entityClass.getName()));
             }
-            // Extract partition keys from the primary key class
-            this.partitionKeyColumns = extractPartitionKeyColumns(primaryKeyClass);
-            this.clusteringColumns = extractClusteringColumns(primaryKeyClass);
+        } else if (isPrimaryKeyClass) {
+            // Primary key type is annotated but no field in entity - this is an error
+            throw new IllegalStateException(String.format(
+                    "Entity class '%s' must have a field annotated with @TablePrimaryKey when using @TablePrimaryKeyClass",
+                    entityClass.getName()));
         } else {
-            // Extract partition keys from the entity class directly
+            // Extract partition keys from the entity class directly (simple or composite key pattern)
             this.partitionKeyColumns = extractPartitionKeyColumns(entityClass);
             this.clusteringColumns = extractClusteringColumns(entityClass);
         }
 
         if (partitionKeyColumns.isEmpty()) {
             throw new IllegalStateException(String.format(
-                    "Entity class '%s' must have at least one field annotated with @PartitionBy",
+                    "Entity class '%s' (or its primary key class) must have at least one field annotated with @PartitionBy",
                     entityClass.getName()));
         }
 
@@ -239,24 +248,24 @@ public abstract class DataApiTableCrudRepository<ROW, PK> implements CrudReposit
                 log.info("Detected schema action CREATE_IF_NOT_EXISTS, creating table "  + tableName + "...");
                 database.createTable(entityClass);
                 log.info("Table '{}' has been created", tableName);
-            }
-        } else if (SchemaAction.VALIDATE.equals(yamlConfig.getSchemaAction())) {
-            log.info("Detected schema action VALIDATE, validating table " + tableName + "...");
-            if (!database.tableExists(tableName)) {
-                log.info("Table '{}' does not exist", tableName);
-                throw new IllegalArgumentException("Table '" + tableName + "' does not exist");
-            } else {
-                TableDefinition existing = database.getTable(tableName).getDefinition();
-                TableDefinition settings = database.getTable(tableName, entityClass).getDefinition();
-                
-                // Compare table definitions
-                if (!existing.equals(settings)) {
-                    throw new IllegalStateException(String.format(
-                            "Table '%s' schema mismatch. Existing table definition does not match entity class '%s' definition. " +
-                            "Expected: %s, Found: %s",
-                            tableName, entityClass.getName(), settings, existing));
+            } else if (SchemaAction.VALIDATE.equals(yamlConfig.getSchemaAction())) {
+                log.info("Detected schema action VALIDATE, validating table " + tableName + "...");
+                if (!database.tableExists(tableName)) {
+                    log.info("Table '{}' does not exist", tableName);
+                    throw new IllegalArgumentException("Table '" + tableName + "' does not exist");
+                } else {
+                    TableDefinition existing = database.getTable(tableName).getDefinition();
+                    TableDefinition settings = database.getTable(tableName, entityClass).getDefinition();
+
+                    // Compare table definitions
+                    if (!existing.equals(settings)) {
+                        throw new IllegalStateException(String.format(
+                                "Table '%s' schema mismatch. Existing table definition does not match entity class '%s' definition. " +
+                                        "Expected: %s, Found: %s",
+                                tableName, entityClass.getName(), settings, existing));
+                    }
+                    log.info("Table '{}' schema validated successfully", tableName);
                 }
-                log.info("Table '{}' schema validated successfully", tableName);
             }
         }
 
@@ -541,9 +550,6 @@ public abstract class DataApiTableCrudRepository<ROW, PK> implements CrudReposit
 
     @Override
     public boolean existsById(@NonNull PK pk) {
-        if (pk == null) {
-            throw new IllegalArgumentException("Primary key must not be null");
-        }
         return findById(pk).isPresent();
     }
 

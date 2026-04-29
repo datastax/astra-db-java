@@ -16,6 +16,7 @@
         <module>tool-import-json</module>
         <module>tool-pdf</module>
         <module>tool-rag</module>
+        <module>tool-ai-workbench</module>
     </modules>
 
     <dependencyManagement>

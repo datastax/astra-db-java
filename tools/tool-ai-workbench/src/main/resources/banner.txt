@@ -1,0 +1,14 @@
+${AnsiColor.BRIGHT_CYAN}    _____  .__   __      __             __   ___.                        .__
+${AnsiColor.BRIGHT_CYAN}   /  _  \ |__| /  \    /  \___________|  | _\_ |__   ____   ____   ____ |  |__
+${AnsiColor.BRIGHT_CYAN}  /  /_\  \|  | \   \/\/   /  _ \_  __ \  |/ /| __ \_/ __ \ /    \_/ ___\|  |  \
+${AnsiColor.BRIGHT_CYAN} /    |    \  |  \        (  <_> )  | \/    < | \_\ \  ___/|   |  \  \___|   Y  \
+${AnsiColor.BRIGHT_CYAN} \____|__  /__|   \__/\  / \____/|__|  |__|_ \|___  /\___  >___|  /\___  >___|  /
+${AnsiColor.BRIGHT_CYAN}         \/            \/                   \/    \/     \/     \/     \/     \/
+${AnsiColor.BRIGHT_GREEN}
+${AnsiColor.BRIGHT_GREEN} Version 0.1
+${AnsiColor.BRIGHT_MAGENTA} Build with ❤️  by @clun
+
+${AnsiColor.BRIGHT_GREEN} 🧠 APIs        ${AnsiColor.DEFAULT}-> http://localhost:8081/api
+${AnsiColor.BRIGHT_GREEN} ℹ️ Swagger UI ${AnsiColor.DEFAULT}-> http://localhost:8081/swagger-ui/index.html
+${AnsiColor.BRIGHT_GREEN} 📍 OpenAPI     ${AnsiColor.DEFAULT}-> http://localhost:8081/v3/api-docs
+
