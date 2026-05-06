@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>integrations</artifactId>
-    <name>Integrations</name>
+    <name>Data API Integrations</name>
     <packaging>pom</packaging>
     <description>Integration modules for various frameworks and libraries</description>
 

@@ -3,9 +3,11 @@ package com.datastax.astra.spring;
 import com.datastax.astra.boot.autoconfigure.DataAPIClientProperties;
 import com.datastax.astra.boot.autoconfigure.SchemaAction;
 import com.datastax.astra.client.collections.Collection;
+import com.datastax.astra.client.collections.commands.ReturnDocument;
 import com.datastax.astra.client.collections.commands.options.CollectionFindOneAndReplaceOptions;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertManyResult;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
+import com.datastax.astra.client.collections.exceptions.TooManyDocumentsToCountException;
 import com.datastax.astra.client.collections.mapping.DataApiCollection;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
@@ -199,7 +201,9 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
         collection.findOneAndReplace(
                 Filters.id(documentId),
                 entity,
-                new CollectionFindOneAndReplaceOptions().upsert(true));
+                new CollectionFindOneAndReplaceOptions()
+                        .upsert(true)
+                        .returnDocument(ReturnDocument.AFTER));
         return entity;
     }
 
@@ -305,12 +309,17 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
 
     @Override
     public long count() {
-        return collection.countDocuments(Integer.MAX_VALUE);
+        try {
+            return collection.countDocuments(Integer.MAX_VALUE);
+        } catch(TooManyDocumentsToCountException te) {
+            log.warn("With more than 100 documents the count will be an estimate", te);
+            return collection.estimatedDocumentCount();
+        }
     }
 
     @Override
     public void deleteById(@NonNull ID id) {
-        collection.deleteOne(com.datastax.astra.client.core.query.Filters.id(id));
+        collection.deleteOne(Filters.id(id));
     }
 
     @Override
@@ -391,4 +400,5 @@ public abstract class DataApiCollectionCrudRepository<RECORD, ID>
             @NonNull java.util.function.Function<org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery<S>, R> queryFunction) {
         throw new UnsupportedOperationException("QueryByExampleExecutor#findBy is not implemented yet for Data API repositories");
     }
+
 }

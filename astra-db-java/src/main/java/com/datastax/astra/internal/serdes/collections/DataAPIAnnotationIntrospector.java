@@ -20,6 +20,7 @@ package com.datastax.astra.internal.serdes.collections;
  * #L%
  */
 
+import com.datastax.astra.client.collections.mapping.DocumentId;
 import com.datastax.astra.client.collections.mapping.Lexical;
 import com.datastax.astra.client.collections.mapping.Vector;
 import com.datastax.astra.client.collections.mapping.Vectorize;
@@ -55,11 +56,15 @@ public class DataAPIAnnotationIntrospector extends JacksonAnnotationIntrospector
      * </p>
      *
      * @param a the annotated field
-     * @param name the default property name
      * @return the property name to use for serialization, with "$" prefix if applicable
      */
     @Override
     public PropertyName findNameForSerialization(Annotated a) {
+        // Check for @DocumentId annotation
+        if (a.hasAnnotation(DocumentId.class)) {
+            return PropertyName.construct("_id");
+        }
+        
         // Check for @Vectorize annotation
         if (a.hasAnnotation(Vectorize.class)) {
             return PropertyName.construct("$vectorize");

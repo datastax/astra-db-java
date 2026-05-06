@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>astra-db-java-tools</artifactId>
+    <artifactId>data-api-tools-parent</artifactId>
     <name>Data API Client Tools</name>
     <packaging>pom</packaging>
 
@@ -12,11 +12,8 @@
     </parent>
 
     <modules>
-        <module>tool-import-csv</module>
-        <module>tool-import-json</module>
-        <module>tool-pdf</module>
-        <module>tool-rag</module>
-        <module>tool-ai-workbench</module>
+        <module>data-api-tools</module>
+        <module>data-api-tools-csv</module>
     </modules>
 
     <dependencyManagement>

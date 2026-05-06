@@ -11,12 +11,12 @@
     </parent>
 
     <artifactId>data-api-spring-boot-3x-starter</artifactId>
-    <name>+ astra-spring-boot-3x-starter</name>
+    <name>+ data-api-spring-boot-3x-starter</name>
     <packaging>jar</packaging>
     <description>Spring Boot 3.x Starter for DataAPI Client</description>
 
     <properties>
-        <spring-boot.version>3.5.13</spring-boot.version>
+        <spring-boot.version>3.5.14</spring-boot.version>
     </properties>
 
     <dependencyManagement>
@@ -37,6 +37,13 @@
         <dependency>
             <groupId>com.datastax.astra</groupId>
             <artifactId>astra-db-java</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Add the tools for the starter -->
+        <dependency>
+            <groupId>com.datastax.astra</groupId>
+            <artifactId>data-api-tools</artifactId>
             <version>${project.version}</version>
         </dependency>
 
