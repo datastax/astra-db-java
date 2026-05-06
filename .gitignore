@@ -10,6 +10,7 @@ sec
 .cache
 
 # idea conf files
+.bob
 .idea
 *.ipr
 *.iws
