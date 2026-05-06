@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.datastax.astra</groupId>
         <artifactId>integrations</artifactId>
-        <version>2.2.2-SNAPSHOT</version>
+        <version>2.2.2</version>
     </parent>
 
     <artifactId>data-api-spring-boot-3x-autoconfigure</artifactId>
