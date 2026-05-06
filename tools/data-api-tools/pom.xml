@@ -10,7 +10,7 @@
 
     <artifactId>data-api-tools</artifactId>
     <name>+ data-api-tools</name>
-    <description />
+    <description>Common Tools for Data API</description>
 
     <dependencies>
         <!-- Astra DB Java Client -->
