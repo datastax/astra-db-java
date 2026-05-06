@@ -3,6 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>astra-sdk-devops</artifactId>
     <name>Devops API Client</name>
+    <description>Java Client for astra Devops API</description>
 
     <parent>
         <groupId>com.datastax.astra</groupId>
