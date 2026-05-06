@@ -6,7 +6,6 @@ import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.internal.serdes.collections.DocumentMapper;
 import com.datastax.astra.tool.loader.csv.CsvLoader;
-import com.datastax.astra.tool.loader.csv.CsvRowMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
