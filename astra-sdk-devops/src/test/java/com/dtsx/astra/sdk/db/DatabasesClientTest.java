@@ -52,7 +52,7 @@ public class DatabasesClientTest extends AbstractDevopsApiTest {
         Assertions.assertNotNull(getDatabasesClient().database(dbId).get());
         Assertions.assertTrue(getDatabasesClient().findByName(SDK_TEST_DB_NAME).count() > 0);
         // When
-        TestUtils.waitForDbStatus(getDatabasesClient().database(dbId), DatabaseStatusType.ACTIVE, 500);
+        TestUtils.waitForDbStatus(getDatabasesClient().database(dbId), DatabaseStatusType.ACTIVE, 5000);
         // Then
         Database db = getDatabasesClient().database(dbId).get();
         Assertions.assertEquals(DatabaseStatusType.ACTIVE, db.getStatus());

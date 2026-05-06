@@ -91,7 +91,7 @@ public class DataAPIClientOptions implements Cloneable {
      * doesn't exceed database constraints or memory limits.
      * </p>
      */
-    public static final int MAX_CHUNK_SIZE = 50;
+    public static final int MAX_CHUNK_SIZE = 100;
 
     // --------------------------------------------------
     // --- More Global Constants                      ---

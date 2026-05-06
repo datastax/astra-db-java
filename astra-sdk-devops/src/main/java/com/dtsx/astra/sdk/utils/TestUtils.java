@@ -7,14 +7,15 @@ import com.dtsx.astra.sdk.db.domain.Database;
 import com.dtsx.astra.sdk.db.domain.DatabaseCreationBuilder;
 import com.dtsx.astra.sdk.db.domain.DatabaseCreationRequest;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -241,21 +242,28 @@ public class TestUtils {
     }
 
     /**
-     * Database name.
+     * Resume a hibernated database using JDK HttpClient.
      *
      * @param db
-     *      database name
+     *      database to resume
      */
     private static void resumeDb(Database db) {
-        try(CloseableHttpClient httpClient = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet(ApiLocator
-                    .getApiRestEndpoint(db.getId(), db.getInfo().getRegion()) +
-                    "/v2/schemas/keyspace");
-            request.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-            request.setHeader("X-Cassandra-Token", getAstraToken());
-            request.setHeader("Content-Type", "application/json");
-            httpClient.execute(request).close();
-        } catch (IOException e) {
+        try {
+            HttpClient httpClient = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .connectTimeout(Duration.ofSeconds(20))
+                    .build();
+            
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ApiLocator.getApiRestEndpoint(db.getId(), db.getInfo().getRegion()) + "/v2/schemas/keyspace"))
+                    .timeout(Duration.ofSeconds(20))
+                    .header("Content-Type", "application/json")
+                    .header("X-Cassandra-Token", getAstraToken())
+                    .GET()
+                    .build();
+            
+            httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
             throw new IllegalStateException("Cannot resume DB", e);
         }
     }

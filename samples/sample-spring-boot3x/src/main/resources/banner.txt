@@ -1,0 +1,10 @@
+${AnsiColor.BRIGHT_CYAN}      ______ ______
+${AnsiColor.BRIGHT_CYAN}    _/      Y      \_
+${AnsiColor.BRIGHT_CYAN}   // ~~ ~~ | ~~ ~  \\       CRUD with BOOKS
+${AnsiColor.BRIGHT_CYAN}  // ~ ~ ~~ | ~~~ ~~ \\      ${AnsiColor.BRIGHT_GREEN}Data API Spring Boot Demo
+${AnsiColor.BRIGHT_CYAN} //________.|.________\\     ${AnsiColor.BRIGHT_MAGENTA}Build with ❤️   by @clun
+${AnsiColor.BRIGHT_CYAN}`----------`-'----------'${AnsiColor.DEFAULT}
+
+${AnsiColor.BRIGHT_GREEN} 📘 Books API   ${AnsiColor.DEFAULT}-> http://localhost:8081/api/v1/books
+${AnsiColor.BRIGHT_GREEN} ℹ️  Swagger UI  ${AnsiColor.DEFAULT}-> http://localhost:8081/swagger-ui/index.html
+${AnsiColor.BRIGHT_GREEN} 📍 OpenAPI     ${AnsiColor.DEFAULT}-> http://localhost:8081/v3/api-docs

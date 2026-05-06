@@ -33,6 +33,7 @@ import com.datastax.astra.client.collections.commands.options.ListCollectionOpti
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.CollectionDescriptor;
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.collections.mapping.DataApiCollection;
 import com.datastax.astra.client.core.commands.Command;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
@@ -59,7 +60,8 @@ import com.datastax.astra.client.tables.mapping.EntityTable;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.AbstractCommandRunner;
 import com.datastax.astra.internal.command.CommandObserver;
-import com.datastax.astra.internal.reflection.EntityBeanDefinition;
+import com.datastax.astra.internal.reflection.CollectionBeanDefinition;
+import com.datastax.astra.internal.reflection.EntityTableBeanDefinition;
 import com.datastax.astra.internal.utils.Assert;
 import com.dtsx.astra.sdk.utils.Utils;
 import lombok.Getter;
@@ -69,7 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.datastax.astra.internal.reflection.EntityBeanDefinition.createTableCommand;
+import static com.datastax.astra.internal.reflection.EntityTableBeanDefinition.createTableCommand;
 import static com.datastax.astra.internal.utils.Assert.hasLength;
 import static com.datastax.astra.internal.utils.Assert.notNull;
 
@@ -640,6 +642,85 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
+     * Retrieves the collection name from a class annotated with {@link DataApiCollection}.
+     * <p>
+     * This method extracts the collection name from the {@code name} attribute of the
+     * {@link DataApiCollection} annotation on the provided class. The class must be properly
+     * annotated, and the annotation must specify a non-empty name.
+     * </p>
+     *
+     * @param <T> the type of the document class
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @return the collection name as specified in the {@link DataApiCollection} annotation
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     // fields
+     * }
+     *
+     * String collectionName = database.getCollectionName(User.class);
+     * // Returns: "users"
+     * }
+     * </pre>
+     */
+    public <T> String getCollectionName(Class<T> documentClass) {
+        notNull(documentClass, "documentClass");
+        DataApiCollection ann = documentClass.getAnnotation(DataApiCollection.class);
+        if (ann == null) {
+            throw new IllegalArgumentException("Class " + documentClass.getName() + " is not annotated with  "+ DataApiCollection.class.getName());
+        }
+        if (!Utils.hasLength(ann.name())) {
+            throw new IllegalArgumentException("Annotation @DataApiCollection on class " + documentClass.getName() + " has no name");
+        }
+        return ann.name();
+    }
+
+    /**
+     * Retrieves the collection definition from a class annotated with {@link DataApiCollection}.
+     * <p>
+     * This method builds a {@link CollectionDefinition} based on the metadata extracted from
+     * the provided class. The class must be annotated with {@link DataApiCollection}, and the
+     * method uses reflection to analyze the class structure and generate the appropriate
+     * collection schema definition.
+     * </p>
+     *
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @return a {@link CollectionDefinition} object representing the schema definition for the collection
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "products")
+     * public class Product {
+     *     private String id;
+     *     private String name;
+     *     // other fields
+     * }
+     *
+     * CollectionDefinition definition = database.getCollectionDefinition(Product.class);
+     * }
+     * </pre>
+     */
+    public CollectionDefinition getCollectionDefinition(Class<?> documentClass) {
+        notNull(documentClass, "documentClass");
+        DataApiCollection ann = documentClass.getAnnotation(DataApiCollection.class);
+        if (ann == null) {
+            throw new IllegalArgumentException("Class " + documentClass.getName() + " is not annotated with  "+ DataApiCollection.class.getName());
+        }
+        return new CollectionBeanDefinition<>(documentClass).buildCollectionDefinition();
+    }
+
+    /**
      * Retrieves a {@link Collection} object for the specified collection name, with the ability to
      * customize the collection behavior using the specified {@link CollectionOptions}.
      * <p>
@@ -675,6 +756,40 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public <T> Collection<T> getCollection(String collectionName, Class<T> documentClass) {
         return getCollection(collectionName, documentClass, defaultCollectionOptions());
+    }
+
+    /**
+     * Retrieves a {@link Collection} object for a class annotated with {@link DataApiCollection}.
+     * <p>
+     * This method provides a convenient way to obtain a {@link Collection} instance by using
+     * the collection name extracted from the {@link DataApiCollection} annotation on the provided
+     * class. The collection is configured with default options derived from the current database
+     * settings.
+     * </p>
+     *
+     * @param <T> the type of the documents stored in the collection
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @return a {@link Collection} object representing the collection associated with the annotated class
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     private String id;
+     *     private String name;
+     * }
+     *
+     * Collection<User> userCollection = database.getCollection(User.class);
+     * }
+     * </pre>
+     */
+    public <T> Collection<T> getCollection(Class<T> documentClass) {
+        return getCollection(getCollectionName(documentClass), documentClass, defaultCollectionOptions());
     }
 
     /**
@@ -752,6 +867,44 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         notNull(options, "options");
         notNull(documentClass, "documentClass");
         return new Collection<>(this, collectionName, options, documentClass);
+    }
+
+    /**
+     * Retrieves a {@link Collection} object for a class annotated with {@link DataApiCollection}
+     * with custom options.
+     * <p>
+     * This method provides a way to obtain a {@link Collection} instance by using the collection
+     * name extracted from the {@link DataApiCollection} annotation on the provided class, while
+     * allowing customization of the collection behavior through the specified {@link CollectionOptions}.
+     * </p>
+     *
+     * @param <T> the type of the documents stored in the collection
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @param options the {@link CollectionOptions} to customize the collection behavior; must not be null
+     * @return a {@link Collection} object representing the collection associated with the annotated class,
+     *         configured with the provided options
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} or {@code options} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     private String id;
+     *     private String name;
+     * }
+     *
+     * CollectionOptions options = new CollectionOptions()
+     *     .timeout(Duration.ofMillis(1000));
+     * Collection<User> userCollection = database.getCollection(User.class, options);
+     * }
+     * </pre>
+     */
+    public <T> Collection<T> getCollection(Class<T> documentClass, CollectionOptions options) {
+        return getCollection(getCollectionName(documentClass), documentClass, options);
     }
 
     // ------------------------------------------
@@ -840,6 +993,76 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
             }
         }
         return getCollection(collectionName, documentClass, collectionOptions);
+    }
+
+    /**
+     * Creates a new collection based on a class annotated with {@link DataApiCollection}.
+     * <p>
+     * This method creates a collection using the name and definition extracted from the
+     * {@link DataApiCollection} annotation on the provided class. The collection creation
+     * can be customized using the specified {@link CreateCollectionOptions}.
+     * </p>
+     *
+     * @param <T> the type of the documents stored in the collection
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @param createCollectionOptions additional options for creating the collection, such as timeouts
+     *                                or retry policies; can be null for default options
+     * @return the created {@link Collection} object configured with the provided options
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     private String id;
+     *     private String name;
+     * }
+     *
+     * CreateCollectionOptions options = new CreateCollectionOptions()
+     *     .timeout(Duration.ofMillis(1000));
+     * Collection<User> userCollection = database.createCollection(User.class, options);
+     * }
+     * </pre>
+     */
+    public <T> Collection<T> createCollection(Class<T> documentClass, CreateCollectionOptions createCollectionOptions) {
+        return createCollection(getCollectionName(documentClass), getCollectionDefinition(documentClass), documentClass, createCollectionOptions);
+    }
+
+    /**
+     * Creates a new collection based on a class annotated with {@link DataApiCollection} using default options.
+     * <p>
+     * This method creates a collection using the name and definition extracted from the
+     * {@link DataApiCollection} annotation on the provided class. The collection is created
+     * with default options derived from the current database settings.
+     * </p>
+     *
+     * @param <T> the type of the documents stored in the collection
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @return the created {@link Collection} object with default configuration
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     private String id;
+     *     private String name;
+     * }
+     *
+     * Collection<User> userCollection = database.createCollection(User.class);
+     * }
+     * </pre>
+     */
+    public <T> Collection<T> createCollection(Class<T> documentClass) {
+        return createCollection(getCollectionName(documentClass), getCollectionDefinition(documentClass), documentClass);
     }
 
     /**
@@ -984,6 +1207,36 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
      */
     public void dropCollection(String collectionName) {
         dropCollection(collectionName, null);
+    }
+
+    /**
+     * Deletes a collection from the database based on a class annotated with {@link DataApiCollection}.
+     * <p>
+     * This method deletes the collection whose name is extracted from the {@link DataApiCollection}
+     * annotation on the provided class. The operation uses default options.
+     * </p>
+     *
+     * @param documentClass the class representing the document type; must not be null and must be
+     *                      annotated with {@link DataApiCollection}
+     * @throws IllegalArgumentException if the class is not annotated with {@link DataApiCollection}
+     *                                  or if the annotation's name attribute is empty
+     * @throws NullPointerException if {@code documentClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @DataApiCollection(name = "users")
+     * public class User {
+     *     private String id;
+     *     private String name;
+     * }
+     *
+     * database.dropCollection(User.class);
+     * }
+     * </pre>
+     */
+    public void dropCollection(Class<?> documentClass) {
+        dropCollection(getCollectionName(documentClass), null);
     }
 
     // ------------------------------------------
@@ -1196,20 +1449,31 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
     /**
      * Retrieves a table representation for a row class annotated with {@link EntityTable}.
+     * <p>
      * The table name is inferred from the {@code value} attribute of the {@code EntityTable} annotation.
+     * This method provides a convenient way to obtain a {@link Table} instance without explicitly
+     * specifying the table name, as it is automatically extracted from the annotation.
+     * </p>
      *
-     * @param <T>      the type of the row objects
-     * @param rowClass the class representing the type of rows in the table (must be annotated with {@link EntityTable})
-     * @return a {@code Table<T>} instance for the inferred table name and row type
+     * @param <T> the type of the row objects
+     * @param rowClass the class representing the type of rows in the table; must not be null and must be
+     *                 annotated with {@link EntityTable}
+     * @return a {@code Table<T>} instance for the inferred table name and row type, configured with
+     *         default options
      * @throws InvalidConfigurationException if the provided class is not annotated with {@link EntityTable}
+     *                                       or if the annotation's value attribute is empty
+     * @throws NullPointerException if {@code rowClass} is null
      *
      * <p>Example usage:</p>
      * <pre>
      * {@code
      * @EntityTable("my_table")
-     * public class MyRowType { ... }
+     * public class MyRowType {
+     *     private String id;
+     *     private String name;
+     * }
      *
-     * Table<MyRowType> table = myFramework.getTable(MyRowType.class);
+     * Table<MyRowType> table = database.getTable(MyRowType.class);
      * }
      * </pre>
      */
@@ -1230,17 +1494,35 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
 
     /**
      * Retrieves the {@link TableUserDefinedTypeDefinition} associated with the specified class.
+     * <p>
+     * The class must be annotated with {@link TableUserDefinedType}, which is used to extract
+     * the metadata needed to construct a UDT (User-Defined Type) definition. This method uses
+     * reflection to analyze the class structure and generate the appropriate type definition.
+     * </p>
      *
-     * <p>The class must be annotated with {@link TableUserDefinedType}, which is used to extract
-     * the metadata needed to construct a UDT (User-Defined Type) definition.
+     * <p><strong>Note:</strong> This method currently returns {@code null} and requires implementation.</p>
      *
-     * <p>If the class is not annotated correctly, an {@link InvalidConfigurationException} is thrown.
-     *
-     * @param rowClass the class annotated with {@link TableUserDefinedType}
      * @param <T> the type of the class
-     * @return the user-defined type metadata definition for the specified class
+     * @param rowClass the class annotated with {@link TableUserDefinedType}; must not be null
+     * @return the user-defined type metadata definition for the specified class, or {@code null}
+     *         if not yet implemented
      * @throws InvalidConfigurationException if the class is not annotated with {@link TableUserDefinedType}
-     * @throws NullPointerException if {@code rowClass} is {@code null}
+     *                                       or if the annotation's value attribute is empty
+     * @throws NullPointerException if {@code rowClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @TableUserDefinedType("address_type")
+     * public class Address {
+     *     private String street;
+     *     private String city;
+     *     private String zipCode;
+     * }
+     *
+     * TableUserDefinedTypeDefinition typeDef = database.getType(Address.class);
+     * }
+     * </pre>
      */
     public <T> TableUserDefinedTypeDefinition getType(Class<T> rowClass) {
         TableUserDefinedType ann = rowClass.getAnnotation(TableUserDefinedType.class);
@@ -1256,11 +1538,34 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Creates a table using default options and runtime configurations.
+     * Retrieves the type name from a class annotated with {@link TableUserDefinedType}.
+     * <p>
+     * This method extracts the type name from the {@code value} attribute of the
+     * {@link TableUserDefinedType} annotation on the provided class. The class must be properly
+     * annotated, and the annotation must specify a non-empty name.
+     * </p>
      *
-     * @param <T>       the type of the row objects that the table will hold
-     * @param rowClass  the class representing the row type; must not be null
-     * @return the created table object
+     * @param <T> the type of the class
+     * @param rowClass the class representing the user-defined type; must not be null and must be
+     *                 annotated with {@link TableUserDefinedType}
+     * @return the type name as specified in the {@link TableUserDefinedType} annotation
+     * @throws IllegalArgumentException if the class is not annotated with {@link TableUserDefinedType}
+     *                                  or if the annotation's value attribute is empty
+     * @throws NullPointerException if {@code rowClass} is null
+     *
+     * <p>Example usage:</p>
+     * <pre>
+     * {@code
+     * @TableUserDefinedType("address_type")
+     * public class Address {
+     *     private String street;
+     *     private String city;
+     * }
+     *
+     * String typeName = database.getTypeName(Address.class);
+     * // Returns: "address_type"
+     * }
+     * </pre>
      */
     public <T> String getTypeName(Class<T> rowClass) {
         notNull(rowClass, "typeClass");
@@ -1443,7 +1748,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     public <T> void createType(Class<T> UdtBean, CreateTypeOptions createTypeOptions) {
         notNull(UdtBean, "udtDefinition");
         TableUserDefinedType ann = UdtBean.getAnnotation(TableUserDefinedType.class);
-        Command createTypeCmd = new Command("createType", EntityBeanDefinition.createTypeCommand(UdtBean));
+        Command createTypeCmd = new Command("createType", EntityTableBeanDefinition.createTypeCommand(UdtBean));
         if (createTypeOptions != null) {
             createTypeCmd.append("options", createTypeOptions);
         }
@@ -1763,7 +2068,7 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         Table<T> table = getTable(tableName, rowClass, tableOptions);
 
         // Creating Vector Index for each column definition
-        EntityBeanDefinition.listVectorIndexDefinitions(tableName, rowClass).forEach(index -> {
+        EntityTableBeanDefinition.listVectorIndexDefinitions(tableName, rowClass).forEach(index -> {
             CreateVectorIndexOptions options = new CreateVectorIndexOptions().ifNotExists(true)
                     .dataAPIClientOptions(createTableOptions.getDataAPIClientOptions().enableFeatureFlagTables());
             table.createVectorIndex("vidx_" + tableName + "_" + index.getColumn().getName(), index, options);
@@ -1791,11 +2096,22 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
         return ann.value();
     }
 
+
+
     /**
-     * Initialize a TableOption from the current database options.
+     * Initializes a {@link TableOptions} object from the current database options.
+     * <p>
+     * This private helper method creates a new {@link TableOptions} instance configured with
+     * the authentication token and client options from the current database settings. The
+     * keyspace is also set to match the current database's keyspace.
+     * </p>
+     * <p>
+     * This method is used internally to provide consistent default options when creating or
+     * accessing tables without explicit option parameters.
+     * </p>
      *
-     * @return
-     *      default table options
+     * @return a {@link TableOptions} object initialized with the current database's token,
+     *         client options, and keyspace
      */
     private TableOptions defaultTableOptions() {
         return new TableOptions(this.options.getToken(),
@@ -1804,10 +2120,19 @@ public class Database extends AbstractCommandRunner<DatabaseOptions> {
     }
 
     /**
-     * Initialize a TableOption from the current database options.
+     * Initializes a {@link CollectionOptions} object from the current database options.
+     * <p>
+     * This private helper method creates a new {@link CollectionOptions} instance configured with
+     * the authentication token and client options from the current database settings. The
+     * keyspace is also set to match the current database's keyspace.
+     * </p>
+     * <p>
+     * This method is used internally to provide consistent default options when creating or
+     * accessing collections without explicit option parameters.
+     * </p>
      *
-     * @return
-     *      default table options
+     * @return a {@link CollectionOptions} object initialized with the current database's token,
+     *         client options, and keyspace
      */
     private CollectionOptions defaultCollectionOptions() {
         return new CollectionOptions(this.options.getToken(),

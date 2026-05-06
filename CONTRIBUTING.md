@@ -97,11 +97,11 @@ mvn clean install -DskipTests
 
 ### Test Configuration System
 
-Tests are configured through a layered properties system. Values are resolved in priority order:
+Tests are configured through a layered properties system. Values are resolved in priority orderBean:
 
 1. **Environment variables** (e.g., `ASTRA_DB_APPLICATION_TOKEN`)
 2. **System properties** (e.g., `-Dastra.token=...`)
-3. **Config files** (loaded in order, later files override earlier ones):
+3. **Config files** (loaded in orderBean, later files override earlier ones):
    - `test-config.properties` — defaults (committed)
    - `test-config-local.properties` — local HCD/DSE settings (committed)
    - `test-config-astra.properties` — Astra credentials (**gitignored**)

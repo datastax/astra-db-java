@@ -6,12 +6,6 @@ import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.streaming.domain.CdcDefinition;
 import com.dtsx.astra.sdk.streaming.domain.CreateTenant;
 import com.dtsx.astra.sdk.utils.TestUtils;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ContentType;
-import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -21,6 +15,12 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -60,7 +60,13 @@ public class CdcClientTest extends AbstractDevopsApiTest {
         Database db = dc.get();
         LOGGER.info("+ Using db id={}, region={}", db.getId(), db.getInfo().getRegion());
         TestUtils.waitForDbStatus(dc, DatabaseStatusType.ACTIVE, 500);
-        // Create Table
+        
+        // Create Table using JDK HttpClient
+        HttpClient httpClient = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofSeconds(20))
+                .build();
+        
         String urlCreateTable = "https://"
                 + dc.get().getId() + "-"
                 + dc.get().getInfo().getRegion()
@@ -81,16 +87,31 @@ public class CdcClientTest extends AbstractDevopsApiTest {
                 "          \"primaryKey\":   { \"partitionKey\":[\"col1\"] }," +
                 "          \"tableOptions\": { \"defaultTimeToLive\":0 }" +
                 "        }";
-        HttpUriRequestBase req = new HttpPost(urlCreateTable);
-        req.addHeader("Content-Type", "application/json");
-        req.addHeader("Accept", "application/json");
-        req.addHeader("X-Cassandra-Token", getToken());
-        req.setEntity(new StringEntity(body, ContentType.TEXT_PLAIN));
-        CloseableHttpResponse res = HttpClients.createDefault().execute(req);
-        LOGGER.info("+ Table creation status={}", res.getCode());
+        
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(urlCreateTable))
+                .timeout(Duration.ofSeconds(20))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("X-Cassandra-Token", getToken())
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+        
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        LOGGER.info("+ Table creation status={}", response.statusCode());
+        
         body = body.replaceAll("table1", "table2");
-        req.setEntity(new StringEntity(body, ContentType.TEXT_PLAIN));
-        LOGGER.info("+ Table creation status={}", HttpClients.createDefault().execute(req).getCode());
+        request = HttpRequest.newBuilder()
+                .uri(URI.create(urlCreateTable))
+                .timeout(Duration.ofSeconds(20))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("X-Cassandra-Token", getToken())
+                .POST(HttpRequest.BodyPublishers.ofString(body, StandardCharsets.UTF_8))
+                .build();
+        
+        response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        LOGGER.info("+ Table creation status={}", response.statusCode());
     }
 
     @Test

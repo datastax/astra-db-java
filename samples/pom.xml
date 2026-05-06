@@ -9,13 +9,13 @@
     </parent>
 
     <artifactId>astra-db-java-samples-parent</artifactId>
-    <name>Data API Client - Samples</name>
+    <name>Samples</name>
     <packaging>pom</packaging>
 
     <modules>
         <module>sample-demo</module>
-        <module>sample-hcd</module>
-        <module>sample-astra-spring-boot3x</module>
+        <module>sample-langchain4j</module>
+        <module>sample-spring-boot3x</module>
     </modules>
 
     <properties>
@@ -39,7 +39,7 @@
             </dependency>
             <dependency>
                 <groupId>com.datastax.astra</groupId>
-                <artifactId>astra-db-java-tools</artifactId>
+                <artifactId>astra-db-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

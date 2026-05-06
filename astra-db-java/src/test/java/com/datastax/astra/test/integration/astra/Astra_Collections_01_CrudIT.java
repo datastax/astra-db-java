@@ -22,14 +22,20 @@ package com.datastax.astra.test.integration.astra;
 
 import com.datastax.astra.client.collections.Collection;
 import com.datastax.astra.client.collections.commands.results.CollectionInsertOneResult;
+import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.documents.Document;
 import com.datastax.astra.test.integration.AbstractCollectionIT;
+import com.datastax.astra.test.integration.model.Book;
 import com.datastax.astra.test.integration.utils.EnabledIfAstra;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static com.datastax.astra.test.integration.utils.TestDataset.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Collection integration tests against Astra DB.
@@ -65,6 +71,7 @@ public class Astra_Collections_01_CrudIT extends AbstractCollectionIT {
         System.out.println(result.getInsertedId());
         // Introduce Sorting on replaceOne to ensure it doesn't interfere with vector search
     }
+
 
 
 

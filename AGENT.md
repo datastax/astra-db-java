@@ -1,169 +1,430 @@
-# AGENT.md
+# Agent Guide: AstraDB Java SDK
 
-Codex / AI agent guide for working with the **AstraDB Java SDK** (`astra-db-java`).
+> Comprehensive guide for AI agents working with the AstraDB Java SDK codebase
 
-## Identity
+## 📋 Project Overview
 
-| Field | Value |
-|-------|-------|
+### Identity
+
+| Property | Value |
+|----------|-------|
+| **Project** | AstraDB Java SDK |
 | **Group ID** | `com.datastax.astra` |
 | **Artifact** | `astra-db-java-parent` |
 | **Version** | `2.1.5-SNAPSHOT` |
-| **Java** | 17+ (source and target) |
-| **Maven** | 3.6.3+ |
+| **Java Version** | 17+ (source and target) |
+| **Build Tool** | Maven 3.6.3+ |
 | **License** | Apache-2.0 |
 
-## Repository Layout
+### Purpose
+
+The AstraDB Java SDK provides a unified client for interacting with:
+- **Astra DB Serverless** (cloud-native database)
+- **HCD** (Hyper-Converged Database)
+- **DSE** (DataStax Enterprise)
+- **Apache Cassandra** with Data API
+
+Supports both document-oriented (MongoDB-style) and relational (table-based) data models with vector search capabilities.
+
+---
+
+## 🏗️ Architecture
+
+### Module Structure
 
 ```
-astra-db-java/           # Core SDK (main module — most work happens here)
-astra-sdk-devops/         # Astra DevOps API client
-langchain4j-astradb/      # LangChain4j vector-store integration
-astra-db-java-tools/      # CSV utilities & extras
-astra-db-java-tests/      # (Deprecated) legacy test modules — do NOT use
+astra-db-java/              # ⭐ Core SDK (primary development module)
+├── client/                 # Public API surface
+├── internal/               # Implementation details (not public)
+└── test/                   # Unit and integration tests
+
+astra-sdk-devops/           # Astra DevOps API client
+integrations/
+├── langchain4j-astradb/    # LangChain4j vector store integration
+├── data-api-spring-boot-3x-*/  # Spring Boot starters
+└── skills/                 # Reusable skill templates
+
+tools/
+├── data-api-tools/         # CLI utilities
+└── data-api-tools-csv/     # CSV import/export
+
+samples/                    # Example applications
 ```
 
-## Build Commands
+### Client Hierarchy
 
-```bash
-# Full build, no tests
-mvn clean install -DskipTests
+```
+DataAPIClient                    # Entry point (token + options)
+  └── Database                   # Database-level operations
+        ├── Collection<T>        # Document collections (schemaless)
+        └── Table<T>             # Relational tables (schema-defined)
 
-# Build core module only, no tests
-mvn clean install -pl astra-db-java -DskipTests
-
-# Run all tests against local HCD/DSE (with coverage report)
-mvn clean verify -pl astra-db-java -Plocal
-
-# Run all tests against Astra DEV (with coverage report)
-mvn clean verify -pl astra-db-java -Pastra-dev
-
-# Run all tests against Astra PROD (with coverage report)
-mvn clean verify -pl astra-db-java -Pastra-prod
-
-# Run tests and generate JaCoCo report explicitly
-mvn clean test jacoco:report -pl astra-db-java -Pastra-prod
-
-# Run a single test class
-mvn test -pl astra-db-java -Dtest="LocalCollectionIT"
-
-# Skip all tests (explicit profile)
-mvn clean install -pl astra-db-java -Pskip-tests
+Admin Hierarchy:
+AstraDBAdmin                     # Organization-level operations
+  └── AstraDBDatabaseAdmin       # Astra database admin
+DataAPIDatabaseAdmin             # Local/HCD database admin
 ```
 
-The JaCoCo coverage report is generated at `astra-db-java/target/site/jacoco/index.html`.
+### Package Organization
 
-### Maven Profiles
-
-| Profile | `test.environment` | Cloud Provider | Region | Description |
-|---------|--------------------|----------------|--------|-------------|
-| `local` | `local` | GCP | us-east1 | Local HCD/DSE instance |
-| `astra-dev` | `astra_dev` | GCP | us-central1 | Astra development environment |
-| `astra-prod` | `astra_prod` | AWS | us-east-2 | Astra production environment |
-| `skip-tests` | - | - | - | Skip all tests |
-
-Profile values are passed as system properties, which take priority over config file values but not environment variables.
-
-## Source Code Map
-
-Root package: `com.datastax.astra`
-
-### Public API (`client/`)
-
+**Public API** (`com.datastax.astra.client.*`):
 ```
 client/
-  DataAPIClient.java              # Entry point — token, options, database access
-  DataAPIClients.java             # Factory helpers
-  DataAPIDestination.java         # Enum: DSE | ASTRA | HCD | CASSANDRA
-  databases/
-    Database.java                 # Database operations, collection/table management
-  collections/
-    Collection.java               # Document-oriented ops (MongoDB-style)
-  tables/
-    Table.java                    # Row-oriented ops (relational-style)
-    mapping/                      # @EntityTable, @Column, @PartitionBy annotations
-  admin/
-    AstraDBAdmin.java             # Org-level Astra operations
-    AstraDBDatabaseAdmin.java     # Astra-specific database admin
-    DataAPIDatabaseAdmin.java     # Generic Data API admin (local/HCD)
-    DatabaseAdmin.java            # Base database admin
-  core/
-    query/                        # Filter, Projection, Sort builders
-    options/                      # Shared option classes
-    auth/                         # Token/auth providers
-    vector/                       # Vector search options
-    vectorize/                    # Vectorization provider config
-    rerank/                       # Re-ranking options
-    hybrid/                       # Hybrid search options
-  exceptions/                     # 14 exception types (DataAPIException hierarchy)
+├── DataAPIClient.java           # Main entry point
+├── DataAPIClients.java          # Factory methods
+├── DataAPIDestination.java      # Enum: ASTRA | HCD | DSE | CASSANDRA
+├── databases/Database.java      # Database operations
+├── collections/Collection.java  # Document operations
+├── tables/Table.java            # Table operations
+├── admin/                       # Admin interfaces
+├── core/                        # Query builders, options, auth
+├── exceptions/                  # 14 exception types
+└── model/                       # Data models (Document, Row)
 ```
 
-### Internal (`internal/`) — NOT public API
-
+**Internal Implementation** (`com.datastax.astra.internal.*`):
 ```
 internal/
-  http/RetryHttpClient.java       # HTTP with retries, timeouts, proxy
-  serdes/                         # Jackson serializers/deserializers
-    collections/                  # Document serializers (ObjectId, UUID, Date)
-    tables/                       # Row serializers with type mapping
-  command/                        # Command execution engine
-  api/                            # API endpoint routing
-  reflection/                     # Reflection utilities
-  utils/                          # General helpers
+├── http/RetryHttpClient.java    # HTTP client with retry logic
+├── serdes/                      # Jackson serializers/deserializers
+├── command/                     # Command execution engine
+├── api/                         # API endpoint routing
+└── utils/                       # Helper utilities
 ```
 
-## Client Hierarchy
+---
 
+## 🚀 Development Setup
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/datastax/astra-db-java.git
+cd astra-db-java
+
+# Build without tests
+mvn clean install -DskipTests
+
+# Build core module only
+mvn clean install -pl astra-db-java -DskipTests
 ```
-DataAPIClient                       # holds token + client options
-  └── Database                      # database-level operations
-        ├── Collection<T>           # document collection (MongoDB-style)
-        └── Table<T>                # relational table
+
+### Local Development Environment
+
+#### 1. Start DSE/Cassandra Backend
+
+```bash
+# Using Docker Compose
+docker-compose up -d
 ```
 
-Admin hierarchy:
+#### 2. Start Data API Server
 
+```bash
+cd $DATA_API_FOLDER
+
+# Required environment variables
+export STARGATE_DATA_STORE_SAI_ENABLED=true
+export STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true
+export STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true
+export STARGATE_DATA_STORE_IGNORE_BRIDGE=true
+export STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1
+export STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost
+
+# Start in dev mode
+mvn quarkus:dev
 ```
-AstraDBAdmin                        # org-level (create/delete databases)
-  └── AstraDBDatabaseAdmin          # Astra database admin (keyspaces)
-DataAPIDatabaseAdmin                # local/HCD database admin
+
+#### 3. Configure Test Credentials
+
+```bash
+# Copy templates
+cp src/test/resources/test-config-astra.properties.template \
+   src/test/resources/test-config-astra.properties
+
+cp src/test/resources/test-config-embedding-providers.properties.template \
+   src/test/resources/test-config-embedding-providers.properties
+
+# Edit and add your tokens/API keys
+# ⚠️ These files are gitignored - never commit them!
 ```
 
-## Connecting to a Database
+### Connection Examples
 
-### Astra DB Serverless
-
+**Astra DB Serverless:**
 ```java
 DataAPIClient client = new DataAPIClient("AstraCS:...");
-Database database = client.getDatabase("https://01234567-....apps.astra.datastax.com");
+Database db = client.getDatabase("https://01234567-....apps.astra.datastax.com");
 ```
 
-### HCD / Local Instance
-
+**Local HCD/DSE:**
 ```java
 TokenProvider tp = new UsernamePasswordTokenProvider("cassandra", "cassandra");
 DataAPIClient client = new DataAPIClient(tp);
-Database database = client.getDatabase("http://localhost:8181");
+Database db = client.getDatabase("http://localhost:8181");
 ```
 
-## Data Models
+**Default local token:** `Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh` (cassandra/cassandra)
 
-### Collections and Documents
+---
 
-- `Collection<T>` stores flexible JSON documents (schemaless, MongoDB-style)
-- `Document` is the primary data container: `Map<String, Object>` with two access modes:
-  - **Plain** (`put`/`get`): literal keys, no parsing
-  - **Escaping-aware** (`append`/`read`): dot-notation navigates nested maps, `&.` for literal dots
-- Supports vector search, server-side embeddings (vectorize), and hybrid search
+## 🧪 Testing Strategy
 
-### Tables and Rows
+### Test Organization
 
-- `Table<T>` stores rows with defined column types (relational-style, schema-defined)
-- `Row` is the data container with typed column access
+```
+src/test/java/com/datastax/astra/test/
+├── unit/                        # Unit tests (no external dependencies)
+│   ├── core/                    # Filters, sorts, projections
+│   ├── collections/             # Document serialization
+│   ├── tables/                  # Row builders, table definitions
+│   └── admin/                   # API endpoint parsing
+│
+└── integration/                 # Integration tests
+    ├── AbstractDataAPITest.java # Base class for all ITs
+    ├── Abstract*IT.java         # Abstract test suites
+    ├── local/                   # Local*IT (HCD/DSE tests)
+    └── astra/                   # Astra*IT (cloud tests)
+```
+
+### Test Inheritance Pattern
+
+Every integration test class:
+1. Extends `AbstractDataAPITest` (provides `getDatabase()`, config access)
+2. Uses `@TestInstance(TestInstance.Lifecycle.PER_CLASS)`
+3. Cleans up in `@BeforeAll` with `dropAllCollections()` + `dropAllTables()`
+4. Uses `@TestMethodOrder(MethodOrderer.OrderAnnotation.class)` with `@Order`
+
+**Exception:** `AbstractDatabaseAdminIT` skips cleanup to avoid premature database creation.
+
+### Running Tests
+
+```bash
+# All tests against local HCD/DSE
+mvn clean verify -pl astra-db-java -Plocal
+
+# All tests against Astra DEV
+mvn clean verify -pl astra-db-java -Pastra-dev
+
+# All tests against Astra PROD
+mvn clean verify -pl astra-db-java -Pastra-prod
+
+# Single test class
+mvn test -pl astra-db-java -Dtest="LocalCollectionIT"
+
+# With coverage report
+mvn clean test jacoco:report -pl astra-db-java -Pastra-prod
+```
+
+**Coverage report:** `astra-db-java/target/site/jacoco/index.html`
+
+### Maven Profiles
+
+| Profile | Environment | Cloud | Region | Description |
+|---------|-------------|-------|--------|-------------|
+| `local` | `local` | GCP | us-east1 | Local HCD/DSE |
+| `astra-dev` | `astra_dev` | GCP | us-central1 | Astra development |
+| `astra-prod` | `astra_prod` | AWS | us-east-2 | Astra production |
+| `skip-tests` | - | - | - | Skip all tests |
+
+### Test Configuration
+
+**Files in `src/test/resources/`:**
+
+| File | Purpose | Committed |
+|------|---------|-----------|
+| `test-config.properties` | Default settings | ✅ Yes |
+| `test-config-local.properties` | Local overrides | ✅ Yes |
+| `test-config-astra.properties` | Astra credentials | ❌ No (gitignored) |
+| `test-config-embedding-providers.properties` | API keys | ❌ No (gitignored) |
+| `junit-platform.properties` | JUnit 5 config | ✅ Yes |
+| `logback-test.xml` | Test logging | ✅ Yes |
+
+**Configuration priority:** Environment variables > System properties > Config files
+
+### Custom Test Annotations
+
+```java
+@EnabledIfLocalAvailable   // Skip if local HCD unreachable
+@EnabledIfAstra            // Skip if no Astra token or wrong environment
+```
+
+Tests for unavailable environments are **skipped** (not failed).
+
+### Environment Variables (Optional)
+
+| Variable | Description |
+|----------|-------------|
+| `ASTRA_DB_APPLICATION_TOKEN` | Astra PROD token |
+| `ASTRA_DB_APPLICATION_TOKEN_DEV` | Astra DEV token |
+| `ASTRA_DB_JAVA_TEST_ENV` | `local` \| `astra_dev` \| `astra_prod` |
+| `ASTRA_CLOUD_PROVIDER` | `AWS` \| `GCP` \| `AZURE` |
+| `ASTRA_CLOUD_REGION` | e.g. `us-east1`, `eu-west-1` |
+
+---
+
+## 🔧 Common Operations
+
+### Adding a New Collection/Table Operation
+
+**Step-by-step:**
+
+1. **Define options class**
+   - Location: `client/collections/commands/` or `client/tables/commands/`
+   - Use `@Getter`, `@Setter`, `@Builder` (Lombok)
+   - Follow fluent builder pattern
+
+2. **Add method to Collection/Table**
+   - Location: `Collection.java` or `Table.java`
+   - Use options pattern for parameters
+   - Return appropriate result type
+
+3. **Add serialization (if needed)**
+   - Location: `internal/serdes/collections/` or `internal/serdes/tables/`
+   - Register in `DataAPISerializer.java` or `DatabaseSerializer.java`
+
+4. **Write unit test**
+   - Location: `test/unit/collections/` or `test/unit/tables/`
+   - Test serialization, validation, edge cases
+
+5. **Write integration tests**
+   - Create abstract test class extending appropriate base
+   - Add concrete implementations in `local/` and `astra/`
+   - Use `@Order` annotations for test sequence
+
+6. **Verify**
+   ```bash
+   mvn clean install -DskipTests
+   mvn test -pl astra-db-java -Dtest="YourTestClass"
+   ```
+
+### Adding a New Integration Test Class
+
+**Template:**
+
+```java
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+public abstract class AbstractYourFeatureIT extends AbstractDataAPITest {
+    
+    @BeforeAll
+    public void setup() {
+        dropAllCollections();
+        dropAllTables();
+        // Your setup code
+    }
+    
+    @Test
+    @Order(1)
+    public void testFeature() {
+        // Test implementation
+    }
+}
+```
+
+**Concrete implementations:**
+
+```java
+// Local version
+@EnabledIfLocalAvailable
+public class LocalYourFeatureIT extends AbstractYourFeatureIT {
+}
+
+// Astra version
+@EnabledIfAstra
+public class AstraYourFeatureIT extends AbstractYourFeatureIT {
+}
+```
+
+### Adding a Vectorize Provider Test
+
+**Extend the appropriate base:**
+
+```java
+public class YourProviderVectorizeIT extends AbstractVectorizeApiHeaderIT {
+    
+    @Override
+    protected String getEmbeddingProviderId() {
+        return "yourProvider";
+    }
+    
+    @Override
+    protected String getApiKey() {
+        return testConfig.getEmbeddingApiKey("YOUR_PROVIDER_KEY");
+    }
+    
+    @Override
+    protected Map<String, Object> getAuthenticationParameters() {
+        return Map.of("apiKey", getApiKey());
+    }
+}
+```
+
+For non-standard auth (e.g., AWS Bedrock), override `getEmbeddingAuthProvider()`.
+
+### Modifying HTTP Layer
+
+**⚠️ Critical:** All HTTP logic is in `internal/http/RetryHttpClient.java`
+
+Changes here affect **every API call**. Test thoroughly:
+- Retry behavior
+- Timeout handling
+- Error responses
+- Connection pooling
+- Proxy support
+
+---
+
+## 📚 Best Practices
+
+### Code Conventions
+
+- **Lombok everywhere:** `@Getter`, `@Setter`, `@Slf4j`, `@Builder`
+- **Fluent builders** for all configuration/options classes
+- **Options pattern:** Each operation has dedicated options class
+- **Public vs Internal:** Public API in `client/`, implementation in `internal/`
+- **No style enforcement:** Convention-based (no checkstyle/spotless)
+- **License headers:** Enforced via `license-maven-plugin`
+
+### Data Models
+
+**Collections (Document-oriented):**
+- `Collection<T>` stores flexible JSON documents
+- `Document` is `Map<String, Object>` with two access modes:
+  - **Plain:** `put`/`get` (literal keys)
+  - **Escaping-aware:** `append`/`read` (dot-notation for nested maps)
+- Supports vector search, vectorize, hybrid search
+
+**Tables (Relational):**
+- `Table<T>` stores rows with defined schema
+- `Row` provides typed column access
 - Requires `TableDefinition` with column types and partition key
-- POJO mapping via Jackson annotations (`@JsonProperty`) for both `Collection<T>` and `Table<T>`
+- POJO mapping via Jackson annotations
 
-## Key Dependencies
+### Security
+
+**⚠️ Never commit:**
+- `test-config-astra.properties` (contains tokens)
+- `test-config-embedding-providers.properties` (contains API keys)
+- `.env` files
+- Any file with tokens, passwords, or API keys
+
+**Gitignored patterns:**
+```
+.env
+.astrarc
+sec/
+*.log
+test-config-astra.properties
+test-config-embedding-providers.properties
+```
+
+---
+
+## 📦 Dependencies
+
+### Core Libraries
 
 | Library | Version | Purpose |
 |---------|---------|---------|
@@ -173,229 +434,123 @@ Database database = client.getDatabase("http://localhost:8181");
 | Logback | 1.5.21 | Logging implementation |
 | Lombok | 1.18.42 | Boilerplate reduction |
 | Retry4j | 0.15.0 | Retry logic |
+
+### Integration Libraries
+
+| Library | Version | Purpose |
+|---------|---------|---------|
 | LangChain4j | 1.10.0 | AI framework integration |
-| JUnit Jupiter | 5.14.1 | Testing |
+| Spring Boot | 3.x | Spring integration |
+
+### Testing Libraries
+
+| Library | Version | Purpose |
+|---------|---------|---------|
+| JUnit Jupiter | 5.14.1 | Testing framework |
 | AssertJ | 3.27.6 | Fluent assertions |
+| JaCoCo | - | Code coverage |
 
-## Testing
+---
 
-### Test structure
+## 🚢 Release Process
 
-All tests live under `astra-db-java/src/test/java/com/datastax/astra/test/`.
-
-```
-test/
-  unit/                              # Unit tests (no external dependencies)
-    core/                            # Filters, sorts, projections, options, exceptions
-    collections/                     # Document serialization, collection definitions
-    tables/                          # Row builders, table definitions, update operations
-    admin/                           # API endpoint parsing
-  integration/
-    AbstractDataAPITest.java         # Root: config, client, database lifecycle
-    ├── AbstractDatabaseAdminIT      # Keyspace management tests
-    ├── AbstractCollectionDDLIT      # Collection DDL (create/drop/list)
-    ├── AbstractCollectionIT         # Collection CRUD operations
-    ├── AbstractCollectionDefaultIdIT # Default ID generation strategies
-    ├── AbstractCollectionVectorSearchIT # Vector search on collections
-    ├── AbstractCollectionFindAndRerankIT # Find + rerank operations
-    ├── AbstractTableDDLIT           # Table DDL (create/drop/list)
-    ├── AbstractTableIT              # Table CRUD operations
-    ├── AbstractTableIndexIT         # Table index management
-    ├── AbstractTableUdtIT           # User-defined types
-    ├── AbstractTableVectorSearchIT  # Vector search on tables
-    ├── AbstractVectorizeIT          # Base vectorize tests (shared key)
-    │   └── AbstractVectorizeApiHeaderIT # API key header-based vectorize
-    local/                           # Local*IT — requires local HCD/DSE + Data API
-      HCD_02_DatabaseAdminIT
-      HCD_Collections_00_SchemaIT
-      HCD_Collections_01_CrudIT
-      Local05_CollectionDefaultIdIT
-      Local06_CollectionVectorSearchIT
-      Local08_TableIT
-      Local09_TableVectorSearchIT
-      LocalVectorize*IT              # Provider-specific vectorize tests
-    astra/                           # Astra*IT — requires Astra token
-      Astra_01_AstraDBAdminIT
-      Astra_02_DatabaseAdminIT
-      Astra_Collections_00_SchemaIT
-      Astra_Collections_01_CrudIT
-      Astra_Collections_02_DefaultIdIT
-      Astra_Collections_03_VectorSearchIT
-      Astra_Collections_04_FindAndRerankIT
-      Astra_Collections_05+_Vectorize_*IT  # Provider-specific vectorize tests
-      Astra_Tables_00_SchemaIT
-      Astra_Tables_01_CrudIT
-      Astra_Tables_02_VectorSearchIT
-      Astra_Tables_03_IndexIT
-      Astra_Tables_04_UdtIT
-    utils/                           # Test infrastructure
-      TestConfig.java                # Layered config loading
-      TestDataset.java               # Test data fixtures
-      EnabledIfAstra.java            # @EnabledIfAstra annotation
-      EnabledIfLocalAvailable.java   # @EnabledIfLocalAvailable annotation
-      AstraOnlyCondition.java        # Condition: checks config.isAstra() + token
-      LocalAvailableCondition.java   # Condition: checks local HCD reachability
-```
-
-### Test inheritance pattern
-
-Every abstract IT class:
-- Extends `AbstractDataAPITest` (provides `getDatabase()`, `getDatabaseAdmin()`, config access)
-- Uses `@TestInstance(TestInstance.Lifecycle.PER_CLASS)` for non-static `@BeforeAll`
-- Cleans up with `dropAllCollections()` + `dropAllTables()` in `@BeforeAll` (resets to default keyspace)
-- Uses `@TestMethodOrder(MethodOrderer.OrderAnnotation.class)` with `@Order` annotations
-
-Exception: `AbstractDatabaseAdminIT` does NOT call `dropAllCollections()`/`dropAllTables()` in `@BeforeAll` because it would trigger premature database creation via the DevOps API.
-
-The `database` field in `AbstractDataAPITest` is **static** (shared across all test classes). The cleanup methods call `getDatabase().useKeyspace(DEFAULT_KEYSPACE)` to prevent cross-class keyspace contamination from admin tests.
-
-### Test configuration
-
-Files in `astra-db-java/src/test/resources/`:
-
-| File | Purpose |
-|------|---------|
-| `test-config.properties` | Default settings (committed) |
-| `test-config-local.properties` | Local HCD/DSE overrides (committed) |
-| `test-config-astra.properties` | Astra credentials (**gitignored**) |
-| `test-config-astra.properties.template` | Template — copy and fill in token |
-| `test-config-embedding-providers.properties` | Embedding API keys (**gitignored**) |
-| `test-config-embedding-providers.properties.template` | Template — copy and fill in API keys |
-| `junit-platform.properties` | JUnit 5 config (ordered execution, sequential) |
-| `logback-test.xml` | Test logging |
-
-**Priority order:** Environment variables > System properties > Config files.
-
-### Custom test annotations
-
-```java
-@EnabledIfLocalAvailable   // skips if local HCD unreachable
-@EnabledIfAstra            // skips if no valid Astra token or not Astra environment
-```
-
-Tests for unavailable environments are **skipped** (not failed), so the full suite can always be run safely.
-
-### Surefire configuration
-
-The Maven Surefire plugin is configured to include both `*Test.java` (unit tests) and `*IT.java` (integration tests):
-
-```xml
-<includes>
-    <include>**/*Test.java</include>
-    <include>**/*IT.java</include>
-</includes>
-```
-
-### Environment variables (optional, for CI or overrides)
-
-| Variable | Description |
-|----------|-------------|
-| `ASTRA_DB_APPLICATION_TOKEN` | Astra PROD token |
-| `ASTRA_DB_APPLICATION_TOKEN_DEV` | Astra DEV token |
-| `ASTRA_DB_JAVA_TEST_ENV` | `local`, `astra_dev`, or `astra_prod` |
-| `ASTRA_CLOUD_PROVIDER` | `AWS`, `GCP`, `AZURE` |
-| `ASTRA_CLOUD_REGION` | e.g. `us-east1`, `eu-west-1` |
-
-## Local Development
+### Maven Release
 
 ```bash
-# 1. Start DSE via Docker (port 9042)
-docker-compose up -d
-
-# 2. Start Data API (from separate data-api repo clone)
-#    See TEST.MD for full env-var list
-cd $DATA_API_FOLDER
-STARGATE_DATA_STORE_SAI_ENABLED=true \
-STARGATE_DATA_STORE_VECTOR_SEARCH_ENABLED=true \
-STARGATE_JSONAPI_OPERATIONS_VECTORIZE_ENABLED=true \
-STARGATE_DATA_STORE_IGNORE_BRIDGE=true \
-STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_LOCAL_DATACENTER=dc1 \
-STARGATE_JSONAPI_OPERATIONS_DATABASE_CONFIG_CASSANDRA_END_POINTS=localhost \
-mvn quarkus:dev
-
-# 3. Local token format: Cassandra:Base64(user):Base64(pass)
-#    Default: Cassandra:Y2Fzc2FuZHJh:Y2Fzc2FuZHJh  (cassandra/cassandra)
-#    Endpoint: http://localhost:8181
-```
-
-## Code Conventions
-
-- **Lombok** everywhere: `@Getter`, `@Setter`, `@Slf4j`, `@Builder`, etc.
-- **Fluent builders** for all configuration/options classes.
-- **Options pattern**: each operation has a dedicated options class (e.g. `CollectionFindOptions`, `TableInsertManyOptions`).
-- Public API lives in `client/`; implementation details in `internal/` — do not expose internal types in the public API.
-- Jackson custom serializers/deserializers in `internal/serdes/` — collections and tables each have their own set.
-- No checkstyle or spotless — style is enforced through convention and IDE settings.
-- Apache 2.0 license headers are enforced via `license-maven-plugin`.
-
-## CI/CD
-
-GitHub Actions workflows in `.github/workflows/`:
-
-| Workflow | Target |
-|----------|--------|
-| `ci-astra-dev.yml` | Astra DEV (full suite) |
-| `ci-astra-dev-new.yml` | Astra DEV (new tests) |
-| `ci-astra-dev-collection.yml` | Collection operations on DEV |
-| `ci-astra-dev-database.yml` | Database operations on DEV |
-| `ci-astra-dev-databaseadmin.yml` | Database admin on DEV |
-| `ci-astra-dev-devops.yml` | DevOps API on DEV |
-| `ci-astra-dev-vectorize-aws-bedrock.yml` | AWS Bedrock vectorization |
-| `ci-astra-dev-vectorize-hf-dedicated.yml` | HuggingFace Dedicated vectorization |
-| `ci-astra-prod-devops.yml` | DevOps API on PROD |
-| `ci-astra-col-db-dbadmin.yaml` | Combined collection/db/admin |
-| `ci-astra-devops.yaml` | Comprehensive DevOps |
-| `ci-astra-vectorize-bedrock-hf.yaml` | Combined Bedrock + HF vectorize |
-
-## Release
-
-```bash
-# Prepare + perform release (core + langchain4j modules)
+# Prepare release (updates versions, creates tag)
 mvn -pl astra-db-java,langchain4j-astradb -am release:prepare -DskipTests=true
+
+# Perform release (builds and deploys)
 mvn -pl astra-db-java,langchain4j-astradb -am release:perform -DskipTests=true
 ```
 
-Artifacts are published to Maven Central via Sonatype Central Publishing with GPG signing.
+**Publishing:**
+- Artifacts published to Maven Central
+- Via Sonatype Central Publishing
+- GPG signing required
 
-## Common Tasks for Agents
+### CI/CD Workflows
 
-### Adding a new operation to Collection or Table
+**GitHub Actions** (`.github/workflows/`):
 
-1. Define the options class in `client/collections/commands/` or `client/tables/commands/`.
-2. Add the method to `Collection.java` or `Table.java`.
-3. If serialization is needed, add serializer/deserializer in `internal/serdes/collections/` or `internal/serdes/tables/`.
-4. Add unit test in `astra-db-java/src/test/java/com/datastax/astra/test/unit/`.
-5. Add integration test in the appropriate `integration/local/` or `integration/astra/` package.
-6. Build and verify: `mvn clean install -DskipTests && mvn test -pl astra-db-java -Dtest="YourTestClass"`.
+| Workflow | Target | Purpose |
+|----------|--------|---------|
+| `ci-astra-dev.yml` | Astra DEV | Full test suite |
+| `ci-astra-dev-collection.yml` | Astra DEV | Collection operations |
+| `ci-astra-dev-database.yml` | Astra DEV | Database operations |
+| `ci-astra-dev-databaseadmin.yml` | Astra DEV | Database admin |
+| `ci-astra-dev-vectorize-*.yml` | Astra DEV | Provider-specific vectorize |
+| `ci-astra-prod-devops.yml` | Astra PROD | DevOps API |
 
-### Adding a new integration test class
+---
 
-1. Create the abstract class extending `AbstractDataAPITest` (or a more specific abstract like `AbstractCollectionIT`).
-2. Add `@TestInstance(TestInstance.Lifecycle.PER_CLASS)` and `@TestMethodOrder(MethodOrderer.OrderAnnotation.class)`.
-3. Add `@BeforeAll` method calling `dropAllCollections()` and `dropAllTables()` for clean state.
-4. Create concrete subclasses in `local/` (with `@EnabledIfLocalAvailable`) and `astra/` (with `@EnabledIfAstra`).
-5. Use `@Order` annotations on test methods to control execution sequence.
+## 🔍 Reference
 
-### Adding a new vectorize provider test
+### Key Files
 
-1. Create class extending `AbstractVectorizeApiHeaderIT` (for API-key providers) or `AbstractVectorizeIT` (for shared-key providers).
-2. Implement: `getEmbeddingProviderId()`, `getApiKey()`, `getAuthenticationParameters()`.
-3. If the provider uses non-standard auth (e.g. AWS Bedrock with access+secret keys), override `getEmbeddingAuthProvider()` to return the appropriate `EmbeddingHeadersProvider`.
-4. Add config key support in `TestConfig.java` if needed.
+| File | Purpose |
+|------|---------|
+| `pom.xml` | Root Maven configuration |
+| `astra-db-java/pom.xml` | Core module configuration |
+| `DOCUMENT-API.md` | API documentation |
+| `CONTRIBUTING.md` | Contribution guidelines |
+| `RELEASE.MD` | Release procedures |
 
-### Adding a new core type
+### Important Classes
 
-1. Add the type in `client/core/` (under the appropriate sub-package).
-2. If it needs custom JSON handling, add serializer/deserializer in `internal/serdes/`.
-3. Register the serializer in `DataAPISerializer.java` or `DatabaseSerializer.java`.
+**Entry Points:**
+- `DataAPIClient` - Main client
+- `DataAPIClients` - Factory methods
+- `Database` - Database operations
+- `Collection<T>` - Document operations
+- `Table<T>` - Table operations
 
-### Modifying the HTTP layer
+**Core Types:**
+- `Document` - Document container
+- `Row` - Table row container
+- `Filter` - Query filter builder
+- `Projection` - Field projection builder
+- `Sort` - Sort specification builder
 
-All HTTP logic is in `internal/http/RetryHttpClient.java`. Changes here affect every API call — test thoroughly.
+**Admin:**
+- `AstraDBAdmin` - Org-level admin
+- `AstraDBDatabaseAdmin` - Astra database admin
+- `DataAPIDatabaseAdmin` - Local database admin
 
-## Files to Never Commit
+**Exceptions:**
+- `DataAPIException` - Base exception
+- 14 specific exception types for different error scenarios
 
-- `test-config-astra.properties` (contains tokens)
-- `test-config-embedding-providers.properties` (contains API keys)
-- `.env` files
-- Any file containing tokens, passwords, or API keys
+### Useful Commands
+
+```bash
+# Build everything
+mvn clean install -DskipTests
+
+# Build core only
+mvn clean install -pl astra-db-java -DskipTests
+
+# Run specific test
+mvn test -pl astra-db-java -Dtest="TestClassName"
+
+# Generate coverage report
+mvn clean test jacoco:report -pl astra-db-java
+
+# Check for dependency updates
+mvn versions:display-dependency-updates
+
+# Format license headers
+mvn license:format
+```
+
+---
+
+## 📞 Support
+
+- **Documentation:** [docs.datastax.com](https://docs.datastax.com)
+- **Issues:** [GitHub Issues](https://github.com/datastax/astra-db-java/issues)
+- **Community:** [DataStax Community](https://community.datastax.com)
+
+---
+
+*Last updated: 2026-05-06*

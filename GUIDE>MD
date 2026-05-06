@@ -1,0 +1,22 @@
+API Limitation
+
+
+https://docs.datastax.com/en/hyper-converged-database/1.2/api-reference/dataapi-limits.html
+
+Availability
+
+- 10 Collections MAX
+- 100 indices MAX
+
+Document:
+=> properties
+
+Sorting:
+=> When sorting you will get 20 documents (1000 is only for vector)
+
+Searches:
+=> no regular expression
+
+Counting:
+=> cannot count result of a filter above 1000
+=> abive 1000 the count will be an estimate

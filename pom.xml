@@ -12,11 +12,10 @@
 
     <modules>
         <module>astra-db-java</module>
-        <module>astra-db-java-tools</module>
-        <module>langchain4j-astradb</module>
         <module>astra-sdk-devops</module>
-        <module>samples</module>
-
+        <module>tools</module>
+        <module>integrations</module>
+        <!--<module>samples</module>-->
     </modules>
 
     <properties>
@@ -24,29 +23,29 @@
 
         <!-- Third Party Libraries -->
         <slf4j.version>2.0.17</slf4j.version>
-        <logback.version>1.5.29</logback.version>
-        <jackson.version>2.21.0</jackson.version>
-        <lombok.version>1.18.42</lombok.version>
+        <logback.version>1.5.32</logback.version>
+        <jackson.version>2.21.3</jackson.version>
+        <lombok.version>1.18.46</lombok.version>
         <retry4j.version>0.15.0</retry4j.version>
         <awaitility.version>4.3.0</awaitility.version>
         <mockwebserver.version>5.3.2</mockwebserver.version>
         <uuid-generator.version>5.2.0</uuid-generator.version>
-        <httpclient.version>5.6</httpclient.version>
 
         <!-- Langchain4j -->
-        <langchain4j.version>1.11.0</langchain4j.version>
-        <langchain4j-beta.version>1.11.0-beta19</langchain4j-beta.version>
+        <langchain4j.version>1.14.0</langchain4j.version>
+        <langchain4j-beta.version>1.14.0-beta24</langchain4j-beta.version>
 
         <!-- Test -->
         <test.skipped>true</test.skipped>
         <assertj.version>3.27.7</assertj.version>
-        <junit-jupiter.version>5.14.1</junit-jupiter.version>
-        <junit.platform.version>1.14.1</junit.platform.version>
+        <junit-jupiter.version>5.14.4</junit-jupiter.version>
+        <junit.platform.version>1.14.4</junit.platform.version>
 
         <!-- Maven -->
         <required-maven.version>3.6.3</required-maven.version>
         <maven.plugin.compiler.source>17</maven.plugin.compiler.source>
         <maven.plugin.compiler.target>17</maven.plugin.compiler.target>
+
         <version.maven.plugin.compiler>3.14.1</version.maven.plugin.compiler>
         <version.maven.plugin.coveralls>4.3.0</version.maven.plugin.coveralls>
         <version.maven.plugin.dependency>3.8.1</version.maven.plugin.dependency>
@@ -59,7 +58,7 @@
         <version.maven.plugin.release>3.1.1</version.maven.plugin.release>
         <version.maven.plugin.resources>3.3.1</version.maven.plugin.resources>
         <version.maven.plugin.source>3.3.1</version.maven.plugin.source>
-        <version.maven.plugin.surefire>3.5.4</version.maven.plugin.surefire>
+        <version.maven.plugin.surefire>3.5.5</version.maven.plugin.surefire>
         <version.maven.plugin.jacoco>0.8.13</version.maven.plugin.jacoco>
         <version.maven.plugin.central>0.9.0</version.maven.plugin.central>
     </properties>
@@ -76,17 +75,7 @@
                 <type>pom</type>
             </dependency>
 
-            <!--  Http Client 5-->
-            <dependency>
-                <groupId>org.apache.httpcomponents.client5</groupId>
-                <artifactId>httpclient5</artifactId>
-                <version>${httpclient.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.httpcomponents.client5</groupId>
-                <artifactId>httpclient5-fluent</artifactId>
-                <version>${httpclient.version}</version>
-            </dependency>
+
 
             <!-- UUID Generation -->
             <dependency>
