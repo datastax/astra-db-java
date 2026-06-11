@@ -30,6 +30,14 @@ public class CollectionCloneSettings {
     private final int insertThreadPoolSize = 10;
     
     /**
+     * Number of parallel threads for reading from source collection.
+     * More threads = faster reading through parallel skip/limit queries.
+     * Default: 5
+     */
+    @Builder.Default
+    private final int readThreadPoolSize = 5;
+    
+    /**
      * Maximum time in seconds to wait for all insertions to complete.
      * Default: 300 seconds (5 minutes)
      */

@@ -26,6 +26,8 @@ import com.datastax.astra.client.core.hybrid.HybridLimits;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.rerank.RerankProvider;
+import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -72,6 +74,11 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
     String rerankQuery;
 
     /**
+     * Allowed definition of custom reranking
+     */
+    RerankServiceOptions rerank;
+
+    /**
      * Options for hybrid projection
      */
     Boolean includeScores = false;
@@ -100,6 +107,7 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
         this.hybridLimits     = other.hybridLimits;
         this.limit            = other.limit;
         this.rerankOn         = other.rerankOn;
+        this.rerank           = other.rerank;
         this.rerankQuery      = other.rerankQuery;
         this.includeScores    = other.includeScores;
         this.includeSortVector = other.includeSortVector;
@@ -209,6 +217,19 @@ public class CollectionFindAndRerankOptions extends BaseOptions<CollectionFindAn
      */
     public CollectionFindAndRerankOptions rerankOn(String rerankOn) {
         this.rerankOn = rerankOn;
+        return this;
+    }
+
+    /**
+     * Return a copy of this object with a new RerankServiceOptions setting.
+     * It allows to define the reranking model at query time.
+     *
+     * @param rerankService value for rerankService options
+     *
+     * @return current command
+     */
+    public CollectionFindAndRerankOptions rerankService(RerankServiceOptions rerankService) {
+        this.rerank = rerankService;
         return this;
     }
 
