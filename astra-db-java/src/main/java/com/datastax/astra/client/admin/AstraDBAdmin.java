@@ -21,8 +21,10 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
+import com.datastax.astra.client.admin.definition.DatabaseDefinition;
 import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
+import com.datastax.astra.client.admin.options.CreateDatabaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.databases.DatabaseOptions;
@@ -38,6 +40,8 @@ import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
 import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
+import com.dtsx.astra.sdk.pcu.PcuGroupsOpsClient;
+import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.dtsx.astra.sdk.utils.observability.LoggingRequestObserver;
@@ -46,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +79,9 @@ public class AstraDBAdmin {
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
+
+    /** Client for Astra Devops Api PCU. */
+    final PcuGroupsOpsClient devopsPcuClient;
 
     /** Options to personalized http client other client options. */
     final AdminOptions adminOptions;
@@ -110,13 +116,16 @@ public class AstraDBAdmin {
         if (dataAPIClientOptions.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
             if (dataAPIClientOptions.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
-                System.out.println("Logging enabled for AstraDBAdmin operations.");
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
+            this.devopsPcuClient = new PcuGroupsOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
         } else {
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment());
+            this.devopsPcuClient = new PcuGroupsOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment());
         }
 
@@ -156,6 +165,83 @@ public class AstraDBAdmin {
                 .findAllServerless(RegionType.VECTOR,filterByOrgType)
                 .map(AstraAvailableRegionInfo::new)
                 .toList();
+    }
+
+    // --------------------
+    // -- PCU Support   ---
+    // --------------------
+
+    /**
+     * Lists PCU (Processing Capacity Units) groups filtered by cloud provider and region.
+     * PCU groups manage compute resources for databases across cloud providers and regions.
+     *
+     * @param cloud
+     *      cloud provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param cloudRegion
+     *      cloud region to filter by (e.g., "us-east-1"), or null for all regions
+     * @return
+     *      list of PCU groups matching the specified filters
+     */
+    public List<PcuGroup> listPcuGroups(CloudProviderType cloud, String cloudRegion) {
+        List<PcuGroup> pcus = devopsPcuClient.findAll().toList();
+        // Filter by cloud provider if specified
+        if (cloud != null) {
+            pcus = pcus.stream()
+                    .filter(pcu -> cloud.equals(pcu.getCloudProvider()))
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by region if specified
+        if (cloudRegion != null && !cloudRegion.isBlank()) {
+            pcus = pcus.stream()
+                    .filter(pcu -> cloudRegion.equals(pcu.getRegion()))
+                    .collect(Collectors.toList());
+        }
+
+        return pcus;
+    }
+
+    /**
+     * Lists all PCU (Processing Capacity Units) groups in the organization.
+     * This is a convenience method that returns all PCU groups without filtering.
+     *
+     * @return
+     *      list of all PCU groups
+     */
+    public List<PcuGroup> listPcuGroups() {
+        return listPcuGroups(null, null);
+    }
+
+    /**
+     * Checks if a PCU group exists by its identifier.
+     * This is a convenience method that checks existence without filtering by cloud or region.
+     *
+     * @param pcuGroupId
+     *      PCU group UUID to check
+     * @return
+     *      true if the PCU group exists, false otherwise
+     */
+    public boolean pcuGroupExists(UUID pcuGroupId) {
+        return pcuGroupExists(pcuGroupId, null, null);
+    }
+
+    /**
+     * Checks if a PCU group exists by its identifier, optionally filtered by cloud provider and region.
+     *
+     * @param pcuGroupId
+     *      PCU group UUID to check
+     * @param cloud
+     *      cloud provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param cloudRegion
+     *      cloud region to filter by (e.g., "us-east-1"), or null for all regions
+     * @return
+     *      true if the PCU group exists and matches the filters, false otherwise
+     */
+    public boolean pcuGroupExists(UUID pcuGroupId, CloudProviderType cloud, String cloudRegion) {
+        Assert.notNull(pcuGroupId, "pcuGroupId");
+        return listPcuGroups(cloud, cloudRegion)
+                .stream()
+                .anyMatch(pcuGroup -> pcuGroupId.equals(pcuGroup.getId()));
     }
 
     // --------------------
@@ -296,6 +382,29 @@ public class AstraDBAdmin {
      */
     public DatabaseAdmin createDatabase(String name, CloudProviderType cloud, String cloudRegion) {
         return createDatabase(name, cloud, cloudRegion, true);
+    }
+
+    /**
+     * Create new database with a name on free tier. The database name should not exist in the tenant.
+     *
+     * @param name
+     *    unique name for the database
+     * @param definition
+     *    definition of the database
+     * @return
+     *   database admin object
+     */
+    public DatabaseAdmin createDatabase(String name, DatabaseDefinition definition, CreateDatabaseOptions options) {
+        Assert.notNull(definition, "definition");
+        Assert.hasLength(name, "name");
+        DatabaseCreationRequest req = definition.asRequest();
+        req.setName(name);
+        UUID newDbId = UUID.fromString(devopsDbClient.create(req));
+        log.info("Database {} is starting (id={}): it will take about a minute please wait...", name, newDbId);
+        if (options != null && options.isWaitForDb()) {
+            waitForDatabase(devopsDbClient.database(newDbId.toString()));
+        }
+        return getDatabaseAdmin(newDbId);
     }
 
     /**

@@ -16,6 +16,8 @@
 
 package com.dtsx.astra.sdk.db.domain;
 
+import java.util.UUID;
+
 /**
  * Builder for database creation.
  */
@@ -48,8 +50,14 @@ public class DatabaseCreationBuilder {
     /** Option to enable the vector preview. */
     protected boolean vector = false;
 
+    /** Option to enable the vector preview. */
+    protected DatabaseCreationType dbType;
+
     /** capacity unit. */
     protected int capacityUnits = 1;
+
+    /** Identifier to assign a database to a PCU group directly. */
+    protected UUID pcuGroupUUID;
 
     /** Default constructor. */
     public DatabaseCreationBuilder() {}
@@ -133,6 +141,19 @@ public class DatabaseCreationBuilder {
     }
 
     /**
+     * Builder for a PCU group
+     *
+     * @param pcuGroupId
+     *      identifier for the PCU group
+     * @return
+     *      current instance
+     */
+    public DatabaseCreationBuilder assignToPCUGroup(UUID pcuGroupId) {
+        this.pcuGroupUUID = pcuGroupId;
+        return this;
+    }
+
+    /**
      * Enable Vector.
      *
      * @return
@@ -140,6 +161,17 @@ public class DatabaseCreationBuilder {
      */
     public DatabaseCreationBuilder withVector() {
         this.vector = true;
+        return this;
+    }
+
+    /**
+     * Builder for a dbType
+     *
+     * @return
+     *      database creation request
+     */
+    public DatabaseCreationBuilder dbType(DatabaseCreationType dbType) {
+        this.dbType = dbType;
         return this;
     }
 

@@ -6,7 +6,7 @@ import com.dtsx.astra.sdk.org.RolesClient;
 import com.dtsx.astra.sdk.org.TokensClient;
 import com.dtsx.astra.sdk.org.UsersClient;
 import com.dtsx.astra.sdk.org.domain.*;
-import com.dtsx.astra.sdk.pcu.PcuGroupsClient;
+import com.dtsx.astra.sdk.pcu.PcuGroupsOpsClient;
 import com.dtsx.astra.sdk.streaming.AstraStreamingClient;
 import com.dtsx.astra.sdk.utils.ApiLocator;
 import com.dtsx.astra.sdk.utils.ApiResponseHttp;
@@ -172,12 +172,13 @@ public class AstraOpsClient extends AbstractApiClient {
     // ------------------------------------------------------
 
     /**
-     * Work with PCU groups.
+     * Work with PCU groups. With are using 'pcus' matching both devops path, also pcus support types
+     * https://docs.datastax.com/en/astra-api-docs/_attachments/devops-api/index.html#tag/PCU/operation/pcuGet
      *
      * @return
      *      pcu groups client
      */
-    public PcuGroupsClient pcuGroups() { // TODO `pcu()` or `pcuGroups()`?
-        return new PcuGroupsClient(token, environment);
+    public PcuGroupsOpsClient pcus() {
+        return new PcuGroupsOpsClient(token, environment);
     }
 }

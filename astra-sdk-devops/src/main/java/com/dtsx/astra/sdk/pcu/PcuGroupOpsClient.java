@@ -21,6 +21,7 @@ import java.util.Optional;
  */
 @Slf4j
 public class PcuGroupOpsClient extends AbstractApiClient {
+
     /**
      * PCU group unique identifier.
      */
@@ -87,7 +88,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      *      if the PCU group does not exist
      */
     public PcuGroup get() {
-        return new PcuGroupsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
+        return new PcuGroupsOpsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
     }
 
     /**

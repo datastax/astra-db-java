@@ -32,11 +32,10 @@ public class PcuGroupUpdateRequest extends PcuGroupCreateUpdateRequest {
         internalRep.setMin(this.min == null ? base.getMin() : this.min);
         internalRep.setMax(this.max == null ? base.getMax() : this.max);
         internalRep.setReserved(this.reserved == null ? base.getReserved() : this.reserved);
-
         internalRep.validate();
 
         return internalRep
-            .setPcuGroupUUID(base.getId())
+            .setPcuGroupUUID(base.getId().toString())
             .setInstanceType(base.getInstanceType())
             .setProvisionType(base.getProvisionType());
     }
@@ -50,10 +49,14 @@ public class PcuGroupUpdateRequest extends PcuGroupCreateUpdateRequest {
     static class InternalRep extends PcuGroupUpdateRequest {
         private String pcuGroupUUID;
         private String instanceType;
-        private PcuProvisionType provisionType;
 
         InternalRep() {
             super();
+        }
+
+        public InternalRep setProvisionType(PcuProvisionType provisionType) {
+            super.setProvisionType(provisionType);
+            return this;
         }
     }
 }

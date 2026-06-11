@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 /**
  * Represents a PCU (Processing Capacity Units) Group in Astra.
  * A PCU group manages compute resources for databases across cloud providers and regions.
@@ -18,7 +20,7 @@ public class PcuGroup {
      * Unique identifier for the PCU group.
      */
     @JsonProperty("uuid")
-    private String id;
+    private UUID id;
     
     /**
      * Organization identifier.

@@ -16,6 +16,11 @@
 
 package com.dtsx.astra.sdk.db.domain;
 
+import lombok.AccessLevel;
+import lombok.Setter;
+
+import java.util.UUID;
+
 /**
  * Database creation request
  *
@@ -58,7 +63,12 @@ public class DatabaseCreationRequest {
     /**
      * Default is null, if vector will be added
      */
-    private DatabaseCreationType dbType;
+    protected DatabaseCreationType dbType;
+
+    /**
+     * Identifier to assign a database to a PCU group directly.
+     */
+    private UUID pcuGroupUUID;
 
     /**
      * default constructor.
@@ -78,7 +88,10 @@ public class DatabaseCreationRequest {
         this.name          = builder.name;
         this.region        = builder.region;
         this.tier          = builder.tier;
-        if (builder.vector) {
+        this.pcuGroupUUID  = builder.pcuGroupUUID;
+        if (builder.dbType != null) {
+            this.dbType = builder.dbType;
+        } else if (builder.vector) {
             this.dbType = DatabaseCreationType.vector;
         }
     }
@@ -101,6 +114,16 @@ public class DatabaseCreationRequest {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Setter name update
+     *
+     * @param name
+     *      name update
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
@@ -131,6 +154,16 @@ public class DatabaseCreationRequest {
      */
     public String getTier() {
         return tier;
+    }
+
+    /**
+     * Getter accessor for attribute 'pcuGroupUUID'.
+     *
+     * @return
+     *       current value of 'pcuGroupUUID'
+     */
+    public UUID getPcuGroupUUID() {
+        return pcuGroupUUID;
     }
     
     /**

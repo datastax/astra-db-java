@@ -36,22 +36,22 @@ public abstract class AbstractDevopsApiTest {
     /**
      * Reference to Databases Client.
      */
-    private static AstraDBOpsClient databasesClient;
+    protected static AstraDBOpsClient databasesClient;
 
     /**
      * Reference to organization client.
      */
-    private static AstraOpsClient apiDevopsClient;
+    protected static AstraOpsClient apiDevopsClient;
 
     /**
      * Working db.
      */
-    private static DbOpsClient dbClient;
+    protected static DbOpsClient dbClient;
 
     /**
      * Reference to Databases Client.
      */
-    private static AstraStreamingClient streamingClient;
+    protected static AstraStreamingClient streamingClient;
 
     /**
      * Access DB client.

@@ -1,6 +1,7 @@
 package com.dtsx.astra.sdk.pcu.domain;
 
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,16 +37,45 @@ public abstract class PcuGroupCreateUpdateRequest {
      */
     protected String region;
 
+    // --------------------------------------
+    //          Capacity Details
+    // --------------------------------------
+
+    /**
+     * Committed vs Flexible Workload.
+     * <p></p>
+     * Commited: Committed capacity workloads include continuously-provisioned resources, and they can never scale to zero.
+     * Committed capacity workloads are intended for any database in any environment that requires long-term, continuous
+     * availability, such as multi-region databases and latency sensitive workloads.
+     * <p></p>
+     * Flexible capacity workloads: PCU groups for flexible capacity workloads are billed entirely at the HCU rate, and they
+     * have the option to manually scale to zero. With flexible capacity workloads, you are billed for continuous HCU usage
+     * based on the group’s minimum capacity. While flexible capacity workloads don’t require a commitment to reserved capacity,
+     * they don’t offer cost savings for continuous usage that can be realized at the RCU rate.
+     */
+    protected PcuCapacityWorkloadType workloadType;
+
+    /**
+     * Provisioning type for the PCU group.
+     */
+    @Setter(AccessLevel.NONE)
+    protected PcuProvisionType provisionType;
+    
+    public PcuGroupCreateUpdateRequest setProvisionType(PcuProvisionType provisionType) {
+        this.provisionType = provisionType;
+        return this;
+    }
+
     /**
      * Minimum number of PCUs (must be greater or equals to 1).
      */
     protected Integer min; // Integers so they're nullable
-    
+
     /**
      * Maximum number of PCUs (must be greater or equals to min).
      */
     protected Integer max;
-    
+
     /**
      * Number of reserved PCUs (must be non-negative and lower or equals to min).
      */

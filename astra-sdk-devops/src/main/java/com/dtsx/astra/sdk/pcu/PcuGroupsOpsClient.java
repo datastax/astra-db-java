@@ -2,16 +2,20 @@ package com.dtsx.astra.sdk.pcu;
 
 import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
 import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreationRequest;
+import com.dtsx.astra.sdk.pcu.domain.PcuType;
+import com.dtsx.astra.sdk.pcu.domain.PcuTypeLocationFilter;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupsNotFoundException;
 import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.utils.*;
+import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -20,36 +24,89 @@ import java.util.stream.Stream;
  * Provides operations for creating, finding, and managing PCU groups.
  */
 @Slf4j
-public class PcuGroupsClient extends AbstractApiClient {
+public class PcuGroupsOpsClient extends AbstractApiClient {
+
     private static final TypeReference<List<PcuGroup>> RESPONSE_PCU_GROUPS =
         new TypeReference<>(){};
 
     /**
      * Constructor with token for production environment.
      *
-     * @param token
-     *      authentication token
+     * @param token       authentication token
      */
-    public PcuGroupsClient(String token) {
-        super(token, AstraEnvironment.PROD);
+    public PcuGroupsOpsClient(String token) {
+        this(token, AstraEnvironment.PROD);
     }
 
     /**
-     * Constructor with token and environment.
+     * Constructor with token for different environment
      *
-     * @param token
-     *      authentication token
-     * @param env
-     *      target Astra environment
+     * @param token       authentication token
+     * @param environment astra environment
      */
-    public PcuGroupsClient(String token, AstraEnvironment env) {
-        super(token, env);
+    public PcuGroupsOpsClient(String token, AstraEnvironment environment) {
+        super(token, environment);
     }
+
+    /**
+     * As immutable object use builder to initiate the object.
+     *
+     * @param env
+     *      define target environment to be used
+     * @param token
+     *      authenticated token
+     * @param observers
+     *     list of observers
+     */
+    public PcuGroupsOpsClient(String token, AstraEnvironment env, Map<String, ApiRequestObserver> observers) {
+        super(token, env, observers);
+        HttpClientWrapper.registerObservers(observers);
+    }
+
+    // ---------------------------------
+    // ----        TYPES             ----
+    // ---------------------------------
+
+    private static final TypeReference<List<PcuType>> RESPONSE_PCU_TYPES = new TypeReference<>(){};
 
     /** {@inheritDoc} */
     @Override
     public String getServiceName() {
         return "pcu.groups";
+    }
+
+    // ---------------------------------
+    // ----     PCU TYPES           ----
+    // ---------------------------------
+
+    public Stream<PcuType> listPcuTypes(PcuTypeLocationFilter request) {
+        String contextPath = "/types";
+        boolean first = true;
+        if (request != null) {
+            if (Utils.hasLength(request.getProvider())) {
+                first = false;
+                contextPath = contextPath + "?provider=" + request.getProvider();
+            }
+            if (Utils.hasLength(request.getRegion())) {
+                if (!first) {
+                    contextPath = contextPath + "&region=" + request.getRegion();
+                } else  {
+                    contextPath = contextPath + "?region=" + request.getRegion();
+                }
+            }
+        }
+
+        val res = GET(getEndpointPcus() + contextPath, getOperationName("find"));
+        try {
+            return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_TYPES).stream();
+        } catch (Exception e) {
+            ApiResponseError responseError = null;
+            try {
+                responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
+                System.out.println(responseError.toString());
+            } catch (Exception ignored) {}
+            throw e;
+        }
     }
 
     // ---------------------------------
@@ -67,7 +124,9 @@ public class PcuGroupsClient extends AbstractApiClient {
      *      if creation fails
      */
     public PcuGroup create(PcuGroupCreationRequest req) {
-        val res = POST(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations())), getOperationName("create"));
+        String payload = JsonUtils.marshall(List.of(req.withDefaultsAndValidations()));
+        System.out.println(payload);
+        val res = POST(getEndpointPcus(), payload, getOperationName("create"));
 
         if (HttpURLConnection.HTTP_CREATED != res.getCode()) {
             throw new IllegalStateException("Expected code 201 to create pcu group but got " + res.getCode() + "body=" + res.getBody());
