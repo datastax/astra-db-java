@@ -47,6 +47,7 @@ import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.collections.commands.cursor.CollectionFindAndRerankCursor;
 import com.datastax.astra.client.databases.commands.results.FindRerankingProvidersResult;
+import com.datastax.astra.client.exceptions.DataAPIException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
@@ -65,6 +66,7 @@ import static com.datastax.astra.client.core.lexical.AnalyzerTypes.LETTER;
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.STANDARD;
 import static com.datastax.astra.client.core.lexical.AnalyzerTypes.WHITESPACE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Abstract integration tests for findAndRerank, lexical search, and hybrid search.
@@ -651,4 +653,89 @@ public abstract class AbstractCollectionFindAndRerankIT extends AbstractDataAPIT
         assertThat(doc).isPresent();
         assertThat(doc.get().getString("quote")).isEqualTo("Math is beautiful");
     }
+
+    // ========== Reranker Service Mutation ==========
+
+    @Test
+    @Order(26)
+    void should_mutateRerankService_andVerifyChanges() {
+        if (skipIfNoRerankingKey()) return;
+
+        String collectionName = "c_rerank_mutation";
+        getDatabase().dropCollection(collectionName);
+
+        // Create collection with initial rerank service configuration
+        RerankServiceOptions initialRerankService = new RerankServiceOptions()
+                .modelName("nvidia/llama-3.2-nv-rerankqa-1b-v2")
+                .provider("nvidia");
+
+        CollectionRerankOptions initialRerankOptions = new CollectionRerankOptions()
+                .enabled(true)
+                .service(initialRerankService);
+
+        VectorServiceOptions vectorService = new VectorServiceOptions()
+                .provider("nvidia")
+                .modelName("NV-Embed-QA");
+
+        VectorOptions vectorOptions = new VectorOptions()
+                .dimension(1024)
+                .metric(SimilarityMetric.COSINE.getValue())
+                .service(vectorService);
+
+        CollectionDefinition initialDef = new CollectionDefinition()
+                .vector(vectorOptions)
+                .lexical(new LexicalOptions().enabled(true).analyzer(new Analyzer(STANDARD)))
+                .rerank(initialRerankOptions);
+
+        Collection<Document> col = getDatabase().createCollection(collectionName, initialDef);
+        assertThat(col).isNotNull();
+        assertThat(col.getDefinition().getRerank()).isNotNull();
+        assertThat(col.getDefinition().getRerank().getService().getModelName())
+                .isEqualTo("nvidia/llama-3.2-nv-rerankqa-1b-v2");
+
+        // Insert test documents
+        col.insertMany(List.of(
+                        new Document().id("m1").put("text", "Artificial intelligence transforms technology").vectorize("Artificial intelligence transforms technology").lexical("Artificial intelligence transforms technology"),
+                        new Document().id("m2").put("text", "Machine learning enables predictions").vectorize("Machine learning enables predictions").lexical("Machine learning enables predictions"),
+                        new Document().id("m3").put("text", "Deep learning powers neural networks").vectorize("Deep learning powers neural networks").lexical("Deep learning powers neural networks")),
+                new CollectionInsertManyOptions().chunkSize(3));
+
+        // Perform findAndRerank with initial configuration
+        CollectionFindAndRerankOptions options = baseFindAndRerankOptions()
+                .sort(Sort.hybrid(new Hybrid("artificial intelligence and machine learning")))
+                .hybridLimits(10)
+                .limit(3);
+
+        List<RerankedResult<Document>> initialResults = col.findAndRerank(options).toList();
+        assertThat(initialResults).isNotEmpty();
+        log.info("Initial rerank results count: {}", initialResults.size());
+
+        // Mutate the rerank service by creating a new collection definition
+        // Note: In practice, mutation would involve updating collection settings if supported
+        // For this test, we verify that different rerank configurations can be applied
+        RerankServiceOptions validUpdatedRerankService = new RerankServiceOptions()
+                .modelName("nvidia/llama-3.2-nv-rerankqa-1b-v2")
+                .provider("nvidia"); // Add custom parameters
+
+        CollectionFindAndRerankOptions mutatedRerankOptions = new CollectionFindAndRerankOptions()
+                .rerankService(validUpdatedRerankService);
+
+        List<RerankedResult<Document>> updatedResults = col.findAndRerank(mutatedRerankOptions).toList();
+        assertThat(updatedResults).isNotEmpty();
+        log.info("Updated rerank results count: {}", initialResults.size());
+
+        CollectionFindAndRerankOptions mutatedInvalidRerankOptions = new CollectionFindAndRerankOptions()
+                .rerankService(new RerankServiceOptions().modelName("bla").provider("ble"));
+
+        try {
+            col.findAndRerank(mutatedInvalidRerankOptions).toList();
+            fail();
+        } catch (DataAPIException dataAPIException) {
+            // Should fail
+        }
+
+        // Cleanup
+        getDatabase().dropCollection(collectionName);
+    }
+
 }

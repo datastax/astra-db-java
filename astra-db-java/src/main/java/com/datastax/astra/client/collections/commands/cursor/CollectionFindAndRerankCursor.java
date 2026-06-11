@@ -26,6 +26,7 @@ import com.datastax.astra.client.core.paging.CursorState;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Projection;
 import com.datastax.astra.client.core.query.Sort;
+import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.rerank.RerankedResult;
 import com.datastax.astra.client.core.vector.DataAPIVector;
 import com.datastax.astra.internal.command.AbstractCursor;
@@ -152,6 +153,20 @@ public class CollectionFindAndRerankCursor<T, R> extends AbstractCursor<T, Reran
         checkIdleState();
         CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
         newCursor.options.projection(newProjection);
+        return newCursor;
+    }
+
+    /**
+     * Creates a new {@link CollectionFindAndRerankCursor} with an updated reranking services
+     *
+     * @param rerankService
+     *      the new projection to apply
+     * @return a new {@link CollectionFindAndRerankCursor} instance with the specified reranking service
+     */
+    public CollectionFindAndRerankCursor<T, R> rerankService(RerankServiceOptions rerankService) {
+        checkIdleState();
+        CollectionFindAndRerankCursor<T, R> newCursor = this.clone();
+        newCursor.options.rerankService(rerankService);
         return newCursor;
     }
 
