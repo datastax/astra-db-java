@@ -286,7 +286,7 @@ public class CollectionDefinition {
      * @return self reference
      */
     public CollectionDefinition vectorize(String provider, String modeName) {
-        return vectorize(provider, modeName, null);
+        return vectorize(provider, modeName, (String) null);
     }
 
     /**
@@ -319,6 +319,18 @@ public class CollectionDefinition {
      * @param provider        provider Name (LLM)
      * @param modeName        mode name
      * @param parameters      expected parameters for vectorize
+     * @return self reference
+     */
+    public CollectionDefinition vectorize(String provider, String modeName, Map<String, Object> parameters) {
+        return vectorize(provider, modeName, null, parameters);
+    }
+
+    /**
+     * Enable Vectorization within the collection.
+     *
+     * @param provider        provider Name (LLM)
+     * @param modeName        mode name
+     * @param parameters      expected parameters for vectorize
      * @param sharedSecretKey name of the key in the system
      * @return self reference
      */
@@ -327,6 +339,8 @@ public class CollectionDefinition {
         getVector().getService().parameters(parameters);
         return this;
     }
+
+
 
     // ---------------------
     // Lexical options
