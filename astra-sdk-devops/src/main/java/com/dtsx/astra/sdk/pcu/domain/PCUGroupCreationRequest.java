@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public final class PcuGroupCreationRequest extends PcuGroupCreateUpdateRequest {
+public final class PCUGroupCreationRequest extends PCUGroupCreateUpdateRequest {
 
     /**
      * Instance type for the PCU group (e.g., "standard").
@@ -25,14 +25,14 @@ public final class PcuGroupCreationRequest extends PcuGroupCreateUpdateRequest {
      * @return
      *      this request with defaults applied
      */
-    public PcuGroupCreationRequest withDefaultsAndValidations() {
+    public PCUGroupCreationRequest withDefaultsAndValidations() {
         if (this.provisionType == null) {
-            this.provisionType = PcuProvisionType.SHARED;
+            this.provisionType = PCUProvisionType.shared.name();
         }
 
         // De
         if (this.instanceType == null || this.instanceType.isBlank()) {
-            this.instanceType = PcuInstanceType.SMALL.toString();
+            this.instanceType = PCUInstanceType.small.toString();
         }
 
         if (this.reserved == null) {

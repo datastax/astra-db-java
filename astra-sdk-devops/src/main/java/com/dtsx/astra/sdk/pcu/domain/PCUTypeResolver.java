@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Utility class for resolving default PCU types based on availability and configuration.
  */
-public class PcuTypeResolver {
+public class PCUTypeResolver {
 
     /**
      * Resolves the default PCU type based on available types and mini PCU configuration.
@@ -20,39 +20,39 @@ public class PcuTypeResolver {
      * @param miniPcuEnabled whether mini PCU is enabled
      * @return the selected PCU family, or null if no suitable type is available
      */
-    public static PcuInstanceType resolveDefaultPcuType(List<PcuInstanceType> availableTypes, boolean miniPcuEnabled) {
+    public static PCUInstanceType resolveDefaultPcuType(List<PCUInstanceType> availableTypes, boolean miniPcuEnabled) {
         if (availableTypes == null || availableTypes.isEmpty()) {
             return null;
         }
 
         if (miniPcuEnabled) {
             // Priority: SMALL > MEDIUM > GENERAL_PURPOSE > CACHE_OPTIMIZED
-            if (availableTypes.contains(PcuInstanceType.SMALL)) {
-                return PcuInstanceType.SMALL;
+            if (availableTypes.contains(PCUInstanceType.small)) {
+                return PCUInstanceType.small;
             }
-            if (availableTypes.contains(PcuInstanceType.MEDIUM)) {
-                return PcuInstanceType.MEDIUM;
+            if (availableTypes.contains(PCUInstanceType.medium)) {
+                return PCUInstanceType.medium;
             }
-            if (availableTypes.contains(PcuInstanceType.GENERAL_PURPOSE)) {
-                return PcuInstanceType.GENERAL_PURPOSE;
+            if (availableTypes.contains(PCUInstanceType.generalPurpose)) {
+                return PCUInstanceType.generalPurpose;
             }
-            if (availableTypes.contains(PcuInstanceType.CACHE_OPTIMIZED)) {
-                return PcuInstanceType.CACHE_OPTIMIZED;
+            if (availableTypes.contains(PCUInstanceType.cacheOptimized)) {
+                return PCUInstanceType.cacheOptimized;
             }
         } else {
             // Priority: GENERAL_PURPOSE > CACHE_OPTIMIZED (ignore SMALL and MEDIUM)
-            if (availableTypes.contains(PcuInstanceType.GENERAL_PURPOSE)) {
-                return PcuInstanceType.GENERAL_PURPOSE;
+            if (availableTypes.contains(PCUInstanceType.generalPurpose)) {
+                return PCUInstanceType.generalPurpose;
             }
-            if (availableTypes.contains(PcuInstanceType.CACHE_OPTIMIZED)) {
-                return PcuInstanceType.CACHE_OPTIMIZED;
+            if (availableTypes.contains(PCUInstanceType.cacheOptimized)) {
+                return PCUInstanceType.cacheOptimized;
             }
         }
 
         return null;
     }
 
-    private PcuTypeResolver() {
+    private PCUTypeResolver() {
         // Utility class - prevent instantiation
     }
 }

@@ -12,23 +12,19 @@ import lombok.experimental.Accessors;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public enum PcuCapacityWorkloadType {
+public enum PCUCapacityWorkloadType {
 
     /**
      * Shared provisioning - resources are shared across multiple tenants.
      * More cost-effective but with potential resource contention.
      */
-    FLEXIBLE("flexible"),
+    flexible,
     
     /**
      * Dedicated provisioning - resources are exclusively allocated.
      * Higher cost but guaranteed performance and isolation.
      */
-    COMMITED("commited");
+    commited;
 
-    /**
-     * JSON serialization value for the provision type.
-     */
-    @JsonValue
-    private final String fieldValue;
+
 }

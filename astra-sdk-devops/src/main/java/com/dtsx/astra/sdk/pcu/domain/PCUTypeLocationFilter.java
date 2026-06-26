@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PcuTypeLocationFilter {
+public class PCUTypeLocationFilter {
     String provider;
     String region;
 }

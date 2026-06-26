@@ -19,15 +19,6 @@
             <artifactId>astra-db-java</artifactId>
             <version>${project.version}</version>
         </dependency>
-        
-        <!-- Astra DB Java Client Test Classes -->
-        <dependency>
-            <groupId>com.datastax.astra</groupId>
-            <artifactId>astra-db-java</artifactId>
-            <version>${project.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
 
         <!-- Lombok -->
         <dependency>

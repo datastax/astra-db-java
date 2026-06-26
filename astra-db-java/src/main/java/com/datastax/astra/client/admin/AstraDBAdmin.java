@@ -22,12 +22,14 @@ package com.datastax.astra.client.admin;
 
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
 import com.datastax.astra.client.admin.definition.DatabaseDefinition;
+import com.datastax.astra.client.admin.definition.PCUGroupDefinition;
 import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
 import com.datastax.astra.client.admin.options.CreateDatabaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.exceptions.AstraDevOpsAPIException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -40,8 +42,8 @@ import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
 import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
-import com.dtsx.astra.sdk.pcu.PcuGroupsOpsClient;
-import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
+import com.dtsx.astra.sdk.pcu.PCUGroupsOpsClient;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroup;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.dtsx.astra.sdk.utils.observability.LoggingRequestObserver;
@@ -81,7 +83,7 @@ public class AstraDBAdmin {
     final AstraDBOpsClient devopsDbClient;
 
     /** Client for Astra Devops Api PCU. */
-    final PcuGroupsOpsClient devopsPcuClient;
+    final PCUGroupsOpsClient devopsPcuClient;
 
     /** Options to personalized http client other client options. */
     final AdminOptions adminOptions;
@@ -120,12 +122,12 @@ public class AstraDBAdmin {
             }
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
-            this.devopsPcuClient = new PcuGroupsOpsClient(options.getToken(),
+            this.devopsPcuClient = new PCUGroupsOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
         } else {
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment());
-            this.devopsPcuClient = new PcuGroupsOpsClient(options.getToken(),
+            this.devopsPcuClient = new PCUGroupsOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment());
         }
 
@@ -172,33 +174,35 @@ public class AstraDBAdmin {
     // --------------------
 
     /**
-     * Lists PCU (Processing Capacity Units) groups filtered by cloud provider and region.
-     * PCU groups manage compute resources for databases across cloud providers and regions.
+     * Lists PCU (Processing Capacity Units) groups filtered by cloudProvider provider and region.
+     * PCU groups manage compute resources for databases across cloudProvider providers and regions.
      *
-     * @param cloud
-     *      cloud provider to filter by (AWS, GCP, AZURE), or null for all providers
-     * @param cloudRegion
-     *      cloud region to filter by (e.g., "us-east-1"), or null for all regions
+     * @param cloudProvider
+     *      cloudProvider provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param region
+     *      cloudProvider region to filter by (e.g., "us-east-1"), or null for all regions
      * @return
      *      list of PCU groups matching the specified filters
      */
-    public List<PcuGroup> listPcuGroups(CloudProviderType cloud, String cloudRegion) {
-        List<PcuGroup> pcus = devopsPcuClient.findAll().toList();
-        // Filter by cloud provider if specified
-        if (cloud != null) {
+    public List<PCUGroupDefinition> listPCUGroups(CloudProviderType cloudProvider, String region) {
+        List<PCUGroup> pcus = devopsPcuClient.findAll().toList();
+        // Filter by cloudProvider provider if specified
+        if (cloudProvider != null) {
             pcus = pcus.stream()
-                    .filter(pcu -> cloud.equals(pcu.getCloudProvider()))
+                    .filter(pcu -> cloudProvider.equals(pcu.getCloudProvider()))
                     .collect(Collectors.toList());
         }
 
         // Filter by region if specified
-        if (cloudRegion != null && !cloudRegion.isBlank()) {
+        if (region != null && !region.isBlank()) {
             pcus = pcus.stream()
-                    .filter(pcu -> cloudRegion.equals(pcu.getRegion()))
+                    .filter(pcu -> region.equals(pcu.getRegion()))
                     .collect(Collectors.toList());
         }
-
-        return pcus;
+        return pcus
+                .stream()
+                .map(PCUGroupDefinition::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -208,40 +212,40 @@ public class AstraDBAdmin {
      * @return
      *      list of all PCU groups
      */
-    public List<PcuGroup> listPcuGroups() {
-        return listPcuGroups(null, null);
+    public List<PCUGroupDefinition> listPCUGroups() {
+        return listPCUGroups(null, null);
     }
 
     /**
      * Checks if a PCU group exists by its identifier.
      * This is a convenience method that checks existence without filtering by cloud or region.
      *
-     * @param pcuGroupId
+     * @param PCUGroupId
      *      PCU group UUID to check
      * @return
      *      true if the PCU group exists, false otherwise
      */
-    public boolean pcuGroupExists(UUID pcuGroupId) {
-        return pcuGroupExists(pcuGroupId, null, null);
+    public boolean PCUGroupExists(UUID PCUGroupId) {
+        return PCUGroupExists(PCUGroupId, null, null);
     }
 
     /**
-     * Checks if a PCU group exists by its identifier, optionally filtered by cloud provider and region.
+     * Checks if a PCU group exists by its identifier, optionally filtered by cloudProvider provider and region.
      *
-     * @param pcuGroupId
+     * @param PCUGroupId
      *      PCU group UUID to check
-     * @param cloud
-     *      cloud provider to filter by (AWS, GCP, AZURE), or null for all providers
-     * @param cloudRegion
-     *      cloud region to filter by (e.g., "us-east-1"), or null for all regions
+     * @param cloudProvider
+     *      cloudProvider provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param region
+     *      cloudProvider region to filter by (e.g., "us-east-1"), or null for all regions
      * @return
      *      true if the PCU group exists and matches the filters, false otherwise
      */
-    public boolean pcuGroupExists(UUID pcuGroupId, CloudProviderType cloud, String cloudRegion) {
-        Assert.notNull(pcuGroupId, "pcuGroupId");
-        return listPcuGroups(cloud, cloudRegion)
+    public boolean PCUGroupExists(UUID PCUGroupId, CloudProviderType cloudProvider, String region) {
+        Assert.notNull(PCUGroupId, "PCUGroupId");
+        return listPCUGroups(cloudProvider, region)
                 .stream()
-                .anyMatch(pcuGroup -> pcuGroupId.equals(pcuGroup.getId()));
+                .anyMatch(pcuGroup -> PCUGroupId.equals(pcuGroup.getId()));
     }
 
     // --------------------
@@ -399,6 +403,9 @@ public class AstraDBAdmin {
         Assert.hasLength(name, "name");
         DatabaseCreationRequest req = definition.asRequest();
         req.setName(name);
+        if (definition.getPCUGroupId() != null) {
+            validatePCUGroup(definition);
+        }
         UUID newDbId = UUID.fromString(devopsDbClient.create(req));
         log.info("Database {} is starting (id={}): it will take about a minute please wait...", name, newDbId);
         if (options != null && options.isWaitForDb()) {
@@ -543,6 +550,47 @@ public class AstraDBAdmin {
      */
     public AstraDBDatabaseAdmin getDatabaseAdmin(String databaseEndpoint) {
         return getDatabaseAdmin(AstraApiEndpoint.parse(databaseEndpoint).getDatabaseId());
+    }
+
+    /**
+     * Validates that the PCU group specified in the database definition exists and is in the correct region.
+     * This method checks both the existence of the PCU group globally and its availability in the
+     * specified cloud provider and region.
+     *
+     * @param definition
+     *      the database definition containing PCU group ID, cloud provider, and region
+     * @throws AstraDevOpsAPIException
+     *      if the PCU group does not exist or is not in the expected cloud/region
+     */
+    private void validatePCUGroup(DatabaseDefinition definition) {
+        // Testing PCUGroup in proper region but swallow error if cannot list the PCU groupsInRegion.
+        List<PCUGroupDefinition> groupsInRegion = null;
+        List<PCUGroupDefinition> all = null;
+        try {
+            all = listPCUGroups();
+            groupsInRegion = listPCUGroups(definition.getCloudProvider(), definition.getRegion());
+        } catch (AstraDevOpsAPIException e) {
+            log.warn("Could not list PCU group - The PCUGroup id will not be tested " + e.getMessage());
+        }
+        if (all != null) {
+            boolean groupExist = all
+                    .stream()
+                    .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
+            if (!groupExist) {
+                throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId() + " does not exist");
+            }
+        }
+        if (groupsInRegion != null) {
+            boolean groupExist = groupsInRegion
+                    .stream()
+                    .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
+            if (!groupExist) {
+                throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId()
+                        + " is not in expected cloud/region : "
+                        + definition.getCloudProvider() + "/"
+                        + definition.getRegion());
+            }
+        }
     }
 
     /**

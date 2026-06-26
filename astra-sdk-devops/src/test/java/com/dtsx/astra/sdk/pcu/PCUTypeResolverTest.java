@@ -1,7 +1,7 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.pcu.domain.PcuInstanceType;
-import com.dtsx.astra.sdk.pcu.domain.PcuTypeResolver;
+import com.dtsx.astra.sdk.pcu.domain.PCUInstanceType;
+import com.dtsx.astra.sdk.pcu.domain.PCUTypeResolver;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * Test class for PcuTypeResolver.
  */
 @DisplayName("PcuTypeResolver Tests")
-class PcuTypeResolverTest {
+class PCUTypeResolverTest {
 
     @Nested
     @DisplayName("Mini PCU Enabled")
@@ -26,64 +26,64 @@ class PcuTypeResolverTest {
         @Test
         @DisplayName("Selects SMALL when SMALL is available")
         void selectsSmallWhenSmallIsAvailable() {
-            List<PcuInstanceType> availableTypes = Arrays.asList(
-                PcuInstanceType.SMALL,
-                PcuInstanceType.MEDIUM,
-                PcuInstanceType.GENERAL_PURPOSE,
-                PcuInstanceType.CACHE_OPTIMIZED
+            List<PCUInstanceType> availableTypes = Arrays.asList(
+                PCUInstanceType.small,
+                PCUInstanceType.medium,
+                PCUInstanceType.generalPurpose,
+                PCUInstanceType.cacheOptimized
             );
             
             assertEquals(
-                PcuInstanceType.SMALL,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, true)
+                PCUInstanceType.small,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, true)
             );
         }
 
         @Test
         @DisplayName("Selects MEDIUM when SMALL is unavailable but MEDIUM exists")
         void selectsMediumWhenSmallUnavailableButMediumExists() {
-            List<PcuInstanceType> availableTypes = Arrays.asList(
-                PcuInstanceType.MEDIUM,
-                PcuInstanceType.GENERAL_PURPOSE
+            List<PCUInstanceType> availableTypes = Arrays.asList(
+                PCUInstanceType.medium,
+                PCUInstanceType.generalPurpose
             );
             
             assertEquals(
-                PcuInstanceType.MEDIUM,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, true)
+                PCUInstanceType.medium,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, true)
             );
         }
 
         @Test
         @DisplayName("Selects GENERAL_PURPOSE when only GENERAL_PURPOSE and CACHE_OPTIMIZED exist")
         void selectsGeneralPurposeWhenOnlyGeneralPurposeAndCacheOptimizedExist() {
-            List<PcuInstanceType> availableTypes = Arrays.asList(
-                PcuInstanceType.GENERAL_PURPOSE,
-                PcuInstanceType.CACHE_OPTIMIZED
+            List<PCUInstanceType> availableTypes = Arrays.asList(
+                PCUInstanceType.generalPurpose,
+                PCUInstanceType.cacheOptimized
             );
             
             assertEquals(
-                PcuInstanceType.GENERAL_PURPOSE,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, true)
+                PCUInstanceType.generalPurpose,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, true)
             );
         }
 
         @Test
         @DisplayName("Selects CACHE_OPTIMIZED when it is the only available type")
         void selectsCacheOptimizedWhenItIsTheOnlyAvailableType() {
-            List<PcuInstanceType> availableTypes = Collections.singletonList(
-                PcuInstanceType.CACHE_OPTIMIZED
+            List<PCUInstanceType> availableTypes = Collections.singletonList(
+                PCUInstanceType.cacheOptimized
             );
             
             assertEquals(
-                PcuInstanceType.CACHE_OPTIMIZED,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, true)
+                PCUInstanceType.cacheOptimized,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, true)
             );
         }
 
         @Test
         @DisplayName("Returns null when no types are available")
         void returnsNullWhenNoTypesAreAvailable() {
-            assertNull(PcuTypeResolver.resolveDefaultPcuType(Collections.emptyList(), true));
+            assertNull(PCUTypeResolver.resolveDefaultPcuType(Collections.emptyList(), true));
         }
     }
 
@@ -94,39 +94,39 @@ class PcuTypeResolverTest {
         @Test
         @DisplayName("Selects GENERAL_PURPOSE when GENERAL_PURPOSE is available")
         void selectsGeneralPurposeWhenGeneralPurposeIsAvailable() {
-            List<PcuInstanceType> availableTypes = Arrays.asList(
-                PcuInstanceType.GENERAL_PURPOSE,
-                PcuInstanceType.CACHE_OPTIMIZED
+            List<PCUInstanceType> availableTypes = Arrays.asList(
+                PCUInstanceType.generalPurpose,
+                PCUInstanceType.cacheOptimized
             );
             
             assertEquals(
-                PcuInstanceType.GENERAL_PURPOSE,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, false)
+                PCUInstanceType.generalPurpose,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, false)
             );
         }
 
         @Test
         @DisplayName("Selects CACHE_OPTIMIZED when it is the only available type")
         void selectsCacheOptimizedWhenItIsTheOnlyAvailableType() {
-            List<PcuInstanceType> availableTypes = Collections.singletonList(
-                PcuInstanceType.CACHE_OPTIMIZED
+            List<PCUInstanceType> availableTypes = Collections.singletonList(
+                PCUInstanceType.cacheOptimized
             );
             
             assertEquals(
-                PcuInstanceType.CACHE_OPTIMIZED,
-                PcuTypeResolver.resolveDefaultPcuType(availableTypes, false)
+                PCUInstanceType.cacheOptimized,
+                PCUTypeResolver.resolveDefaultPcuType(availableTypes, false)
             );
         }
 
         @Test
         @DisplayName("Returns null when only SMALL or MEDIUM are available")
         void returnsNullWhenOnlySmallOrMediumAreAvailable() {
-            List<PcuInstanceType> availableTypes = Arrays.asList(
-                PcuInstanceType.SMALL,
-                PcuInstanceType.MEDIUM
+            List<PCUInstanceType> availableTypes = Arrays.asList(
+                PCUInstanceType.small,
+                PCUInstanceType.medium
             );
             
-            assertNull(PcuTypeResolver.resolveDefaultPcuType(availableTypes, false));
+            assertNull(PCUTypeResolver.resolveDefaultPcuType(availableTypes, false));
         }
     }
 }

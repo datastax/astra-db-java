@@ -15,7 +15,7 @@ import lombok.experimental.SuperBuilder;
 @Setter
 @SuperBuilder
 @NoArgsConstructor
-public abstract class PcuGroupCreateUpdateRequest {
+public abstract class PCUGroupCreateUpdateRequest {
 
     /**
      * Human-readable title for the PCU group.
@@ -53,15 +53,15 @@ public abstract class PcuGroupCreateUpdateRequest {
      * based on the group’s minimum capacity. While flexible capacity workloads don’t require a commitment to reserved capacity,
      * they don’t offer cost savings for continuous usage that can be realized at the RCU rate.
      */
-    protected PcuCapacityWorkloadType workloadType;
+    protected String workloadType;
 
     /**
      * Provisioning type for the PCU group.
      */
     @Setter(AccessLevel.NONE)
-    protected PcuProvisionType provisionType;
+    protected String provisionType;
     
-    public PcuGroupCreateUpdateRequest setProvisionType(PcuProvisionType provisionType) {
+    public PCUGroupCreateUpdateRequest setProvisionType(String provisionType) {
         this.provisionType = provisionType;
         return this;
     }

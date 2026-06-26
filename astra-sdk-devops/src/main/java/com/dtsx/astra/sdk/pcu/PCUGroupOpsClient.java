@@ -1,8 +1,8 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
-import com.dtsx.astra.sdk.pcu.domain.PcuGroupStatusType;
-import com.dtsx.astra.sdk.pcu.domain.PcuGroupUpdateRequest;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroup;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroupStatusType;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroupUpdateRequest;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.utils.ApiLocator;
@@ -14,19 +14,20 @@ import lombok.val;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Operations client for managing a specific PCU (Processing Capacity Units) Group.
  * Provides CRUD operations, maintenance actions, and datacenter association management.
  */
 @Slf4j
-public class PcuGroupOpsClient extends AbstractApiClient {
+public class PCUGroupOpsClient extends AbstractApiClient {
 
     /**
      * PCU group unique identifier.
      */
     @Getter
-    private final String pcuGroupId;
+    private final UUID pcuGroupId;
 
     /**
      * Constructor with token and PCU group ID for production environment.
@@ -36,7 +37,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @param pcuGroupId
      *      PCU group UUID
      */
-    public PcuGroupOpsClient(String token, String pcuGroupId) {
+    public PCUGroupOpsClient(String token, UUID pcuGroupId) {
         this(token, AstraEnvironment.PROD, pcuGroupId);
     }
 
@@ -50,7 +51,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @param pcuGroupId
      *      PCU group UUID
      */
-    public PcuGroupOpsClient(String token, AstraEnvironment env, String pcuGroupId) {
+    public PCUGroupOpsClient(String token, AstraEnvironment env, UUID pcuGroupId) {
         super(token, env);
         this.pcuGroupId = pcuGroupId;
     }
@@ -71,7 +72,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @return
      *      optional containing the PCU group if found
      */
-    public Optional<PcuGroup> find() {
+    public Optional<PCUGroup> find() {
         try {
             return Optional.of(get());
         } catch (PcuGroupNotFoundException e) {
@@ -87,8 +88,8 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @throws PcuGroupNotFoundException
      *      if the PCU group does not exist
      */
-    public PcuGroup get() {
-        return new PcuGroupsOpsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
+    public PCUGroup get() {
+        return new PCUGroupsOpsClient(token, environment).findById(pcuGroupId).orElseThrow(() -> PcuGroupNotFoundException.forId(pcuGroupId));
     }
 
     /**
@@ -108,7 +109,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      *      true if the PCU group status is ACTIVE
      */
     public boolean isActive() {
-        return PcuGroupStatusType.ACTIVE == get().getStatus();
+        return PCUGroupStatusType.ACTIVE.name().equals(get().getStatus());
     }
 
     /**
@@ -118,7 +119,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      *      true if the PCU group status is CREATED or ACTIVE
      */
     public boolean isCreatedOrActive() {
-        return PcuGroupStatusType.CREATED == get().getStatus() || isActive();
+        return PCUGroupStatusType.CREATED.name().equals(get().getStatus()) || isActive();
     }
 
     // ---------------------------------
@@ -131,7 +132,7 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @param req
      *      PCU group update request with new configuration
      */
-    public void update(PcuGroupUpdateRequest req) {
+    public void update(PCUGroupUpdateRequest req) {
         val base = get();
         PUT(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations(base))), getOperationName("update"));
     }
@@ -191,8 +192,8 @@ public class PcuGroupOpsClient extends AbstractApiClient {
      * @return
      *      datacenter associations client
      */
-    public PcuGroupDatacenterAssociationsClient datacenterAssociations() {
-        return new PcuGroupDatacenterAssociationsClient(token, environment, pcuGroupId);
+    public PCUGroupDatacenterAssociationsClient datacenterAssociations() {
+        return new PCUGroupDatacenterAssociationsClient(token, environment, pcuGroupId);
     }
 
     /**
