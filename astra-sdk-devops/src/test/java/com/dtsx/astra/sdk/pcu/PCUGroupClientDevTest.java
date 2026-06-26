@@ -125,7 +125,7 @@ public class PCUGroupClientDevTest extends AbstractDevopsApiTest {
             TestUtils.waitForDbStatus(getDatabasesClient().database(dbId), DatabaseStatusType.ACTIVE, 500);
             Assertions.assertTrue(getDatabasesClient().findById(dbId).isPresent());
             Assertions.assertNotNull(getDatabasesClient().database(dbId).get());
-            Assertions.assertTrue(getDatabasesClient().findByName("vector_db_in_standard_pcu").findAny().isPresent());*/
+            Assertions.assertTrue(getDatabasesClient().findByName("vector_db_in_standard_pcu").findAny().isPresent());
 
         } catch (RuntimeException e) {
 
