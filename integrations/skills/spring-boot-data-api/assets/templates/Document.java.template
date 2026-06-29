@@ -1,0 +1,60 @@
+package com.example.demo.model;
+
+import com.datastax.astra.client.collections.mapping.*;
+import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import java.time.Instant;
+
+/**
+ * Document class template for Astra DB collections.
+ * 
+ * Replace {{COLLECTION_NAME}} with your collection name.
+ * Customize fields, validation, and indexing as needed.
+ */
+@Data
+@Accessors(chain = true)
+@DataApiCollection(
+    name = "{{COLLECTION_NAME}}",
+    // Optional: Vector search configuration
+    // vectorDimension = 1536,
+    // vectorSimilarity = SimilarityMetric.COSINE,
+    // vectorizeProvider = "openai",
+    // vectorizeModel = "text-embedding-ada-002",
+    // vectorizeSharedSecret = "OPENAI_API_KEY",
+    
+    // Optional: Full-text search
+    // lexicalEnabled = true,
+    // lexicalAnalyzer = AnalyzerTypes.ENGLISH,
+    
+    // Optional: Indexing optimization
+    indexingDeny = {"internal_field"}
+)
+public class {{CLASS_NAME}} {
+    
+    @DocumentId
+    private String id;
+    
+    @NotBlank(message = "Field is required")
+    private String field1;
+    
+    @NotNull(message = "Field is required")
+    private String field2;
+    
+    // Optional: Auto-vectorization
+    // @Vectorize
+    // private String vectorizeField;
+    
+    // Optional: Full-text search
+    // @Lexical
+    // private String searchableText;
+    
+    @JsonProperty("created_at")
+    private Instant createdAt;
+    
+    @JsonProperty("updated_at")
+    private Instant updatedAt;
+}
