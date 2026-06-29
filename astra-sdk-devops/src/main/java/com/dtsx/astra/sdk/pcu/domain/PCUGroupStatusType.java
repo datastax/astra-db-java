@@ -4,7 +4,7 @@ package com.dtsx.astra.sdk.pcu.domain;
  * Enumeration of PCU (Processing Capacity Units) Group status types.
  * Represents the various lifecycle states of a PCU group.
  */
-public enum PcuGroupStatusType {
+public enum PCUGroupStatusType {
     /**
      * PCU group has been created but not yet placed.
      */

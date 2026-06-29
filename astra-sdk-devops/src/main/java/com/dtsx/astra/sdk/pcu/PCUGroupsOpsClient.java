@@ -1,18 +1,24 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.pcu.domain.PcuGroup;
-import com.dtsx.astra.sdk.pcu.domain.PcuGroupCreationRequest;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroup;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroupCreationRequest;
+import com.dtsx.astra.sdk.pcu.domain.PCUType;
+import com.dtsx.astra.sdk.pcu.domain.PCUTypeLocationFilter;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupsNotFoundException;
 import com.dtsx.astra.sdk.AbstractApiClient;
 import com.dtsx.astra.sdk.utils.*;
+import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -20,36 +26,91 @@ import java.util.stream.Stream;
  * Provides operations for creating, finding, and managing PCU groups.
  */
 @Slf4j
-public class PcuGroupsClient extends AbstractApiClient {
-    private static final TypeReference<List<PcuGroup>> RESPONSE_PCU_GROUPS =
+public class PCUGroupsOpsClient extends AbstractApiClient {
+
+    private static final TypeReference<List<PCUGroup>> RESPONSE_PCU_GROUPS =
         new TypeReference<>(){};
 
     /**
      * Constructor with token for production environment.
      *
-     * @param token
-     *      authentication token
+     * @param token       authentication token
      */
-    public PcuGroupsClient(String token) {
-        super(token, AstraEnvironment.PROD);
+    public PCUGroupsOpsClient(String token) {
+        this(token, AstraEnvironment.PROD);
     }
 
     /**
-     * Constructor with token and environment.
+     * Constructor with token for different environment
      *
-     * @param token
-     *      authentication token
-     * @param env
-     *      target Astra environment
+     * @param token       authentication token
+     * @param environment astra environment
      */
-    public PcuGroupsClient(String token, AstraEnvironment env) {
-        super(token, env);
+    public PCUGroupsOpsClient(String token, AstraEnvironment environment) {
+        super(token, environment);
     }
+
+    /**
+     * As immutable object use builder to initiate the object.
+     *
+     * @param env
+     *      define target environment to be used
+     * @param token
+     *      authenticated token
+     * @param observers
+     *     list of observers
+     */
+    public PCUGroupsOpsClient(String token, AstraEnvironment env, Map<String, ApiRequestObserver> observers) {
+        super(token, env, observers);
+        HttpClientWrapper.registerObservers(observers);
+    }
+
+    // ---------------------------------
+    // ----        TYPES             ----
+    // ---------------------------------
+
+    private static final TypeReference<List<PCUType>> RESPONSE_PCU_TYPES = new TypeReference<>(){};
 
     /** {@inheritDoc} */
     @Override
     public String getServiceName() {
         return "pcu.groups";
+    }
+
+    // ---------------------------------
+    // ----     PCU TYPES           ----
+    // ---------------------------------
+    public Stream<PCUType> listPcuTypes() {
+        return listPcuTypes(null);
+    }
+    public Stream<PCUType> listPcuTypes(PCUTypeLocationFilter request) {
+        String contextPath = "/types";
+        boolean first = true;
+        if (request != null) {
+            if (Utils.hasLength(request.getProvider())) {
+                first = false;
+                contextPath = contextPath + "?provider=" + request.getProvider();
+            }
+            if (Utils.hasLength(request.getRegion())) {
+                if (!first) {
+                    contextPath = contextPath + "&region=" + request.getRegion();
+                } else  {
+                    contextPath = contextPath + "?region=" + request.getRegion();
+                }
+            }
+        }
+
+        val res = GET(getEndpointPcus() + contextPath, getOperationName("find"));
+        try {
+            return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_TYPES).stream();
+        } catch (Exception e) {
+            ApiResponseError responseError = null;
+            try {
+                responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
+                System.out.println(responseError.toString());
+            } catch (Exception ignored) {}
+            throw e;
+        }
     }
 
     // ---------------------------------
@@ -66,8 +127,10 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @throws IllegalStateException
      *      if creation fails
      */
-    public PcuGroup create(PcuGroupCreationRequest req) {
-        val res = POST(getEndpointPcus(), JsonUtils.marshall(List.of(req.withDefaultsAndValidations())), getOperationName("create"));
+    public PCUGroup create(PCUGroupCreationRequest req) {
+        String payload = JsonUtils.marshall(List.of(req.withDefaultsAndValidations()));
+        System.out.println(payload);
+        val res = POST(getEndpointPcus(), payload, getOperationName("create"));
 
         if (HttpURLConnection.HTTP_CREATED != res.getCode()) {
             throw new IllegalStateException("Expected code 201 to create pcu group but got " + res.getCode() + "body=" + res.getBody());
@@ -84,9 +147,10 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @return
      *      optional containing the PCU group if found
      */
-    public Optional<PcuGroup> findById(String id) {
+    public Optional<PCUGroup> findById(UUID id) {
         try {
-            return findAllImpl(List.of(id), "id", (_e) -> PcuGroupNotFoundException.forId(id)).findFirst();
+            return findAllImpl(Collections.singletonList(id), "id",
+                    (_e) -> PcuGroupNotFoundException.forId(id)).findFirst();
         } catch (PcuGroupNotFoundException e) {
             return Optional.empty();
         }
@@ -100,7 +164,7 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @return
      *      stream of matching PCU groups
      */
-    public Stream<PcuGroup> findByTitle(String title) {
+    public Stream<PCUGroup> findByTitle(String title) {
         return findAll().filter(pg -> title.equals(pg.getTitle())); // order is important here since pg.title is nullable
     }
 
@@ -112,7 +176,7 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @return
      *      optional containing the first matching PCU group
      */
-    public Optional<PcuGroup> findFirstByTitle(String title) {
+    public Optional<PCUGroup> findFirstByTitle(String title) {
         return findByTitle(title).findFirst();
     }
 
@@ -122,7 +186,7 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @return
      *      stream of all PCU groups
      */
-    public Stream<PcuGroup> findAll() {
+    public Stream<PCUGroup> findAll() {
         return findAll(null);
     }
 
@@ -136,7 +200,7 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @throws PcuGroupsNotFoundException
      *      if any of the specified groups are not found
      */
-    public Stream<PcuGroup> findAll(List<String> ids) {
+    public Stream<PCUGroup> findAll(List<UUID> ids) {
         return findAllImpl(ids, "ids[%d]", (e) -> new PcuGroupsNotFoundException(e.getErrors().get(0).getMessage()));
     }
 
@@ -144,21 +208,18 @@ public class PcuGroupsClient extends AbstractApiClient {
         RuntimeException getError(ApiResponseError res);
     }
 
-    private record FindAllReqBody(List<String> pcuGroupUUIDs) {}
+    private record FindAllReqBody(List<UUID> pcuGroupUUIDs) {}
 
-    protected Stream<PcuGroup> findAllImpl(List<String> ids, String validationErrorFmtStr, FindAll404Handler on404) {
+    protected Stream<PCUGroup> findAllImpl(List<UUID> ids, String validationErrorFmtStr, FindAll404Handler on404) {
         if (ids != null) {
             if (ids.isEmpty()) {
                 return Stream.of(); // TODO throw error or just return empty list or return all pcu groups? (devops api does the third)
-            }
-
-            for (var i = 0; i < ids.size(); i++) {
-                Assert.isUUID(ids.get(i), validationErrorFmtStr.formatted(i));
             }
         }
 
         val reqBody = JsonUtils.marshall(new FindAllReqBody(ids));
         val res = POST(getEndpointPcus() + "/actions/get", reqBody, getOperationName("find"));
+        System.out.println(res.getBody());
 
         try {
             return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).stream();
@@ -196,8 +257,8 @@ public class PcuGroupsClient extends AbstractApiClient {
      * @return
      *      operations client for the specified PCU group
      */
-    public PcuGroupOpsClient group(String pcuGroupId) {
-        return new PcuGroupOpsClient(getToken(), getEnvironment(), pcuGroupId);
+    public PCUGroupOpsClient group(UUID pcuGroupId) {
+        return new PCUGroupOpsClient(getToken(), getEnvironment(), pcuGroupId);
     }
 
     /**

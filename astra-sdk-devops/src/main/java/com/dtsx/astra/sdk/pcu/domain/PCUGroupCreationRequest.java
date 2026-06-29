@@ -11,16 +11,12 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder
-public final class PcuGroupCreationRequest extends PcuGroupCreateUpdateRequest {
+public final class PCUGroupCreationRequest extends PCUGroupCreateUpdateRequest {
+
     /**
      * Instance type for the PCU group (e.g., "standard").
      */
     private String instanceType;
-    
-    /**
-     * Provisioning type for the PCU group.
-     */
-    private PcuProvisionType provisionType;
 
     /**
      * Applies default values and validates the request before creation.
@@ -29,20 +25,24 @@ public final class PcuGroupCreationRequest extends PcuGroupCreateUpdateRequest {
      * @return
      *      this request with defaults applied
      */
-    public PcuGroupCreationRequest withDefaultsAndValidations() {
+    public PCUGroupCreationRequest withDefaultsAndValidations() {
         if (this.provisionType == null) {
-            this.provisionType = PcuProvisionType.SHARED;
+            this.provisionType = PCUProvisionType.shared.name();
         }
 
-        // TODO do we really want a default for this? (since pcu instance types are changing)
+        // De
         if (this.instanceType == null || this.instanceType.isBlank()) {
-            this.instanceType = "standard";
+            this.instanceType = PCUInstanceType.small.toString();
         }
 
         if (this.reserved == null) {
             this.reserved = 0;
+            this.min = 1;
+            this.max = 1;
         }
 
         return this;
     }
+
+
 }

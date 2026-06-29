@@ -1,6 +1,6 @@
 package com.dtsx.astra.sdk.pcu;
 
-import com.dtsx.astra.sdk.pcu.domain.PcuGroupDatacenterAssociation;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroupDatacenterAssociation;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupDbAssociationNotFound;
 import com.dtsx.astra.sdk.pcu.exception.PcuGroupNotFoundException;
 import com.dtsx.astra.sdk.AbstractApiClient;
@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 /**
@@ -19,15 +20,15 @@ import java.util.stream.Stream;
  * Provides operations to associate, dissociate, transfer, and query datacenter associations.
  */
 @Slf4j
-public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
-    private static final TypeReference<List<PcuGroupDatacenterAssociation>> PCU_GROUP_DB_ASSOCIATIONS =
+public class PCUGroupDatacenterAssociationsClient extends AbstractApiClient {
+    private static final TypeReference<List<PCUGroupDatacenterAssociation>> PCU_GROUP_DB_ASSOCIATIONS =
         new TypeReference<>() {};
 
     /**
      * PCU group unique identifier.
      */
     @Getter
-    private final String pcuGroupId;
+    private final UUID pcuGroupId;
 
     /**
      * Constructor with token and PCU group ID for production environment.
@@ -37,7 +38,7 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @param pcuGroupId
      *      PCU group UUID
      */
-    public PcuGroupDatacenterAssociationsClient(String token, String pcuGroupId) {
+    public PCUGroupDatacenterAssociationsClient(String token, UUID pcuGroupId) {
         this(token, AstraEnvironment.PROD, pcuGroupId);
     }
 
@@ -51,7 +52,7 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @param pcuGroupId
      *      PCU group UUID
      */
-    public PcuGroupDatacenterAssociationsClient(String token, AstraEnvironment env, String pcuGroupId) {
+    public PCUGroupDatacenterAssociationsClient(String token, AstraEnvironment env, UUID pcuGroupId) {
         super(token, env);
         this.pcuGroupId = pcuGroupId;
     }
@@ -91,7 +92,7 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @throws PcuGroupDbAssociationNotFound
      *      if the datacenter is not associated with this PCU group
      */
-    public PcuGroupDatacenterAssociation findByDatacenterId(@NonNull String datacenterId) {
+    public PCUGroupDatacenterAssociation findByDatacenterId(@NonNull String datacenterId) {
         Assert.isDatacenterID(datacenterId, "datacenter id");
 
         return findAll()
@@ -106,7 +107,7 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @return
      *      stream of datacenter associations
      */
-    public Stream<PcuGroupDatacenterAssociation> findAll() {
+    public Stream<PCUGroupDatacenterAssociation> findAll() {
         val res = GET(getEndpointPcuAssociations() + "/" + pcuGroupId, getOperationName("findAll"));
 
         return unmarshallOrThrow(res, PCU_GROUP_DB_ASSOCIATIONS, "get pcu group db associations").stream();
@@ -120,15 +121,15 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @return
      *      the created datacenter association
      */
-    public PcuGroupDatacenterAssociation associate(@NonNull String datacenterId) {
+    public PCUGroupDatacenterAssociation associate(@NonNull String datacenterId) {
         Assert.isDatacenterID(datacenterId, "datacenter id");
 
         val res = POST(getEndpointPcuAssociations() + "/" + pcuGroupId + "/" + datacenterId, getOperationName("associate"));
 
-        return unmarshallOrThrow(res, new TypeReference<List<PcuGroupDatacenterAssociation>>() {}, "associate db to pcu group").get(0);
+        return unmarshallOrThrow(res, new TypeReference<List<PCUGroupDatacenterAssociation>>() {}, "associate db to pcu group").get(0);
     }
 
-    private record TransferReqBody(String fromPCUGroupUUID, String toPCUGroupUUID, String datacenterUUID) {}
+    private record TransferReqBody(UUID fromPCUGroupUUID, UUID toPCUGroupUUID, String datacenterUUID) {}
 
     /**
      * Transfers a datacenter association from this PCU group to another PCU group.
@@ -140,14 +141,14 @@ public class PcuGroupDatacenterAssociationsClient extends AbstractApiClient {
      * @return
      *      the updated datacenter association
      */
-    public PcuGroupDatacenterAssociation transfer(@NonNull String toPcuGroup, @NonNull String datacenterId) {
-        Assert.isUUID(toPcuGroup, "target pcu group id");
+    public PCUGroupDatacenterAssociation transfer(@NonNull UUID toPcuGroup, @NonNull String datacenterId) {
+        Assert.notNull(toPcuGroup, "target pcu group id");
         Assert.isDatacenterID(datacenterId, "datacenter id");
 
         val reqBody = JsonUtils.marshall(new TransferReqBody(this.pcuGroupId, toPcuGroup, datacenterId));
         val res = POST(getEndpointPcuAssociations() + "/transfer/" + pcuGroupId, reqBody, getOperationName("transfer"));
 
-        return unmarshallOrThrow(res, new TypeReference<List<PcuGroupDatacenterAssociation>>() {}, "transfer db to pcu group").get(0);
+        return unmarshallOrThrow(res, new TypeReference<List<PCUGroupDatacenterAssociation>>() {}, "transfer db to pcu group").get(0);
     }
 
     /**

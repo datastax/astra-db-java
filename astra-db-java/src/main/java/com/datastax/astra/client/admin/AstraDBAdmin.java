@@ -21,11 +21,15 @@ package com.datastax.astra.client.admin;
  */
 
 import com.datastax.astra.client.admin.commands.AstraAvailableRegionInfo;
+import com.datastax.astra.client.admin.definition.DatabaseDefinition;
+import com.datastax.astra.client.admin.definition.PCUGroupDefinition;
 import com.datastax.astra.client.admin.options.AdminOptions;
 import com.datastax.astra.client.admin.options.AstraFindAvailableRegionsOptions;
+import com.datastax.astra.client.admin.options.CreateDatabaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.databases.definition.DatabaseInfo;
 import com.datastax.astra.client.databases.DatabaseOptions;
+import com.datastax.astra.client.exceptions.AstraDevOpsAPIException;
 import com.datastax.astra.internal.api.AstraApiEndpoint;
 import com.datastax.astra.internal.command.LoggingCommandObserver;
 import com.datastax.astra.internal.utils.Assert;
@@ -38,6 +42,8 @@ import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.domain.FilterByOrgType;
 import com.dtsx.astra.sdk.db.domain.RegionType;
 import com.dtsx.astra.sdk.db.exception.DatabaseNotFoundException;
+import com.dtsx.astra.sdk.pcu.PCUGroupsOpsClient;
+import com.dtsx.astra.sdk.pcu.domain.PCUGroup;
 import com.dtsx.astra.sdk.utils.AstraRc;
 import com.dtsx.astra.sdk.utils.observability.ApiRequestObserver;
 import com.dtsx.astra.sdk.utils.observability.LoggingRequestObserver;
@@ -46,7 +52,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +81,9 @@ public class AstraDBAdmin {
 
     /** Client for Astra Devops Api. */
     final AstraDBOpsClient devopsDbClient;
+
+    /** Client for Astra Devops Api PCU. */
+    final PCUGroupsOpsClient devopsPcuClient;
 
     /** Options to personalized http client other client options. */
     final AdminOptions adminOptions;
@@ -110,13 +118,16 @@ public class AstraDBAdmin {
         if (dataAPIClientOptions.getObservers() != null) {
             Map<String, ApiRequestObserver> devopsObservers = new HashMap<>();
             if (dataAPIClientOptions.getObservers().containsKey(LoggingCommandObserver.class.getSimpleName())) {
-                System.out.println("Logging enabled for AstraDBAdmin operations.");
                 devopsObservers.put("logging", new LoggingRequestObserver(AstraDBAdmin.class));
             }
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
+            this.devopsPcuClient = new PCUGroupsOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment(), devopsObservers);
         } else {
             this.devopsDbClient = new AstraDBOpsClient(options.getToken(),
+                    dataAPIClientOptions.getAstraEnvironment());
+            this.devopsPcuClient = new PCUGroupsOpsClient(options.getToken(),
                     dataAPIClientOptions.getAstraEnvironment());
         }
 
@@ -156,6 +167,85 @@ public class AstraDBAdmin {
                 .findAllServerless(RegionType.VECTOR,filterByOrgType)
                 .map(AstraAvailableRegionInfo::new)
                 .toList();
+    }
+
+    // --------------------
+    // -- PCU Support   ---
+    // --------------------
+
+    /**
+     * Lists PCU (Processing Capacity Units) groups filtered by cloudProvider provider and region.
+     * PCU groups manage compute resources for databases across cloudProvider providers and regions.
+     *
+     * @param cloudProvider
+     *      cloudProvider provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param region
+     *      cloudProvider region to filter by (e.g., "us-east-1"), or null for all regions
+     * @return
+     *      list of PCU groups matching the specified filters
+     */
+    public List<PCUGroupDefinition> listPCUGroups(CloudProviderType cloudProvider, String region) {
+        List<PCUGroup> pcus = devopsPcuClient.findAll().toList();
+        // Filter by cloudProvider provider if specified
+        if (cloudProvider != null) {
+            pcus = pcus.stream()
+                    .filter(pcu -> cloudProvider.equals(pcu.getCloudProvider()))
+                    .collect(Collectors.toList());
+        }
+
+        // Filter by region if specified
+        if (region != null && !region.isBlank()) {
+            pcus = pcus.stream()
+                    .filter(pcu -> region.equals(pcu.getRegion()))
+                    .collect(Collectors.toList());
+        }
+        return pcus
+                .stream()
+                .map(PCUGroupDefinition::new)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Lists all PCU (Processing Capacity Units) groups in the organization.
+     * This is a convenience method that returns all PCU groups without filtering.
+     *
+     * @return
+     *      list of all PCU groups
+     */
+    public List<PCUGroupDefinition> listPCUGroups() {
+        return listPCUGroups(null, null);
+    }
+
+    /**
+     * Checks if a PCU group exists by its identifier.
+     * This is a convenience method that checks existence without filtering by cloud or region.
+     *
+     * @param PCUGroupId
+     *      PCU group UUID to check
+     * @return
+     *      true if the PCU group exists, false otherwise
+     */
+    public boolean PCUGroupExists(UUID PCUGroupId) {
+        return PCUGroupExists(PCUGroupId, null, null);
+    }
+
+    /**
+     * Checks if a PCU group exists by its identifier, optionally filtered by cloudProvider provider and region.
+     *
+     * @param PCUGroupId
+     *      PCU group UUID to check
+     * @param cloudProvider
+     *      cloudProvider provider to filter by (AWS, GCP, AZURE), or null for all providers
+     * @param region
+     *      cloudProvider region to filter by (e.g., "us-east-1"), or null for all regions
+     * @return
+     *      true if the PCU group exists and matches the filters, false otherwise
+     */
+    public boolean PCUGroupExists(UUID PCUGroupId, CloudProviderType cloudProvider, String region) {
+        Assert.notNull(PCUGroupId, "PCUGroupId");
+        return listPCUGroups(cloudProvider, region)
+                .stream()
+                .anyMatch(pcuGroup -> PCUGroupId.equals(pcuGroup.getId()));
     }
 
     // --------------------
@@ -299,6 +389,32 @@ public class AstraDBAdmin {
     }
 
     /**
+     * Create new database with a name on free tier. The database name should not exist in the tenant.
+     *
+     * @param name
+     *    unique name for the database
+     * @param definition
+     *    definition of the database
+     * @return
+     *   database admin object
+     */
+    public DatabaseAdmin createDatabase(String name, DatabaseDefinition definition, CreateDatabaseOptions options) {
+        Assert.notNull(definition, "definition");
+        Assert.hasLength(name, "name");
+        DatabaseCreationRequest req = definition.asRequest();
+        req.setName(name);
+        if (definition.getPCUGroupId() != null) {
+            validatePCUGroup(definition);
+        }
+        UUID newDbId = UUID.fromString(devopsDbClient.create(req));
+        log.info("Database {} is starting (id={}): it will take about a minute please wait...", name, newDbId);
+        if (options != null && options.isWaitForDb()) {
+            waitForDatabase(devopsDbClient.database(newDbId.toString()));
+        }
+        return getDatabaseAdmin(newDbId);
+    }
+
+    /**
      * Delete a Database if exists from its identifier.
      *
      * @param databaseId
@@ -437,7 +553,53 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Wait for db to have proper status.
+     * Validates that the PCU group specified in the database definition exists and is in the correct region.
+     * This method checks both the existence of the PCU group globally and its availability in the
+     * specified cloud provider and region.
+     *
+     * @param definition
+     *      the database definition containing PCU group ID, cloud provider, and region
+     * @throws AstraDevOpsAPIException
+     *      if the PCU group does not exist or is not in the expected cloud/region
+     */
+    private void validatePCUGroup(DatabaseDefinition definition) {
+        // Testing PCUGroup in proper region but swallow error if cannot list the PCU groups.
+        List<PCUGroupDefinition> all = null;
+        try {
+            all = listPCUGroups();
+        } catch (AstraDevOpsAPIException e) {
+            log.warn("Could not list PCU group - The PCUGroup id will not be tested " + e.getMessage());
+        }
+        
+        if (all != null) {
+            // Check if PCU group exists globally
+            boolean groupExist = all
+                    .stream()
+                    .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
+            if (!groupExist) {
+                throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId() + " does not exist");
+            }
+            
+            // Filter by cloud provider and region, then check if PCU group exists in that region
+            List<PCUGroupDefinition> groupsInRegion = all.stream()
+                    .filter(pcu -> definition.getCloudProvider().equals(pcu.getCloudProvider()))
+                    .filter(pcu -> definition.getRegion().equals(pcu.getRegion()))
+                    .toList();
+            
+            boolean groupExistInRegion = groupsInRegion
+                    .stream()
+                    .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
+            if (!groupExistInRegion) {
+                throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId()
+                        + " is not in expected cloud/region : "
+                        + definition.getCloudProvider() + "/"
+                        + definition.getRegion());
+            }
+        }
+    }
+
+    /**
+     * Wait for db to hin the pave proper status.
      *
      * @param dbc
      *      database client

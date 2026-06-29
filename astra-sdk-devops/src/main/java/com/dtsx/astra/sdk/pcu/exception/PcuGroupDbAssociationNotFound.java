@@ -2,6 +2,8 @@ package com.dtsx.astra.sdk.pcu.exception;
 
 import lombok.Getter;
 
+import java.util.UUID;
+
 /**
  * Exception thrown when a datacenter association with a PCU (Processing Capacity Units) Group cannot be found.
  * This occurs when attempting to access or modify an association that doesn't exist.
@@ -11,7 +13,7 @@ public class PcuGroupDbAssociationNotFound extends RuntimeException {
      * PCU group unique identifier.
      */
     @Getter
-    private final String pcuGroupId;
+    private final UUID pcuGroupId;
 
     /**
      * Datacenter unique identifier.
@@ -27,7 +29,7 @@ public class PcuGroupDbAssociationNotFound extends RuntimeException {
      * @param datacenterId
      *      the datacenter ID
      */
-    public PcuGroupDbAssociationNotFound(String pcuGroupId, String datacenterId) {
+    public PcuGroupDbAssociationNotFound(UUID pcuGroupId, String datacenterId) {
         super("Association not found for pcu group '" + pcuGroupId + "' and datacenter '" + datacenterId + "'");
         this.pcuGroupId = pcuGroupId;
         this.datacenterId = datacenterId;
