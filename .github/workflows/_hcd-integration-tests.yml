@@ -22,7 +22,7 @@ jobs:
           cache: 'maven'
 
       - name: Configure AWS credentials from OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::559669398656:role/data-api-clients-ecr-ro-user
           aws-region: us-west-2
