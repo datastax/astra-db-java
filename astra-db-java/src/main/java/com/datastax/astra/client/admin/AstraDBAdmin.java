@@ -563,28 +563,33 @@ public class AstraDBAdmin {
      *      if the PCU group does not exist or is not in the expected cloud/region
      */
     private void validatePCUGroup(DatabaseDefinition definition) {
-        // Testing PCUGroup in proper region but swallow error if cannot list the PCU groupsInRegion.
-        List<PCUGroupDefinition> groupsInRegion = null;
+        // Testing PCUGroup in proper region but swallow error if cannot list the PCU groups.
         List<PCUGroupDefinition> all = null;
         try {
             all = listPCUGroups();
-            groupsInRegion = listPCUGroups(definition.getCloudProvider(), definition.getRegion());
         } catch (AstraDevOpsAPIException e) {
             log.warn("Could not list PCU group - The PCUGroup id will not be tested " + e.getMessage());
         }
+        
         if (all != null) {
+            // Check if PCU group exists globally
             boolean groupExist = all
                     .stream()
                     .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
             if (!groupExist) {
                 throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId() + " does not exist");
             }
-        }
-        if (groupsInRegion != null) {
-            boolean groupExist = groupsInRegion
+            
+            // Filter by cloud provider and region, then check if PCU group exists in that region
+            List<PCUGroupDefinition> groupsInRegion = all.stream()
+                    .filter(pcu -> definition.getCloudProvider().equals(pcu.getCloudProvider()))
+                    .filter(pcu -> definition.getRegion().equals(pcu.getRegion()))
+                    .toList();
+            
+            boolean groupExistInRegion = groupsInRegion
                     .stream()
                     .anyMatch(pcuGroup -> definition.getPCUGroupId().equals(pcuGroup.getId()));
-            if (!groupExist) {
+            if (!groupExistInRegion) {
                 throw new AstraDevOpsAPIException("Pcu group " + definition.getPCUGroupId()
                         + " is not in expected cloud/region : "
                         + definition.getCloudProvider() + "/"
@@ -594,7 +599,7 @@ public class AstraDBAdmin {
     }
 
     /**
-     * Wait for db to have proper status.
+     * Wait for db to hin the pave proper status.
      *
      * @param dbc
      *      database client
