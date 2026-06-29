@@ -5,8 +5,8 @@ A comprehensive AI-powered skill for building production-ready Spring Boot appli
 ## Quick Links
 
 - 📚 **[Main Skill Document](SKILL.md)** - Complete step-by-step guide
-- 📝 **[Code Templates](templates/)** - Reusable code templates
-- 💡 **[Basic Example](examples/basic/)** - Minimal working example
+- 📝 **[Code Templates](assets/templates/)** - Reusable code templates
+- 💡 **[Basic Example](assets/examples/basic/)** - Minimal working example
 
 ## What You'll Learn
 
@@ -28,6 +28,26 @@ A comprehensive AI-powered skill for building production-ready Spring Boot appli
 ## Estimated Time
 
 30-45 minutes
+
+## Folder Structure
+
+```
+spring-boot-data-api/
+├── README.md                    # This file
+├── SKILL.md                     # Main skill guide
+├── references/                  # Additional reference docs (future)
+├── scripts/                     # Automation scripts (future)
+└── assets/                      # Reusable assets
+    ├── templates/              # Code templates
+    │   ├── Document.java.template
+    │   ├── Repository.java.template
+    │   ├── Service.java.template
+    │   ├── Controller.java.template
+    │   └── application.yml.template
+    └── examples/               # Working examples
+        └── basic/              # Basic example
+            └── README.md
+```
 
 ## How to Use This Skill
 
@@ -70,7 +90,7 @@ integrations/skills/spring-boot-data-api/SKILL.md
    ```
 
 2. **Use templates to generate code:**
-   - Copy templates from `templates/` directory
+   - Copy templates from `assets/templates/` directory
    - Replace placeholders ({{CLASS_NAME}}, {{COLLECTION_NAME}}, etc.)
    - Customize for your use case
 

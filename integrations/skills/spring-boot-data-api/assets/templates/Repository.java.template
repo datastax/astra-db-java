@@ -1,0 +1,25 @@
+package com.example.demo.repository;
+
+import com.datastax.astra.spring.DataApiCollectionCrudRepository;
+import com.example.demo.model.{{CLASS_NAME}};
+import org.springframework.stereotype.Repository;
+
+/**
+ * Spring Data repository for {{CLASS_NAME}}.
+ * 
+ * Provides CRUD operations and query capabilities:
+ * - save(entity)
+ * - findById(id)
+ * - findAll()
+ * - deleteById(id)
+ * - count()
+ * - Query by Example
+ * - Data API filters
+ */
+@Repository
+public interface {{CLASS_NAME}}Repository 
+    extends DataApiCollectionCrudRepository<{{CLASS_NAME}}, String> {
+    
+    // Custom query methods can be added here
+    // Spring Data will automatically implement them
+}
