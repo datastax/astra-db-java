@@ -83,32 +83,43 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
     public Stream<PCUType> listPcuTypes() {
         return listPcuTypes(null);
     }
+    /**
+     * Lists available PCU types with optional filtering by provider and region.
+     *
+     * @param request
+     *      optional filter for provider and region
+     * @return
+     *      stream of available PCU types
+     */
     public Stream<PCUType> listPcuTypes(PCUTypeLocationFilter request) {
-        String contextPath = "/types";
-        boolean first = true;
+        StringBuilder contextPath = new StringBuilder("/types");
+        
         if (request != null) {
+            boolean hasParams = false;
+            
             if (Utils.hasLength(request.getProvider())) {
-                first = false;
-                contextPath = contextPath + "?provider=" + request.getProvider();
+                contextPath.append("?provider=").append(request.getProvider());
+                hasParams = true;
             }
+            
             if (Utils.hasLength(request.getRegion())) {
-                if (!first) {
-                    contextPath = contextPath + "&region=" + request.getRegion();
-                } else  {
-                    contextPath = contextPath + "?region=" + request.getRegion();
-                }
+                contextPath.append(hasParams ? "&" : "?")
+                          .append("region=").append(request.getRegion());
             }
         }
 
+        log.debug("Listing PCU types with path: {}", contextPath);
         val res = GET(getEndpointPcus() + contextPath, getOperationName("find"));
+        
         try {
             return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_TYPES).stream();
         } catch (Exception e) {
-            ApiResponseError responseError = null;
             try {
-                responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
-                System.out.println(responseError.toString());
-            } catch (Exception ignored) {}
+                ApiResponseError responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
+                log.error("Error listing PCU types: {}", responseError);
+            } catch (Exception ignored) {
+                log.error("Error listing PCU types, unable to parse error response", e);
+            }
             throw e;
         }
     }
@@ -129,14 +140,17 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
      */
     public PCUGroup create(PCUGroupCreationRequest req) {
         String payload = JsonUtils.marshall(List.of(req.withDefaultsAndValidations()));
-        System.out.println(payload);
+        log.debug("Creating PCU group with payload: {}", payload);
         val res = POST(getEndpointPcus(), payload, getOperationName("create"));
 
         if (HttpURLConnection.HTTP_CREATED != res.getCode()) {
-            throw new IllegalStateException("Expected code 201 to create pcu group but got " + res.getCode() + "body=" + res.getBody());
+            log.error("Failed to create PCU group. Expected 201 but got {}. Response body: {}", res.getCode(), res.getBody());
+            throw new IllegalStateException("Expected code 201 to create pcu group but got " + res.getCode() + " body=" + res.getBody());
         }
 
-        return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).get(0);
+        PCUGroup createdGroup = JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).get(0);
+        log.info("Successfully created PCU group with ID: {}", createdGroup.getId());
+        return createdGroup;
     }
 
     /**
@@ -149,7 +163,7 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
      */
     public Optional<PCUGroup> findById(UUID id) {
         try {
-            return findAllImpl(Collections.singletonList(id), "id",
+            return findAllImpl(Collections.singletonList(id),
                     (_e) -> PcuGroupNotFoundException.forId(id)).findFirst();
         } catch (PcuGroupNotFoundException e) {
             return Optional.empty();
@@ -181,6 +195,34 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
     }
 
     /**
+     * Finds all PCU groups associated with a specific datacenter.
+     * 
+     * @param datacenterUUID
+     *      the UUID of the datacenter to search for
+     * @param on404
+     *      error handler for 404 responses
+     * @return
+     *      stream of PCU groups associated with the datacenter
+     * @throws IllegalArgumentException
+     *      if datacenterUUID is null
+     */
+    public Stream<PCUGroup> findByDataCenterUuid(UUID datacenterUUID, FindAll404Handler on404) {
+        if (datacenterUUID == null) {
+            throw new IllegalArgumentException("datacenterUUID cannot be null");
+        }
+        log.debug("Finding PCU groups for datacenter: {}", datacenterUUID);
+        ApiResponseHttp res = GET(getEndpointPcus() + "/actions/get/" + datacenterUUID, getOperationName("find"));
+
+        try {
+            return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).stream();
+        } catch(Exception e) {
+            manageException(res, on404, e);
+            throw e;
+        }
+    }
+
+
+    /**
      * Finds all PCU groups.
      *
      * @return
@@ -201,7 +243,7 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
      *      if any of the specified groups are not found
      */
     public Stream<PCUGroup> findAll(List<UUID> ids) {
-        return findAllImpl(ids, "ids[%d]", (e) -> new PcuGroupsNotFoundException(e.getErrors().get(0).getMessage()));
+        return findAllImpl(ids, (e) -> new PcuGroupsNotFoundException(e.getErrors().get(0).getMessage()));
     }
 
     protected interface FindAll404Handler {
@@ -210,38 +252,56 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
 
     private record FindAllReqBody(List<UUID> pcuGroupUUIDs) {}
 
-    protected Stream<PCUGroup> findAllImpl(List<UUID> ids, String validationErrorFmtStr, FindAll404Handler on404) {
-        if (ids != null) {
-            if (ids.isEmpty()) {
-                return Stream.of(); // TODO throw error or just return empty list or return all pcu groups? (devops api does the third)
-            }
+    /**
+     * Internal implementation for finding PCU groups by IDs.
+     * 
+     * @param ids
+     *      list of PCU group UUIDs to retrieve, null to retrieve all groups
+     * @param on404
+     *      error handler for 404 responses
+     * @return
+     *      stream of matching PCU groups
+     */
+    protected Stream<PCUGroup> findAllImpl(List<UUID> ids, FindAll404Handler on404) {
+        // When ids is explicitly provided as empty list, return empty stream
+        // When ids is null, the API will return all PCU groups
+        if (ids != null && ids.isEmpty()) {
+            log.debug("Empty ID list provided, returning empty stream");
+            return Stream.empty();
         }
 
         val reqBody = JsonUtils.marshall(new FindAllReqBody(ids));
+        log.debug("Finding PCU groups with request body: {}", reqBody);
         val res = POST(getEndpointPcus() + "/actions/get", reqBody, getOperationName("find"));
-        System.out.println(res.getBody());
 
         try {
-            return JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS).stream();
+            List<PCUGroup> groups = JsonUtils.unmarshallType(res.getBody(), RESPONSE_PCU_GROUPS);
+            log.debug("Found {} PCU group(s)", groups.size());
+            return groups.stream();
         } catch(Exception e) {
-            ApiResponseError responseError = null;
-
-            try {
-                responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
-            } catch (Exception ignored) {}
-
-
-            if (responseError != null && res.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                throw on404.getError(responseError);
-            }
-
-            if (responseError != null && responseError.getErrors() != null && !responseError.getErrors().isEmpty()) {
-                if (responseError.getErrors().get(0).getId() == 340018) { // TODO is this the right error code? also why does find all get special treatment for auth errors?
-                    throw new IllegalArgumentException("You have provided an invalid token, please check", e);
-                }
-            }
-
+            log.error("Error finding PCU groups", e);
+            manageException(res, on404, e);
             throw e;
+        }
+    }
+
+
+    protected void manageException(ApiResponseHttp res, FindAll404Handler on404, Exception ex) {
+        ApiResponseError responseError = null;
+
+        try {
+            responseError = JsonUtils.unmarshallBean(res.getBody(), ApiResponseError.class);
+        } catch (Exception ignored) {}
+
+
+        if (responseError != null && res.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+            throw on404.getError(responseError);
+        }
+
+        if (responseError != null && responseError.getErrors() != null && !responseError.getErrors().isEmpty()) {
+            if (responseError.getErrors().get(0).getId() == 340018) {
+                throw new IllegalArgumentException("You have provided an invalid token, please check", ex);
+            }
         }
     }
 

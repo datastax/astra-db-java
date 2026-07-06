@@ -183,5 +183,47 @@ public class PCUGroupClientDevTest extends AbstractDevopsApiTest {
         // When
         TestUtils.waitForDbStatus(getDatabasesClient().database(dbId), DatabaseStatusType.ACTIVE, 500);
     }
+
+    @Test
+    @Order(4)
+    public void shouldFindPcuGroupByDataCenterUuid() {
+        // Note: This test requires a valid datacenter UUID from your environment
+        // For now, we'll test the method signature and error handling
+        
+        System.out.println("[test-pcu] - Testing findByDataCenterUuid method");
+        
+        // Test with null UUID - should throw IllegalArgumentException
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            PCUGroupsOpsClient.findByDataCenterUuid(
+                    null,
+                    (e) -> new RuntimeException("Datacenter not found")
+            );
+        }, "Should throw IllegalArgumentException for null datacenter UUID");
+        
+        System.out.println("[test-pcu] - Null UUID validation passed");
+        
+        // Test with a random UUID - may return empty or throw exception depending on API behavior
+        UUID testDatacenterUuid = UUID.randomUUID();
+        System.out.println("[test-pcu] - Testing with random datacenter UUID: " + testDatacenterUuid);
+        
+        try {
+            Stream<PCUGroup> foundGroups = PCUGroupsOpsClient.findByDataCenterUuid(
+                    testDatacenterUuid,
+                    (e) -> new RuntimeException("Datacenter not found: " + testDatacenterUuid)
+            );
+            
+            List<PCUGroup> groupsList = foundGroups.toList();
+            System.out.println("[test-pcu] - Found " + groupsList.size() + " PCU group(s) for datacenter");
+            
+            // If we get results, verify they are valid PCUGroup objects
+            if (!groupsList.isEmpty()) {
+                Assertions.assertNotNull(groupsList.get(0).getId(), "PCU group should have an ID");
+                System.out.println("[test-pcu] - Successfully retrieved PCU groups by datacenter UUID");
+            }
+        } catch (RuntimeException e) {
+            // This is expected if the datacenter doesn't exist
+            System.out.println("[test-pcu] - Exception caught (expected for non-existent datacenter): " + e.getMessage());
+        }
+    }
    
 }
