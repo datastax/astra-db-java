@@ -198,7 +198,7 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
      * Finds all PCU groups associated with a specific datacenter.
      * 
      * @param datacenterUUID
-     *      the UUID of the datacenter to search for
+     *      the identifier of the datacenter to search for
      * @param on404
      *      error handler for 404 responses
      * @return
@@ -206,7 +206,7 @@ public class PCUGroupsOpsClient extends AbstractApiClient {
      * @throws IllegalArgumentException
      *      if datacenterUUID is null
      */
-    public Stream<PCUGroup> findByDataCenterUuid(UUID datacenterUUID, FindAll404Handler on404) {
+    public Stream<PCUGroup> findByDataCenterUuid(String datacenterUUID, FindAll404Handler on404) {
         if (datacenterUUID == null) {
             throw new IllegalArgumentException("datacenterUUID cannot be null");
         }

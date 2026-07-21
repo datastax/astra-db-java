@@ -89,7 +89,8 @@ public class DatabaseCreationRequest {
         this.region        = builder.region;
         this.tier          = builder.tier;
         this.pcuGroupUUID  = builder.pcuGroupUUID;
-        if (builder.dbType != null) {
+        // In case of non-vector dbt the dbType is left blank when contacting the devops API
+        if (builder.dbType != null && builder.dbType.equals(DatabaseCreationType.vector)) {
             this.dbType = builder.dbType;
         } else if (builder.vector) {
             this.dbType = DatabaseCreationType.vector;

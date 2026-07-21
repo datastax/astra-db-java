@@ -398,6 +398,22 @@ public class AstraDBAdmin {
      * @return
      *   database admin object
      */
+    public DatabaseAdmin createDatabase(String name, DatabaseDefinition definition) {
+        return createDatabase(name, definition, null);
+    }
+
+    /**
+     * Create new database with a name on free tier. The database name should not exist in the tenant.
+     *
+     * @param name
+     *    unique name for the database
+     * @param definition
+     *    definition of the database
+     * @param options
+     *    options to specialize the behaviour after creation
+     * @return
+     *   database admin object
+     */
     public DatabaseAdmin createDatabase(String name, DatabaseDefinition definition, CreateDatabaseOptions options) {
         Assert.notNull(definition, "definition");
         Assert.hasLength(name, "name");

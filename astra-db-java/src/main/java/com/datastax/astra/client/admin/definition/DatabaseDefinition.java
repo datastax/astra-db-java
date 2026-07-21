@@ -51,9 +51,6 @@ public class DatabaseDefinition {
     /** Database type. */
     private String tier = DEFAULT_TIER;
 
-    /** Name of the database--user friendly identifier. */
-    private String name;
-
     /** Keyspace name in database */
     private String keyspace;
 
@@ -83,7 +80,6 @@ public class DatabaseDefinition {
     public DatabaseCreationRequest asRequest() {
         DatabaseCreationBuilder builder = DatabaseCreationRequest.builder();
         builder.capacityUnit(capacityUnits);
-        builder.name(name);
         builder.cloudProvider(cloudProvider);
         builder.cloudRegion(region);
         builder.tier(tier);

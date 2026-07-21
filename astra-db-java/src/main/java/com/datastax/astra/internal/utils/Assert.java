@@ -49,12 +49,15 @@ public class Assert {
     private Assert() {}
     
     /**
-     * Input string should not be empty.
+     * Validates that the input string is not null and not empty.
+     * <p>
+     * This method is used to enforce preconditions on string parameters,
+     * ensuring they contain meaningful content before processing.
+     * </p>
      *
-     * @param s
-     *      string value
-     * @param name
-     *      param name
+     * @param s the string value to validate
+     * @param name the parameter name to include in the error message
+     * @throws IllegalArgumentException if the string is null or empty
      */
     public static void hasLength(String s, String name) {
         if (s == null || s.isEmpty()) {
@@ -63,11 +66,15 @@ public class Assert {
     }
     
     /**
-     * Input object should not be null
-     * @param o
-     *      object value
-     * @param name
-     *      param name
+     * Validates that the input object is not null.
+     * <p>
+     * This method is used to enforce preconditions on object parameters,
+     * ensuring they are properly initialized before use.
+     * </p>
+     *
+     * @param o the object value to validate
+     * @param name the parameter name to include in the error message
+     * @throws IllegalArgumentException if the object is null
      */
     public static void notNull(Object o, String name) {
         if (o == null) {

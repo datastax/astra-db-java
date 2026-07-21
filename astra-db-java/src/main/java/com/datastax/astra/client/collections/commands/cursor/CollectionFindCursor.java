@@ -33,7 +33,7 @@ import com.datastax.astra.internal.command.AbstractCursor;
 import com.datastax.astra.internal.serdes.tables.RowMapper;
 import lombok.Getter;
 
-import java.util.*;
+import java.util.ArrayList;
 
 
 /**

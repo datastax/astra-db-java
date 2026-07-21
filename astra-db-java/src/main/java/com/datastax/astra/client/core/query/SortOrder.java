@@ -23,25 +23,48 @@ package com.datastax.astra.client.core.query;
 import lombok.Getter;
 
 /**
- * Encode the sort order in results.
+ * Enumeration representing sort order for query results.
+ * <p>
+ * This enum defines the two possible sort orders: ascending (1) and descending (-1),
+ * which correspond to the Data API's sort order values.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * // Sort by age in ascending order
+ * Sort.ascending("age");
+ * 
+ * // Sort by timestamp in descending order
+ * Sort.descending("timestamp");
+ * }
+ * </pre>
  */
 @Getter
 public enum SortOrder {
 
-    /** Value for ascending order. */
+    /** 
+     * Ascending sort order (1).
+     * <p>Sorts values from lowest to highest (A-Z, 0-9, oldest to newest).</p>
+     */
     ASCENDING(1),
 
-    /** Value for descending order. */
+    /** 
+     * Descending sort order (-1).
+     * <p>Sorts values from highest to lowest (Z-A, 9-0, newest to oldest).</p>
+     */
     DESCENDING(-1);
 
-    /** Order value. */
+    /** 
+     * The numeric code representing the sort order.
+     * <p>1 for ascending, -1 for descending.</p>
+     */
     private final Integer code;
 
     /**
-     * Constructor for the enum.
+     * Constructs a SortOrder with the specified numeric code.
      *
-     * @param code
-     *      value for the order
+     * @param code the numeric value representing the sort order (1 or -1)
      */
     SortOrder(Integer code) {
         this.code = code;

@@ -203,7 +203,7 @@ public class PCUGroupClientDevTest extends AbstractDevopsApiTest {
         System.out.println("[test-pcu] - Null UUID validation passed");
         
         // Test with a random UUID - may return empty or throw exception depending on API behavior
-        UUID testDatacenterUuid = UUID.randomUUID();
+        String  testDatacenterUuid = UUID.randomUUID().toString() + "-1";
         System.out.println("[test-pcu] - Testing with random datacenter UUID: " + testDatacenterUuid);
         
         try {

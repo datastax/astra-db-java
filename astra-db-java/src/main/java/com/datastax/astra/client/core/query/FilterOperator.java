@@ -39,7 +39,21 @@ package com.datastax.astra.client.core.query;
 import lombok.Getter;
 
 /**
- * Ease process of creating a where clause.
+ * Enumeration of filter operators used in Data API query construction.
+ * <p>
+ * These operators provide a fluent API for building complex query filters,
+ * supporting comparison, existence checks, and collection operations.
+ * Each operator maps to a corresponding Data API query operator.
+ * </p>
+ *
+ * <p>Example usage:</p>
+ * <pre>
+ * {@code
+ * Filter filter = new Filter()
+ *     .where("age").isGreaterThan(18)
+ *     .where("status").isEqualsTo("active");
+ * }
+ * </pre>
  *
  * @author Cedrick LUNVEN (@clunven)
  */
@@ -47,67 +61,80 @@ import lombok.Getter;
 public enum FilterOperator {
 
     /**
-     * Greater Than.
+     * Greater than operator ($gt).
+     * <p>Matches values that are greater than a specified value.</p>
      */
     GREATER_THAN("$gt"),
     
     /** 
-     * Greater Than Or Equal To.
+     * Greater than or equal to operator ($gte).
+     * <p>Matches values that are greater than or equal to a specified value.</p>
      */  
     GREATER_THAN_OR_EQUALS_TO("$gte"),
 
     /** 
-     * Less Than. 
+     * Less than operator ($lt).
+     * <p>Matches values that are less than a specified value.</p>
      */
     LESS_THAN("$lt"),
 
     /**
-     * Match
+     * Match operator ($match).
+     * <p>Performs text matching operations.</p>
      */
     MATCH("$match"),
     
     /** 
-     * Less Than Or Equal To. 
+     * Less than or equal to operator ($lte).
+     * <p>Matches values that are less than or equal to a specified value.</p>
      */
     LESS_THAN_OR_EQUALS_TO("$lte"),
     
     /** 
-     * Equal To. 
+     * Equality operator ($eq).
+     * <p>Matches values that are equal to a specified value.</p>
      */
     EQUALS_TO("$eq"),
     
     /** 
-     * Not Equal To.
+     * Not equal to operator ($ne).
+     * <p>Matches values that are not equal to a specified value.</p>
      */
     NOT_EQUALS_TO("$ne"),
     
     /** 
-     * in. 
+     * In operator ($in).
+     * <p>Matches any of the values specified in an array.</p>
      */
     IN("$in"),
 
     /**
-     * in.
+     * Not in operator ($nin).
+     * <p>Matches none of the values specified in an array.</p>
      */
     NOT_IN("$nin"),
     
     /** 
-     * Exist. 
+     * Exists operator ($exists).
+     * <p>Matches documents that have the specified field.</p>
      */
     EXISTS("$exists"),
     
     /** 
-     * Contains. 
+     * Contains operator ($contains).
+     * <p>Matches arrays that contain a specified value.</p>
      */
     CONTAINS("$contains"),
     
     /** 
-     * Contains Key. 
+     * Contains key operator ($containsKey).
+     * <p>Matches maps that contain a specified key.</p>
      */
     CONTAIN_KEY("$containsKey"),
     
     /** 
-     * Contains Entry. 
+     * Contains entry operator ($containsEntry).
+     * <p>Matches maps that contain a specified key-value pair.</p>
      */
     CONTAIN_ENTRY("$containsEntry");
 
