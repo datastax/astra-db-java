@@ -9,6 +9,6 @@ public enum DatabaseCreationType {
     vector,
 
     /** Provided if the db is non_vector. */
-    non_vector,
+    nonvector,
 
 }
