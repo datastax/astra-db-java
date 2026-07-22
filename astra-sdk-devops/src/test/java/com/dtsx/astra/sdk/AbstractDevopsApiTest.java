@@ -116,6 +116,13 @@ public abstract class AbstractDevopsApiTest {
         return token;
     }
 
+    /**
+     * Get the target Astra environment from ASTRA_ENV environment variable.
+     * Defaults to PROD if not set or invalid.
+     *
+     * @return
+     *      target environment
+     */
     protected AstraEnvironment getEnvironment() {
         String envStr = null;
         if (env == null) {
@@ -123,10 +130,13 @@ public abstract class AbstractDevopsApiTest {
                 envStr = new AstraRc()
                         .getSectionKey(AstraRc.ASTRARC_DEFAULT, AstraRc.ASTRA_ENV)
                         .orElse(null);
-                env = AstraEnvironment.valueOf(envStr);
             }
             envStr = Utils.readEnvVariable(AstraRc.ASTRA_ENV).orElse(envStr);
-            env = AstraEnvironment.valueOf(envStr);
+            if (envStr == null) {
+                env = AstraEnvironment.PROD;
+            } else {
+                env = AstraEnvironment.valueOf(envStr);
+            }
         }
         return env;
     }
