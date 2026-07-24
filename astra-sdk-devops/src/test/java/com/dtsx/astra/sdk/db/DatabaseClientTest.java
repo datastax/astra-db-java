@@ -3,6 +3,8 @@ package com.dtsx.astra.sdk.db;
 import com.dtsx.astra.sdk.AbstractDevopsApiTest;
 import com.dtsx.astra.sdk.db.domain.AccessListAddressRequest;
 import com.dtsx.astra.sdk.db.domain.CloudProviderType;
+import com.dtsx.astra.sdk.db.domain.DatabaseCloneStatus;
+import com.dtsx.astra.sdk.db.domain.DatabaseSnapshot;
 import com.dtsx.astra.sdk.db.domain.DatabaseStatusType;
 import com.dtsx.astra.sdk.db.domain.Datacenter;
 import com.dtsx.astra.sdk.db.exception.KeyspaceAlreadyExistException;
@@ -271,6 +273,86 @@ public class DatabaseClientTest extends AbstractDevopsApiTest {
         //getSdkTestDatabaseClient().delete();
         //TestUtils.waitForDbStatus(getSdkTestDatabaseClient(), DatabaseStatusType.TERMINATED, 300);
         //Assert.assertEquals(0, getDatabasesClient().findByName(SDK_TEST_DB_NAME).count());
+    }
+
+    @Test
+    @Order(21)
+    @DisplayName("21. Should list snapshots")
+    public void shouldListSnapshotsTest() {
+        /*
+        TODOS:
+        // extract the region from the endpoint name
+        // automate environment selection for tests? (clone is still in dev probably?)
+        */
+        final String CLONE_DEV_REGION = "northamerica-northeast2";
+        final String CLONE_DEV_DB_ID = "a02e1d46-363e-426b-9b0c-d87918c51a9f";
+        DbOpsClient dbClient = getApiDevopsClient().db().database(CLONE_DEV_DB_ID);
+
+        // TODO refine the various query patterns and overloads as they come
+        int filteredSnapshotCount = (dbClient.snapshots().find(
+            "2000-01-01T01:23:45.000Z", "2040-01-01T01:23:45.000Z", CLONE_DEV_REGION
+        )).toList().size();
+        int fullSnapshotCount = (dbClient.snapshots().findAll()).toList().size();
+        Assertions.assertTrue(filteredSnapshotCount <= fullSnapshotCount);
+        // This is to ensure something is actually parsed back successfully.
+        // The DB must be created more than ~1 h ago. Alternatively can trigger a manual snapshot through Autobot
+        Assertions.assertTrue(fullSnapshotCount > 0);
+        DatabaseSnapshot theSnapshot = dbClient.snapshots().findAll().findFirst().get();
+        Assertions.assertNotNull(theSnapshot);
+        Assertions.assertNotNull(theSnapshot.getId());
+        Assertions.assertNotNull(theSnapshot.getTime());
+    }
+
+    @Test
+    @Order(22)
+    @DisplayName("22. Should initiate a DB clone")
+    public void shouldInitiateCloneTest() {
+        /*
+        TODOS:
+        // Maybe some parsing from endpoints for IDs and the region.
+        // Actually this whole test will not be a test that one really runs regularly (?)
+        */
+        final String CLONE_DEV_REGION = "northamerica-northeast2";
+        final String CLONE_DEV_SOURCE_DB_ID = "a02e1d46-363e-426b-9b0c-d87918c51a9f";
+        final String CLONE_DEV_TARGET_DB_ID = "2cb0ea13-7f90-4030-b239-3dbc4b96514d";
+        DbOpsClient dbSourceClient = getApiDevopsClient().db().database(CLONE_DEV_SOURCE_DB_ID);
+        DbOpsClient dbTargetClient = getApiDevopsClient().db().database(CLONE_DEV_TARGET_DB_ID);
+
+        DatabaseSnapshot theSnapshot = dbSourceClient.snapshots().findAll().findFirst().get();
+
+        DatabaseCloneStatus cloneStatus = dbTargetClient.clone().cloneFrom(dbSourceClient.getDatabaseId(), theSnapshot.getId());
+
+        Assertions.assertNotNull(cloneStatus);
+        Assertions.assertNotNull(cloneStatus.getOperationId());
+        Assertions.assertEquals(cloneStatus.getSourceDbId(), CLONE_DEV_SOURCE_DB_ID);
+        Assertions.assertEquals(cloneStatus.getTargetDbId(), CLONE_DEV_TARGET_DB_ID);
+        Assertions.assertEquals(cloneStatus.getPhase(), "PreInit");
+    }
+
+    @Test
+    @Order(23)
+    @DisplayName("23. Should get a clone status by operation ID")
+    public void shouldGetCloneStatusByOperationId() {
+        /*
+        The 'operation ID' can be seen e.g. via Flightdeck ('cloning' tab)
+        TODOS:
+        // Maybe some parsing from endpoints for the target db ID.
+        // Another test that might need to be scrapped away from here.
+        */
+        final String CLONE_OPERATION_ID = "c29401c1-1841-4af0-9ca7-1e95932e6f6d";
+        final String CLONE_DEV_SOURCE_DB_ID = "a02e1d46-363e-426b-9b0c-d87918c51a9f";
+        final String CLONE_DEV_TARGET_DB_ID = "2cb0ea13-7f90-4030-b239-3dbc4b96514d";
+        final String CLONE_DEV_REGION = "northamerica-northeast2";
+        DbOpsClient dbTargetClient = getApiDevopsClient().db().database(CLONE_DEV_TARGET_DB_ID);
+
+        DatabaseCloneStatus cloneStatus = dbTargetClient.clone().getCloneStatus(CLONE_OPERATION_ID);
+
+        Assertions.assertNotNull(cloneStatus);
+        Assertions.assertEquals(cloneStatus.getOperationId(), CLONE_OPERATION_ID);
+        Assertions.assertEquals(cloneStatus.getSourceDbId(), CLONE_DEV_SOURCE_DB_ID);
+        Assertions.assertEquals(cloneStatus.getTargetDbId(), CLONE_DEV_TARGET_DB_ID);
+        Assertions.assertEquals(cloneStatus.getSourceRegion(), CLONE_DEV_REGION);
+        Assertions.assertEquals(cloneStatus.getTargetRegion(), CLONE_DEV_REGION);
     }
 
 }
