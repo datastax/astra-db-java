@@ -251,9 +251,31 @@ public class FilterBuilder {
      *      self reference
      */
     public Filter exists() {
-        return simpleKeyword(DataAPIKeywords.EXISTS, true);
+        return exists( true);
+    }
+
+    /**
+     * Add condition exists.
+     *
+     * @return
+     *      self reference
+     */
+    public Filter exists(Boolean value) {
+        return simpleKeyword(DataAPIKeywords.EXISTS, value);
     }
     
+
+    /**
+     * Condition to check if field does not exist
+     *
+     * @return
+     *      self reference
+     */
+    public Filter notExists() {
+        return exists(false);
+    }
+    
+
     /**
      * Condition to evaluate size
      *
