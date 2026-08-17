@@ -1,0 +1,63 @@
+# Spring Boot Application Configuration for Astra DB
+
+spring:
+  application:
+    name: {{APPLICATION_NAME}}
+
+astra:
+  data-api:
+    # Database connection (required)
+    token: ${ASTRA_DB_TOKEN}
+    endpoint-url: ${ASTRA_DB_ENDPOINT}
+    keyspace: ${ASTRA_DB_KEYSPACE:default_keyspace}
+    
+    # Schema management
+    # Options: CREATE_IF_NOT_EXISTS, VALIDATE, NONE
+    schema-action: CREATE_IF_NOT_EXISTS
+    
+    # Request logging (development)
+    log-request: ${ASTRA_LOG_REQUESTS:false}
+    
+    # Advanced options
+    options:
+      # Timeouts (milliseconds)
+      timeout:
+        connect: 5000
+        request: 10000
+        general: 30000
+        collection-admin: 60000
+      
+      # HTTP configuration
+      http:
+        retry-count: 3
+        retry-delay: 100
+        version: HTTP_2
+        redirect: NORMAL
+      
+      # Embedding API key for vector search (optional)
+      embedding-api-key: ${OPENAI_API_KEY:}
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.example.demo: DEBUG
+    com.datastax.astra: ${ASTRA_LOG_LEVEL:INFO}
+    com.datastax.astra.client.DataAPIClient: ${ASTRA_LOG_LEVEL:INFO}
+
+# Server configuration
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# Actuator endpoints (optional)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  metrics:
+    tags:
+      application: ${spring.application.name}

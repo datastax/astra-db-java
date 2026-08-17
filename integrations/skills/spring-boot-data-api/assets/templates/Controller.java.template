@@ -1,0 +1,94 @@
+package com.example.demo.controller;
+
+import com.example.demo.model.{{CLASS_NAME}};
+import com.example.demo.service.{{CLASS_NAME}}Service;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * REST controller for {{CLASS_NAME}} endpoints.
+ */
+@RestController
+@RequestMapping("/api/{{RESOURCE_PATH}}")
+@RequiredArgsConstructor
+public class {{CLASS_NAME}}Controller {
+    
+    private final {{CLASS_NAME}}Service service;
+    
+    /**
+     * List all entities.
+     */
+    @GetMapping
+    public List<{{CLASS_NAME}}> list() {
+        return service.findAll();
+    }
+    
+    /**
+     * List entities with pagination.
+     */
+    @GetMapping("/paginated")
+    public Page<{{CLASS_NAME}}> listPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortBy) {
+        return service.findAllPaginated(page, size, sortBy);
+    }
+    
+    /**
+     * Get entity by ID.
+     */
+    @GetMapping("/{id}")
+    public {{CLASS_NAME}} get(@PathVariable String id) {
+        return service.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
+    }
+    
+    /**
+     * Create new entity.
+     */
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public {{CLASS_NAME}} create(@Valid @RequestBody {{CLASS_NAME}} entity) {
+        return service.create(entity);
+    }
+    
+    /**
+     * Update existing entity.
+     */
+    @PutMapping("/{id}")
+    public {{CLASS_NAME}} update(
+            @PathVariable String id,
+            @Valid @RequestBody {{CLASS_NAME}} entity) {
+        return service.update(id, entity);
+    }
+    
+    /**
+     * Delete entity.
+     */
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable String id) {
+        service.delete(id);
+    }
+    
+    /**
+     * Search entities.
+     */
+    @GetMapping("/search")
+    public List<{{CLASS_NAME}}> search(
+            @RequestParam String field,
+            @RequestParam String value) {
+        return service.search(field, value);
+    }
+}
+
+class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+        super(message);
+    }
+}
