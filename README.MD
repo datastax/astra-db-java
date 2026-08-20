@@ -334,8 +334,9 @@ If you encounter any issues or have questions:
 - [API Reference](https://docs.datastax.com/en/astra-db-serverless/api-reference/dataapiclient.html)
 
 **Hyper-Converged Database (HCD)**
-- [Quickstart: Collections](https://docs.datastax.com/en/hyper-converged-database/1.2/api-reference/quickstart.html)
-- [Quickstart: Tables](https://docs.datastax.com/en/hyper-converged-database/1.2/api-reference/quickstart-tables.html)
+- [Quickstart: Collections](https://docs.datastax.com/en/hyper-converged-database/2.0/api-reference/quickstart.html)
+- [Quickstart: Tables](https://docs.datastax.com/en/hyper-converged-database/2.0/api-reference/quickstart-tables.html)
+- [API Reference](https://docs.datastax.com/en/hyper-converged-database/2.0/api-reference/dataapiclient.html)
 
 ---
 
