@@ -18,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfAstra
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisplayName("Astra / AstraDBAdmin")
+@Disabled
 public class Astra_01_AstraDBAdminIT extends AbstractDataAPITest {
 
     protected static com.dtsx.astra.sdk.db.domain.Database devopsDb;

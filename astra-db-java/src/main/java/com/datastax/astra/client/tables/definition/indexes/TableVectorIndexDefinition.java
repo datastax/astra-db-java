@@ -41,21 +41,6 @@ import com.datastax.astra.client.core.vector.SimilarityMetric;
  */
 public class TableVectorIndexDefinition extends TableIndexDefinition<TableVectorIndexDefinitionOptions> {
 
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_ADA002 = "ada002";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_BERT = "bert";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_COHERE_V3 = "cohere-v3";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_GECKO = "gecko";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_NV_QA_4 = "nv-qa-4";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_OPENAI_V3_LARGE = "openai-v3-large";
-    /** Initial source model. */
-    public static final String SOURCE_MODEL_OPENAI_V3_SMALL = "openai-v3-small";
-
     /**
      * Constructs a new {@code TableVectorIndexDefinition} instance.
      */

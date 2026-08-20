@@ -22,6 +22,7 @@ package com.datastax.astra.client.core.vector;
 
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -45,6 +46,13 @@ public class VectorOptions {
     private String metric;
 
     /**
+     * Source model
+     */
+    @JsonProperty("source_model")
+    @Setter(lombok.AccessLevel.NONE)
+    private String sourceModel;
+
+    /**
      * Service for vectorization
      */
     private VectorServiceOptions service;
@@ -66,12 +74,60 @@ public class VectorOptions {
     }
 
     /**
+     * Get source model as an enum.
+     *
+     * @return
+     *      source model type
+     */
+    @JsonIgnore
+    public SourceModelTypes getSourceModelType() {
+        return SourceModelTypes.fromValue(sourceModel);
+    }
+
+    /**
+     * Set source model using String.
+     *
+     * @param sourceModel
+     *      source model name
+     * @return
+     *      self reference
+     */
+    public VectorOptions sourceModel(String sourceModel) {
+        this.sourceModel = sourceModel;
+        return this;
+    }
+
+    /**
+     * Set source model using enum.
+     *
+     * @param sourceModelType
+     *      source model type
+     * @return
+     *      self reference
+     */
+    public VectorOptions sourceModel(SourceModelTypes sourceModelType) {
+        if (sourceModelType != null) {
+            this.sourceModel = sourceModelType.getValue();
+        }
+        return this;
+    }
+
+    /**
      * Gets dimension
      *
      * @return value of dimension
      */
     public Integer getDimension() {
         return dimension;
+    }
+
+    /**
+     * Gets source_model
+     *
+     * @return value of dimension
+     */
+    public String getSourceModel() {
+        return sourceModel;
     }
 
     /**

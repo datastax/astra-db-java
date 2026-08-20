@@ -74,6 +74,7 @@ public final class TestConfig {
     private static final String PROP_ASTRA_TOKEN          = "astra.token";
     private static final String PROP_ASTRA_CLOUD_PROVIDER = "astra.cloud.provider";
     private static final String PROP_ASTRA_CLOUD_REGION   = "astra.cloud.region";
+    private static final String PROP_ASTRA_DB_URL         = "astra.db.url";
 
     // API Keys for embedding providers
     private static final String PROP_OPENAI_API_KEY = "openai.api.key";
@@ -272,6 +273,20 @@ public final class TestConfig {
      */
     public String getCloudRegion() {
         return getConfig(ENV_VAR_CLOUD_REGION, PROP_ASTRA_CLOUD_REGION, "us-east1");
+    }
+
+    /**
+     * Get the explicit Astra DB URL when provided.
+     */
+    public String getAstraDbUrl() {
+        return getConfig(null, PROP_ASTRA_DB_URL, null);
+    }
+
+    /**
+     * Check if an explicit Astra DB URL is available.
+     */
+    public boolean hasAstraDbUrl() {
+        return hasLength(getAstraDbUrl());
     }
 
     /**

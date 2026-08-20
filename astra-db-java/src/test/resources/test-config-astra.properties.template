@@ -11,7 +11,7 @@
 #   4. Copy the token (starts with AstraCS:...)
 # =============================================================================
 
-test.environment=astra_prod
+test.environment=astra_dev
 
 # Your Astra application token (required)
 astra.token=AstraCS:YOUR_TOKEN_HERE
@@ -21,3 +21,10 @@ astra.cloud.provider=GCP
 
 # Region (must match your database's region)
 astra.cloud.region=us-east1
+
+# Optional: explicit Astra DB Data API URL.
+# When provided, integration tests connect to this database directly
+# and do not create a database from environment/provider/region.
+# Example:
+# astra.db.url=https://<db-id>-<region>.apps.astra.datastax.com
+#astra.db.url=

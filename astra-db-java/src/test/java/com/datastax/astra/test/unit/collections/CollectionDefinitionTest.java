@@ -3,6 +3,9 @@ package com.datastax.astra.test.unit.collections;
 import com.datastax.astra.client.collections.definition.CollectionDefaultIdTypes;
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.core.vector.SourceModelTypes;
+import com.datastax.astra.client.core.vector.VectorOptions;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -202,5 +205,149 @@ class CollectionDefinitionTest {
         assertThat(def.getVector().getService()).isNotNull();
         assertThat(def.getIndexing().getAllow()).hasSize(2);
         assertThat(def.getRerank().getService()).isNotNull();
+    }
+
+    // --------------------------------------------------
+    // SourceModelTypes enum tests
+    // --------------------------------------------------
+
+    @Test
+    void shouldHaveAllSourceModelTypes() {
+        assertThat(SourceModelTypes.ADA002.getValue()).isEqualTo("ada002");
+        assertThat(SourceModelTypes.BERT.getValue()).isEqualTo("bert");
+        assertThat(SourceModelTypes.COHERE_V3.getValue()).isEqualTo("cohere-v3");
+        assertThat(SourceModelTypes.GECKO.getValue()).isEqualTo("gecko");
+        assertThat(SourceModelTypes.OTHER.getValue()).isEqualTo("other");
+        assertThat(SourceModelTypes.NV_QA_4.getValue()).isEqualTo("nv-qa-4");
+        assertThat(SourceModelTypes.OPENAI_V3_LARGE.getValue()).isEqualTo("openai-v3-large");
+        assertThat(SourceModelTypes.OPENAI_V3_SMALL.getValue()).isEqualTo("openai-v3-small");
+    }
+
+    @Test
+    void shouldParseSourceModelFromValue() {
+        assertThat(SourceModelTypes.fromValue("ada002")).isEqualTo(SourceModelTypes.ADA002);
+        assertThat(SourceModelTypes.fromValue("openai-v3-small")).isEqualTo(SourceModelTypes.OPENAI_V3_SMALL);
+        assertThat(SourceModelTypes.fromValue("cohere-v3")).isEqualTo(SourceModelTypes.COHERE_V3);
+        assertThat(SourceModelTypes.fromValue("nv-qa-4")).isEqualTo(SourceModelTypes.NV_QA_4);
+    }
+
+    @Test
+    void shouldReturnNullForUnknownSourceModel() {
+        assertThat(SourceModelTypes.fromValue("unknown-model")).isNull();
+        assertThat(SourceModelTypes.fromValue(null)).isNull();
+    }
+
+    @Test
+    void shouldConvertSourceModelToString() {
+        assertThat(SourceModelTypes.OPENAI_V3_SMALL.toString()).isEqualTo("openai-v3-small");
+        assertThat(SourceModelTypes.BERT.toString()).isEqualTo("bert");
+    }
+
+    // --------------------------------------------------
+    // VectorOptions sourceModel tests
+    // --------------------------------------------------
+
+    @Test
+    void shouldSetSourceModelWithString() {
+        VectorOptions opts = new VectorOptions().sourceModel("openai-v3-small");
+        assertThat(opts.getSourceModel()).isEqualTo("openai-v3-small");
+    }
+
+    @Test
+    void shouldSetSourceModelWithEnum() {
+        VectorOptions opts = new VectorOptions().sourceModel(SourceModelTypes.OPENAI_V3_SMALL);
+        assertThat(opts.getSourceModel()).isEqualTo("openai-v3-small");
+        assertThat(opts.getSourceModelType()).isEqualTo(SourceModelTypes.OPENAI_V3_SMALL);
+    }
+
+    @Test
+    void shouldGetSourceModelTypeFromString() {
+        VectorOptions opts = new VectorOptions().sourceModel("ada002");
+        assertThat(opts.getSourceModelType()).isEqualTo(SourceModelTypes.ADA002);
+    }
+
+    @Test
+    void shouldReturnNullForUnknownSourceModelType() {
+        VectorOptions opts = new VectorOptions().sourceModel("unknown-model");
+        assertThat(opts.getSourceModelType()).isNull();
+    }
+
+    @Test
+    void shouldHandleNullSourceModelEnum() {
+        VectorOptions opts = new VectorOptions().sourceModel((SourceModelTypes) null);
+        assertThat(opts.getSourceModel()).isNull();
+    }
+
+    // --------------------------------------------------
+    // CollectionDefinition sourceModel tests
+    // --------------------------------------------------
+
+    @Test
+    void shouldSetVectorSourceModelWithString() {
+        CollectionDefinition def = new CollectionDefinition()
+                .vectorDimension(1536)
+                .vectorSourceModel("openai-v3-small");
+        assertThat(def.getVector().getSourceModel()).isEqualTo("openai-v3-small");
+    }
+
+    @Test
+    void shouldSetVectorSourceModelWithEnum() {
+        CollectionDefinition def = new CollectionDefinition()
+                .vectorDimension(1536)
+                .vectorSourceModel(SourceModelTypes.OPENAI_V3_LARGE);
+        assertThat(def.getVector().getSourceModel()).isEqualTo("openai-v3-large");
+        assertThat(def.getVector().getSourceModelType()).isEqualTo(SourceModelTypes.OPENAI_V3_LARGE);
+    }
+
+    @Test
+    void shouldCreateVectorOptionsWhenSettingSourceModel() {
+        CollectionDefinition def = new CollectionDefinition()
+                .vectorSourceModel(SourceModelTypes.BERT);
+        assertThat(def.getVector()).isNotNull();
+        assertThat(def.getVector().getSourceModel()).isEqualTo("bert");
+    }
+
+    // --------------------------------------------------
+    // JSON serialization tests
+    // --------------------------------------------------
+
+    @Test
+    void shouldSerializeSourceModelAsSnakeCase() throws Exception {
+        VectorOptions opts = new VectorOptions()
+                .dimension(1536)
+                .metric("cosine")
+                .sourceModel(SourceModelTypes.OPENAI_V3_SMALL);
+
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(opts);
+
+        assertThat(json).contains("\"source_model\":\"openai-v3-small\"");
+        assertThat(json).doesNotContain("\"sourceModel\"");
+    }
+
+    @Test
+    void shouldDeserializeSourceModelFromSnakeCase() throws Exception {
+        String json = "{\"dimension\":1536,\"metric\":\"cosine\",\"source_model\":\"openai-v3-small\"}";
+
+        ObjectMapper mapper = new ObjectMapper();
+        VectorOptions opts = mapper.readValue(json, VectorOptions.class);
+
+        assertThat(opts.getSourceModel()).isEqualTo("openai-v3-small");
+        assertThat(opts.getSourceModelType()).isEqualTo(SourceModelTypes.OPENAI_V3_SMALL);
+    }
+
+    @Test
+    void shouldBuildCompleteDefinitionWithSourceModel() {
+        CollectionDefinition def = new CollectionDefinition()
+                .defaultId(CollectionDefaultIdTypes.UUIDV7)
+                .vector(1536, SimilarityMetric.COSINE)
+                .vectorSourceModel(SourceModelTypes.OPENAI_V3_SMALL)
+                .vectorize("openai", "text-embedding-3-small")
+                .indexingAllow("name", "content");
+
+        assertThat(def.getVector().getDimension()).isEqualTo(1536);
+        assertThat(def.getVector().getMetric()).isEqualTo("cosine");
+        assertThat(def.getVector().getSourceModel()).isEqualTo("openai-v3-small");
+        assertThat(def.getVector().getService()).isNotNull();
     }
 }

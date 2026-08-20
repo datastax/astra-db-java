@@ -26,6 +26,7 @@ import com.datastax.astra.client.core.lexical.LexicalOptions;
 import com.datastax.astra.client.core.rerank.CollectionRerankOptions;
 import com.datastax.astra.client.core.rerank.RerankServiceOptions;
 import com.datastax.astra.client.core.vector.SimilarityMetric;
+import com.datastax.astra.client.core.vector.SourceModelTypes;
 import com.datastax.astra.client.core.vector.VectorOptions;
 import com.datastax.astra.client.core.vectorize.VectorServiceOptions;
 import lombok.NonNull;
@@ -276,6 +277,34 @@ public class CollectionDefinition {
             vector = new VectorOptions();
         }
         return vectorSimilarity(function).vectorDimension(dimension);
+    }
+
+    /**
+     * Builder pattern for setting source model.
+     *
+     * @param sourceModel source model name
+     * @return self reference
+     */
+    public CollectionDefinition vectorSourceModel(@NonNull String sourceModel) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
+        getVector().sourceModel(sourceModel);
+        return this;
+    }
+
+    /**
+     * Builder pattern for setting source model using enum.
+     *
+     * @param sourceModelType source model type
+     * @return self reference
+     */
+    public CollectionDefinition vectorSourceModel(@NonNull SourceModelTypes sourceModelType) {
+        if (getVector() == null) {
+            vector = new VectorOptions();
+        }
+        getVector().sourceModel(sourceModelType);
+        return this;
     }
 
     /**

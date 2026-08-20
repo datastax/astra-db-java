@@ -182,20 +182,28 @@ public abstract class AbstractDataAPITest {
                 case ASTRA:
                 case ASTRA_DEV:
                 case ASTRA_TEST:
-                    String databaseName = env.name().toLowerCase() + "_"
-                            + getCloudProvider().name().toLowerCase() + "_"
-                            + getCloudRegion().replaceAll("-", "_");
-                    log.info("Access Astra " + green("{}") + " in {}/{}.",
-                            databaseName,
-                            getCloudProvider().name().toLowerCase(),
-                            getCloudRegion());
                     // We Want to add logging at DB level
                     DatabaseOptions optionsWithLogging = new DatabaseOptions(
                             getDataApiClient().getToken(),
                             getDataApiClient().getOptions().clone().logRequests());
-                    database = getAstraDBAdmin()
-                            .createDatabase(databaseName, getCloudProvider(), getCloudRegion())
-                            .getDatabase(null,null, optionsWithLogging);
+
+                    if (getConfig().hasAstraDbUrl()) {
+                        log.info("Access Astra using explicit DB URL " + green("{}"),
+                                getConfig().getAstraDbUrl());
+                        database = getDataApiClient()
+                                .getDatabase(getConfig().getAstraDbUrl(), optionsWithLogging);
+                    } else {
+                        String databaseName = env.name().toLowerCase() + "_"
+                                + getCloudProvider().name().toLowerCase() + "_"
+                                + getCloudRegion().replaceAll("-", "_");
+                        log.info("Access Astra " + green("{}") + " in {}/{}.",
+                                databaseName,
+                                getCloudProvider().name().toLowerCase(),
+                                getCloudRegion());
+                        database = getAstraDBAdmin()
+                                .createDatabase(databaseName, getCloudProvider(), getCloudRegion())
+                                .getDatabase(null,null, optionsWithLogging);
+                    }
 
                     break;
                 default:
