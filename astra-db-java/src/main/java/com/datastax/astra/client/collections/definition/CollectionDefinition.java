@@ -504,4 +504,48 @@ public class CollectionDefinition {
         return this;
     }
 
+    // ---------------------
+    // OpenSearch options
+    // ---------------------
+
+    /**
+     * OpenSearch replication options.
+     */
+    private OpenSearchOptions openSearch;
+
+    /**
+     * Gets openSearch
+     *
+     * @return value of openSearch
+     */
+    public OpenSearchOptions getOpenSearch() {
+        return openSearch;
+    }
+
+    /**
+     * Builder pattern — configure OpenSearch replication with explicit options.
+     *
+     * @param openSearchOptions full OpenSearch options object
+     * @return self reference
+     */
+    public CollectionDefinition openSearch(OpenSearchOptions openSearchOptions) {
+        openSearch = openSearchOptions;
+        return this;
+    }
+
+    /**
+     * Builder pattern — enable OpenSearch replication with a field mappings map.
+     * <p>
+     * The {@code mappings} parameter must list every top-level document field to replicate,
+     * with its OpenSearch type definition (e.g. {@code {"type":"text"}}). {@code _id} must
+     * not appear as a key.
+     *
+     * @param mappings map of field name → OpenSearch field definition
+     * @return self reference
+     */
+    public CollectionDefinition openSearch(Map<String, Object> mappings) {
+        openSearch = new OpenSearchOptions().enabled(true).mappings(mappings);
+        return this;
+    }
+
 }

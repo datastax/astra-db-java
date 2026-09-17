@@ -148,7 +148,7 @@ public enum FilterOperator {
      * @param op
      *      current operator
      */
-    private FilterOperator(String op) {
+    FilterOperator(String op) {
         this.operator = op;
     }
 
