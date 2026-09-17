@@ -2032,12 +2032,9 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
                             .appendIfNotNull(OPTIONS_UPSERT, options.upsert())
                             .appendIfNotNull(OPTIONS_PAGE_STATE, nextPageState));
             DataAPIResponse res = runCommand(cmd, options);
-            // Data
-            if (res.getData() != null) {
-                nextPageState = res.getData().getNextPageState();
-            }
             // Status
             DataAPIStatus status = res.getStatus();
+            nextPageState = (status != null) ? status.getString(RESULT_NEXT_PAGE_STATE) : null;
             if (status.containsKey(RESULT_MATCHED_COUNT)) {
                 result.setMatchedCount(result.getMatchedCount() + status.getInteger(RESULT_MATCHED_COUNT));
             }
