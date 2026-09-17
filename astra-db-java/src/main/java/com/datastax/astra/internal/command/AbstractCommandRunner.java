@@ -123,6 +123,8 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     /** parsing output json */
     protected static final String RESULT_MORE_DATA = "moreData";
     /** parsing output json */
+    protected static final String RESULT_NEXT_PAGE_STATE = "nextPageState";
+    /** parsing output json */
     protected static final String RESULT_COUNT = "count";
 
     // --- Build Requests --

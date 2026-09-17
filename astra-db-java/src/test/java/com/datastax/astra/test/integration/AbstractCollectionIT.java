@@ -1038,6 +1038,32 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
         assertThat(res.getModifiedCount()).isEqualTo(0);
     }
 
+    @Test
+    @Order(50)
+    void should_updateMany_processAllPagesWhenMoreThanOnePage() throws TooManyDocumentsToCountException {
+        // Insert 60 documents — exceeds the 50-doc page limit so updateMany must follow nextPageState.
+        // Before the bug fix, only the first 50 would be updated.
+        collectionSimple.deleteAll();
+        List<Document> docs = IntStream.range(0, 60)
+                .mapToObj(i -> new Document().id("page-test-" + i).append("status", "pending"))
+                .collect(Collectors.toList());
+        collectionSimple.insertMany(docs);
+
+        CollectionUpdateResult res = collectionSimple.updateMany(
+                Filters.eq("status", "pending"),
+                Updates.set("status", "done"));
+
+        assertThat(res.getMatchedCount()).isEqualTo(60);
+        assertThat(res.getModifiedCount()).isEqualTo(60);
+
+        // Verify every document was actually updated in the collection
+        long stillPending = collectionSimple.countDocuments(Filters.eq("status", "pending"), 100);
+        assertThat(stillPending).isZero();
+
+        long nowDone = collectionSimple.countDocuments(Filters.eq("status", "done"), 100);
+        assertThat(nowDone).isEqualTo(60);
+    }
+
     // ========== findOneAndUpdate ==========
 
     @Test
