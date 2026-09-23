@@ -1246,6 +1246,7 @@ public class Collection<T> extends AbstractCommandRunner<CollectionOptions> {
               .withOptions(new Document()
                   .appendIfNotNull(OPTIONS_RERANK_QUERY, options.rerankQuery())
                   .appendIfNotNull(OPTIONS_RERANK_ON, options.rerankOn())
+                  .appendIfNotNull(OPTIONS_RERANK, options.rerank())
                   .appendIfNotNull(OPTIONS_LIMIT, options.limit())
                   .appendIfNotNull(OPTIONS_HYBRID_LIMITS, options.hybridLimits())
                   .appendIfNotNull(OPTIONS_INCLUDE_SORT_VECTOR, options.includeSortVector())

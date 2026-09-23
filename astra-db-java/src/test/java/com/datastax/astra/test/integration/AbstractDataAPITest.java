@@ -182,10 +182,8 @@ public abstract class AbstractDataAPITest {
                 case ASTRA:
                 case ASTRA_DEV:
                 case ASTRA_TEST:
-                    // We Want to add logging at DB level
-                    DatabaseOptions optionsWithLogging = new DatabaseOptions(
-                            getDataApiClient().getToken(),
-                            getDataApiClient().getOptions().clone().logRequests());
+                    // Reuse the options (with timeouts) already built above, just add request logging
+                    DatabaseOptions optionsWithLogging = options.logRequest();
 
                     if (getConfig().hasAstraDbUrl()) {
                         log.info("Access Astra using explicit DB URL " + green("{}"),
