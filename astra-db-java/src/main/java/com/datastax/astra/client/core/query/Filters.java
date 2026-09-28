@@ -21,6 +21,7 @@ package com.datastax.astra.client.core.query;
  */
 
 import com.datastax.astra.client.core.DataAPIKeywords;
+import com.datastax.astra.client.core.opensearch.OpenSearchQuery;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -572,6 +573,71 @@ public class Filters {
         valuesFilter.documentMap.put(fieldName, map);
         return valuesFilter;
     }
+
+    // ------------------------------------------------------------------
+    //  OpenSearch $search filter
+    // ------------------------------------------------------------------
+
+    /**
+     * Creates a {@code $search} filter from an {@link OpenSearchQuery} builder.
+     *
+     * <p>Produces the following fragment in the Data API request:
+     * <pre>{@code
+     * "filter": {
+     *   "$search": { "match_all": {} }
+     * }
+     * }</pre>
+     *
+     * <p>Example:
+     * <pre>{@code
+     * import static com.datastax.astra.client.core.query.Filters.search;
+     * import com.datastax.astra.client.core.opensearch.OpenSearchQuery;
+     *
+     * // match all
+     * collection.find(search(OpenSearchQuery.matchAll()));
+     *
+     * // full-text match
+     * collection.find(search(OpenSearchQuery.match("firstName", "Alice")));
+     *
+     * // compound bool query
+     * collection.find(search(
+     *     OpenSearchQuery.bool()
+     *         .must(OpenSearchQuery.match("firstName", "Alice"))
+     *         .filter(OpenSearchQuery.term("city", "London"))
+     *         .build()));
+     * }</pre>
+     *
+     * @param query the OpenSearch DSL query produced by {@link OpenSearchQuery}
+     * @return the filter
+     */
+    public static Filter search(OpenSearchQuery query) {
+        Filter f = new Filter();
+        f.documentMap.put(DataAPIKeywords.SEARCH.getKeyword(), query.toMap());
+        return f;
+    }
+
+    /**
+     * Creates a {@code $search} filter from a raw {@link Map} representing the
+     * OpenSearch DSL query.  Use this overload when you already have a pre-built map
+     * and do not need the {@link OpenSearchQuery} fluent API.
+     *
+     * <p>Example:
+     * <pre>{@code
+     * import static com.datastax.astra.client.core.query.Filters.search;
+     *
+     * collection.find(search(Map.of("match_all", Map.of())));
+     * }</pre>
+     *
+     * @param rawQuery a map representing the OpenSearch query object
+     * @return the filter
+     */
+    public static Filter search(Map<String, Object> rawQuery) {
+        Filter f = new Filter();
+        f.documentMap.put(DataAPIKeywords.SEARCH.getKeyword(), rawQuery);
+        return f;
+    }
+
+
 
 
 

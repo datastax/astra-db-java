@@ -1,6 +1,7 @@
 package com.datastax.astra.test.unit.core;
 
 import com.datastax.astra.client.collections.commands.options.CollectionFindOptions;
+import com.datastax.astra.client.core.opensearch.OpenSearchQuery;
 import com.datastax.astra.client.core.query.Filter;
 import com.datastax.astra.client.core.query.Filters;
 import com.datastax.astra.client.core.query.Projection;
@@ -47,5 +48,38 @@ class FiltersTest {
         System.out.println(new Filter(Map.of("$lexical", Map.of("$match", "tree hill"))));
     }
 
+    @Test
+    public void should_serialize_search_match_all() {
+        Filter f = Filters.search(OpenSearchQuery.matchAll());
+        String json = new DocumentSerializer().marshall(f);
+        assertThat(json).isEqualTo("{\"$search\":{\"match_all\":{}}}");
+    }
+
+    @Test
+    public void should_serialize_search_match_field() {
+        Filter f = Filters.search(OpenSearchQuery.match("firstName", "Alice"));
+        String json = new DocumentSerializer().marshall(f);
+        assertThat(json).isEqualTo("{\"$search\":{\"match\":{\"firstName\":\"Alice\"}}}");
+    }
+
+    @Test
+    public void should_serialize_search_bool_query() {
+        Filter f = Filters.search(OpenSearchQuery.bool()
+                .must(OpenSearchQuery.match("firstName", "Alice"))
+                .filter(OpenSearchQuery.term("city", "London"))
+                .build());
+        String json = new DocumentSerializer().marshall(f);
+        assertThat(json).contains("\"$search\"");
+        assertThat(json).contains("\"bool\"");
+        assertThat(json).contains("\"must\"");
+        assertThat(json).contains("\"filter\"");
+    }
+
+    @Test
+    public void should_serialize_search_raw_map() {
+        Filter f = Filters.search(Map.of("match_all", Map.of()));
+        String json = new DocumentSerializer().marshall(f);
+        assertThat(json).isEqualTo("{\"$search\":{\"match_all\":{}}}");
+    }
 
 }

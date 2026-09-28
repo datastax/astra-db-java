@@ -25,6 +25,7 @@ import com.datastax.astra.client.collections.commands.results.CollectionInsertMa
 import com.datastax.astra.client.collections.definition.CollectionDefinition;
 import com.datastax.astra.client.collections.definition.OpenSearchOptions;
 import com.datastax.astra.client.collections.definition.documents.Document;
+import com.datastax.astra.client.core.opensearch.OpenSearchQuery;
 import com.datastax.astra.client.databases.Database;
 import com.datastax.astra.test.integration.AbstractDataAPITest;
 import com.datastax.astra.test.integration.utils.EnabledIfLocalAvailable;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.datastax.astra.client.core.options.DataAPIClientOptions.DEFAULT_KEYSPACE;
+import static com.datastax.astra.client.core.query.Filters.search;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -63,7 +65,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
 
-    private static final String COLLECTION_OS      = "os_persons";
+    private static final String KEYSPACE_DEMO       = "clun_opensearch";
+    private static final String COLLECTION_OS       = "os_persons";
     private static final String COLLECTION_OS_NAMED = "os_articles";
 
     // ------------------------------------------------------------------
@@ -74,7 +77,7 @@ public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
     @Order(1)
     @DisplayName("createCollection with openSearch enabled (default index name)")
     void should_create_collection_with_open_search_default_index_name() {
-        Database db = getDatabase().useKeyspace(DEFAULT_KEYSPACE);
+        Database db = getDatabase().useKeyspace(KEYSPACE_DEMO);
 
         // Clean up any leftover from a previous run
         if (db.collectionExists(COLLECTION_OS)) {
@@ -84,6 +87,9 @@ public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
         CollectionDefinition definition = new CollectionDefinition()
                 .openSearch(new OpenSearchOptions()
                         .enabled(true)
+                        .numReplicas(3)
+                        .numShards(1)
+                        .indexName("idx_os_persons")
                         .mappings(Map.of(
                                 "firstName", Map.of("type", "text"),
                                 "lastName",  Map.of("type", "text"),
@@ -106,7 +112,7 @@ public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
     @Order(2)
     @DisplayName("findCollections with explain returns openSearch block")
     void should_return_open_search_block_in_find_collections() {
-        Database db = getDatabase().useKeyspace(DEFAULT_KEYSPACE);
+        Database db = getDatabase().useKeyspace(KEYSPACE_DEMO);
 
         // getDefinition() calls findCollections with explain:true internally
         CollectionDefinition def = db.getCollection(COLLECTION_OS).getDefinition();
@@ -164,7 +170,7 @@ public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
     @DisplayName("insertMany into openSearch-enabled collection succeeds")
     void should_insert_documents_into_open_search_collection() {
         Collection<Document> collection =
-                getDatabase().useKeyspace(DEFAULT_KEYSPACE).getCollection(COLLECTION_OS);
+                getDatabase().useKeyspace(KEYSPACE_DEMO).getCollection(COLLECTION_OS);
 
         List<Document> docs = List.of(
                 new Document().id("p1").append("firstName", "Alice").append("lastName", "Smith").append("city", "London").append("age", 30),
@@ -213,5 +219,93 @@ public class HCD_Collections_02_OpenSearchIT extends AbstractDataAPITest {
         Thread.sleep(1000);
         assertThat(db.collectionExists(COLLECTION_OS_NAMED)).isFalse();
         log.info("OpenSearch-backed collection {} dropped successfully", COLLECTION_OS_NAMED);
+    }
+
+    // ------------------------------------------------------------------
+    //  find — $search filter with OpenSearch DSL queries
+    // ------------------------------------------------------------------
+
+    @Test
+    @Order(7)
+    @DisplayName("find with $search match_all returns all documents")
+    void should_find_all_with_match_all_search_filter() {
+        // Re-create the collection so we have a fresh dataset
+        Database db = getDatabase().useKeyspace(KEYSPACE_DEMO);
+        if (!db.collectionExists(COLLECTION_OS)) {
+            db.createCollection(COLLECTION_OS, new CollectionDefinition()
+                    .openSearch(new OpenSearchOptions()
+                            .enabled(true)
+                            .numShards(1)
+                            .mappings(Map.of(
+                                    "firstName", Map.of("type", "text"),
+                                    "lastName",  Map.of("type", "text"),
+                                    "city",      Map.of("type", "text"),
+                                    "age",       Map.of("type", "integer")
+                            ))));
+            Collection<Document> col = db.getCollection(COLLECTION_OS);
+            col.insertMany(List.of(
+                    new Document().id("p1").append("firstName", "Alice").append("lastName", "Smith").append("city", "London").append("age", 30),
+                    new Document().id("p2").append("firstName", "Bob").append("lastName", "Jones").append("city", "Paris").append("age", 25),
+                    new Document().id("p3").append("firstName", "Carol").append("lastName", "Brown").append("city", "Berlin").append("age", 42)
+            ));
+        }
+
+        Collection<Document> collection = db.getCollection(COLLECTION_OS);
+
+        List<Document> results = collection
+                .find(search(OpenSearchQuery.matchAll()))
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        log.info("match_all returned {} document(s)", results.size());
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("find with $search match on firstName field returns matching documents")
+    void should_find_with_match_on_firstName() {
+        Collection<Document> collection =
+                getDatabase().useKeyspace(KEYSPACE_DEMO).getCollection(COLLECTION_OS);
+
+        List<Document> results = collection
+                .find(search(OpenSearchQuery.match("firstName", "Alice")))
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        assertThat(results).allMatch(doc -> "Alice".equals(doc.getString("firstName")));
+        log.info("match 'Alice' returned {} document(s)", results.size());
+    }
+
+    @Test
+    @Order(9)
+    @DisplayName("find with $search bool query (must + filter) returns correct documents")
+    void should_find_with_bool_must_filter() {
+        Collection<Document> collection =
+                getDatabase().useKeyspace(KEYSPACE_DEMO).getCollection(COLLECTION_OS);
+
+        List<Document> results = collection
+                .find(search(OpenSearchQuery.bool()
+                        .must(OpenSearchQuery.match("firstName", "Alice"))
+                        .filter(OpenSearchQuery.term("city", "London"))
+                        .build()))
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        log.info("bool(must+filter) returned {} document(s)", results.size());
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("find with $search using raw Map (match_all)")
+    void should_find_with_raw_map_search_filter() {
+        Collection<Document> collection =
+                getDatabase().useKeyspace(KEYSPACE_DEMO).getCollection(COLLECTION_OS);
+
+        List<Document> results = collection
+                .find(search(Map.of("match_all", Map.of())))
+                .toList();
+
+        assertThat(results).isNotEmpty();
+        log.info("raw Map match_all returned {} document(s)", results.size());
     }
 }

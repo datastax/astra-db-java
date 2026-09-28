@@ -127,7 +127,12 @@ public enum DataAPIKeywords {
     /**
      * HYBRID.
      */
-    HYBRID("$hybrid");;
+    HYBRID("$hybrid"),
+
+    /**
+     * SEARCH (OpenSearch DSL filter).
+     */
+    SEARCH("$search");;
 
     /**
      * Keyword.
