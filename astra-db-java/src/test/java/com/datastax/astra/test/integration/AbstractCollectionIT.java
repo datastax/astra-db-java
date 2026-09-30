@@ -84,22 +84,18 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
 
     @BeforeAll
     void setupCollections() {
-        // FAST TRACK FOR TESTS
-        collectionSimple = getDatabase().getCollection(COLLECTION_SIMPLE);
-
-        /*
         dropAllCollections();
         dropAllTables();
+
         collectionSimple = getDatabase().createCollection(COLLECTION_SIMPLE);
 
         collectionVector = getDatabase().createCollection(
-                COLLECTION_VECTOR,
-                COLLECTION_VECTOR_DEF,
-                ProductString.class);
-        log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
-                COLLECTION_SIMPLE, COLLECTION_VECTOR);
-                */
+            COLLECTION_VECTOR,
+            COLLECTION_VECTOR_DEF,
+            ProductString.class);
 
+        log.info("Initialized collectionSimple='{}' and collectionVector='{}'",
+            COLLECTION_SIMPLE, COLLECTION_VECTOR);
     }
 
     // ========== Collection Metadata ==========
@@ -219,41 +215,41 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     @Order(9)
     void should_insertMany_handlePartialInsertion() {
         collectionSimple.deleteAll();
-        
+
         // Create 30 documents: first 20 with unique IDs, then duplicate one ID in the second batch
         List<Document> docList = new ArrayList<>();
-        
+
         // First 20 documents with unique IDs (will succeed)
         for (int i = 0; i < 20; i++) {
             docList.add(Document.create(i).append("name", "doc_" + i));
         }
-        
+
         // Next 10 documents, but duplicate ID 5 (will cause partial failure)
         docList.add(Document.create(5).append("name", "duplicate_doc"));  // This will fail
         for (int i = 21; i < 30; i++) {
             docList.add(Document.create(i).append("name", "doc_" + i));
         }
-        
+
         try {
             // Attempt to insert all 30 documents with ordered=true to stop on first error
             collectionSimple.insertMany(docList, new CollectionInsertManyOptions()
                     .ordered(true)
                     .chunkSize(20));
-            
+
             Assertions.fail("Expected CollectionInsertManyException to be thrown");
         } catch (com.datastax.astra.client.collections.exceptions.CollectionInsertManyException e) {
             // Verify we got partial insertion exception
             assertThat(e.getInsertedIds()).isNotNull();
-            
+
             // Should have inserted the first 20 documents successfully
             assertThat(e.getInsertedIds().size()).isGreaterThan(0);
             log.info("Partial insertion: {} documents inserted before error", e.getInsertedIds().size());
             log.info("Error message: {}", e.getMessage());
-            
+
             // Verify the inserted IDs are accessible
             List<Object> insertedIds = e.getInsertedIds();
             assertThat(insertedIds).isNotEmpty();
-            
+
             // Verify we can query the partially inserted documents
             long actualCount = collectionSimple.countDocuments(100);
             assertThat(actualCount).isEqualTo(insertedIds.size());
@@ -265,41 +261,41 @@ public abstract class AbstractCollectionIT extends AbstractDataAPITest {
     @Order(10)
     void should_insertMany_handlePartialInsertion_concurrent() {
         collectionSimple.deleteAll();
-        
+
         // Create 30 documents with duplicate IDs across chunks
         List<Document> docList = new ArrayList<>();
-        
+
         // First chunk: 20 unique documents (will succeed)
         for (int i = 0; i < 20; i++) {
             docList.add(Document.create(i).append("name", "doc_" + i));
         }
-        
+
         // Second chunk: 10 documents with one duplicate from first chunk
         docList.add(Document.create(10).append("name", "duplicate_doc"));  // Duplicate ID 10
         for (int i = 21; i < 30; i++) {
             docList.add(Document.create(i).append("name", "doc_" + i));
         }
-        
+
         try {
             // Use concurrent processing with ordered=false
             collectionSimple.insertMany(docList, new CollectionInsertManyOptions()
                     .ordered(false)
                     .concurrency(2)
                     .chunkSize(20));
-            
+
             Assertions.fail("Expected CollectionInsertManyException to be thrown");
         } catch (com.datastax.astra.client.collections.exceptions.CollectionInsertManyException e) {
             // Verify we got partial insertion exception with aggregated IDs from all chunks
             assertThat(e.getInsertedIds()).isNotNull();
-            
+
             // Should have inserted documents from successful chunks and partial from failed chunk
             assertThat(e.getInsertedIds().size()).isGreaterThan(0);
             log.info("Concurrent partial insertion: {} documents inserted across chunks", e.getInsertedIds().size());
             log.info("Error message: {}", e.getMessage());
-            
+
             // Verify the message indicates multiple chunks were processed
             assertThat(e.getMessage()).contains("chunks");
-            
+
             // Verify actual count matches reported insertions
             long actualCount = collectionSimple.countDocuments(100);
             assertThat(actualCount).isEqualTo(e.getInsertedIds().size());
