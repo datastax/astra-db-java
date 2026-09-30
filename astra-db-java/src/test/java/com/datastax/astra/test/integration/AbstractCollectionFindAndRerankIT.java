@@ -700,38 +700,46 @@ public abstract class AbstractCollectionFindAndRerankIT extends AbstractDataAPIT
                         new Document().id("m3").put("text", "Deep learning powers neural networks").vectorize("Deep learning powers neural networks").lexical("Deep learning powers neural networks")),
                 new CollectionInsertManyOptions().chunkSize(3));
 
-        // Perform findAndRerank with initial configuration
-        CollectionFindAndRerankOptions options = baseFindAndRerankOptions()
+        // Perform findAndRerank with the collection's default rerank service
+        CollectionFindAndRerankOptions baseOptions = baseFindAndRerankOptions()
                 .sort(Sort.hybrid(new Hybrid("artificial intelligence and machine learning")))
                 .hybridLimits(10)
                 .limit(3);
 
-        List<RerankedResult<Document>> initialResults = col.findAndRerank(options).toList();
+        List<RerankedResult<Document>> initialResults = col.findAndRerank(baseOptions).toList();
         assertThat(initialResults).isNotEmpty();
         log.info("Initial rerank results count: {}", initialResults.size());
 
-        // Mutate the rerank service by creating a new collection definition
-        // Note: In practice, mutation would involve updating collection settings if supported
-        // For this test, we verify that different rerank configurations can be applied
-        RerankServiceOptions validUpdatedRerankService = new RerankServiceOptions()
+        // Override rerank service at query time with a valid provider/model — the override
+        // must appear in the request payload (this was the bug in issue #109).
+        RerankServiceOptions validOverride = new RerankServiceOptions()
                 .modelName("nvidia/llama-3.2-nv-rerankqa-1b-v2")
-                .provider("nvidia"); // Add custom parameters
+                .provider("nvidia");
 
-        CollectionFindAndRerankOptions mutatedRerankOptions = new CollectionFindAndRerankOptions()
-                .rerankService(validUpdatedRerankService);
+        CollectionFindAndRerankOptions overrideOptions = baseFindAndRerankOptions()
+                .sort(Sort.hybrid(new Hybrid("artificial intelligence and machine learning")))
+                .hybridLimits(10)
+                .limit(3)
+                .rerankService(validOverride);
 
-        List<RerankedResult<Document>> updatedResults = col.findAndRerank(mutatedRerankOptions).toList();
-        assertThat(updatedResults).isNotEmpty();
-        log.info("Updated rerank results count: {}", initialResults.size());
+        List<RerankedResult<Document>> overrideResults = col.findAndRerank(overrideOptions).toList();
+        assertThat(overrideResults).isNotEmpty();
+        log.info("Override rerank results count: {}", overrideResults.size());
 
-        CollectionFindAndRerankOptions mutatedInvalidRerankOptions = new CollectionFindAndRerankOptions()
+        // Override with an invalid provider/model — must reach the server (not be silently
+        // dropped) and therefore cause the server to reject the request.
+        CollectionFindAndRerankOptions invalidOverrideOptions = baseFindAndRerankOptions()
+                .sort(Sort.hybrid(new Hybrid("artificial intelligence and machine learning")))
+                .hybridLimits(10)
+                .limit(3)
                 .rerankService(new RerankServiceOptions().modelName("bla").provider("ble"));
 
         try {
-            col.findAndRerank(mutatedInvalidRerankOptions).toList();
-            fail();
+            col.findAndRerank(invalidOverrideOptions).toList();
+            fail("Expected DataAPIException for invalid rerank service override");
         } catch (DataAPIException dataAPIException) {
-            // Should fail
+            // Expected — server rejected the unknown provider/model
+            log.info("Correctly rejected invalid rerank override: {}", dataAPIException.getMessage());
         }
 
         // Cleanup

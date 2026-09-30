@@ -26,6 +26,8 @@ import com.datastax.astra.client.core.http.HttpClientOptions;
 import com.datastax.astra.client.core.options.BaseOptions;
 import com.datastax.astra.client.core.options.DataAPIClientOptions;
 import com.datastax.astra.client.core.options.TimeoutOptions;
+import com.datastax.astra.client.exceptions.DataAPIException;
+import com.datastax.astra.client.exceptions.DataAPIHttpException;
 import com.datastax.astra.client.exceptions.DataAPIResponseException;
 import com.datastax.astra.client.exceptions.DataAPITimeoutException;
 import com.datastax.astra.internal.api.ApiResponseHttp;
@@ -38,10 +40,13 @@ import com.evanlennick.retry4j.Status;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.nio.channels.UnresolvedAddressException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -147,6 +152,8 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
     protected static final String OPTIONS_RERANK_QUERY = "rerankQuery";
     /** json inputs */
     protected static final String OPTIONS_RERANK_ON = "rerankOn";
+    /** json inputs */
+    protected static final String OPTIONS_RERANK = "rerank";
     /** json inputs */
     protected static final String OPTIONS_INCLUDE_SORT_VECTOR = "includeSortVector";
     /** json inputs */
@@ -334,9 +341,27 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             executionInfo.withHttpResponse(httpRes);
 
             if (httpRes == null) {
-                throw new DataAPITimeoutException("Timeout while executing command '" +
-                        command.getName() + "' timeout: " + requestTimeout +
-                        " but was " + executionInfo.getExecutionTime());
+                Throwable cause = status.getLastExceptionThatCausedRetry();
+                // Unwrap one layer if retry4j wrapped it
+                if (cause != null && cause.getCause() != null
+                        && !(cause instanceof ConnectException)
+                        && !(cause instanceof HttpTimeoutException)) {
+                    cause = cause.getCause();
+                }
+                if (cause instanceof HttpTimeoutException) {
+                    throw new DataAPITimeoutException("Timeout while executing command '"
+                            + command.getName() + "': configured timeout was " + requestTimeout
+                            + "ms but the request did not complete in time.");
+                }
+                if (cause instanceof ConnectException || cause instanceof UnresolvedAddressException) {
+                    throw new DataAPIHttpException(DataAPIException.ERROR_CODE_HTTP,
+                            "Failed to connect while executing command '" + command.getName()
+                            + "' on '" + getApiEndpoint() + "': " + cause.getMessage(), cause);
+                }
+                throw new DataAPIHttpException(DataAPIException.ERROR_CODE_HTTP,
+                        "HTTP request failed for command '" + command.getName() + "'"
+                        + (cause != null ? ": " + cause.getMessage() : ""),
+                        cause);
             }
 
             //String dataAPIRawBody = httpRes.getBody();

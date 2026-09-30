@@ -51,4 +51,18 @@ public class DataAPIHttpException extends DataAPIException {
         super(code, errorMessage);
     }
 
+    /**
+     * Constructor preserving the root cause.
+     *
+     * @param code
+     *      error code
+     * @param errorMessage
+     *      error message
+     * @param cause
+     *      root cause
+     */
+    public DataAPIHttpException(String code, String errorMessage, Throwable cause) {
+        super(errorMessage, code, cause);
+    }
+
 }
