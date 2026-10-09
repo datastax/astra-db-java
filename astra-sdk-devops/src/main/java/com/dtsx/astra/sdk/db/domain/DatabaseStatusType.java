@@ -17,6 +17,8 @@
 
 package com.dtsx.astra.sdk.db.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
  * Encoded all values for 'tier'
  *
@@ -58,6 +60,10 @@ public enum DatabaseStatusType {
     /** status. */
     RESUMING,
     /** status. */
+    SUSPENDED,
+    /** status. */
+    SUSPENDING,
+    /** status. */
     TERMINATED,
     /** status. */
     TERMINATING,
@@ -66,5 +72,25 @@ public enum DatabaseStatusType {
     /** status. */
     UNPARKING,
     /** status. */
-    SYNCHRONIZING;
+    SYNCHRONIZING,
+    /** status. */
+    OTHER;
+
+    /**
+     * Deserialize a status value, falling back to {@link #OTHER} for any
+     * value not yet known to this SDK so that new DevOps API statuses do
+     * not cause deserialization failures.
+     *
+     * @param value raw string from the API response
+     * @return matching constant, or {@link #OTHER} when unrecognized
+     */
+    @JsonCreator
+    public static DatabaseStatusType fromValue(String value) {
+        if (value == null) return OTHER;
+        try {
+            return DatabaseStatusType.valueOf(value);
+        } catch (IllegalArgumentException e) {
+            return OTHER;
+        }
+    }
 }
