@@ -50,26 +50,26 @@ class FiltersTest {
 
     @Test
     public void should_serialize_search_match_all() {
-        Filter f = Filters.search(OpenSearchQuery.matchAll());
+        Filter f = Filters.openSearch(OpenSearchQuery.matchAll());
         String json = new DocumentSerializer().marshall(f);
-        assertThat(json).isEqualTo("{\"$search\":{\"match_all\":{}}}");
+        assertThat(json).isEqualTo("{\"$openSearch\":{\"match_all\":{}}}");
     }
 
     @Test
     public void should_serialize_search_match_field() {
-        Filter f = Filters.search(OpenSearchQuery.match("firstName", "Alice"));
+        Filter f = Filters.openSearch(OpenSearchQuery.match("firstName", "Alice"));
         String json = new DocumentSerializer().marshall(f);
-        assertThat(json).isEqualTo("{\"$search\":{\"match\":{\"firstName\":\"Alice\"}}}");
+        assertThat(json).isEqualTo("{\"$openSearch\":{\"match\":{\"firstName\":\"Alice\"}}}");
     }
 
     @Test
     public void should_serialize_search_bool_query() {
-        Filter f = Filters.search(OpenSearchQuery.bool()
+        Filter f = Filters.openSearch(OpenSearchQuery.bool()
                 .must(OpenSearchQuery.match("firstName", "Alice"))
                 .filter(OpenSearchQuery.term("city", "London"))
                 .build());
         String json = new DocumentSerializer().marshall(f);
-        assertThat(json).contains("\"$search\"");
+        assertThat(json).contains("\"$openSearch\"");
         assertThat(json).contains("\"bool\"");
         assertThat(json).contains("\"must\"");
         assertThat(json).contains("\"filter\"");
@@ -77,9 +77,9 @@ class FiltersTest {
 
     @Test
     public void should_serialize_search_raw_map() {
-        Filter f = Filters.search(Map.of("match_all", Map.of()));
+        Filter f = Filters.openSearch(Map.of("match_all", Map.of()));
         String json = new DocumentSerializer().marshall(f);
-        assertThat(json).isEqualTo("{\"$search\":{\"match_all\":{}}}");
+        assertThat(json).isEqualTo("{\"$openSearch\":{\"match_all\":{}}}");
     }
 
 }

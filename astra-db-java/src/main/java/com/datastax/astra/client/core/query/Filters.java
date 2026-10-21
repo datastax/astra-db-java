@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -575,22 +574,22 @@ public class Filters {
     }
 
     // ------------------------------------------------------------------
-    //  OpenSearch $search filter
+    //  OpenSearch $openSearch filter
     // ------------------------------------------------------------------
 
     /**
-     * Creates a {@code $search} filter from an {@link OpenSearchQuery} builder.
+     * Creates a {@code $openSearch} filter from an {@link OpenSearchQuery} builder.
      *
      * <p>Produces the following fragment in the Data API request:
      * <pre>{@code
      * "filter": {
-     *   "$search": { "match_all": {} }
+     *   "$openSearch": { "match_all": {} }
      * }
      * }</pre>
      *
      * <p>Example:
      * <pre>{@code
-     * import static com.datastax.astra.client.core.query.Filters.search;
+     * import static com.datastax.astra.client.core.osQuery.Filters.search;
      * import com.datastax.astra.client.core.opensearch.OpenSearchQuery;
      *
      * // match all
@@ -599,7 +598,7 @@ public class Filters {
      * // full-text match
      * collection.find(search(OpenSearchQuery.match("firstName", "Alice")));
      *
-     * // compound bool query
+     * // compound bool osQuery
      * collection.find(search(
      *     OpenSearchQuery.bool()
      *         .must(OpenSearchQuery.match("firstName", "Alice"))
@@ -607,17 +606,17 @@ public class Filters {
      *         .build()));
      * }</pre>
      *
-     * @param query the OpenSearch DSL query produced by {@link OpenSearchQuery}
+     * @param osQuery the OpenSearch DSL osQuery produced by {@link OpenSearchQuery}
      * @return the filter
      */
-    public static Filter search(OpenSearchQuery query) {
+    public static Filter openSearch(OpenSearchQuery osQuery) {
         Filter f = new Filter();
-        f.documentMap.put(DataAPIKeywords.SEARCH.getKeyword(), query.toMap());
+        f.documentMap.put(DataAPIKeywords.SEARCH.getKeyword(), osQuery.toMap());
         return f;
     }
 
     /**
-     * Creates a {@code $search} filter from a raw {@link Map} representing the
+     * Creates a {@code $openSearch} filter from a raw {@link Map} representing the
      * OpenSearch DSL query.  Use this overload when you already have a pre-built map
      * and do not need the {@link OpenSearchQuery} fluent API.
      *
@@ -631,7 +630,7 @@ public class Filters {
      * @param rawQuery a map representing the OpenSearch query object
      * @return the filter
      */
-    public static Filter search(Map<String, Object> rawQuery) {
+    public static Filter openSearch(Map<String, Object> rawQuery) {
         Filter f = new Filter();
         f.documentMap.put(DataAPIKeywords.SEARCH.getKeyword(), rawQuery);
         return f;

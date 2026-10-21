@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Builder for OpenSearch DSL query objects passed to the {@code $search} filter.
+ * Builder for OpenSearch DSL query objects passed to the {@code $openSearch} filter.
  *
- * <p>The resulting object is serialised verbatim as the value of {@code $search} in the
+ * <p>The resulting object is serialised verbatim as the value of {@code $openSearch} in the
  * Data API {@code filter} block, e.g.:
  * <pre>{@code
  * "filter": {
- *   "$search": { "match_all": {} }
+ *   "$openSearch": { "match_all": {} }
  * }
  * }</pre>
  *
@@ -58,7 +58,7 @@ import java.util.Map;
  * Filters.search(Map.of("match_all", Map.of()))
  * }</pre>
  *
- * @see com.datastax.astra.client.core.query.Filters#search(OpenSearchQuery)
+ * @see com.datastax.astra.client.core.query.Filters#openSearch(OpenSearchQuery)
  */
 public class OpenSearchQuery {
 
@@ -83,7 +83,7 @@ public class OpenSearchQuery {
 
     /**
      * Returns the raw map representation of this OpenSearch query.
-     * This is what gets placed as the value of {@code $search}.
+     * This is what gets placed as the value of {@code $openSearch}.
      *
      * @return OpenSearch DSL as a {@code Map}
      */

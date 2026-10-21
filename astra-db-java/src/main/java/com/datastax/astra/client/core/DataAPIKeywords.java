@@ -132,7 +132,7 @@ public enum DataAPIKeywords {
     /**
      * SEARCH (OpenSearch DSL filter).
      */
-    SEARCH("$search");;
+    SEARCH("$openSearch");;
 
     /**
      * Keyword.
