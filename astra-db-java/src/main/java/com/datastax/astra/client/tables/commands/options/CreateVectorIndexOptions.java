@@ -42,7 +42,7 @@ public class CreateVectorIndexOptions extends BaseOptions<CreateVectorIndexOptio
     /**
      * Condition to upsert the table.
      */
-    boolean ifNotExists = true;
+    boolean ifNotExists = false;
 
     /**
      * Default constructor

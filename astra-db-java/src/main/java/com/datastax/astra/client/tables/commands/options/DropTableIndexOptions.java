@@ -41,7 +41,7 @@ public class DropTableIndexOptions extends BaseOptions<DropTableIndexOptions> {
     /**
      * Condition to upsert the table.
      */
-    boolean ifExists = true;
+    boolean ifExists = false;
 
     /**
      * Keyspace where to execute this command

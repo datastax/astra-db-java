@@ -46,7 +46,7 @@ public class CreateTableOptions extends BaseOptions<CreateTableOptions> {
     /**
      * Condition to upsert the table.
      */
-    boolean ifNotExists = true;
+    boolean ifNotExists = false;
 
     /**
      * Default constructor
