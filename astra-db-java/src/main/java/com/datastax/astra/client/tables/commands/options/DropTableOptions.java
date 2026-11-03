@@ -43,7 +43,7 @@ public class DropTableOptions extends BaseOptions<DropTableOptions> {
     /**
      * Condition to upsert the table.
      */
-    boolean ifExists = true;
+    boolean ifExists = false;
 
     /**
      * Default constructor
