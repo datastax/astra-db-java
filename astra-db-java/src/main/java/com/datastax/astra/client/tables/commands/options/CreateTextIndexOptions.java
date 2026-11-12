@@ -42,7 +42,7 @@ public class CreateTextIndexOptions extends BaseOptions<CreateTextIndexOptions> 
     /**
      * Condition to upsert the table.
      */
-    boolean ifNotExists = true;
+    boolean ifNotExists = false;
 
     /**
      * Default constructor
