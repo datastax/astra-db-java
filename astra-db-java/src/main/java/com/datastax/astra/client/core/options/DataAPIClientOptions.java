@@ -449,6 +449,7 @@ public class DataAPIClientOptions implements Cloneable {
         this.apiVersion                 = options.apiVersion;
         this.destination                = options.destination;
         this.embeddingHeadersProvider = options.embeddingHeadersProvider;
+        this.rerankingHeadersProvider = options.rerankingHeadersProvider;
         // Deep Copy
         this.databaseAdditionalHeaders  = options.databaseAdditionalHeaders != null ?
                 new HashMap<>(options.databaseAdditionalHeaders) : null;
