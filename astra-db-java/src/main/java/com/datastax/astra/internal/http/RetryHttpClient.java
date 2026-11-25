@@ -99,16 +99,23 @@ public class RetryHttpClient {
     public RetryHttpClient(HttpClientOptions httpClientOptions, TimeoutOptions timeoutOptions) {
         this.httpClientOptions = httpClientOptions;
         this.timeoutOptions    = timeoutOptions;
-        HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
-        httpClientBuilder.version(httpClientOptions.getHttpVersion());
-        httpClientBuilder.followRedirects(httpClientOptions.getHttpRedirect());
-        httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.getConnectTimeoutMillis()));
-        if (httpClientOptions.getHttpProxy() != null) {
-            httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
-                    httpClientOptions.getHttpProxy().getHostname(),
-                    httpClientOptions.getHttpProxy().getPort())));
+        if (httpClientOptions.getHttpClient() != null) {
+            httpClient = httpClientOptions.getHttpClient();
+        } else {
+            HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
+            httpClientBuilder.version(httpClientOptions.getHttpVersion());
+            httpClientBuilder.followRedirects(httpClientOptions.getHttpRedirect());
+            httpClientBuilder.connectTimeout(Duration.ofMillis(timeoutOptions.getConnectTimeoutMillis()));
+            if (httpClientOptions.getHttpProxy() != null) {
+                httpClientBuilder.proxy(ProxySelector.of(new InetSocketAddress(
+                        httpClientOptions.getHttpProxy().getHostname(),
+                        httpClientOptions.getHttpProxy().getPort())));
+            }
+            if (httpClientOptions.getHttpExecutor() != null) {
+                httpClientBuilder.executor(httpClientOptions.getHttpExecutor());
+            }
+            httpClient = httpClientBuilder.build();
         }
-        httpClient = httpClientBuilder.build();
 
         retryConfig = new RetryConfigBuilder()
                 .retryOnAnyException()

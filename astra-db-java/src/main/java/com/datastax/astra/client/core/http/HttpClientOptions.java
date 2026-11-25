@@ -29,6 +29,7 @@ import java.net.http.HttpClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Options to set up http Client.
@@ -144,6 +145,16 @@ public class HttpClientOptions implements Cloneable {
     HttpProxy httpProxy;
 
     /**
+     * Custom executor for the HTTP client.
+     */
+    Executor httpExecutor;
+
+    /**
+     * Custom HTTP client instance.
+     */
+    HttpClient httpClient;
+
+    /**
      * Gets httpVersion
      *
      * @return value of httpVersion
@@ -170,6 +181,24 @@ public class HttpClientOptions implements Cloneable {
         return httpProxy;
     }
 
+    /**
+     * Gets httpExecutor
+     *
+     * @return value of httpExecutor
+     */
+    public Executor getHttpExecutor() {
+        return httpExecutor;
+    }
+
+    /**
+     * Gets httpClient
+     *
+     * @return value of httpClient
+     */
+    public HttpClient getHttpClient() {
+        return httpClient;
+    }
+
     // --------------------------------------------
     // ------------- INITIALIZATION ---------------
     // --------------------------------------------
@@ -190,6 +219,8 @@ public class HttpClientOptions implements Cloneable {
             cloned.callers = new ArrayList<>(this.callers);
             cloned.retryDelay = this.retryDelay != null ? Duration.ofMillis(this.retryDelay.toMillis()) : null;
             cloned.httpProxy = this.httpProxy != null ? this.httpProxy.clone() : null;
+            cloned.httpExecutor = this.httpExecutor;
+            cloned.httpClient = this.httpClient;
 
             return cloned;
         } catch (CloneNotSupportedException e) {

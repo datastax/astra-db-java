@@ -73,9 +73,25 @@ class DataApiOptionsTest {
                 .keyspace("sample")
                 .token("another")
                 .timeout(Duration.ofSeconds(10));
+    }
 
+    @Test
+    void shouldConfigureHttpExecutorAndHttpClient() {
+        java.util.concurrent.ExecutorService customExecutor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        HttpClient customHttpClient = HttpClient.newBuilder().build();
 
+        HttpClientOptions httpOptions = new HttpClientOptions()
+                .httpExecutor(customExecutor)
+                .httpClient(customHttpClient);
 
+        assertThat(httpOptions.getHttpExecutor()).isSameAs(customExecutor);
+        assertThat(httpOptions.getHttpClient()).isSameAs(customHttpClient);
+
+        HttpClientOptions cloned = httpOptions.clone();
+        assertThat(cloned.getHttpExecutor()).isSameAs(customExecutor);
+        assertThat(cloned.getHttpClient()).isSameAs(customHttpClient);
+
+        customExecutor.shutdown();
     }
 
     @Test
