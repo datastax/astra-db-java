@@ -308,6 +308,9 @@ public abstract class AbstractCommandRunner<OPTIONS extends BaseOptions<?>> impl
             if (options.getEmbeddingHeadersProvider() != null) {
                 options.getEmbeddingHeadersProvider().getHeaders().forEach(builder::header);
             }
+            if (options.getRerankingHeadersProvider() != null) {
+                options.getRerankingHeadersProvider().getHeaders().forEach(builder::header);
+            }
             if (options.getDatabaseAdditionalHeaders() != null) {
                 options.getDatabaseAdditionalHeaders().forEach(builder::header);
             }
